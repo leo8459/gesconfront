@@ -1,0 +1,268 @@
+
+php artisan make:model TipoCasilla -rm --api
+php artisan make:model Seccion -rm --api
+
+
+ <template>
+  <div>
+    <JcLoader :load="load"></JcLoader>
+    <AdminTemplate :page="page" :modulo="modulo">
+      <div slot="body">
+        <div class="row justify-content-end">
+          <div class="col-2">
+            <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
+              <i class="fas fa-plus"></i> Agregar
+            </nuxtLink>
+            <button @click="generarReporteClientes" class="btn btn-sm btn-primary">
+              <i class="fas fa-print fa-lg"></i>
+    </button>
+          </div>
+          <div class="col-12">
+            <div class="card">
+              <div class="card-body">
+                <table class="table">
+                  <thead>
+                    <th class="py-0 px-1">#</th>
+                    <th class="py-0 px-1">Nombre Completo</th>
+                    <th class="py-0 px-1">email</th>
+                    <th class="py-0 px-1">carnet</th>
+                    <th class="py-0 px-1">direccion</th>
+                    <th class="py-0 px-1">telefono</th>
+                    <th class="py-0 px-1">estado</th>
+                    <th class="py-0 px-1"></th>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(m, i) in displayedList" :key="m.id">
+                      <td class="py-0 px-1">{{ i + 1 }}</td>
+                      <td class="py-0 px-1">{{ m.nombre }}</td>
+                      <td class="py-0 px-1">{{ m.email }}</td>
+                      <td class="py-0 px-1">{{ m.carnet }}</td>
+                      <td class="py-0 px-1">{{ m.direccion }}</td>
+                      <td class="py-0 px-1">{{ m.telefono }}</td>
+                      <td class="py-0 px-1"
+                        :class="m.estado === 1 ? 'activo' : (m.estado === 3 ? 'CERRADO' : 'Mantenimiento')">
+                        {{ m.estado === 1 ? 'Activo' : (m.estado === 3 ? 'CERRADO' : 'Mantenimiento') }}
+                      </td>
+                      <td class="py-0 px-1">
+                        <div class="btn-group">
+                          <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
+                            <i class="fas fa-pen"></i>
+                          </nuxtLink>
+                          <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="pagination justify-content-between mt-3">
+      <button
+        @click="currentPage--"
+        :disabled="currentPage === 1"
+        class="btn btn-sm btn-transparent"
+        style="border-radius: 0;"
+      >
+        Anterior
+      </button>
+      <span class="align-self-center">
+        Página {{ currentPage }} de {{ totalPages }}
+        <span v-for="page in displayedPages" :key="page">
+          <button
+            v-if="page === currentPage || page === currentPage + 1 || page === currentPage + 2 || page === currentPage + 3 || page === currentPage + 4"
+            @click="changePage(page)"
+            :class="{ 'btn-primary': page === currentPage, 'btn-transparent': page !== currentPage }"
+            class="btn btn-sm"
+            style="border-radius: 0;"
+          >
+            {{ page }}
+          </button>
+        </span>
+      </span>
+      <button
+        @click="currentPage++"
+        :disabled="currentPage * pageSize >= list.length"
+        class="btn btn-sm btn-transparent"
+        style="border-radius: 0;"
+      >
+        Siguiente
+      </button>
+    </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AdminTemplate>
+  </div>
+</template>
+
+<script>
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+export default {
+  name: "IndexPage",
+  head() {
+    return {
+      title: this.modulo,
+    };
+  },
+
+  data() {
+    return {
+      load: true,
+      list: [],
+      apiUrl: 'clientes',
+      page: 'clientes',
+      modulo: 'agbc',
+      url_nuevo: '/admin/clientes/cliente/nuevo',
+      url_editar: '/admin/clientes/cliente/editar/',
+      currentPage: 1,
+      pageSize: 10,
+    };
+  },
+  computed: {
+    displayedPages() {
+      const pageCount = Math.ceil(this.list.length / this.pageSize);
+      return Array.from({ length: pageCount }, (_, i) => i + 1);
+    },
+    displayedList() {
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      return this.list.slice(startIndex, endIndex);
+    },
+    totalPages() {
+      return Math.ceil(this.list.length / this.pageSize);
+    },
+  },
+  methods: {
+    
+
+    generarReporteClientes() {
+      const dataForReport = this.list; // Obtener todos los clientes de la lista actual
+
+      const headers = [
+        '#',
+        'Nombre Completo',
+        'Email',
+        'Carnet',
+        'Dirección',
+        'Teléfono',
+        'Estado',
+      ];
+
+      const body = dataForReport.map((cliente, index) => [
+        index + 1,
+        cliente.nombre,
+        cliente.email,
+        cliente.carnet,
+        cliente.direccion,
+        cliente.telefono,
+        cliente.estado === 1 ? 'Activo' : (cliente.estado === 3 ? 'CERRADO' : 'Mantenimiento'),
+      ]);
+
+      const doc = new jsPDF('p', 'mm', 'a4');
+
+      doc.autoTable({
+        head: [headers],
+        body: body,
+        startY: 10,
+        theme: 'striped',
+        margin: { top: 20 },
+        styles: {
+          fontSize: 8,
+          cellPadding: 3,
+          overflow: 'linebreak',
+          columnWidth: 'wrap',
+        },
+        didDrawCell: (data) => {
+          const cell = data.cell;
+          doc.setFontSize(10);
+          doc.setTextColor(50);
+
+          if (cell.height > 10 && doc.getTextWidth(cell.text) > cell.width - 10) {
+            doc.autoTableText(cell.text, cell.x + 2, cell.y + 2, {
+              halign: 'left',
+              valign: 'top',
+            });
+          }
+        },
+      });
+
+      const fileName = 'reporte_clientes.pdf';
+      doc.save(fileName);
+    },
+  
+
+
+
+
+
+    async GET_DATA(path) {
+      const res = await this.$api.$get(path);
+      return res;
+    },
+    async EliminarItem(id) {
+      this.load = true;
+      try {
+        const res = await this.$api.$delete(`${this.apiUrl}/${id}`);
+        console.log(res);
+        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
+          this.list = v[0];
+        });
+      } catch (e) {
+        console.log(e);
+      } finally {
+        this.load = false;
+      }
+    },
+    Eliminar(id) {
+      let self = this;
+      this.$swal
+        .fire({
+          title: 'Deseas Eliminar?',
+          showDenyButton: false,
+          showCancelButton: true,
+          confirmButtonText: 'Eliminar',
+          cancelButtonText: 'Cancelar', // Agrega esta línea para definir el texto del botón Cancelar
+        })
+        .then(async (result) => {
+          if (result.isConfirmed) {
+            await self.EliminarItem(id);
+          }
+        });
+    },
+    changePage(pageNum) {
+      this.currentPage = pageNum;
+    },
+  },
+  mounted() {
+    this.$nextTick(async () => {
+      try {
+        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
+          this.list = v[0];
+        });
+      } catch (e) {
+        console.log(e);
+      } finally {
+        this.load = false;
+      }
+    });
+  },
+};
+</script>
+<style scoped>
+/* Estilos para los botones transparentes */
+.btn-transparent {
+  background-color: transparent;
+  color: #000000; /* Cambia el color del texto según tus preferencias */
+  border-color: transparent; /* Opcional: elimina el borde si lo deseas */
+}
+
+/* Estilos para el botón activo */
+.btn-primary {
+  background-color: #0d3662;
+  color: #fff;
+}
+</style>
+
