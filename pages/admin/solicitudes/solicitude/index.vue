@@ -57,12 +57,16 @@
                           <td class="py-0 px-1">{{ m.telefono }}</td>
                           <td class="py-0 px-1">{{ m.contenido }}</td>
                           <td class="py-0 px-1">{{ m.fecha }}</td>
-                          <td class="py-0 px-1">{{ m.firma_o }}</td>
+                          <td class="py-0 px-1">
+                            <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
+                          </td>
                           <td class="py-0 px-1">{{ m.destinatario }}</td>
                           <td class="py-0 px-1">{{ m.telefono_d }}</td>
                           <td class="py-0 px-1">{{ m.direccion_d }}</td>
                           <td class="py-0 px-1">{{ m.ciudad }}</td>
-                          <td class="py-0 px-1">{{ m.firma_d }}</td>
+                          <td class="py-0 px-1">
+                            <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
+                          </td>
                           <td class="py-0 px-1">{{ m.nombre_d }}</td>
                           <td class="py-0 px-1">{{ m.ci_d }}</td>
                           <td class="py-0 px-1">{{ m.fecha_d }}</td>
