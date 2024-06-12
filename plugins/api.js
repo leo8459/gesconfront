@@ -10,7 +10,7 @@ export default function ({ $axios }, inject) {
 
   // Set baseURL to something different
 
-  let url ='http://localhost:80/gescon/public/api/'
+  let url ='http://localhost/gesconback/public/api/'
   api.url =url
   api.setBaseURL(url)
   // Inject to context as $api

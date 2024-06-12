@@ -49,6 +49,14 @@
                     <div class="form-group col-12">
                       <label for="firma_o">Firma Origen</label>
                       <input type="text" v-model.trim="model.firma_o" class="form-control" id="firma_o">
+                      <div class="position-relative ">
+                        <canvas id="canvas" class="border border-2 rounded-3 bg-white " width="560px"
+                          height="250px"></canvas>
+                        <div class="btn-canvas">
+                          <button type="button" id="guardar" class="btn btn-primary ">guardar</button>
+                          <button type="button" id="limpiar" class="btn btn-secondary ">limpiar</button>
+                        </div>
+                      </div>
                     </div>
                     <div class="form-group col-12">
                       <label for="destinatario">Destinatario</label>
@@ -69,6 +77,14 @@
                     <div class="form-group col-12">
                       <label for="firma_d">Firma Destino</label>
                       <input type="text" v-model.trim="model.firma_d" class="form-control" id="firma_d">
+                      <div class="position-relative ">
+                        <canvas id="canvas2" class="border border-2 rounded-3 bg-white " width="560px"
+                          height="250px"></canvas>
+                        <div class="btn-canvas">
+                          <button type="button" id="guardar2" class="btn btn-primary ">guardar</button>
+                          <button type="button" id="limpiar2" class="btn btn-secondary ">limpiar</button>
+                        </div>
+                      </div>
                     </div>
                     <div class="form-group col-12">
                       <label for="nombre_d">Nombre Destinatario</label>
@@ -102,6 +118,9 @@
 </template>
 
 <script>
+import SignaturePad from 'signature_pad';
+
+
 export default {
   data() {
     return {
@@ -153,7 +172,41 @@ export default {
       } finally {
         this.load = false;
       }
+
+      var canvas = document.getElementById('canvas');
+      var signaturePad = new SignaturePad(canvas);
+      var clearButton = document.getElementById('limpiar');
+      var base64Input = document.getElementById('firma_o');
+      var generateButton = document.getElementById('guardar');
+      clearButton.addEventListener('click', function () {
+        signaturePad.clear();
+        base64Input.value = "";
+      });
+
+      generateButton.addEventListener('click', function () {
+        console.log('guardar');
+        var firma = signaturePad.toDataURL();
+        base64Input.value = firma;
+      });
+
+      var canvas2 = document.getElementById('canvas2');
+      var signaturePad2 = new SignaturePad(canvas2);
+      var clearButton2 = document.getElementById('limpiar2');
+      var base64Input2 = document.getElementById('firma_d');
+      var generateButton2 = document.getElementById('guardar2');
+      clearButton2.addEventListener('click', function () {
+        signaturePad2.clear();
+        base64Input2.value = "";
+      });
+
+      generateButton2.addEventListener('click', function () {
+        console.log('guardar2');
+        var firma2 = signaturePad2.toDataURL();
+        base64Input2.value = firma2;
+      });
+
     });
+
   },
 }
 </script>
