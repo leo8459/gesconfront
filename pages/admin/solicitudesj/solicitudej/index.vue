@@ -14,7 +14,8 @@
           <div v-for="(group, estado) in groupedData" :key="estado" class="col-12">
             <div class="card border-rounded">
               <div class="card-header" @click="toggleCollapse(estado)">
-                {{ estado === '1' ? 'Solicitudes' : estado === '2' ? 'En camino' : estado === '3' ? 'Entregados' : estado === '0' ? 'Cancelados' : 'Otro estado' }}
+                {{ estado === '1' ? 'Solicitudes' : estado === '2' ? 'En camino' : estado === '3' ? 'Entregados' :
+                  estado === '0' ? 'Cancelados' : 'Otro estado' }}
               </div>
               <b-collapse :id="'collapse-' + estado" v-model="collapseState[estado]">
                 <div class="card-body p-2">
@@ -57,25 +58,33 @@
                           <td class="py-0 px-1">{{ m.telefono }}</td>
                           <td class="py-0 px-1">{{ m.contenido }}</td>
                           <td class="py-0 px-1">{{ m.fecha }}</td>
-                          <td class="py-0 px-1">{{ m.firma_o }}</td>
+                          <td class="py-0 px-1">
+                            <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
+                          </td>
                           <td class="py-0 px-1">{{ m.destinatario }}</td>
                           <td class="py-0 px-1">{{ m.telefono_d }}</td>
                           <td class="py-0 px-1">{{ m.direccion_d }}</td>
                           <td class="py-0 px-1">{{ m.ciudad }}</td>
-                          <td class="py-0 px-1">{{ m.firma_d }}</td>
+                          <td class="py-0 px-1">
+                            <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
+                          </td>
                           <td class="py-0 px-1">{{ m.nombre_d }}</td>
                           <td class="py-0 px-1">{{ m.ci_d }}</td>
                           <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                          <td class="py-0 px-1">{{ m.estado === 1 ? 'Solicitud' : m.estado === 2 ? 'En camino' : m.estado === 3 ? 'Entregado' : m.estado === 0 ? 'Cancelado' : m.estado }}</td>
-                          <td class="py-0 px-1" v-if="m.estado !== 3 && m.estado !== 0">
+                          <td class="py-0 px-1">{{ m.estado === 1 ? 'Solicitud' : m.estado === 2 ? 'En camino' :
+                            m.estado === 3 ? 'Entregado' : m.estado === 0 ? 'Cancelado' : m.estado }}</td>
+                          <td class="py-0 px-1" v-if="m.estado === 1 || m.estado === 2">
                             <div class="btn-group">
-                              <nuxtLink v-if="m.estado !== 2" :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
+                              <nuxtLink :to="url_editar + m.id"
+                                class="btn btn-info btn-sm py-1 px-2">
                                 <i class="fas fa-pen"></i>
                               </nuxtLink>
-                              <button v-if="m.estado !== 2" type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
+                              <button v-if="m.estado !== 2" type="button" @click="Eliminar(m.id)"
+                                class="btn btn-danger btn-sm py-1 px-2">
                                 <i class="fas fa-trash"></i>
                               </button>
-                              <button v-if="m.estado === 2" type="button" @click="DarDeBaja(m.id)" class="btn btn-warning btn-sm py-1 px-2">
+                              <button v-if="m.estado === 2" type="button" @click="DarDeBaja(m.id)"
+                                class="btn btn-warning btn-sm py-1 px-2">
                                 <i class="fas fa-ban"></i> Dar de Baja
                               </button>
                             </div>
@@ -95,7 +104,7 @@
 </template>
 
 <script>
-import { BCollapse } from 'bootstrap-vue';
+import { BCollapse, BModal } from 'bootstrap-vue';
 
 export default {
   name: "IndexPage",
@@ -111,7 +120,9 @@ export default {
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
       url_editar: '/admin/solicitudesj/solicitudej/editar/',
-      collapseState: {}
+      collapseState: {},
+      isModalVisible: false,
+      currentId: null
     };
   },
   computed: {
@@ -163,6 +174,8 @@ export default {
         const item = this.list.find(m => m.id === id);
         if (item) {
           item.estado = 3; // Cambiar estado a 3 (Entregado)
+          const laPazTime = new Date().toLocaleString('en-US', { timeZone: 'America/La_Paz' });
+          item.fecha_d = laPazTime.replace(',', ''); // Establecer fecha y hora actual en La Paz
           await this.$api.$put(this.apiUrl + '/' + id, item);
           await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
             this.list = v[0];
@@ -202,8 +215,10 @@ export default {
   border-radius: 15px;
   border: 1px solid #dee2e6;
   margin-bottom: 1.5rem;
-  overflow: hidden; /* Para asegurar que los bordes redondeados se apliquen correctamente */
+  overflow: hidden;
+  /* Para asegurar que los bordes redondeados se apliquen correctamente */
 }
+
 .table-responsive {
   max-width: 100%;
   overflow-x: auto;

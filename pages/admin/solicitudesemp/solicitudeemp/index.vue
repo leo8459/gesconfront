@@ -30,6 +30,7 @@
                           <th class="py-0 px-1">Dirección</th>
                           <th class="py-0 px-1">Teléfono</th>
                           <th class="py-0 px-1">Contenido</th>
+                          <th class="py-0 px-1">Firma Remitente</th>
                           <th class="py-0 px-1">Fecha de Solicitud</th>
                           <th class="py-0 px-1">Destinatario</th>
                           <th class="py-0 px-1">Teléfono Destinatario</th>
@@ -51,6 +52,9 @@
                           <td class="py-0 px-1">{{ m.direccion }}</td>
                           <td class="py-0 px-1">{{ m.telefono }}</td>
                           <td class="py-0 px-1">{{ m.contenido }}</td>
+                          <td class="py-0 px-1">
+                            <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
+                          </td>
                           <td class="py-0 px-1">{{ m.fecha }}</td>
                           <td class="py-0 px-1">{{ m.destinatario }}</td>
                           <td class="py-0 px-1">{{ m.telefono_d }}</td>

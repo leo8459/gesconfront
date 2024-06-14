@@ -9,7 +9,13 @@
               <i class="fas fa-plus"></i> Agregar
             </nuxtLink>
           </div>
+          <div class="col-2">
+            <button @click="generarReporte" class="btn btn-primary btn-sm w-100">
+              <i class="fas fa-file-alt"></i> Generar Reporte
+            </button>
+          </div>
         </div>
+        <!-- Resto de tu código -->
         <div class="row">
           <div v-for="(group, estado) in groupedData" :key="estado" class="col-12">
             <div class="card border-rounded">
@@ -24,6 +30,7 @@
                         <tr>
                           <th class="py-0 px-1">#</th>
                           <th class="py-0 px-1">Sucursal</th>
+                          <th class="py-0 px-1">Cartero</th>
                           <th class="py-0 px-1">Guia</th>
                           <th class="py-0 px-1">Peso O</th>
                           <th class="py-0 px-1">Peso V</th>
@@ -49,6 +56,7 @@
                         <tr v-for="(m, i) in group" :key="i">
                           <td class="py-0 px-1">{{ i + 1 }}</td>
                           <td class="p-1">{{ m.sucursale.nombre }}</td>
+                          <td class="p-1">{{ m.cartero.nombre }}</td>
                           <td class="py-0 px-1">{{ m.guia }}</td>
                           <td class="py-0 px-1">{{ m.peso_o }}</td>
                           <td class="py-0 px-1">{{ m.peso_v }}</td>
@@ -160,6 +168,89 @@ export default {
     },
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
+    },
+    generarReporte() {
+      const reporteHtml = this.generarReporteHtml();
+      const reporteWindow = window.open("", "_blank");
+      reporteWindow.document.write(reporteHtml);
+      reporteWindow.document.close();
+    },
+    generarReporteHtml() {
+      let html = `
+        <html>
+        <head>
+          <title>Reporte de Solicitudes</title>
+          <style>
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+          </style>
+        </head>
+        <body>
+          <h1>Reporte de Solicitudes</h1>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Sucursal</th>
+                <th>Guia</th>
+                <th>Peso O</th>
+                <th>Peso V</th>
+                <th>Remitente</th>
+                <th>Dirección</th>
+                <th>Teléfono</th>
+                <th>Contenido</th>
+                <th>Fecha</th>
+                <th>Firma O</th>
+                <th>Destinatario</th>
+                <th>Teléfono D</th>
+                <th>Dirección Destinatario</th>
+                <th>Ciudad</th>
+                <th>Firma D</th>
+                <th>Nombre D</th>
+                <th>CI D</th>
+                <th>Fecha D</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      this.list.forEach((item, index) => {
+        html += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${item.sucursale.nombre}</td>
+            <td>${item.guia}</td>
+            <td>${item.peso_o}</td>
+            <td>${item.peso_v}</td>
+            <td>${item.remitente}</td>
+            <td>${item.direccion}</td>
+            <td>${item.telefono}</td>
+            <td>${item.contenido}</td>
+            <td>${item.fecha}</td>
+            <td>${item.firma_o ? `<img src="${item.firma_o}" alt="Firma Origen" width="100"/>` : ''}</td>
+            <td>${item.destinatario}</td>
+            <td>${item.telefono_d}</td>
+            <td>${item.direccion_d}</td>
+            <td>${item.ciudad}</td>
+            <td>${item.firma_d ? `<img src="${item.firma_d}" alt="Firma Destino" width="100"/>` : ''}</td>
+            <td>${item.nombre_d}</td>
+            <td>${item.ci_d}</td>
+            <td>${item.fecha_d}</td>
+            <td>${item.estado === 1 ? 'Solicitud' : item.estado === 2 ? 'En camino' : item.estado === 3 ? 'Entregado' : item.estado === 0 ? 'Cancelado' : item.estado}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
+
+      return html;
     }
   },
   mounted() {

@@ -47,10 +47,6 @@
                       <input type="text" v-model="model.contenido" class="form-control" id="">
                     </div>
                     <div class="form-group col-12">
-                      <label for="">firma_o</label>
-                      <input type="text" v-model="model.firma_o" class="form-control" id="">
-                    </div>
-                    <div class="form-group col-12">
                       <label for="">destinatario</label>
                       <input type="text" v-model="model.destinatario" class="form-control" id="">
                     </div>
@@ -67,8 +63,15 @@
                       <input type="text" v-model="model.ciudad" class="form-control" id="">
                     </div>
                     <div class="form-group col-12">
-                      <label for="">firma_d</label>
-                      <input type="text" v-model="model.firma_d" class="form-control" id="">
+                      <label for="firma_d">Firma Destino</label>
+                      <input type="hidden" v-model.trim="model.firma_d" class="form-control" id="firma_d">
+                      <div class="position-relative">
+                        <canvas id="canvas2" class="border border-2 rounded-3 bg-white" width="560px" height="250px"></canvas>
+                        <div class="btn-canvas">
+                          <button type="button" id="guardar2" class="btn btn-primary">Guardar</button>
+                          <button type="button" id="limpiar2" class="btn btn-secondary">Limpiar</button>
+                        </div>
+                      </div>
                     </div>
                     <div class="form-group col-12">
                       <label for="">nombre Destinatario</label>

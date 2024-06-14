@@ -18,6 +18,14 @@
                         <option v-for="m in sucursales" :value="m.id">{{ m.nombre }}</option>
                       </select>
                     </div>
+
+                    <div class="form-group col-12">
+                      <label for="">Cartero</label>
+                      <select name="" id="" class="form-control" v-model="model.cartero_id">
+                        <option v-for="m in carteros" :value="m.id">{{ m.nombre }}</option>
+                      </select>
+                    </div>
+
                     <div class="form-group col-12">
                       <label for="">Sucursal</label>
                       <input type="text" v-model="model.guia" class="form-control" id="">
@@ -114,6 +122,7 @@ export default {
       load: true,
       model: {
         sucursale_id: '',
+        cartero_id: '',
         guia: '',
         peso_o: '',
         peso_v: '',
@@ -152,10 +161,12 @@ export default {
       try {
         await Promise.all([
           this.GET_DATA(this.apiUrl + '/' + this.$route.params.id),
-          this.GET_DATA('sucursales')
+          this.GET_DATA('sucursales'),
+          this.GET_DATA('carteros')
         ]).then((v) => {
           this.model = v[0];
           this.sucursales = v[1];
+          this.carteros = v[2];
         })
       } catch (e) {
         console.log(e);

@@ -23,10 +23,9 @@
                       <input type="text" v-model.trim="model.guia" class="form-control" id="guia">
                     </div>
                     <div class="form-group col-12">
-                      <label for="peso_o">Peso (Gr)</label>
+                      <label for="peso_o">Peso</label>
                       <input type="text" v-model.trim="model.peso_o" class="form-control" id="peso_o">
                     </div>
-                    
                     <div class="form-group col-12">
                       <label for="remitente">Remitente</label>
                       <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente">
@@ -43,7 +42,17 @@
                       <label for="contenido">Contenido</label>
                       <input type="text" v-model.trim="model.contenido" class="form-control" id="contenido">
                     </div>
-                    
+                    <div class="form-group col-12">
+                      <label for="firma_o">Firma Origen</label>
+                      <input type="hidden" v-model.trim="model.firma_o" class="form-control" id="firma_o">
+                      <div class="position-relative">
+                        <canvas id="canvas" class="border border-2 rounded-3 bg-white" width="560px" height="250px"></canvas>
+                        <div class="btn-canvas">
+                          <button type="button" id="guardar" class="btn btn-primary">Guardar</button>
+                          <button type="button" id="limpiar" class="btn btn-secondary">Limpiar</button>
+                        </div>
+                      </div>
+                    </div>
                     <div class="form-group col-12">
                       <label for="destinatario">Destinatario</label>
                       <input type="text" v-model.trim="model.destinatario" class="form-control" id="destinatario">
@@ -60,7 +69,7 @@
                       <label for="ciudad">Ciudad</label>
                       <input type="text" v-model.trim="model.ciudad" class="form-control" id="ciudad">
                     </div>
-                  
+                    
                     <div class="form-group col-12">
                       <label for="nombre_d">Nombre Destinatario</label>
                       <input type="text" v-model.trim="model.nombre_d" class="form-control" id="nombre_d">
@@ -69,9 +78,8 @@
                       <label for="ci_d">CI Destinatario</label>
                       <input type="text" v-model.trim="model.ci_d" class="form-control" id="ci_d">
                     </div>
-                    
                     <div class="form-group col-12">
-                      <label for="fecha">Envio Fecha</label>
+                      <label for="fecha">Inicio Fecha</label>
                       <input type="date" v-model="model.fecha" class="form-control" :min="ini_vigencia" id="fecha"disabled>
                     </div>
                     
@@ -87,6 +95,8 @@
 </template>
 
 <script>
+import SignaturePad from 'signature_pad';
+
 export default {
   data() {
     return {
@@ -133,21 +143,48 @@ export default {
       try {
         const sucursales = await this.GET_DATA('sucursales');
         this.sucursales = sucursales;
-
-        // Set today's date as ini_vigencia
-        const today = new Date().toISOString().split('T')[0];
-        this.ini_vigencia = today;
-
-        // Optionally set model.fecha to today's date if needed
-        if (!this.model.fecha) {
-          this.model.fecha = today;
-        }
       } catch (e) {
         console.log(e);
       } finally {
         this.load = false;
       }
+
+      // Set the current date to the fecha field
+      const today = new Date().toISOString().split('T')[0];
+      this.model.fecha = today;
+
+      var canvas = document.getElementById('canvas');
+      var signaturePad = new SignaturePad(canvas);
+      var clearButton = document.getElementById('limpiar');
+      var generateButton = document.getElementById('guardar');
+      clearButton.addEventListener('click', () => {
+        signaturePad.clear();
+        this.model.firma_o = "";
+      });
+
+      generateButton.addEventListener('click', () => {
+        console.log('guardar');
+        var firma = signaturePad.toDataURL();
+        this.model.firma_o = firma;
+      });
+
+      var canvas2 = document.getElementById('canvas2');
+      var signaturePad2 = new SignaturePad(canvas2);
+      var clearButton2 = document.getElementById('limpiar2');
+      var generateButton2 = document.getElementById('guardar2');
+      clearButton2.addEventListener('click', () => {
+        signaturePad2.clear();
+        this.model.firma_d = "";
+      });
+
+      generateButton2.addEventListener('click', () => {
+        console.log('guardar2');
+        var firma2 = signaturePad2.toDataURL();
+        this.model.firma_d = firma2;
+      });
+
     });
+
   },
 }
 </script>

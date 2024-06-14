@@ -109,14 +109,22 @@
                  <li class="nav-item">
                    <nuxtLink
                      class="nav-link"
-                     to="/admin/alquileres/alquilere"
+                     to="/admin/encargados/encargado"
                    >
-                     <span class="sidenav-mini-icon"> alquileres </span>
-                     <span class="sidenav-normal"> alquileres </span>
+                     <span class="sidenav-mini-icon"> encargados </span>
+                     <span class="sidenav-normal"> encargados </span>
                    </nuxtLink>
                  </li>
 
-                
+                 <li class="nav-item">
+                   <nuxtLink
+                     class="nav-link"
+                     to="/admin/carteros/cartero"
+                   >
+                     <span class="sidenav-mini-icon"> carteros </span>
+                     <span class="sidenav-normal"> carteros </span>
+                   </nuxtLink>
+                 </li>
 
                  <li class="nav-item">
                    <nuxtLink

@@ -161,7 +161,7 @@ export default {
   },
 
   mounted() {
-    this.$nextTick(async () => {
+     this.$nextTick(async () => {
       try {
         const sucursales = await this.GET_DATA('sucursales');
         this.sucursales = sucursales;
