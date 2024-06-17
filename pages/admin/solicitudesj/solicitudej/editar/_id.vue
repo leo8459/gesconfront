@@ -14,85 +14,26 @@
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="">Sucursal</label>
-                      <select name="" id="" class="form-control" v-model="model.sucursale_id">
+                      <select name="" id="" class="form-control" v-model="model.sucursale_id"disabled>
                         <option v-for="m in sucursales" :value="m.id">{{ m.nombre }}</option>
                       </select>
                     </div>
                     <div class="form-group col-12">
-                      <label for="">Sucursal</label>
-                      <input type="text" v-model="model.guia" class="form-control" id="">
+                      <label for="">Cartero</label>
+                      <select name="" id="" class="form-control" v-model="model.cartero_id">
+                        <option v-for="m in carteros" :value="m.id">{{ m.nombre }}</option>
+                      </select>
                     </div>
+            
                     <div class="form-group col-12">
                       <label for="">Peso Empresa (Kg)</label>
-                      <input type="text" v-model="model.peso_o" class="form-control" id="">
+                      <input type="text" v-model="model.peso_o" class="form-control" id=""disabled>
                     </div>
                     <div class="form-group col-12">
                       <label for="">Peso Agencia (Kg)</label>
                       <input type="text" v-model="model.peso_v" class="form-control" id="">
                     </div>
-                    <div class="form-group col-12">
-                      <label for="">remitente</label>
-                      <input type="text" v-model="model.remitente" class="form-control" id="">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">direccion</label>
-                      <input type="text" v-model="model.direccion" class="form-control" id="">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">telefono</label>
-                      <input type="text" v-model="model.telefono" class="form-control" id="">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">contenido</label>
-                      <input type="text" v-model="model.contenido" class="form-control" id="">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">destinatario</label>
-                      <input type="text" v-model="model.destinatario" class="form-control" id="">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">telefono Destinatario</label>
-                      <input type="text" v-model="model.telefono_d" class="form-control" id="">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">Direccion Destino</label>
-                      <input type="text" v-model="model.direccion_d" class="form-control" id="">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">ciudad</label>
-                      <input type="text" v-model="model.ciudad" class="form-control" id="">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="firma_d">Firma Destino</label>
-                      <input type="hidden" v-model.trim="model.firma_d" class="form-control" id="firma_d">
-                      <div class="position-relative">
-                        <canvas id="canvas2" class="border border-2 rounded-3 bg-white" width="560px" height="250px"></canvas>
-                        <div class="btn-canvas">
-                          <button type="button" id="guardar2" class="btn btn-primary">Guardar</button>
-                          <button type="button" id="limpiar2" class="btn btn-secondary">Limpiar</button>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">nombre Destinatario</label>
-                      <input type="text" v-model="model.nombre_d" class="form-control" id="">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">CI destinatario</label>
-                      <input type="text" v-model="model.ci_d" class="form-control" id="">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">estado</label>
-                      <input type="text" v-model="model.estado" class="form-control" id="">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">Inicio Fecha</label>
-                      <input type="date" v-model="model.fecha" class="form-control" :min="ini_vigencia">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">Fin Fecha</label>
-                      <input type="date" v-model="model.fecha_d" class="form-control" :min="fin_vigencia">
-                    </div>                    
+                        
                   </div>
                 </CrudUpdate>
               </div>
@@ -117,6 +58,7 @@ export default {
       load: true,
       model: {
         sucursale_id: '',
+      cartero_id: '',
         guia: '',
         peso_o: '',
         peso_v: '',
@@ -140,6 +82,7 @@ export default {
       page: "solicitudes",
       modulo: "Agbc",
       sucursales: [],
+      carteros: [], // Añadido para cargar los carteros
       ini_vigencia: '',
       fin_vigencia: ''
     };
@@ -155,10 +98,12 @@ export default {
       try {
         await Promise.all([
           this.GET_DATA(this.apiUrl + '/' + this.$route.params.id),
-          this.GET_DATA('sucursales')
+          this.GET_DATA('sucursales'),
+          this.GET_DATA('carteros') // Añadido para cargar los carteros
         ]).then((v) => {
           this.model = v[0];
           this.sucursales = v[1];
+          this.carteros = v[2]; // Asignar los carteros
         })
       } catch (e) {
         console.log(e);

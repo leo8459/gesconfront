@@ -25,6 +25,7 @@
                         <tr>
                           <th class="py-0 px-1">#</th>
                           <th class="py-0 px-1">Sucursal</th>
+                          <th class="py-0 px-1">Cartero</th>
                           <th class="py-0 px-1">Guia</th>
                           <th class="py-0 px-1">Peso Empresa (Kg)</th>
                           <th class="py-0 px-1">Peso Correos (Kg)</th>
@@ -50,6 +51,7 @@
                         <tr v-for="(m, i) in group" :key="i">
                           <td class="py-0 px-1">{{ i + 1 }}</td>
                           <td class="p-1">{{ m.sucursale.nombre }}</td>
+                          <td class="p-1">{{ m.cartero ? m.cartero.nombre : 'Por asignar' }}</td>
                           <td class="py-0 px-1">{{ m.guia }}</td>
                           <td class="py-0 px-1">{{ m.peso_o }}</td>
                           <td class="py-0 px-1">{{ m.peso_v }}</td>
@@ -103,8 +105,9 @@
   </div>
 </template>
 
+
 <script>
-import { BCollapse, BModal } from 'bootstrap-vue';
+import { BCollapse } from 'bootstrap-vue';
 
 export default {
   name: "IndexPage",
@@ -209,6 +212,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .card.border-rounded {
