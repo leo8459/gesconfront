@@ -19,6 +19,12 @@
                       </select>
                     </div>
                     <div class="form-group col-12">
+                      <label for="sucursal">carteros</label>
+                      <select id="sucursal" class="form-control" v-model="model.cartero_id">
+                        <option v-for="m in carteros" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+                      </select>
+                    </div>
+                    <div class="form-group col-12">
                       <label for="guia">Guia</label>
                       <input type="text" v-model.trim="model.guia" class="form-control" id="guia">
                     </div>
@@ -124,6 +130,7 @@ export default {
     return {
       model: {
         sucursale_id: '',
+        cartero_id: '',
         guia: '',
         peso_o: '',
         peso_v: '',
@@ -148,6 +155,7 @@ export default {
       modulo: 'AGBC',
       load: true,
       sucursales: [],
+      carteros: [],
       ini_vigencia: '',
       fin_vigencia: ''
     }
@@ -165,6 +173,8 @@ export default {
       try {
         const sucursales = await this.GET_DATA('sucursales');
         this.sucursales = sucursales;
+        const carteros = await this.GET_DATA('carteros'); // Asegúrate de cargar también los carteros
+        this.carteros = carteros;
       } catch (e) {
         console.log(e);
       } finally {

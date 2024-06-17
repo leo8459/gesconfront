@@ -102,6 +102,7 @@ export default {
     return {
       model: {
         sucursale_id: '',
+        cartero_id: null, // Permitir valor nulo
         guia: '',
         peso_o: '',
         peso_v: '',
