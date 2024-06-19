@@ -10,17 +10,22 @@
             </nuxtLink>
           </div>
           <div class="col-2">
+            <nuxtLink :to="url_asignar" class="btn btn-dark btn-sm w-100">
+              <i class="fas fa-plus"></i> Asignar Carteros
+            </nuxtLink>
+          </div>
+          <div class="col-2">
             <button @click="generarReporte" class="btn btn-primary btn-sm w-100">
               <i class="fas fa-file-alt"></i> Generar Reporte
             </button>
           </div>
         </div>
-        <!-- Resto de tu código -->
         <div class="row">
           <div v-for="(group, estado) in groupedData" :key="estado" class="col-12">
             <div class="card border-rounded">
               <div class="card-header" @click="toggleCollapse(estado)">
-                {{ estado === '1' ? 'Solicitudes' : estado === '2' ? 'En camino' : estado === '3' ? 'Entregados' : estado === '0' ? 'Cancelados' : 'Otro estado' }}
+                {{ estado === '1' ? 'Solicitudes' : estado === '2' ? 'En camino' : estado === '3' ? 'Entregados' :
+                  estado === '0' ? 'Cancelados' : 'Otro estado' }}
               </div>
               <b-collapse :id="'collapse-' + estado" v-model="collapseState[estado]">
                 <div class="card-body p-2">
@@ -32,22 +37,22 @@
                           <th class="py-0 px-1">Sucursal</th>
                           <th class="py-0 px-1">Cartero</th>
                           <th class="py-0 px-1">Guia</th>
-                          <th class="py-0 px-1">Peso O</th>
-                          <th class="py-0 px-1">Peso V</th>
+                          <th class="py-0 px-1">Peso Empresa (Kg)</th>
+                          <th class="py-0 px-1">Peso Correos (Kg)</th>
                           <th class="py-0 px-1">Remitente</th>
                           <th class="py-0 px-1">Dirección</th>
                           <th class="py-0 px-1">Teléfono</th>
                           <th class="py-0 px-1">Contenido</th>
                           <th class="py-0 px-1">Fecha</th>
-                          <th class="py-0 px-1">Firma O</th>
+                          <th class="py-0 px-1">Firma Remitente</th>
                           <th class="py-0 px-1">Destinatario</th>
                           <th class="py-0 px-1">Teléfono D</th>
                           <th class="py-0 px-1">Dirección Destinatario</th>
                           <th class="py-0 px-1">Ciudad</th>
-                          <th class="py-0 px-1">Firma D</th>
-                          <th class="py-0 px-1">Nombre D</th>
-                          <th class="py-0 px-1">CI D</th>
-                          <th class="py-0 px-1">Fecha D</th>
+                          <th class="py-0 px-1">Firma Destinatario</th>
+                          <th class="py-0 px-1">Nombre Destinatario</th>
+                          <th class="py-0 px-1">CI Destinatario</th>
+                          <th class="py-0 px-1">Fecha Destinatario</th>
                           <th class="py-0 px-1">Estado</th>
                           <th class="py-0 px-1"></th>
                         </tr>
@@ -56,7 +61,7 @@
                         <tr v-for="(m, i) in group" :key="i">
                           <td class="py-0 px-1">{{ i + 1 }}</td>
                           <td class="p-1">{{ m.sucursale.nombre }}</td>
-                          <td class="p-1">{{ m.cartero.nombre }}</td>
+                          <td class="p-1">{{ m.cartero ? m.cartero.nombre : 'Por asignar' }}</td>
                           <td class="py-0 px-1">{{ m.guia }}</td>
                           <td class="py-0 px-1">{{ m.peso_o }}</td>
                           <td class="py-0 px-1">{{ m.peso_v }}</td>
@@ -78,14 +83,21 @@
                           <td class="py-0 px-1">{{ m.nombre_d }}</td>
                           <td class="py-0 px-1">{{ m.ci_d }}</td>
                           <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                          <td class="py-0 px-1">{{ m.estado === 1 ? 'Solicitud' : m.estado === 2 ? 'En camino' : m.estado === 3 ? 'Entregado' : m.estado === 0 ? 'Cancelado' : m.estado}}</td>
-                          <td class="py-0 px-1">
+                          <td class="py-0 px-1">{{ m.estado === 1 ? 'Solicitud' : m.estado === 2 ? 'En camino' :
+                            m.estado === 3 ? 'Entregado' : m.estado === 0 ? 'Cancelado' : m.estado }}</td>
+                          <td class="py-0 px-1" v-if="m.estado === 1 || m.estado === 2">
                             <div class="btn-group">
-                              <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
+                              <nuxtLink :to="url_editar + m.id"
+                                class="btn btn-info btn-sm py-1 px-2">
                                 <i class="fas fa-pen"></i>
                               </nuxtLink>
-                              <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
+                              <button v-if="m.estado !== 2" type="button" @click="Eliminar(m.id)"
+                                class="btn btn-danger btn-sm py-1 px-2">
                                 <i class="fas fa-trash"></i>
+                              </button>
+                              <button v-if="m.estado === 2" type="button" @click="DarDeBaja(m.id)"
+                                class="btn btn-warning btn-sm py-1 px-2">
+                                <i class="fas fa-ban"></i> Dar de Baja
                               </button>
                             </div>
                           </td>
@@ -119,6 +131,7 @@ export default {
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudes/solicitude/nuevo',
+      url_asignar: '/admin/solicitudes/solicitude/asignar',
       url_editar: '/admin/solicitudes/solicitude/editar/',
       collapseState: {}
     };

@@ -71,9 +71,7 @@
                               <button v-if="m.estado !== 2" type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
                                 <i class="fas fa-trash"></i>
                               </button>
-                              <button v-if="m.estado === 2" type="button" @click="DarDeBaja(m.id)" class="btn btn-warning btn-sm py-1 px-2">
-                                <i class="fas fa-ban"></i> Dar de Baja
-                              </button>
+                  
                             </div>
                           </td>
                         </tr>

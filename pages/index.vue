@@ -12,13 +12,26 @@
                   </h3>
                   <p class="mb-0">Ingresa tu email y tu password para iniciar.</p>
                 </div>
-               
+                <div class="card-body">
+                  <div role="form" class="text-start">
+                    <label>Email</label>
+                    <div class="mb-3">
+                      <input type="text" v-model="model.email" class="form-control" placeholder="Email"
+                        aria-label="Email" />
+                    </div>
+                    <label>Password</label>
+                    <div class="mb-3">
+                      <input type="password" v-model="model.password" class="form-control" placeholder="Password"
+                        aria-label="Password" />
+                    </div>
+
                     <div class="text-center">
+                      <button type="button" class="btn bg-gradient-info w-100 mt-4 mb-0" @click="Login()">
+                        Ingresar
+                      </button>
                       <div class="text-center mt-2">
-                        <button @click="redirectToWelcome" class="btn btn-sm bg-gradient-info w-75 mt-4 mb-0">ADMIN</button>
-                      </div>
-                      <div class="text-center mt-2">
-                        <button @click="redirectToWelcome2" class="btn btn-sm bg-gradient-info w-75 mt-4 mb-0">CAJEROS</button>
+                        <router-link to="/admin/auth/welcome" class="btn bg-gradient-info w-100 mt-4 mb-0">Regresar a Welcome</router-link>
+
                       </div>
                     </div>
                   </div>
@@ -28,6 +41,8 @@
             </div>
 
           </div>
+        </div>
+      </div>
 
     </section>
     <div class="ps__rail-x" style="left: 0px; bottom: 0px">
@@ -55,12 +70,48 @@
 
 <script>
 export default {
-  
+  data() {
+    return {
+      model: {
+        email: '',
+        password: ''
+      }
+    }
+  },
   methods: {
     redirectToWelcome() {
       this.$router.push('/admin/auth/login');
     },
-   
+    async Login() {
+      try {
+        const res = await this.$api.$post('login', this.model);
+        let user = res
+        if (user.hasOwnProperty('errors')) {
+          this.$swal
+            .fire({
+              title: "Credenciales incorrectas",
+              showDenyButton: false,
+              showCancelButton: false,
+              confirmButtonText: "Ok"
+
+            })
+        } else {
+          localStorage.setItem('userAuth', JSON.stringify(user))
+          this.$router.push('/admin')
+        }
+      } catch (e) {
+        console.log(e)
+        this.$swal
+          .fire({
+            title: "No se puedo iniciar sesion",
+            showDenyButton: false,
+            showCancelButton: false,
+            confirmButtonText: "Ok"
+
+          })
+
+      }
+    }
   }
 }
 </script>

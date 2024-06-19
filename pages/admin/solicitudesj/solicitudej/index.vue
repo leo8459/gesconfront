@@ -9,6 +9,11 @@
               <i class="fas fa-plus"></i> Agregar
             </nuxtLink>
           </div>
+          <div class="col-2">
+            <nuxtLink :to="url_asignar" class="btn btn-dark btn-sm w-100">
+              <i class="fas fa-plus"></i> Asignar Carteros
+            </nuxtLink>
+          </div>
         </div>
         <div class="row">
           <div v-for="(group, estado) in groupedData" :key="estado" class="col-12">
@@ -123,6 +128,7 @@ export default {
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
       url_editar: '/admin/solicitudesj/solicitudej/editar/',
+      url_asignar: '/admin/solicitudes/solicitude/asignar',
       collapseState: {},
       isModalVisible: false,
       currentId: null
