@@ -6,10 +6,7 @@
           <div class="row justify-content-end mb-3"></div>
           <div class="row">
             <div class="col-6">
-              <label for="cartero-select">Seleccionar Cartero</label>
-              <select v-model="selectedCartero" id="cartero-select" class="form-control mb-3">
-                <option v-for="cartero in carteros" :key="cartero.id" :value="cartero.id">{{ cartero.nombre }}</option>
-              </select>
+              <input type="text" v-model="searchQuery" class="form-control mb-3" placeholder="Buscar solicitud...">
               <div v-for="(group, estado) in groupedData" :key="estado" class="col-12">
                 <div class="card border-rounded">
                   <div class="card-header" @click="toggleCollapse(estado)">
@@ -32,7 +29,7 @@
                             </tr>
                           </thead>
                           <tbody>
-                            <tr v-for="(m, i) in group" :key="i">
+                            <tr v-for="(m, i) in filteredList(group)" :key="i">
                               <td class="py-0 px-1">{{ i + 1 }}</td>
                               <td class="py-0 px-1">{{ m.guia }}</td>
                               <td class="p-1">{{ m.sucursale.nombre }}</td>
@@ -56,6 +53,10 @@
               </div>
             </div>
             <div class="col-6">
+              <label for="cartero-select">Seleccionar Cartero</label>
+              <select v-model="selectedCartero" id="cartero-select" class="form-control mb-5">
+                <option v-for="cartero in carteros" :key="cartero.id" :value="cartero.id">{{ cartero.nombre }}</option>
+              </select>
               <h5>Direcciones Asignadas al Cartero</h5>
               <ul class="list-group mb-3">
                 <li v-for="(direccion, index) in direccionesAsignadas" :key="index" class="list-group-item">
@@ -102,14 +103,15 @@
         url_nuevo: '/admin/solicitudes/solicitude/nuevo',
         url_asignar: '/admin/solicitudes/solicitude/asignar',
         url_editar: '/admin/solicitudes/solicitude/editar/',
-        collapseState: {}
+        collapseState: {},
+        searchQuery: ''
       };
     },
     computed: {
       groupedData() {
         const grouped = {};
         this.list.forEach(item => {
-          if (item.estado === 1) { // Filtrar las solicitudes con estado 2
+          if (item.estado === 1) { // Filtrar las solicitudes con estado 1
             if (!grouped[item.estado]) {
               grouped[item.estado] = [];
             }
@@ -120,6 +122,17 @@
       }
     },
     methods: {
+      filteredList(group) {
+        if (this.searchQuery) {
+          return group.filter(item =>
+            item.guia.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+            item.sucursale.nombre.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+            item.direccion_d.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+            item.ciudad.toLowerCase().includes(this.searchQuery.toLowerCase())
+          );
+        }
+        return group;
+      },
       async GET_DATA(path) {
         const res = await this.$api.$get(path);
         return res;
