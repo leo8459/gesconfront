@@ -7,7 +7,7 @@
           <div class="col-sm-8 col-12">
             <div class="card">
               <div class="card-header">
-                <h3>Actualizar</h3>
+                <h3>Actualizar Sucursal</h3>
               </div>
               <div class="card-body">
                 <CrudUpdate :model="model" :apiUrl="apiUrl">
