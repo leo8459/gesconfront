@@ -84,7 +84,7 @@ export default {
     },
     async Login() {
       try {
-        const res = await this.$api.$post('login', this.model);
+        const res = await this.$api.$post('login3', this.model);
         let user = res
         if (user.hasOwnProperty('errors')) {
           this.$swal

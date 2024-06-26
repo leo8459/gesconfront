@@ -31,7 +31,7 @@
                           <th class="py-0 px-1">#</th>
                           <th class="py-0 px-1">Sucursal</th>
                           <th class="py-0 px-1">Cartero</th>
-                          <th class="py-0 px-1">Cartero</th>
+                          <th class="py-0 px-1">Cartero2</th>
                           <th class="py-0 px-1">Guia</th>
                           <th class="py-0 px-1">Peso Empresa (Kg)</th>
                           <th class="py-0 px-1">Peso Correos (Kg)</th>
@@ -95,6 +95,10 @@
                                 class="btn btn-warning btn-sm py-1 px-2">
                                 <i class="fas fa-ban"></i> Dar de Baja
                               </button>
+                              <button v-if="m.estado === 1" type="button" @click="MarcarEnCamino(m.id)"
+                                class="btn btn-success btn-sm py-1 px-2">
+                                <i class="fas fa-truck"></i> En camino
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -111,7 +115,6 @@
   </div>
 </template>
 
-
 <script>
 import { BCollapse } from 'bootstrap-vue';
 
@@ -127,12 +130,13 @@ export default {
       apiUrl: 'solicitudes',
       page: 'solicitudes',
       modulo: 'solicitudes',
-      url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
-      url_editar: '/admin/solicitudesj/solicitudej/editar/',
+      url_nuevo: '/admin/solicitudescartero/solicitudecartero/nuevo',
+      url_editar: '/admin/solicitudescartero/solicitudecartero/editar/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',
       collapseState: {},
       isModalVisible: false,
-      currentId: null
+      currentId: null,
+      user: {}
     };
   },
   computed: {
@@ -197,16 +201,44 @@ export default {
         this.load = false;
       }
     },
+    async MarcarEnCamino(id) {
+  this.load = true;
+  try {
+    // Obtener el ID del cartero logueado desde this.user
+    const carteroRecogidaId = this.user.cartero.id;
+    console.log("ID del cartero logueado:", carteroRecogidaId);
+
+    // Enviar la solicitud PUT para marcar como "En camino"
+    const res = await this.$api.$put(`/solicitudesrecojo/${id}`, { cartero_recogida_id: carteroRecogidaId });
+    console.log("Respuesta de la solicitud PUT:", res);
+
+    // Actualizar la lista de solicitudes
+    const result = await Promise.all([this.GET_DATA(this.apiUrl)]);
+    console.log("Resultado de GET_DATA:", result);
+
+    this.list = result[0];
+    console.log("Lista actualizada:", this.list);
+  } catch (e) {
+    console.error("Error en MarcarEnCamino:", e);
+  } finally {
+    this.load = false;
+    console.log("Finalizando MarcarEnCamino, load:", this.load);
+  }
+},
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
     }
   },
   mounted() {
     this.$nextTick(async () => {
+      let user = localStorage.getItem('userAuth')
+      this.user = JSON.parse(user)
       try {
         const data = await this.GET_DATA(this.apiUrl);
         if (Array.isArray(data)) {
-          this.list = data;
+          // Filtrar las solicitudes para mostrar solo las del día de hoy
+          const today = new Date().toISOString().split('T')[0];
+          this.list = data.filter(item => item.fecha.split('T')[0] === today);
         } else {
           console.error('Los datos recuperados no son un array:', data);
         }
@@ -219,7 +251,6 @@ export default {
   },
 };
 </script>
-
 
 <style scoped>
 .card.border-rounded {

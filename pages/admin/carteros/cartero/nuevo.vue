@@ -27,6 +27,11 @@
                       <input type="text" v-model="model.apellidos" class="form-control" id="">
                     </div>
 
+                    <div class="form-group col-12">
+                      <label for="">Zona</label>
+                      <input type="text" v-model="model.zona" class="form-control" id="">
+                    </div>
+
 
 
                     <div class="form-group col-12">

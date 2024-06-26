@@ -72,6 +72,18 @@
                   <span class="sidenav-normal"> Solicitud Encargado</span>
                 </nuxtLink>
               </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/solicitudescartero/solicitudecartero">
+                  <span class="sidenav-mini-icon"> Solicitud Cartero </span>
+                  <span class="sidenav-normal"> Solicitud Cartero</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/solicitudescarterohoy">
+                  <span class="sidenav-mini-icon"> Solicitud Cartero Hoy </span>
+                  <span class="sidenav-normal"> Solicitud Cartero Hoy</span>
+                </nuxtLink>
+              </li>
 
               <li class="nav-item">
                 <nuxtLink class="nav-link" to="/admin/encargados/encargado">

@@ -31,6 +31,7 @@
                         <td class="py-0 px-1">{{ i + 1 }}</td>
                         <td class="py-0 px-1">{{ m.nombre }}</td>
                         <td class="py-0 px-1">{{ m.apellidos }}</td>
+                        <td class="py-0 px-1">{{ m.zona }}</td>
                         <td class="py-0 px-1" :class="m.estado === 1 ? 'activo' : 'inactivo'">
                           {{ m.estado === 1 ? 'Activo' : 'Inactivo' }}
                         </td>
@@ -77,7 +78,7 @@ export default {
       url_editar: "/admin/carteros/cartero/editar/",//VA AL PRIMER ARCHIVO DE LA CARPETA
       busqueda: "", // término de búsqueda
       resultados: [], // datos filtrados
-      headers: ['#', 'Nombre', 'Apellidos','Estado',' '],
+      headers: ['#', 'Nombre', 'Apellidos','Zona','Estado',' '],
     };
   },
   methods: {

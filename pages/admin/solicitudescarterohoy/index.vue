@@ -31,7 +31,7 @@
                           <th class="py-0 px-1">#</th>
                           <th class="py-0 px-1">Sucursal</th>
                           <th class="py-0 px-1">Cartero</th>
-                          <th class="py-0 px-1">Cartero</th>
+                          <th class="py-0 px-1">Cartero2</th>
                           <th class="py-0 px-1">Guia</th>
                           <th class="py-0 px-1">Peso Empresa (Kg)</th>
                           <th class="py-0 px-1">Peso Correos (Kg)</th>
@@ -84,7 +84,8 @@
                             m.estado === 3 ? 'Entregado' : m.estado === 0 ? 'Cancelado' : m.estado }}</td>
                           <td class="py-0 px-1" v-if="m.estado === 1 || m.estado === 2">
                             <div class="btn-group">
-                              <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
+                              <nuxtLink :to="url_editar + m.id"
+                                class="btn btn-info btn-sm py-1 px-2">
                                 <i class="fas fa-pen"></i>
                               </nuxtLink>
                               <button v-if="m.estado !== 2" type="button" @click="Eliminar(m.id)"
@@ -111,7 +112,6 @@
   </div>
 </template>
 
-
 <script>
 import { BCollapse } from 'bootstrap-vue';
 
@@ -127,8 +127,8 @@ export default {
       apiUrl: 'solicitudes',
       page: 'solicitudes',
       modulo: 'solicitudes',
-      url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
-      url_editar: '/admin/solicitudesj/solicitudej/editar/',
+      url_nuevo: '/admin/solicitudescartero/solicitudecartero/nuevo',
+      url_editar: '/admin/solicitudescartero/solicitudecartero/editar/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',
       collapseState: {},
       isModalVisible: false,
@@ -206,7 +206,9 @@ export default {
       try {
         const data = await this.GET_DATA(this.apiUrl);
         if (Array.isArray(data)) {
-          this.list = data;
+          // Filtrar las solicitudes para mostrar solo las del día de hoy
+          const today = new Date().toISOString().split('T')[0];
+          this.list = data.filter(item => item.fecha.split('T')[0] === today);
         } else {
           console.error('Los datos recuperados no son un array:', data);
         }
@@ -219,7 +221,6 @@ export default {
   },
 };
 </script>
-
 
 <style scoped>
 .card.border-rounded {
