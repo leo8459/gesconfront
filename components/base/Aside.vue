@@ -107,15 +107,15 @@
 
 
         <li class="nav-item">
-          <a @click="handleItemClick('cajero')" data-bs-toggle="collapse" href="#perfil-cajero" class="nav-link"
+          <a @click="handleItemClick('cartero')" data-bs-toggle="collapse" href="#perfil-cartero" class="nav-link"
             aria-controls="configuracion-cajero" role="button" aria-expanded="false">
             <div
               class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
-              <i v-if="role === 'cajero'" class="fas fa-money-bill blue-icon"></i>
+              <i v-if="role === 'cartero'" class="fas fa-money-bill blue-icon"></i>
             </div>
-            <span class="nav-link-text ms-1">Alquiler</span>
+            <span class="nav-link-text ms-1">Solicitud Cartero</span>
           </a>
-          <div class="collapse" id="perfil-cajero">
+          <div class="collapse" id="perfil-cartero">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
                 <nuxtLink class="nav-link" to="/admin/clientes/cliente">
@@ -123,20 +123,90 @@
                   <span class="sidenav-normal"> clientes </span>
                 </nuxtLink>
               </li>
-
-
-
-
-
-
-
-
-
             </ul>
           </div>
-
         </li>
 
+        <li class="nav-item">
+          <a @click="handleItemClick('empresa')" data-bs-toggle="collapse" href="#perfil-empresa" class="nav-link"
+            aria-controls="configuracion-cajero" role="button" aria-expanded="false">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
+              <i v-if="role === 'empresa'" class="fas fa-money-bill blue-icon"></i>
+            </div>
+            <span class="nav-link-text ms-1">Solicitud Empresa</span>
+          </a>
+          <div class="collapse" id="perfil-empresa">
+            <ul class="nav ms-4 ps-3">
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/clientes/cliente">
+                  <span class="sidenav-mini-icon"> clientes </span>
+                  <span class="sidenav-normal"> clientes </span>
+                </nuxtLink>
+              </li>
+            </ul>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a @click="handleItemClick('encargado')" data-bs-toggle="collapse" href="#perfil-encargado" class="nav-link"
+            aria-controls="configuracion-cajero" role="button" aria-expanded="false">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
+              <i v-if="role === 'encargado'" class="fas fa-money-bill blue-icon"></i>
+            </div>
+            <span class="nav-link-text ms-1">Solicitud Encargado</span>
+          </a>
+          <div class="collapse" id="perfil-encargado">
+            <ul class="nav ms-4 ps-3">
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/clientes/cliente">
+                  <span class="sidenav-mini-icon"> clientes </span>
+                  <span class="sidenav-normal"> clientes </span>
+                </nuxtLink>
+              </li>
+            </ul>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a @click="handleItemClick('comercial')" data-bs-toggle="collapse" href="#perfil-comercial" class="nav-link"
+            aria-controls="configuracion-cajero" role="button" aria-expanded="false">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
+              <i v-if="role === 'comercial'" class="fas fa-money-bill blue-icon"></i>
+            </div>
+            <span class="nav-link-text ms-1">Solicitud Comercial</span>
+          </a>
+          <div class="collapse" id="perfil-comercial">
+            <ul class="nav ms-4 ps-3">
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/clientes/cliente">
+                  <span class="sidenav-mini-icon"> clientes </span>
+                  <span class="sidenav-normal"> clientes </span>
+                </nuxtLink>
+              </li>
+            </ul>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a @click="handleItemClick('contratos')" data-bs-toggle="collapse" href="#perfil-contratos" class="nav-link"
+            aria-controls="configuracion-cajero" role="button" aria-expanded="false">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
+              <i v-if="role === 'contratos'" class="fas fa-money-bill blue-icon"></i>
+            </div>
+            <span class="nav-link-text ms-1">Solicitud Contratos</span>
+          </a>
+          <div class="collapse" id="perfil-contratos">
+            <ul class="nav ms-4 ps-3">
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/clientes/cliente">
+                  <span class="sidenav-mini-icon"> clientes </span>
+                  <span class="sidenav-normal"> clientes </span>
+                </nuxtLink>
+              </li>
+            </ul>
+          </div>
+        </li>
       </ul>
     </div>
 

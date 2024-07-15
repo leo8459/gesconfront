@@ -112,6 +112,8 @@ export default {
     groupedData() {
       const grouped = {};
       this.list.forEach(item => {
+
+        
         if (!grouped[item.estado]) {
           grouped[item.estado] = [];
         }

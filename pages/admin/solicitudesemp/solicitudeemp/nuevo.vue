@@ -7,7 +7,7 @@
           <div class="col-md-8 col-12">
             <div class="card">
               <div class="card-header">
-                <h3>Agregar Casilla</h3>
+                <h3>Agregar Solicitud</h3>
               </div>
               <div class="card-body">
                 <CrudCreate :model="model" :apiUrl="apiUrl">
