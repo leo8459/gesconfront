@@ -122,29 +122,30 @@
           <div class="collapse" id="perfil-cartero">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/solicitudescartero/solicitudecartero">
+                <nuxtLink class="nav-link" to="/admin/cartero/solicitudcartero/solicitudecartero">
                   <span class="sidenav-mini-icon"> Solicitud Cartero </span>
                   <span class="sidenav-normal"> Solicitud Cartero</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/encaminocarteros/encaminocartero">
+                <nuxtLink class="nav-link" to="/admin/cartero/recogidocarteros/recogidocartero">
+                  <span class="sidenav-mini-icon"> Recogido Cartero </span>
+                  <span class="sidenav-normal"> Recogido Cartero</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/cartero/encaminocarteros/encaminocartero">
                   <span class="sidenav-mini-icon"> En camino Cartero </span>
                   <span class="sidenav-normal"> En camino Cartero</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/solicitudescartero/solicitudecartero">
-                  <span class="sidenav-mini-icon"> Solicitud Cartero </span>
-                  <span class="sidenav-normal"> Solicitud Cartero</span>
+                <nuxtLink class="nav-link" to="/admin/cartero/entregadocarteros/entregadocartero">
+                  <span class="sidenav-mini-icon"> Entregado Cartero </span>
+                  <span class="sidenav-normal"> Entregado Cartero</span>
                 </nuxtLink>
               </li>
-              <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/solicitudescartero/solicitudecartero">
-                  <span class="sidenav-mini-icon"> Solicitud Cartero </span>
-                  <span class="sidenav-normal"> Solicitud Cartero</span>
-                </nuxtLink>
-              </li>
+             
             </ul>
           </div>
         </li>

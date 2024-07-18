@@ -19,9 +19,12 @@
               <i class="fas fa-truck"></i> Asignar todos los seleccionados
             </button>
           </div>
+          <div class="col-3">
+            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control" placeholder="Buscar..." />
+          </div>
         </div>
         <div class="row">
-          <div v-for="(group, estado) in groupedData" :key="estado" class="col-12">
+          <div v-for="(group, estado) in filteredData" :key="estado" class="col-12">
             <div class="card border-rounded">
               <div class="card-header" @click="toggleCollapse(estado)">
                 {{ estado === '1' ? 'Solicitudes' : estado === '2' ? 'En camino' : estado === '3' ? 'Entregados' :
@@ -148,6 +151,7 @@ export default {
     return {
       load: true,
       list: [],
+      searchTerm: '',
       apiUrl: 'solicitudes',
       page: 'solicitudes',
       modulo: 'solicitudes',
@@ -177,6 +181,18 @@ export default {
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
+    },
+    filteredData() {
+      const searchTerm = this.searchTerm.toLowerCase();
+      const filtered = {};
+      Object.keys(this.groupedData).forEach(estado => {
+        filtered[estado] = this.groupedData[estado].filter(item =>
+          Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchTerm)
+          )
+        );
+      });
+      return filtered;
     }
   },
   methods: {
@@ -261,6 +277,17 @@ export default {
         peso_v: item.peso_v || 0
       }));
       this.isModalVisible = true;
+    },
+    handleSearchEnter() {
+      this.selectedItemsData = [];
+      Object.keys(this.filteredData).forEach(estado => {
+        if (estado === '1') { // Only for items "En camino"
+          this.selectedItemsData = this.selectedItemsData.concat(this.filteredData[estado]);
+        }
+      });
+      if (this.selectedItemsData.length > 0) {
+        this.isModalVisible = true;
+      }
     },
     async confirmAssignSelected() {
       this.load = true;
