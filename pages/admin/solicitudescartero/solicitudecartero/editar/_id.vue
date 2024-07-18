@@ -10,38 +10,45 @@
                 <h3>Actualizar</h3>
               </div>
               <div class="card-body">
-                <div slot="body" class="row">
-                  <div class="form-group col-12">
-                    <label for="">Sucursal</label>
-                    <select name="" id="" class="form-control" v-model="model.sucursale_id" disabled>
-                      <option v-for="m in sucursales" :value="m.id">{{ m.nombre }}</option>
-                    </select>
-                  </div>
-                  <div class="form-group col-12">
-                    <label for="">Peso Empresa (Kg)</label>
-                    <input type="text" v-model="model.peso_o" class="form-control" id="" disabled>
-                  </div>
-                  <div class="form-group col-12">
-                    <label for="">Peso Agencia (Kg)</label>
-                    <input type="text" v-model="model.peso_v" class="form-control" id="" disabled>
-                  </div>
-                  <div class="form-group col-12">
-                    <label for="firma_d">Firma Destino</label>
-                    <input type="hidden" v-model.trim="model.firma_d" class="form-control" id="firma_d">
-                    <div class="position-relative">
-                      <canvas id="canvas2" class="border border-2 rounded-3 bg-white" width="560px" height="250px"></canvas>
-                      <div class="btn-canvas">
-                        <button type="button" id="guardar2" class="btn btn-primary">Guardar</button>
-                        <button type="button" id="limpiar2" class="btn btn-secondary">Limpiar</button>
+                  <div slot="body" class="row">
+                    <div class="form-group col-12">
+                      <label for="">Sucursal</label>
+                      <select name="" id="" class="form-control" v-model="model.sucursale_id" disabled>
+                        <option v-for="m in sucursales" :value="m.id">{{ m.nombre }}</option>
+                      </select>
+                    </div>
+                    <div class="form-group col-12">
+                      <label for="">Cartero</label>
+                      <select name="" id="" class="form-control" v-model="model.cartero_id"disabled>
+                        <option v-for="m in carteros" :value="m.id">{{ m.nombre }}</option>
+                      </select>
+                    </div>
+                    <div class="form-group col-12">
+                      <label for="">Peso Empresa (Kg)</label>
+                      <input type="text" v-model="model.peso_o" class="form-control" id="" disabled>
+                    </div>
+                    <div class="form-group col-12">
+                      <label for="">Peso Agencia (Kg)</label>
+                      <input type="text" v-model="model.peso_v" class="form-control" id=""disabled>
+                    </div>
+            
+                    <div class="form-group col-12">
+                      <label for="firma_d">Firma Destino</label>
+                      <input type="hidden" v-model.trim="model.firma_d" class="form-control" id="firma_d">
+                      <div class="position-relative">
+                        <canvas id="canvas2" class="border border-2 rounded-3 bg-white" width="560px" height="250px"></canvas>
+                        <div class="btn-canvas">
+                          <button type="button" id="guardar2" class="btn btn-primary">Guardar</button>
+                          <button type="button" id="limpiar2" class="btn btn-secondary">Limpiar</button>
+                        </div>
                       </div>
                     </div>
+                    <div class="form-group col-12">
+                      <label for="fecha_d">Fin Fecha</label>
+                      <input type="text" v-model="model.fecha_d" class="form-control" id="fecha_d" disabled>
+                    </div>
                   </div>
-                  <div class="form-group col-12">
-                    <label for="fecha_d">Fin Fecha</label>
-                    <input type="text" v-model="model.fecha_d" class="form-control" id="fecha_d" disabled>
-                  </div>
-                </div>
-                <button class="btn btn-danger" @click="darDeBaja(model.id)">Dar de Baja</button>
+                <button class="btn btn-danger" @click="darDeBaja">Entregar Correspondencia</button>
               </div>
             </div>
           </div>
@@ -66,8 +73,7 @@ export default {
       load: true,
       model: {
         sucursale_id: '',
-        cartero_recogida_id: '',
-        cartero_entrega_id: '',
+        cartero_id: '',
         guia: '',
         peso_o: '',
         peso_v: '',
@@ -101,16 +107,9 @@ export default {
       const res = await this.$api.$get(path);
       return res;
     },
-    async darDeBaja(id) {
-      this.load = true;
+    async darDeBaja() {
       try {
-        // Cambiar el estado a 3 y asignar el cartero de entrega
         this.model.estado = 3;
-        const carteroEntregaId = this.user.cartero.id;
-        this.model.cartero_entrega_id = carteroEntregaId;
-        console.log("ID del cartero logueado:", carteroEntregaId);
-
-        // Actualizar la fecha de entrega
         const now = new Date();
         const day = String(now.getDate()).padStart(2, '0');
         const month = String(now.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
@@ -118,26 +117,12 @@ export default {
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         this.model.fecha_d = `${day}/${month}/${year} ${hours}:${minutes}`;
-        
-        // Enviar la solicitud PUT para marcar como "Entregado"
-        const res = await this.$api.$put(`/solicitudesentrega/${id}/`, { cartero_entrega_id: carteroEntregaId });
-        console.log("Respuesta de la solicitud PUT:", res);
-
-        // Actualizar la lista de solicitudes
-        const result = await Promise.all([this.GET_DATA(this.apiUrl)]);
-        console.log("Resultado de GET_DATA:", result);
-
-        this.list = result[0];
-        console.log("Lista actualizada:", this.list);
-
+        await this.$api.$put(`${this.apiUrl}/${this.model.id}`, this.model);
         alert('El registro ha sido dado de baja.');
-        window.location.href = 'http://localhost:3005/admin/solicitudesj/solicitudej'; // Redirigir a la URL especificada
+        window.location.href = 'http://localhost:3005/admin/solicitudescartero/solicitudecartero'; // Redirigir a la URL especificada
       } catch (error) {
         console.error('Error al dar de baja:', error);
         alert('Hubo un error al dar de baja el registro.');
-      } finally {
-        this.load = false;
-        console.log("Finalizando darDeBaja, load:", this.load);
       }
     }
   },
@@ -158,6 +143,7 @@ export default {
       } finally {
         this.load = false;
       }
+
 
       var canvas2 = document.getElementById('canvas2');
       var signaturePad2 = new SignaturePad(canvas2);

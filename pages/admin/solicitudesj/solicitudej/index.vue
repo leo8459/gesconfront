@@ -95,6 +95,10 @@
                                 class="btn btn-warning btn-sm py-1 px-2">
                                 <i class="fas fa-ban"></i> Dar de Baja
                               </button>
+                              <button v-if="m.estado === 1" type="button" @click="markAsEnCamino(m.id)"
+                                class="btn btn-success btn-sm py-1 px-2">
+                                <i class="fas fa-truck"></i> Asignar Cartero
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -110,7 +114,6 @@
     </AdminTemplate>
   </div>
 </template>
-
 
 <script>
 import { BCollapse } from 'bootstrap-vue';
@@ -132,7 +135,10 @@ export default {
       url_asignar: '/admin/solicitudes/solicitude/asignar',
       collapseState: {},
       isModalVisible: false,
-      currentId: null
+      currentId: null,
+      user: {
+        cartero: []
+      }
     };
   },
   computed: {
@@ -148,6 +154,29 @@ export default {
     }
   },
   methods: {
+    async markAsEnCamino(solicitudeId) {
+      this.load = true;
+      try {
+        const carteroId = this.user.cartero.id;
+        const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
+        await this.GET_DATA(this.apiUrl);
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Cartero asignado',
+          text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
+        });
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al asignar el cartero.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
+
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
       return res;
@@ -181,15 +210,13 @@ export default {
     async DarDeBaja(id) {
       this.load = true;
       try {
+        const carteroId = this.user.cartero.id;
         const item = this.list.find(m => m.id === id);
         if (item) {
-          item.estado = 3; // Cambiar estado a 3 (Entregado)
-          const laPazTime = new Date().toLocaleString('en-US', { timeZone: 'America/La_Paz' });
-          item.fecha_d = laPazTime.replace(',', ''); // Establecer fecha y hora actual en La Paz
-          await this.$api.$put(this.apiUrl + '/' + id, item);
-          await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-            this.list = v[0];
-          });
+          const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId });
+          item.estado = response.estado; // Actualizar estado desde la respuesta
+          item.cartero_entrega_id = response.cartero_entrega_id; // Actualizar cartero de entrega desde la respuesta
+          await this.GET_DATA(this.apiUrl);
         }
       } catch (e) {
         console.log(e);
@@ -203,6 +230,8 @@ export default {
   },
   mounted() {
     this.$nextTick(async () => {
+      let user = localStorage.getItem('userAuth');
+      this.user = JSON.parse(user);
       try {
         const data = await this.GET_DATA(this.apiUrl);
         if (Array.isArray(data)) {
@@ -220,14 +249,12 @@ export default {
 };
 </script>
 
-
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
   border: 1px solid #dee2e6;
   margin-bottom: 1.5rem;
   overflow: hidden;
-  /* Para asegurar que los bordes redondeados se apliquen correctamente */
 }
 
 .table-responsive {

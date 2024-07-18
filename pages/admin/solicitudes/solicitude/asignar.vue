@@ -186,51 +186,34 @@
         this.solicitudesAsignadas = this.solicitudesAsignadas.filter(item => item.id !== direccion.id);
       },
       async guardarAsignaciones() {
-        if (!this.selectedCartero || this.direccionesAsignadas.length === 0) {
-          this.$swal.fire('Seleccione un cartero y añada direcciones primero', '', 'warning');
-          return;
-        }
-        this.load = true;
-        try {
-          for (const direccion of this.direccionesAsignadas) {
-            await this.$api.$put(this.apiUrl + '/' + direccion.id, {
-              sucursale_id: direccion.sucursale_id,
-              cartero_id: this.selectedCartero,
-              guia: direccion.guia,
-              peso_o: direccion.peso_o,
-              peso_v: direccion.peso_v,
-              remitente: direccion.remitente,
-              direccion: direccion.direccion,
-              telefono: direccion.telefono,
-              contenido: direccion.contenido,
-              fecha: direccion.fecha,
-              destinatario: direccion.destinatario,
-              telefono_d: direccion.telefono_d,
-              direccion_d: direccion.direccion_d,
-              ciudad: direccion.ciudad,
-              nombre_d: direccion.nombre_d,
-              ci_d: direccion.ci_d,
-              estado: 2, // Cambiar el estado a 'En camino'
-              firma_o: direccion.firma_o,
-              firma_d: direccion.firma_d,
-              fecha_d: direccion.fecha_d
-            });
-          }
-          await this.GET_DATA(this.apiUrl).then(data => {
-            this.list = data;
-          });
-          this.direccionesAsignadas = [];
-          this.solicitudesAsignadas = [];
-          this.selectedCartero = null;
-          this.$swal.fire('Cartero asignado', '', 'success');
-        } catch (e) {
-          console.log(e);
-          this.$swal.fire('Error al asignar cartero', '', 'error');
-        } finally {
-          this.load = false;
-        }
-      },
-    },
+    if (!this.selectedCartero || this.direccionesAsignadas.length === 0) {
+      this.$swal.fire('Seleccione un cartero y añada direcciones primero', '', 'warning');
+      return;
+    }
+    this.load = true;
+    try {
+      for (const direccion of this.direccionesAsignadas) {
+        await this.$api.$put(this.apiUrl + '/' + direccion.id, {
+          ...direccion, // Asegúrate de que todos los datos de la solicitud se envían
+          cartero_id: this.selectedCartero, // Enviar el ID del cartero seleccionado
+          estado: 2, // Cambiar el estado a 'En camino'
+        });
+      }
+      await this.GET_DATA(this.apiUrl).then(data => {
+        this.list = data;
+      });
+      this.direccionesAsignadas = [];
+      this.solicitudesAsignadas = [];
+      this.selectedCartero = null;
+      this.$swal.fire('Cartero asignado', '', 'success');
+    } catch (e) {
+      console.log(e);
+      this.$swal.fire('Error al asignar cartero', '', 'error');
+    } finally {
+      this.load = false;
+    }
+  },
+},
     mounted() {
       this.$nextTick(async () => {
         try {

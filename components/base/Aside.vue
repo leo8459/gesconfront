@@ -18,6 +18,9 @@
             </div>
             <span class="nav-link-text ms-1">Admin</span>
           </a>
+
+          <!-- //ADMIN -->
+
           <div class="collapse" id="perfil-admin">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
@@ -105,6 +108,7 @@
 
         </li>
 
+          <!-- //CARTERO -->
 
         <li class="nav-item">
           <a @click="handleItemClick('cartero')" data-bs-toggle="collapse" href="#perfil-cartero" class="nav-link"
@@ -118,14 +122,35 @@
           <div class="collapse" id="perfil-cartero">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/clientes/cliente">
-                  <span class="sidenav-mini-icon"> clientes </span>
-                  <span class="sidenav-normal"> clientes </span>
+                <nuxtLink class="nav-link" to="/admin/solicitudescartero/solicitudecartero">
+                  <span class="sidenav-mini-icon"> Solicitud Cartero </span>
+                  <span class="sidenav-normal"> Solicitud Cartero</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/encaminocarteros/encaminocartero">
+                  <span class="sidenav-mini-icon"> En camino Cartero </span>
+                  <span class="sidenav-normal"> En camino Cartero</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/solicitudescartero/solicitudecartero">
+                  <span class="sidenav-mini-icon"> Solicitud Cartero </span>
+                  <span class="sidenav-normal"> Solicitud Cartero</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/solicitudescartero/solicitudecartero">
+                  <span class="sidenav-mini-icon"> Solicitud Cartero </span>
+                  <span class="sidenav-normal"> Solicitud Cartero</span>
                 </nuxtLink>
               </li>
             </ul>
           </div>
         </li>
+
+
+        <!-- //EMPRESA -->
 
         <li class="nav-item">
           <a @click="handleItemClick('empresa')" data-bs-toggle="collapse" href="#perfil-empresa" class="nav-link"
@@ -139,14 +164,16 @@
           <div class="collapse" id="perfil-empresa">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/clientes/cliente">
-                  <span class="sidenav-mini-icon"> clientes </span>
-                  <span class="sidenav-normal"> clientes </span>
+                <nuxtLink class="nav-link" to="/admin/solicitudesemp/solicitudeemp">
+                  <span class="sidenav-mini-icon"> Solicitud Empresa</span>
+                  <span class="sidenav-normal">Solicitud Empresa </span>
                 </nuxtLink>
               </li>
             </ul>
           </div>
         </li>
+        <!-- //ENCARGADO -->
+
         <li class="nav-item">
           <a @click="handleItemClick('encargado')" data-bs-toggle="collapse" href="#perfil-encargado" class="nav-link"
             aria-controls="configuracion-cajero" role="button" aria-expanded="false">
@@ -167,9 +194,13 @@
             </ul>
           </div>
         </li>
+
+
+        <!-- //COMERCIAL -->
+
         <li class="nav-item">
           <a @click="handleItemClick('comercial')" data-bs-toggle="collapse" href="#perfil-comercial" class="nav-link"
-            aria-controls="configuracion-cajero" role="button" aria-expanded="false">
+            aria-controls="configuracion-comercial" role="button" aria-expanded="false">
             <div
               class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
               <i v-if="role === 'comercial'" class="fas fa-money-bill blue-icon"></i>
@@ -187,6 +218,10 @@
             </ul>
           </div>
         </li>
+
+
+        <!-- //CONTRATOS -->
+
         <li class="nav-item">
           <a @click="handleItemClick('contratos')" data-bs-toggle="collapse" href="#perfil-contratos" class="nav-link"
             aria-controls="configuracion-cajero" role="button" aria-expanded="false">
