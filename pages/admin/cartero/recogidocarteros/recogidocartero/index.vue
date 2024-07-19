@@ -4,9 +4,8 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-         
-          <div class="col-3" v-if="hasSelectedItems">
-            <button @click="openAssignModal" class="btn btn-primary btn-sm w-100">
+          <div class="col-3" v-if="selectedForAssign.length > 0">
+            <button @click="confirmAllAssignments" class="btn btn-primary btn-sm w-100">
               <i class="fas fa-truck"></i> Asignar todos los seleccionados
             </button>
           </div>
@@ -73,9 +72,74 @@
                     <td class="py-0 px-1">{{ m.ci_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
                     <td class="py-0 px-1">{{ m.estado === 5 ? 'Recogido' : m.estado }}</td>
+                    <td class="py-0 px-1"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-5" v-if="selectedForAssign.length > 0">
+          <div class="col-12">
+            <h5>Paquetes por enviar</h5>
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered">
+                <thead>
+                  <tr>
+                    <th class="py-0 px-1">#</th>
+                    <th class="py-0 px-1">Sucursal</th>
+                    <th class="py-0 px-1">Cartero</th>
+                    <th class="py-0 px-1">Cartero</th>
+                    <th class="py-0 px-1">Guia</th>
+                    <th class="py-0 px-1">Peso Empresa (Kg)</th>
+                    <th class="py-0 px-1">Peso Correos (Kg)</th>
+                    <th class="py-0 px-1">Remitente</th>
+                    <th class="py-0 px-1">Dirección</th>
+                    <th class="py-0 px-1">Teléfono</th>
+                    <th class="py-0 px-1">Contenido</th>
+                    <th class="py-0 px-1">Fecha</th>
+                    <th class="py-0 px-1">Firma Remitente</th>
+                    <th class="py-0 px-1">Destinatario</th>
+                    <th class="py-0 px-1">Teléfono D</th>
+                    <th class="py-0 px-1">Dirección Destinatario</th>
+                    <th class="py-0 px-1">Ciudad</th>
+                    <th class="py-0 px-1">Firma Destinatario</th>
+                    <th class="py-0 px-1">Nombre Destinatario</th>
+                    <th class="py-0 px-1">CI Destinatario</th>
+                    <th class="py-0 px-1">Fecha Destinatario</th>
+                    <th class="py-0 px-1">Estado</th>
+                    <th class="py-0 px-1"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(m, i) in selectedForAssign" :key="'selected-' + i">
+                    <td class="py-0 px-1">{{ i + 1 }}</td>
+                    <td class="p-1">{{ m.sucursale.nombre }}</td>
+                    <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
+                    <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
+                    <td class="py-0 px-1">{{ m.guia }}</td>
+                    <td class="py-0 px-1">{{ m.peso_o }}</td>
+                    <td class="py-0 px-1">{{ m.peso_v }}</td>
+                    <td class="py-0 px-1">{{ m.remitente }}</td>
+                    <td class="py-0 px-1">{{ m.direccion }}</td>
+                    <td class="py-0 px-1">{{ m.telefono }}</td>
+                    <td class="py-0 px-1">{{ m.contenido }}</td>
+                    <td class="py-0 px-1">{{ m.fecha }}</td>
                     <td class="py-0 px-1">
-                      
+                      <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
                     </td>
+                    <td class="py-0 px-1">{{ m.destinatario }}</td>
+                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
+                    <td class="py-0 px-1">{{ m.direccion_d }}</td>
+                    <td class="py-0 px-1">{{ m.ciudad }}</td>
+                    <td class="py-0 px-1">
+                      <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
+                    </td>
+                    <td class="py-0 px-1">{{ m.nombre_d }}</td>
+                    <td class="py-0 px-1">{{ m.ci_d }}</td>
+                    <td class="py-0 px-1">{{ m.fecha_d }}</td>
+                    <td class="py-0 px-1">{{ m.estado === 5 ? 'Recogido' : m.estado }}</td>
+                    <td class="py-0 px-1"></td>
                   </tr>
                 </tbody>
               </table>
@@ -124,6 +188,7 @@ export default {
       currentId: null,
       selected: {},
       selectedItemsData: [],
+      selectedForAssign: [],
       user: {
         cartero: []
       }
@@ -231,11 +296,16 @@ export default {
         this.isModalVisible = true;
       }
     },
-    async confirmAssignSelected() {
+    confirmAssignSelected() {
+      this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData];
+      this.isModalVisible = false;
+      this.selected = {}; // Limpiar la selección después de asignar
+    },
+    async confirmAllAssignments() {
       this.load = true;
       try {
         const carteroId = this.user.cartero.id;
-        for (let item of this.selectedItemsData) {
+        for (let item of this.selectedForAssign) {
           await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
         }
         await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
@@ -244,9 +314,7 @@ export default {
           title: 'Carteros asignados',
           text: 'Todos los carteros seleccionados han sido asignados.',
         });
-        this.isModalVisible = false;
-        this.selected = {}; // Limpiar la selección después de asignar
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        this.selectedForAssign = []; // Limpiar la selección después de asignar
       } catch (e) {
         console.error(e);
         this.$swal.fire({

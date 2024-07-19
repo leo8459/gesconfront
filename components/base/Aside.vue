@@ -165,7 +165,7 @@
           <div class="collapse" id="perfil-empresa">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/solicitudesemp/solicitudeemp">
+                <nuxtLink class="nav-link" to="/admin/sucursal/sucursales/sucursal">
                   <span class="sidenav-mini-icon"> Solicitud Empresa</span>
                   <span class="sidenav-normal">Solicitud Empresa </span>
                 </nuxtLink>

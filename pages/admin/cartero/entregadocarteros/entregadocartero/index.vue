@@ -4,7 +4,6 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-         
           <div class="col-3" v-if="hasSelectedItems">
             <button @click="openAssignModal" class="btn btn-primary btn-sm w-100">
               <i class="fas fa-truck"></i> Asignar todos los seleccionados
@@ -74,7 +73,7 @@
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
                     <td class="py-0 px-1">{{ m.estado === 3 ? 'Entregado' : m.estado }}</td>
                     <td class="py-0 px-1">
-                     
+                      <!-- Agrega acciones aquí si es necesario -->
                     </td>
                   </tr>
                 </tbody>
@@ -132,8 +131,9 @@ export default {
   computed: {
     filteredData() {
       const searchTerm = this.searchTerm.toLowerCase();
+      const carteroId = this.user.cartero.id; // Obteniendo el ID del cartero logueado
       return this.list.filter(item =>
-        item.estado === 3 && Object.values(item).some(value =>
+        item.cartero_entrega_id === carteroId && item.estado === 3 && Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
         )
       );

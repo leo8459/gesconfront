@@ -108,7 +108,7 @@ export default {
       }
 
       try {
-        const res = await this.$api.$post('login3', {
+        const res = await this.$api.$post('login2', {
           email: this.model.email,
           password: this.model.password,
           recaptcha: recaptchaResponse

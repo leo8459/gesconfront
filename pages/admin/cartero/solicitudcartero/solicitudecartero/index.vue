@@ -4,7 +4,6 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-        
           <div class="col-3" v-if="hasSelectedItems">
             <button @click="openSelectedModal" class="btn btn-primary btn-sm w-100">
               <i class="fas fa-truck"></i> Mostrar Seleccionados
@@ -12,6 +11,14 @@
           </div>
           <div class="col-3">
             <input v-model="searchTerm" @keypress.enter.prevent="handleSearchEnter" type="text" class="form-control" placeholder="Buscar..." />
+          </div>
+          <div class="col-3">
+            <select v-model="selectedSucursal" class="form-control" @change="handleSucursalChange">
+              <option value="">Seleccione Sucursal</option>
+              <option v-for="sucursal in filteredSucursales" :key="sucursal.id" :value="sucursal.id">
+                {{ sucursal.nombre }}
+              </option>
+            </select>
           </div>
         </div>
         <div class="row">
@@ -100,8 +107,9 @@
 
     <!-- Modal para mostrar seleccionados -->
     <b-modal v-model="isSelectedModalVisible" title="Resultados de la Búsqueda" hide-backdrop>
-      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+      <div v-for="(item, index) in selectedItemsData" :key="item.id" class="form-group d-flex justify-content-between align-items-center">
         <label>{{ item.sucursale.nombre }} - {{ item.guia }}</label>
+        <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
       </div>
       <div class="d-flex justify-content-end">
         <button class="btn btn-primary" @click="collectSelected">Recoger</button>
@@ -125,6 +133,9 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
+      selectedSucursal: '',
+      sucursales: [],
+      filteredSucursales: [],
       apiUrl: 'solicitudes',
       page: 'solicitudes',
       modulo: 'solicitudes',
@@ -150,7 +161,8 @@ export default {
           Object.values(item).some(value =>
             String(value).toLowerCase().includes(searchTerm)
           ) ||
-          (item.sucursale && item.sucursale.nombre.toLowerCase().includes(searchTerm))
+          (item.sucursale && item.sucursale.nombre.toLowerCase().includes(searchTerm)) ||
+          (this.selectedSucursal && item.sucursale.id === this.selectedSucursal)
         )
       );
     },
@@ -186,6 +198,20 @@ export default {
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
       this.list = res;
+      this.filteredSucursales = this.getUniqueSucursales(this.list.filter(item => item.estado === 1));
+    },
+    getUniqueSucursales(data) {
+      const uniqueSucursales = [];
+      const sucursalIds = new Set();
+
+      data.forEach(item => {
+        if (!sucursalIds.has(item.sucursale.id)) {
+          uniqueSucursales.push(item.sucursale);
+          sucursalIds.add(item.sucursale.id);
+        }
+      });
+
+      return uniqueSucursales;
     },
     async EliminarItem(id) {
       this.load = true;
@@ -233,11 +259,6 @@ export default {
       }
     },
     openSelectedModal() {
-      this.selectedItemsData = this.filteredData.map(item => ({
-        id: item.id,
-        guia: item.guia,
-        sucursale: item.sucursale
-      }));
       this.isSelectedModalVisible = true;
     },
     async collectSelected() {
@@ -267,18 +288,43 @@ export default {
       }
     },
     handleSearchEnter() {
-      this.selectedItemsData = this.filteredData.map(item => ({
-        id: item.id,
-        guia: item.guia,
-        sucursale: item.sucursale
-      }));
-      this.isSelectedModalVisible = true;
+      if (this.selectedSucursal) {
+        this.selectedItemsData = this.list.filter(item => item.estado === 1 && item.sucursale.id === this.selectedSucursal).map(item => ({
+          id: item.id,
+          guia: item.guia,
+          sucursale: item.sucursale
+        }));
+        if (this.selectedItemsData.length > 0) {
+          this.openSelectedModal();
+        }
+      }
+    },
+    handleSucursalChange() {
+      if (this.selectedSucursal) {
+        this.selectedItemsData = this.list.filter(item => item.estado === 1 && item.sucursale.id === this.selectedSucursal).map(item => ({
+          id: item.id,
+          guia: item.guia,
+          sucursale: item.sucursale
+        }));
+        if (this.selectedItemsData.length > 0) {
+          this.openSelectedModal();
+        }
+      }
+    },
+    filterBySucursal() {
+      const selectedSucursalId = this.selectedSucursal;
+      this.filteredData = this.list.filter(item =>
+        item.estado === 1 && (item.sucursale.id === selectedSucursalId)
+      );
     },
     selectAll(event) {
       const isChecked = event.target.checked;
       this.filteredData.forEach(item => {
         this.$set(this.selected, item.id, isChecked);
       });
+    },
+    removeItem(index) {
+      this.selectedItemsData.splice(index, 1);
     },
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
@@ -295,6 +341,8 @@ export default {
         } else {
           console.error('Los datos recuperados no son un array:', data);
         }
+        const sucursales = await this.$api.$get('sucursales');
+        this.sucursales = sucursales;
       } catch (e) {
         console.error('Error al obtener los datos:', e);
       } finally {
@@ -308,7 +356,7 @@ export default {
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #000000;
   margin-bottom: 1.5rem;
   overflow: hidden;
 }
