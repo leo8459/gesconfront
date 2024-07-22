@@ -42,13 +42,18 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(m, i) in filteredList" :key="i">
+                      <tr v-for="(m, i) in sortedList" :key="i">
                         <td class="py-0 px-1">{{ i + 1 }}</td>
                         <td class="p-1">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1">{{ m.guia }}</td>
                         <td class="py-0 px-1">{{ m.peso_o }}</td>
                         <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <td class="py-0 px-1">{{ m.direccion }}</td>
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion }}</span>
+                        </td>
                         <td class="py-0 px-1">{{ m.telefono }}</td>
                         <td class="py-0 px-1">{{ m.contenido }}</td>
                         <td class="py-0 px-1">
@@ -110,6 +115,9 @@ export default {
   computed: {
     filteredList() {
       return this.list.filter(item => item.sucursale.id === this.user.sucursale.id && item.estado === 1);
+    },
+    sortedList() {
+      return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
     }
   },
   methods: {
@@ -173,6 +181,10 @@ export default {
         default:
           return 'Otro estado';
       }
+    },
+    isCoordinates(address) {
+      const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+      return regex.test(address);
     }
   },
   mounted() {
@@ -206,5 +218,16 @@ export default {
 .table-responsive {
   max-width: 100%;
   overflow-x: auto;
+}
+.table th, .table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.table th {
+  min-width: 100px; /* Ajusta este valor según sea necesario */
+}
+.table th:first-child, .table td:first-child {
+  min-width: 30px; /* Ajusta este valor según sea necesario */
 }
 </style>
