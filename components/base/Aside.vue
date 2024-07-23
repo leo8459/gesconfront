@@ -170,6 +170,18 @@
                   <span class="sidenav-normal">Solicitud Empresa </span>
                 </nuxtLink>
               </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/sucursal/encaminosucursales/encaminosucursal">
+                  <span class="sidenav-mini-icon"> En Camino Empresa</span>
+                  <span class="sidenav-normal"> En Camino Empresa </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/sucursal/entregadosucursales/entregadosucursal">
+                  <span class="sidenav-mini-icon"> Entregados Empresa</span>
+                  <span class="sidenav-normal">Entregados Empresa </span>
+                </nuxtLink>
+              </li>
             </ul>
           </div>
         </li>

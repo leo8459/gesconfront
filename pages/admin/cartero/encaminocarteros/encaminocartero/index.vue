@@ -4,7 +4,6 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-         
           <div class="col-3" v-if="hasSelectedItems">
             <button @click="openAssignModal" class="btn btn-primary btn-sm w-100">
               <i class="fas fa-truck"></i> Asignar todos los seleccionados
@@ -55,7 +54,12 @@
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.peso_v }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion }}</td>
+                    <td class="py-0 px-1">
+                      <a v-if="isCoordinates(m.direccion)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank" class="btn btn-primary btn-sm">
+                        Ver mapa
+                      </a>
+                      <span v-else>{{ m.direccion }}</span>
+                    </td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>
@@ -64,7 +68,12 @@
                     </td>
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">{{ m.direccion_d }}</td>
+                    <td class="py-0 px-1">
+                      <a v-if="isCoordinates(m.direccion_d)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank" class="btn btn-primary btn-sm">
+                        Ver mapa
+                      </a>
+                      <span v-else>{{ m.direccion_d }}</span>
+                    </td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
                     <td class="py-0 px-1">
                       <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
@@ -78,7 +87,6 @@
                         <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
                           <i class="fas fa-ban"></i> Dar de Baja
                         </nuxtLink>
-                        
                       </div>
                     </td>
                   </tr>
@@ -148,6 +156,10 @@ export default {
     }
   },
   methods: {
+    isCoordinates(address) {
+      const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+      return regex.test(address);
+    },
     async markAsEnCamino(solicitudeId) {
       this.load = true;
       try {

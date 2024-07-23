@@ -14,7 +14,7 @@
           <div class="col-12">
             <div class="card border-rounded">
               <div class="card-header">
-                Solicitudes
+                En Camino
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
@@ -23,8 +23,8 @@
                       <tr>
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
-                        <th class="py-0 px-1">Numero de Guia</th>
-                        <th class="py-0 px-1">Peso(Kg)</th>
+                        <th class="py-0 px-1">Guia</th>
+                        <th class="py-0 px-1">Peso(Gr)</th>
                         <th class="py-0 px-1">Remitente</th>
                         <th class="py-0 px-1">Dirección</th>
                         <th class="py-0 px-1">Teléfono</th>
@@ -34,9 +34,10 @@
                         <th class="py-0 px-1">Destinatario</th>
                         <th class="py-0 px-1">Teléfono Destinatario</th>
                         <th class="py-0 px-1">Dirección Destinatario</th>
-                        <th class="py-0 px-1">Ciudad/Departamento</th>
+                        <th class="py-0 px-1">Ciudad</th>
                         <th class="py-0 px-1">Nombre Destinatario</th>
                         <th class="py-0 px-1">CI Destinatario</th>
+                        <th class="py-0 px-1">Estado</th>
                         <th class="py-0 px-1"></th>
                       </tr>
                     </thead>
@@ -70,7 +71,6 @@
                         <td class="py-0 px-1">{{ m.ciudad }}</td>
                         <td class="py-0 px-1">{{ m.nombre_d }}</td>
                         <td class="py-0 px-1">{{ m.ci_d }}</td>
-                        <td class="py-0 px-1">{{ getEstadoLabel(m.estado) }}</td>
                        
                       </tr>
                     </tbody>
@@ -109,7 +109,7 @@ export default {
   },
   computed: {
     filteredList() {
-      return this.list.filter(item => item.sucursale.id === this.user.sucursale.id && item.estado === 1);
+      return this.list.filter(item => item.sucursale.id === this.user.sucursale.id && (item.estado === 2 || item.estado === 5));
     },
     sortedList() {
       return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -171,6 +171,8 @@ export default {
           return 'En camino';
         case '3':
           return 'Entregados';
+        case '5':
+          return 'Pendientes';
         case '0':
           return 'Cancelados';
         default:

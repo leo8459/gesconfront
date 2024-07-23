@@ -32,8 +32,8 @@
                     </th>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Cartero</th>
-                    <th class="py-0 px-1">Cartero</th>
+                    <th class="py-0 px-1">Cartero Recojo</th>
+                    <th class="py-0 px-1">Cartero Entrega</th>
                     <th class="py-0 px-1">Guia</th>
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
@@ -61,14 +61,19 @@
                       <input type="checkbox" v-model="selected[m.id]" />
                     </td>
                     <td class="py-0 px-1">{{ i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
+                    <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
                     <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.peso_v }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion }}</td>
+                    <td class="py-0 px-1">
+                      <a v-if="isCoordinates(m.direccion)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank" class="btn btn-primary btn-sm">
+                        Ver mapa
+                      </a>
+                      <span v-else>{{ m.direccion }}</span>
+                    </td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>
@@ -77,7 +82,12 @@
                     </td>
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">{{ m.direccion_d }}</td>
+                    <td class="py-0 px-1">
+                      <a v-if="isCoordinates(m.direccion_d)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank" class="btn btn-primary btn-sm">
+                        Ver mapa
+                      </a>
+                      <span v-else>{{ m.direccion_d }}</span>
+                    </td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
                     <td class="py-0 px-1">
                       <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
@@ -161,10 +171,10 @@ export default {
           Object.values(item).some(value =>
             String(value).toLowerCase().includes(searchTerm)
           ) ||
-          (item.sucursale && item.sucursale.nombre.toLowerCase().includes(searchTerm)) ||
-          (this.selectedSucursal && item.sucursale.id === this.selectedSucursal)
+          (item.sucursale && item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)) ||
+          (this.selectedSucursal && item.sucursale && item.sucursale.id === this.selectedSucursal)
         )
-      );
+      ).sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordenar del más nuevo al más antiguo
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
@@ -194,7 +204,6 @@ export default {
         this.load = false;
       }
     },
-
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
       this.list = res;
@@ -203,14 +212,12 @@ export default {
     getUniqueSucursales(data) {
       const uniqueSucursales = [];
       const sucursalIds = new Set();
-
       data.forEach(item => {
-        if (!sucursalIds.has(item.sucursale.id)) {
+        if (item.sucursale && !sucursalIds.has(item.sucursale.id)) {
           uniqueSucursales.push(item.sucursale);
           sucursalIds.add(item.sucursale.id);
         }
       });
-
       return uniqueSucursales;
     },
     async EliminarItem(id) {
@@ -289,7 +296,7 @@ export default {
     },
     handleSearchEnter() {
       if (this.selectedSucursal) {
-        this.selectedItemsData = this.list.filter(item => item.estado === 1 && item.sucursale.id === this.selectedSucursal).map(item => ({
+        this.selectedItemsData = this.list.filter(item => item.estado === 1 && item.sucursale && item.sucursale.id === this.selectedSucursal).map(item => ({
           id: item.id,
           guia: item.guia,
           sucursale: item.sucursale
@@ -301,7 +308,7 @@ export default {
     },
     handleSucursalChange() {
       if (this.selectedSucursal) {
-        this.selectedItemsData = this.list.filter(item => item.estado === 1 && item.sucursale.id === this.selectedSucursal).map(item => ({
+        this.selectedItemsData = this.list.filter(item => item.estado === 1 && item.sucursale && item.sucursale.id === this.selectedSucursal).map(item => ({
           id: item.id,
           guia: item.guia,
           sucursale: item.sucursale
@@ -314,7 +321,7 @@ export default {
     filterBySucursal() {
       const selectedSucursalId = this.selectedSucursal;
       this.filteredData = this.list.filter(item =>
-        item.estado === 1 && (item.sucursale.id === selectedSucursalId)
+        item.estado === 1 && item.sucursale && (item.sucursale.id === selectedSucursalId)
       );
     },
     selectAll(event) {
@@ -328,6 +335,10 @@ export default {
     },
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
+    },
+    isCoordinates(address) {
+      const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+      return regex.test(address);
     }
   },
   mounted() {

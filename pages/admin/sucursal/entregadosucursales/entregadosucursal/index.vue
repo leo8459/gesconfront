@@ -14,7 +14,7 @@
           <div class="col-12">
             <div class="card border-rounded">
               <div class="card-header">
-                Solicitudes
+                Entregados
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
@@ -23,8 +23,8 @@
                       <tr>
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
-                        <th class="py-0 px-1">Numero de Guia</th>
-                        <th class="py-0 px-1">Peso(Kg)</th>
+                        <th class="py-0 px-1">Guia</th>
+                        <th class="py-0 px-1">Peso(Gr)</th>
                         <th class="py-0 px-1">Remitente</th>
                         <th class="py-0 px-1">Dirección</th>
                         <th class="py-0 px-1">Teléfono</th>
@@ -34,9 +34,11 @@
                         <th class="py-0 px-1">Destinatario</th>
                         <th class="py-0 px-1">Teléfono Destinatario</th>
                         <th class="py-0 px-1">Dirección Destinatario</th>
-                        <th class="py-0 px-1">Ciudad/Departamento</th>
+                        <th class="py-0 px-1">Ciudad</th>
                         <th class="py-0 px-1">Nombre Destinatario</th>
                         <th class="py-0 px-1">CI Destinatario</th>
+                        <th class="py-0 px-1">Firma Destinatario</th>
+                        <th class="py-0 px-1">Estado</th>
                         <th class="py-0 px-1"></th>
                       </tr>
                     </thead>
@@ -70,8 +72,20 @@
                         <td class="py-0 px-1">{{ m.ciudad }}</td>
                         <td class="py-0 px-1">{{ m.nombre_d }}</td>
                         <td class="py-0 px-1">{{ m.ci_d }}</td>
+                        <td class="py-0 px-1">
+                            <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
+                          </td>
                         <td class="py-0 px-1">{{ getEstadoLabel(m.estado) }}</td>
-                       
+                        <td class="py-0 px-1" v-if="m.estado !== 3 && m.estado !== 0">
+                          <div class="btn-group">
+                            <nuxtLink v-if="m.estado !== 2" :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
+                              <i class="fas fa-pen"></i>
+                            </nuxtLink>
+                            <button v-if="m.estado !== 2" type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -109,7 +123,7 @@ export default {
   },
   computed: {
     filteredList() {
-      return this.list.filter(item => item.sucursale.id === this.user.sucursale.id && item.estado === 1);
+      return this.list.filter(item => item.sucursale.id === this.user.sucursale.id && item.estado === 3);
     },
     sortedList() {
       return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -171,6 +185,8 @@ export default {
           return 'En camino';
         case '3':
           return 'Entregados';
+        case '5':
+          return 'Pendientes';
         case '0':
           return 'Cancelados';
         default:

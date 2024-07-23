@@ -19,11 +19,11 @@
                       </select>
                     </div>
                     <div class="form-group col-12">
-                      <label for="guia">Guia</label>
+                      <label for="guia">Numero de Guia</label>
                       <input type="text" v-model.trim="model.guia" class="form-control" id="guia">
                     </div>
                     <div class="form-group col-12">
-                      <label for="peso_o">Peso</label>
+                      <label for="peso_o">Peso (Medido en Kilogramos)</label>
                       <input type="text" v-model.trim="model.peso_o" class="form-control" id="peso_o">
                     </div>
                     <div class="form-group col-12">
@@ -32,7 +32,7 @@
                     </div>
                     <div class="form-group col-12">
                       <label for="direccion">Dirección</label>
-                      <input type="text" id="direccion" class="form-control" @click="openModal" :value="currentLat && currentLng ? currentLat + ', ' + currentLng : ''" readonly>
+                      <input type="text" id="direccion" class="form-control" @click="openModal('direccion')" :value="currentLat && currentLng ? currentLat + ', ' + currentLng : ''" readonly>
                       <input type="hidden" v-model="model.direccion_lat">
                       <input type="hidden" v-model="model.direccion_lng">
                     </div>
@@ -45,17 +45,6 @@
                       <input type="text" v-model.trim="model.contenido" class="form-control" id="contenido">
                     </div>
                     <div class="form-group col-12">
-                      <label for="firma_o">Firma Origen</label>
-                      <input type="hidden" v-model.trim="model.firma_o" class="form-control" id="firma_o">
-                      <div class="position-relative">
-                        <canvas id="canvas" class="border border-2 rounded-3 bg-white" width="560px" height="250px"></canvas>
-                        <div class="btn-canvas">
-                          <button type="button" id="guardar" class="btn btn-primary">Guardar</button>
-                          <button type="button" id="limpiar" class="btn btn-secondary">Limpiar</button>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="form-group col-12">
                       <label for="destinatario">Destinatario</label>
                       <input type="text" v-model.trim="model.destinatario" class="form-control" id="destinatario">
                     </div>
@@ -65,10 +54,12 @@
                     </div>
                     <div class="form-group col-12">
                       <label for="direccion_d">Dirección Destino</label>
-                      <input type="text" v-model.trim="model.direccion_d" class="form-control" id="direccion_d">
+                      <input type="text" id="direccion_d" class="form-control" @click="openModal('direccion_d')" :value="currentLat_d && currentLng_d ? currentLat_d + ', ' + currentLng_d : ''" readonly>
+                      <input type="hidden" v-model="model.direccion_d_lat">
+                      <input type="hidden" v-model="model.direccion_d_lng">
                     </div>
                     <div class="form-group col-12">
-                      <label for="ciudad">Ciudad</label>
+                      <label for="ciudad">Ciudad o Departamento de Entrega</label>
                       <input type="text" v-model.trim="model.ciudad" class="form-control" id="ciudad">
                     </div>
                     <div class="form-group col-12">
@@ -113,6 +104,27 @@
         <p>Longitud: {{ currentLng }}</p>
       </div>
     </b-modal>
+
+    <b-modal ref="mapsModalD" title="Seleccionar Dirección Destino" @ok="handleOkD" size="lg">
+      <div>
+        <div class="input-group mb-2">
+          <input type="text" v-model="searchQuery_d" @keyup.enter="searchLocationD" placeholder="Buscar dirección" class="form-control"/>
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="button" @click="searchLocationD">Buscar</button>
+          </div>
+        </div>
+        <div v-if="searching_d" class="overlay">
+          <div class="alert alert-info" role="alert">
+            Buscando ubicación...
+          </div>
+        </div>
+        <div id="map_d" style="height: 500px; width: 100%;"></div>
+      </div>
+      <div class="coordinates mt-2">
+        <p>Latitud: {{ currentLat_d }}</p>
+        <p>Longitud: {{ currentLng_d }}</p>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -145,6 +157,8 @@ export default {
         destinatario: '',
         telefono_d: '',
         direccion_d: '',
+        direccion_d_lat: '',
+        direccion_d_lng: '',
         ciudad: '',
         firma_d: '',
         nombre_d: '',
@@ -165,7 +179,14 @@ export default {
       currentLat: null,
       currentLng: null,
       searchQuery: '',
-      searching: false
+      searching: false,
+      map_d: null,
+      marker_d: null,
+      selectedAddress_d: '',
+      currentLat_d: null,
+      currentLng_d: null,
+      searchQuery_d: '',
+      searching_d: false
     }
   },
   methods: {
@@ -173,30 +194,56 @@ export default {
       const res = await this.$api.$get(path);
       return res;
     },
-    openModal() {
+    openModal(type) {
       if (process.client) {
-        this.$refs.mapsModal.show();
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition((position) => {
-            const { latitude, longitude } = position.coords;
-            this.currentLat = latitude;
-            this.currentLng = longitude;
-            this.$nextTick(() => {
-              this.initializeMap(latitude, longitude);
+        if (type === 'direccion') {
+          this.$refs.mapsModal.show();
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+              const { latitude, longitude } = position.coords;
+              this.currentLat = latitude;
+              this.currentLng = longitude;
+              this.$nextTick(() => {
+                this.initializeMap(latitude, longitude);
+              });
+            }, () => {
+              this.currentLat = -16.290154;
+              this.currentLng = -63.588653;
+              this.$nextTick(() => {
+                this.initializeMap(-16.290154, -63.588653); // Fallback to Bolivia
+              });
             });
-          }, () => {
+          } else {
             this.currentLat = -16.290154;
             this.currentLng = -63.588653;
             this.$nextTick(() => {
               this.initializeMap(-16.290154, -63.588653); // Fallback to Bolivia
             });
-          });
-        } else {
-          this.currentLat = -16.290154;
-          this.currentLng = -63.588653;
-          this.$nextTick(() => {
-            this.initializeMap(-16.290154, -63.588653); // Fallback to Bolivia
-          });
+          }
+        } else if (type === 'direccion_d') {
+          this.$refs.mapsModalD.show();
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+              const { latitude, longitude } = position.coords;
+              this.currentLat_d = latitude;
+              this.currentLng_d = longitude;
+              this.$nextTick(() => {
+                this.initializeMapD(latitude, longitude);
+              });
+            }, () => {
+              this.currentLat_d = -16.290154;
+              this.currentLng_d = -63.588653;
+              this.$nextTick(() => {
+                this.initializeMapD(-16.290154, -63.588653); // Fallback to Bolivia
+              });
+            });
+          } else {
+            this.currentLat_d = -16.290154;
+            this.currentLng_d = -63.588653;
+            this.$nextTick(() => {
+              this.initializeMapD(-16.290154, -63.588653); // Fallback to Bolivia
+            });
+          }
         }
       }
     },
@@ -227,6 +274,33 @@ export default {
         });
       }
     },
+    initializeMapD(lat, lng) {
+      if (this.map_d) {
+        this.map_d.remove();
+      }
+
+      if (process.client) {
+        import('leaflet').then(L => {
+          this.map_d = L.map('map_d').setView([lat, lng], 14); // Center the map to user's location or fallback
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(this.map_d);
+
+          this.marker_d = L.marker([lat, lng], {
+            draggable: true
+          }).addTo(this.map_d);
+
+          this.map_d.on('click', (e) => {
+            this.marker_d.setLatLng(e.latlng);
+            this.geocodePositionD(e.latlng);
+          });
+
+          this.marker_d.on('dragend', (e) => {
+            this.geocodePositionD(e.target.getLatLng());
+          });
+        });
+      }
+    },
     async geocodePosition(latlng) {
       const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latlng.lat}&lon=${latlng.lng}`);
       const data = await response.json();
@@ -237,11 +311,29 @@ export default {
       }
       this.currentLat = latlng.lat;
       this.currentLng = latlng.lng;
+      this.searching = false;
+    },
+    async geocodePositionD(latlng) {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latlng.lat}&lon=${latlng.lng}`);
+      const data = await response.json();
+      if (data && data.display_name) {
+        this.selectedAddress_d = data.display_name;
+      } else {
+        this.selectedAddress_d = 'No se pudo determinar la dirección';
+      }
+      this.currentLat_d = latlng.lat;
+      this.currentLng_d = latlng.lng;
+      this.searching_d = false;
     },
     handleOk() {
       this.model.direccion_lat = this.currentLat;
       this.model.direccion_lng = this.currentLng;
       this.model.direccion = this.currentLat + ', ' + this.currentLng;
+    },
+    handleOkD() {
+      this.model.direccion_d_lat = this.currentLat_d;
+      this.model.direccion_d_lng = this.currentLng_d;
+      this.model.direccion_d = this.currentLat_d + ', ' + this.currentLng_d;
     },
     async searchLocation() {
       if (this.searchQuery && this.currentLat && this.currentLng) {
@@ -257,6 +349,22 @@ export default {
           this.geocodePosition({ lat, lng: lon });
         }
         this.searching = false;
+      }
+    },
+    async searchLocationD() {
+      if (this.searchQuery_d && this.currentLat_d && this.currentLng_d) {
+        this.searching_d = true;
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${this.searchQuery_d}&limit=5&viewbox=${this.currentLng_d-0.1},${this.currentLat_d+0.1},${this.currentLng_d+0.1},${this.currentLat_d-0.1}`);
+        const data = await response.json();
+        if (data.length > 0) {
+          // Find the closest match
+          const closestMatch = data[0];
+          const { lat, lon } = closestMatch;
+          this.map_d.setView([lat, lon], 14);
+          this.marker_d.setLatLng([lat, lon]);
+          this.geocodePositionD({ lat, lng: lon });
+        }
+        this.searching_d = false;
       }
     },
     onSuccess() {
