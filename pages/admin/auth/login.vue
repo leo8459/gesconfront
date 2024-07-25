@@ -21,6 +21,13 @@
                   </div>
                   <div ref="formBody" class="card-body">
                     <div role="form" class="text-start">
+                      <label>Tipo de Usuario</label>
+                      <div class="mb-3">
+                        <select v-model="model.userType" class="form-control rounded shadow-sm">
+                          <option value="cartero">Cartero</option>
+                          <option value="sucursale">Sucursal</option>
+                        </select>
+                      </div>
                       <label>Email</label>
                       <div class="mb-3">
                         <input type="text" v-model="model.email" class="form-control rounded shadow-sm"
@@ -40,7 +47,6 @@
                           Ingresar
                         </button>
                         <button @click="regresarBienvenida" class="btn bg-gradient-info w-100 mt-4 mb-0 rounded shadow">Regresar a Bienvenida</button> <!-- Botón añadido -->
-
                       </div>
                     </div>
                   </div>
@@ -55,6 +61,8 @@
 </template>
 
 <script>
+import api from '@/plugins/api';
+import sucursalesApi from '@/plugins/sucursales';
 const anime = require('animejs/lib/anime.js'); // Usando la versión CommonJS de anime.js
 
 export default {
@@ -62,7 +70,8 @@ export default {
     return {
       model: {
         email: '',
-        password: ''
+        password: '',
+        userType: '' // Valor por defecto
       }
     }
   },
@@ -107,33 +116,49 @@ export default {
         return;
       }
 
+      let apiClient;
+      let loginUrl;
+
+      if (this.model.userType === 'cartero') {
+        apiClient = this.$api; // Utiliza el cliente API configurado para carteros
+        loginUrl = 'login3';
+      } else if (this.model.userType === 'sucursale') {
+        apiClient = this.$sucursales; // Utiliza el cliente API configurado para sucursales
+        loginUrl = 'login2';
+      }
+
       try {
-        const res = await this.$api.$post('login2', {
-          email: this.model.email,
-          password: this.model.password,
-          recaptcha: recaptchaResponse
-        });
-        let user = res;
-        if (user.hasOwnProperty('errors')) {
-          this.$swal.fire({
+    const res = await apiClient.post(loginUrl, {
+        email: this.model.email,
+        password: this.model.password,
+        recaptcha: recaptchaResponse
+    });
+    console.log('API Response:', res);
+
+    if (!res.data || !res.data.token || (!res.data.cartero && !res.data.sucursale)) {
+        this.$swal.fire({
             title: "Credenciales incorrectas",
             showDenyButton: false,
             showCancelButton: false,
             confirmButtonText: "Ok"
-          });
-        } else {
-          localStorage.setItem('userAuth', JSON.stringify(user));
-          this.$router.push('/admin');
-        }
-      } catch (e) {
-        console.log(e);
-        this.$swal.fire({
-          title: "No se pudo iniciar sesión",
-          showDenyButton: false,
-          showCancelButton: false,
-          confirmButtonText: "Ok"
         });
-      }
+        return;
+    }
+
+    localStorage.setItem('userAuth', JSON.stringify(res.data));
+    const userType = this.model.userType === 'cartero' ? 'cartero' : 'sucursale';
+    this.$store.dispatch('auth/login', { token: res.data.token, user: res.data.cartero || res.data.sucursale });
+    this.$router.push('/admin');
+} catch (e) {
+    console.log(e);
+    this.$swal.fire({
+        title: "No se pudo iniciar sesión",
+        showDenyButton: false,
+        showCancelButton: false,
+        confirmButtonText: "Ok"
+    });
+}
+
     },
     animateImage() {
       anime({

@@ -1,19 +1,35 @@
-export default function ({ $axios }, inject) {
-  // Create a custom axios instance
+export default function ({ $axios, store, redirect }, inject) {
   const api = $axios.create({
     headers: {
       common: {
         Accept: 'text/plain, */*'
       }
     }
-  })
+  });
 
-  // Set baseURL to something different
+  const url = 'http://localhost/backgescon/public/carteros/';
+  api.setBaseURL(url);
 
-  let url ='http://localhost/gesconback/public/api/'
-  //  let url ='http://172.65.10.33:8000/api/'
-  api.url =url
-  api.setBaseURL(url)
-  // Inject to context as $api
-  inject('api', api)
+  api.interceptors.request.use(config => {
+    if (process.client) {
+      const token = store.state.auth.token;
+      if (token) {
+        config.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+    }
+    return config;
+  });
+
+  api.interceptors.response.use(
+    response => response,
+    error => {
+      if (error.response && error.response.status === 401) {
+        store.dispatch('auth/logout');
+        redirect('/admin/auth/login');
+      }
+      return Promise.reject(error);
+    }
+  );
+
+  inject('api', api);
 }

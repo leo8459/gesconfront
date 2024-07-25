@@ -80,6 +80,11 @@ export default {
       headers: ['#', 'Nombre', 'Apellidos','Estado',' '],
     };
   },
+  computed: {
+      user() {
+         return this.$store.state.auth.user;
+      },
+   },
   methods: {
     async GET_DATA(path) {
       try {
@@ -125,11 +130,8 @@ export default {
       );
     }
   },
-//cntrc+v
 
-
-
-  mounted() {
+mounted() {
     this.$nextTick(async () => {
       try {
         const [data] = await Promise.all([this.GET_DATA(this.apiUrl)]);

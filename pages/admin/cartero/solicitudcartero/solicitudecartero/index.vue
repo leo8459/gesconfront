@@ -184,7 +184,7 @@ export default {
     async markAsEnCamino(solicitudeId) {
       this.load = true;
       try {
-        const carteroId = this.user.cartero.id;
+        const carteroId = this.user.id;
         const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
         await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
@@ -249,7 +249,7 @@ export default {
     async DarDeBaja(id) {
       this.load = true;
       try {
-        const carteroId = this.user.cartero.id;
+        const carteroId = this.user.id;
         const item = this.list.find(m => m.id === id);
         if (item) {
           const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
@@ -271,7 +271,7 @@ export default {
     async collectSelected() {
       this.load = true;
       try {
-        const carteroId = this.user.cartero.id;
+        const carteroId = this.user.id;
         for (let item of this.selectedItemsData) {
           await this.$api.$put(`marcarrecogido/${item.id}`, { cartero_recogida_id: carteroId });
         }

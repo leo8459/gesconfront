@@ -18,6 +18,7 @@
             <div class="table-responsive">
               <table class="table table-sm table-bordered">
                 <thead>
+                  
                   <tr>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
@@ -45,9 +46,9 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(m, i) in filteredData" :key="i">
+                  <tr v-for="(m, i) in filteredData" :key="m.id">
                     <td class="py-0 px-1">{{ i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
+                    <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
                     <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
@@ -137,9 +138,7 @@ export default {
       currentId: null,
       selected: {},
       selectedItemsData: [],
-      user: {
-        cartero: []
-      }
+      user: {}
     };
   },
   computed: {
@@ -163,7 +162,7 @@ export default {
     async markAsEnCamino(solicitudeId) {
       this.load = true;
       try {
-        const carteroId = this.user.cartero.id;
+        const carteroId = this.user.id;
         const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
         await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
@@ -186,15 +185,13 @@ export default {
 
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
-      this.list = res;
+      this.list = Array.isArray(res) ? res : [];
     },
     async EliminarItem(id) {
       this.load = true;
       try {
-        const res = await this.$api.$delete(this.apiUrl + '/' + id);
-        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0];
-        });
+        await this.$api.$delete(this.apiUrl + '/' + id);
+        await this.GET_DATA(this.apiUrl);
       } catch (e) {
         console.log(e);
       } finally {
@@ -217,16 +214,13 @@ export default {
     async DarDeBaja(id) {
       this.load = true;
       try {
-        const carteroId = this.user.cartero.id;
+        const carteroId = this.user.id;
         const item = this.list.find(m => m.id === id);
         if (item) {
           const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
-          item.estado = response.estado; // Actualizar estado desde la respuesta
-          item.cartero_entrega_id = response.cartero_entrega_id; // Actualizar cartero de entrega desde la respuesta
-          item.peso_v = response.peso_v; // Actualizar peso desde la respuesta
+          Object.assign(item, response); // Actualizar con los datos de la respuesta
           await this.GET_DATA(this.apiUrl);
         }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
       } catch (e) {
         console.log(e);
       } finally {
@@ -251,9 +245,13 @@ export default {
     async confirmAssignSelected() {
       this.load = true;
       try {
-        const carteroId = this.user.cartero.id;
+        const carteroId = this.user.id;
         for (let item of this.selectedItemsData) {
-          await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          if (item && item.id) { // Verificación adicional
+            await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          } else {
+            console.error('Item inválido:', item);
+          }
         }
         await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
         this.$swal.fire({

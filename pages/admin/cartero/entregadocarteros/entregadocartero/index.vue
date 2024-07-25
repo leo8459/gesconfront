@@ -54,7 +54,12 @@
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.peso_v }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion }}</td>
+                    <td class="py-0 px-1">
+                      <a v-if="isCoordinates(m.direccion)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank" class="btn btn-primary btn-sm">
+                        Ver mapa
+                      </a>
+                      <span v-else>{{ m.direccion }}</span>
+                    </td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>
@@ -63,7 +68,12 @@
                     </td>
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">{{ m.direccion_d }}</td>
+                    <td class="py-0 px-1">
+                      <a v-if="isCoordinates(m.direccion_d)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank" class="btn btn-primary btn-sm">
+                        Ver mapa
+                      </a>
+                      <span v-else>{{ m.direccion_d }}</span>
+                    </td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
                     <td class="py-0 px-1">
                       <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
@@ -71,9 +81,9 @@
                     <td class="py-0 px-1">{{ m.nombre_d }}</td>
                     <td class="py-0 px-1">{{ m.ci_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">{{ m.estado === 3 ? 'Entregado' : m.estado }}</td>
+                    <td class="py-0 px-1">{{ m.estado ===  3? 'Entregado' : m.estado }}</td>
                     <td class="py-0 px-1">
-                      <!-- Agrega acciones aquí si es necesario -->
+                      
                     </td>
                   </tr>
                 </tbody>
@@ -131,9 +141,8 @@ export default {
   computed: {
     filteredData() {
       const searchTerm = this.searchTerm.toLowerCase();
-      const carteroId = this.user.cartero.id; // Obteniendo el ID del cartero logueado
       return this.list.filter(item =>
-        item.cartero_entrega_id === carteroId && item.estado === 3 && Object.values(item).some(value =>
+        item.estado === 3 && Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
         )
       );
@@ -143,10 +152,14 @@ export default {
     }
   },
   methods: {
+    isCoordinates(address) {
+      const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+      return regex.test(address);
+    },
     async markAsEnCamino(solicitudeId) {
       this.load = true;
       try {
-        const carteroId = this.user.cartero.id;
+        const carteroId = this.user.id;
         const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
         await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
@@ -168,8 +181,16 @@ export default {
     },
 
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
-      this.list = res;
+      try {
+        const res = await this.$api.$get(path);
+        if (Array.isArray(res)) {
+          this.list = res;
+        } else {
+          console.error('Los datos recuperados no son un array:', res);
+        }
+      } catch (e) {
+        console.error('Error al obtener los datos:', e);
+      }
     },
     async EliminarItem(id) {
       this.load = true;
@@ -200,7 +221,7 @@ export default {
     async DarDeBaja(id) {
       this.load = true;
       try {
-        const carteroId = this.user.cartero.id;
+        const carteroId = this.user.id;
         const item = this.list.find(m => m.id === id);
         if (item) {
           const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
@@ -234,7 +255,7 @@ export default {
     async confirmAssignSelected() {
       this.load = true;
       try {
-        const carteroId = this.user.cartero.id;
+        const carteroId = this.user.id;
         for (let item of this.selectedItemsData) {
           await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
         }
@@ -271,11 +292,19 @@ export default {
   mounted() {
     this.$nextTick(async () => {
       let user = localStorage.getItem('userAuth');
-      this.user = JSON.parse(user);
+      if (user) {
+        this.user = JSON.parse(user);
+        console.log('Usuario cargado:', this.user);
+      } else {
+        console.error('No se encontró el usuario en el almacenamiento local');
+        this.user = { cartero: null };
+      }
+
       try {
         const data = await this.GET_DATA(this.apiUrl);
         if (Array.isArray(data)) {
           this.list = data;
+          console.log('Datos cargados:', this.list);
         } else {
           console.error('Los datos recuperados no son un array:', data);
         }
