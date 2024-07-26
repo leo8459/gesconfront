@@ -1,3 +1,5 @@
+//plugins/sucursale.js
+
 export default function ({ $axios, store, redirect }, inject) {
     const sucursales = $axios.create({
       headers: {

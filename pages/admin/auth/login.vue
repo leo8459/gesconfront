@@ -104,40 +104,11 @@ export default {
       }
     },
     async Login() {
-      const recaptchaResponse = window.grecaptcha.getResponse();
+    const recaptchaResponse = window.grecaptcha.getResponse();
 
-      if (!recaptchaResponse) {
+    if (!recaptchaResponse) {
         this.$swal.fire({
-          title: "Por favor, verifica que no eres un robot",
-          showDenyButton: false,
-          showCancelButton: false,
-          confirmButtonText: "Ok"
-        });
-        return;
-      }
-
-      let apiClient;
-      let loginUrl;
-
-      if (this.model.userType === 'cartero') {
-        apiClient = this.$api; // Utiliza el cliente API configurado para carteros
-        loginUrl = 'login3';
-      } else if (this.model.userType === 'sucursale') {
-        apiClient = this.$sucursales; // Utiliza el cliente API configurado para sucursales
-        loginUrl = 'login2';
-      }
-
-      try {
-    const res = await apiClient.post(loginUrl, {
-        email: this.model.email,
-        password: this.model.password,
-        recaptcha: recaptchaResponse
-    });
-    console.log('API Response:', res);
-
-    if (!res.data || !res.data.token || (!res.data.cartero && !res.data.sucursale)) {
-        this.$swal.fire({
-            title: "Credenciales incorrectas",
+            title: "Por favor, verifica que no eres un robot",
             showDenyButton: false,
             showCancelButton: false,
             confirmButtonText: "Ok"
@@ -145,21 +116,54 @@ export default {
         return;
     }
 
-    localStorage.setItem('userAuth', JSON.stringify(res.data));
-    const userType = this.model.userType === 'cartero' ? 'cartero' : 'sucursale';
-    this.$store.dispatch('auth/login', { token: res.data.token, user: res.data.cartero || res.data.sucursale });
-    this.$router.push('/admin');
-} catch (e) {
-    console.log(e);
-    this.$swal.fire({
-        title: "No se pudo iniciar sesión",
-        showDenyButton: false,
-        showCancelButton: false,
-        confirmButtonText: "Ok"
-    });
+    let apiClient;
+    let loginUrl;
+
+    if (this.model.userType === 'cartero') {
+        apiClient = this.$api; // Utiliza el cliente API configurado para carteros
+        loginUrl = 'login3';
+    } else if (this.model.userType === 'sucursale') {
+        apiClient = this.$sucursales; // Utiliza el cliente API configurado para sucursales
+        loginUrl = 'login2';
+    }
+
+    try {
+        const res = await apiClient.post(loginUrl, {
+            email: this.model.email,
+            password: this.model.password,
+            recaptcha: recaptchaResponse
+        });
+        console.log('API Response:', res);
+
+        if (res.status !== 200 || !res.data.token) {
+            this.$swal.fire({
+                title: "Credenciales incorrectas",
+                showDenyButton: false,
+                showCancelButton: false,
+                confirmButtonText: "Ok"
+            });
+            return;
+        }
+
+        const userType = this.model.userType === 'cartero' ? 'cartero' : 'sucursal';
+        const user = res.data[userType];
+
+        localStorage.setItem('userAuth', JSON.stringify({ token: res.data.token, user, userType }));
+        this.$store.dispatch('auth/login', { token: res.data.token, user,userType });
+        this.$router.push('/admin');
+    } catch (e) {
+        console.log(e);
+        this.$swal.fire({
+            title: "No se pudo iniciar sesión",
+            showDenyButton: false,
+            showCancelButton: false,
+            confirmButtonText: "Ok"
+        });
+    }
 }
 
-    },
+
+,
     animateImage() {
       anime({
         targets: this.$refs.image,

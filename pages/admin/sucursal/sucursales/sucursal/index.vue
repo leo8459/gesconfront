@@ -10,6 +10,7 @@
             </nuxtLink>
           </div>
         </div>
+{{user}}
         <div class="row">
           <div class="col-12">
             <div class="card border-rounded">
@@ -97,19 +98,19 @@ export default {
     return {
       load: true,
       list: [],
-      apiUrl: 'solicitudes',
+      apiUrl: 'solicitudes2',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/sucursal/sucursales/sucursal/nuevo',
       url_editar: '/admin/sucursal/sucursales/sucursal/editar/',
       user: {
-        sucursale: []
+        user: []
       }
     };
   },
   computed: {
     filteredList() {
-      return this.list.filter(item => item.sucursale.id === this.user.sucursale.id && item.estado === 1);
+      return this.list.filter(item => item.sucursale.id === this.user.user.id && item.estado === 1);
     },
     sortedList() {
       return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -117,13 +118,13 @@ export default {
   },
   methods: {
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$sucursales.$get(path);
       return res;
     },
     async EliminarItem(id) {
       this.load = true;
       try {
-        const res = await this.$api.$delete(this.apiUrl + '/' + id);
+        const res = await this.$sucursales.$delete(this.apiUrl + '/' + id);
         await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
           this.list = v[0];
         });
@@ -152,7 +153,7 @@ export default {
         const item = this.list.find(m => m.id === id);
         if (item) {
           item.estado = 3; // Cambiar estado a 3 (Entregado)
-          await this.$api.$put(this.apiUrl + '/' + id, item);
+          await this.$sucursales.$put(this.apiUrl + '/' + id, item);
           await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
             this.list = v[0];
           });

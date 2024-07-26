@@ -191,7 +191,7 @@ export default {
   },
   methods: {
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$sucursales.$get(path);
       return res;
     },
     openModal(type) {
@@ -372,8 +372,8 @@ export default {
     },
     async fetchUser() {
       let user = JSON.parse(localStorage.getItem('userAuth'));
-      if (user && user.sucursale) {
-        this.model.sucursale_id = user.sucursale.id;
+      if (user && user) {
+        this.model.sucursale_id = user.id;
       }
     }
   },

@@ -328,7 +328,7 @@ export default {
     async confirmAllAssignments() {
       this.load = true;
       try {
-        const carteroId = this.user.id;
+        const carteroId = this.user.user.id;
         for (let item of this.selectedForAssign) {
           await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
         }

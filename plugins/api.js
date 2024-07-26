@@ -1,3 +1,4 @@
+//plugins/api.js
 export default function ({ $axios, store, redirect }, inject) {
   const api = $axios.create({
     headers: {

@@ -110,8 +110,8 @@
 
           <!-- //CARTERO -->
 
-        <li class="nav-item">
-          <a @click="handleItemClick('cartero')" data-bs-toggle="collapse" href="#perfil-cartero" class="nav-link"
+          <li class="nav-item" v-if="isCartero">
+            <a @click="handleItemClick('cartero')" data-bs-toggle="collapse" href="#perfil-cartero" class="nav-link"
             aria-controls="configuracion-cajero" role="button" aria-expanded="false">
             <div
               class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
@@ -153,7 +153,7 @@
 
         <!-- //EMPRESA -->
 
-        <li class="nav-item">
+        <li class="nav-item" v-if="isSucursale">
           <a @click="handleItemClick('empresa')" data-bs-toggle="collapse" href="#perfil-empresa" class="nav-link"
             aria-controls="configuracion-cajero" role="button" aria-expanded="false">
             <div
@@ -164,19 +164,19 @@
           </a>
           <div class="collapse" id="perfil-empresa">
             <ul class="nav ms-4 ps-3">
-              <li class="nav-item">
+              <li class="nav-item" v-if="isSucursale">
                 <nuxtLink class="nav-link" to="/admin/sucursal/sucursales/sucursal">
                   <span class="sidenav-mini-icon"> Solicitud Empresa</span>
                   <span class="sidenav-normal">Solicitud Empresa </span>
                 </nuxtLink>
               </li>
-              <li class="nav-item">
+              <li class="nav-item" v-if="isSucursale">
                 <nuxtLink class="nav-link" to="/admin/sucursal/encaminosucursales/encaminosucursal">
                   <span class="sidenav-mini-icon"> En Camino Empresa</span>
                   <span class="sidenav-normal"> En Camino Empresa </span>
                 </nuxtLink>
               </li>
-              <li class="nav-item">
+              <li class="nav-item" v-if="isSucursale">
                 <nuxtLink class="nav-link" to="/admin/sucursal/entregadosucursales/entregadosucursal">
                   <span class="sidenav-mini-icon"> Entregados Empresa</span>
                   <span class="sidenav-normal">Entregados Empresa </span>
@@ -273,6 +273,17 @@ export default {
     return {
       role: '', // Initialize the role data property
     };
+  },
+  computed: {
+    userType() {
+      return this.$store.getters['auth/currentUserType']; // Accede al tipo de usuario desde el store de Vuex
+    },
+    isCartero() {
+      return this.userType === 'cartero'; // Verifica si el tipo de usuario es cartero
+    },
+    isSucursale() {
+      return this.userType === 'sucursale'; // Verifica si el tipo de usuario es sucursale
+    }
   },
   methods: {
     handleItemClick(role) {

@@ -18,7 +18,6 @@
             <div class="table-responsive">
               <table class="table table-sm table-bordered">
                 <thead>
-                  
                   <tr>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
@@ -131,21 +130,23 @@ export default {
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
-      url_editar: '/admin/solicitudescartero/solicitudecartero/editar/',
+      url_editar: '/admin/cartero/editar/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',
       collapseState: {},
       isModalVisible: false,
       currentId: null,
       selected: {},
       selectedItemsData: [],
-      user: {}
+      user: {},
     };
   },
   computed: {
     filteredData() {
       const searchTerm = this.searchTerm.toLowerCase();
       return this.list.filter(item =>
-        item.estado === 2 && Object.values(item).some(value =>
+        item.estado === 2 && 
+        item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
+        Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
         )
       );
@@ -162,7 +163,7 @@ export default {
     async markAsEnCamino(solicitudeId) {
       this.load = true;
       try {
-        const carteroId = this.user.id;
+        const carteroId = this.user.user.id;
         const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
         await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
@@ -214,7 +215,7 @@ export default {
     async DarDeBaja(id) {
       this.load = true;
       try {
-        const carteroId = this.user.id;
+        const carteroId = this.user.user.id;
         const item = this.list.find(m => m.id === id);
         if (item) {
           const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
@@ -245,7 +246,7 @@ export default {
     async confirmAssignSelected() {
       this.load = true;
       try {
-        const carteroId = this.user.id;
+        const carteroId = this.user.user.id;
         for (let item of this.selectedItemsData) {
           if (item && item.id) { // Verificación adicional
             await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
