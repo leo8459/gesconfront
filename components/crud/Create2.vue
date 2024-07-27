@@ -53,7 +53,7 @@ export default {
     async Save() {
       this.load = true;
       try {
-        const res = await this.$api.$post(this.apiUrl, this.model);
+        const res = await this.$sucursales.$post(this.apiUrl, this.model);
         console.log(res);
         this.$swal
           .fire({

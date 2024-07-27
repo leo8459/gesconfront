@@ -140,7 +140,7 @@ export default {
         fecha_d: '',
         estado: '',
       },
-      apiUrl: "solicitudes",
+      apiUrl: "solicitudes2",
       page: "solicitudes",
       modulo: "Agbc",
       sucursales: [],

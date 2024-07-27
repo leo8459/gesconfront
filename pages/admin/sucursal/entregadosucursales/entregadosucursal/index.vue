@@ -37,7 +37,6 @@
                         <th class="py-0 px-1">Ciudad</th>
                         <th class="py-0 px-1">Nombre Destinatario</th>
                         <th class="py-0 px-1">CI Destinatario</th>
-                        <th class="py-0 px-1">Firma Destinatario</th>
                         <th class="py-0 px-1">Estado</th>
                         <th class="py-0 px-1"></th>
                       </tr>
@@ -72,20 +71,7 @@
                         <td class="py-0 px-1">{{ m.ciudad }}</td>
                         <td class="py-0 px-1">{{ m.nombre_d }}</td>
                         <td class="py-0 px-1">{{ m.ci_d }}</td>
-                        <td class="py-0 px-1">
-                            <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
-                          </td>
-                        <td class="py-0 px-1">{{ getEstadoLabel(m.estado) }}</td>
-                        <td class="py-0 px-1" v-if="m.estado !== 3 && m.estado !== 0">
-                          <div class="btn-group">
-                            <nuxtLink v-if="m.estado !== 2" :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
-                              <i class="fas fa-pen"></i>
-                            </nuxtLink>
-                            <button v-if="m.estado !== 2" type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
-                              <i class="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </td>
+                       
                       </tr>
                     </tbody>
                   </table>
@@ -111,7 +97,7 @@ export default {
     return {
       load: true,
       list: [],
-      apiUrl: 'solicitudes',
+      apiUrl: 'solicitudes2',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/sucursal/sucursales/sucursal/nuevo',
@@ -123,7 +109,7 @@ export default {
   },
   computed: {
     filteredList() {
-      return this.list.filter(item => item.sucursale.id === this.user.user.id && item.estado === 3);
+      return this.list.filter(item => item.sucursale.id === this.user.user.id && (item.estado === 3 ));
     },
     sortedList() {
       return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));

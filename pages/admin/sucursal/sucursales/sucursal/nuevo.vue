@@ -10,14 +10,13 @@
                 <h3>Agregar Solicitud</h3>
               </div>
               <div class="card-body">
-                <CrudCreate :model="model" :apiUrl="apiUrl" @success="onSuccess">
+                <CrudCreate2 :model="model" :apiUrl="apiUrl" @success="onSuccess">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="sucursal">Sucursal</label>
-                      <select id="sucursal" class="form-control" v-model="model.sucursale_id" disabled>
-                        <option v-for="m in sucursales" :key="m.id" :value="m.id">{{ m.nombre }}</option>
-                      </select>
+                      <input type="text" id="sucursal" class="form-control" v-model="model.sucursale_nombre" disabled>
                     </div>
+
                     <div class="form-group col-12">
                       <label for="guia">Numero de Guia</label>
                       <input type="text" v-model.trim="model.guia" class="form-control" id="guia">
@@ -26,15 +25,21 @@
                       <label for="peso_o">Peso (Medido en Kilogramos)</label>
                       <input type="text" v-model.trim="model.peso_o" class="form-control" id="peso_o">
                     </div>
+                   
                     <div class="form-group col-12">
                       <label for="remitente">Remitente</label>
                       <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente">
                     </div>
                     <div class="form-group col-12">
                       <label for="direccion">Dirección</label>
-                      <input type="text" id="direccion" class="form-control" @click="openModal('direccion')" :value="currentLat && currentLng ? currentLat + ', ' + currentLng : ''" readonly>
+                      <input type="text" id="direccion" class="form-control" @click="openModal('direccion')"
+                        :value="currentLat && currentLng ? currentLat + ', ' + currentLng : ''" readonly>
                       <input type="hidden" v-model="model.direccion_lat">
                       <input type="hidden" v-model="model.direccion_lng">
+                    </div>
+                    <div class="form-group col-12">
+                      <label for="peso_o">Zona Remitente</label>
+                      <input type="text" v-model.trim="model.zona_r" class="form-control" id="zona_r">
                     </div>
                     <div class="form-group col-12">
                       <label for="telefono">Teléfono</label>
@@ -54,9 +59,14 @@
                     </div>
                     <div class="form-group col-12">
                       <label for="direccion_d">Dirección Destino</label>
-                      <input type="text" id="direccion_d" class="form-control" @click="openModal('direccion_d')" :value="currentLat_d && currentLng_d ? currentLat_d + ', ' + currentLng_d : ''" readonly>
+                      <input type="text" id="direccion_d" class="form-control" @click="openModal('direccion_d')"
+                        :value="currentLat_d && currentLng_d ? currentLat_d + ', ' + currentLng_d : ''" readonly>
                       <input type="hidden" v-model="model.direccion_d_lat">
                       <input type="hidden" v-model="model.direccion_d_lng">
+                    </div>
+                    <div class="form-group col-12">
+                      <label for="peso_o">Zona Destinario</label>
+                      <input type="text" v-model.trim="model.zona_d" class="form-control" id="zona_d">
                     </div>
                     <div class="form-group col-12">
                       <label for="ciudad">Ciudad o Departamento de Entrega</label>
@@ -75,7 +85,7 @@
                       <input type="text" v-model="model.fecha" class="form-control" id="fecha" disabled>
                     </div>
                   </div>
-                </CrudCreate>
+                </CrudCreate2>
               </div>
             </div>
           </div>
@@ -87,7 +97,8 @@
     <b-modal ref="mapsModal" title="Seleccionar Dirección" @ok="handleOk" size="lg">
       <div>
         <div class="input-group mb-2">
-          <input type="text" v-model="searchQuery" @keyup.enter="searchLocation" placeholder="Buscar dirección" class="form-control"/>
+          <input type="text" v-model="searchQuery" @keyup.enter="searchLocation" placeholder="Buscar dirección"
+            class="form-control" />
           <div class="input-group-append">
             <button class="btn btn-primary" type="button" @click="searchLocation">Buscar</button>
           </div>
@@ -108,7 +119,8 @@
     <b-modal ref="mapsModalD" title="Seleccionar Dirección Destino" @ok="handleOkD" size="lg">
       <div>
         <div class="input-group mb-2">
-          <input type="text" v-model="searchQuery_d" @keyup.enter="searchLocationD" placeholder="Buscar dirección" class="form-control"/>
+          <input type="text" v-model="searchQuery_d" @keyup.enter="searchLocationD" placeholder="Buscar dirección"
+            class="form-control" />
           <div class="input-group-append">
             <button class="btn btn-primary" type="button" @click="searchLocationD">Buscar</button>
           </div>
@@ -142,6 +154,7 @@ export default {
     return {
       model: {
         sucursale_id: '',
+        sucursale_nombre: '', // Nuevo campo para el nombre de la sucursal
         cartero_id: null, // Permitir valor nulo
         guia: '',
         peso_o: '',
@@ -166,7 +179,8 @@ export default {
         fecha_d: '',
         estado: '',
       },
-      apiUrl: 'solicitudes',
+
+      apiUrl: 'solicitudes2',
       page: 'solicitudes',
       modulo: 'AGBC',
       load: true,
@@ -338,7 +352,7 @@ export default {
     async searchLocation() {
       if (this.searchQuery && this.currentLat && this.currentLng) {
         this.searching = true;
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${this.searchQuery}&limit=5&viewbox=${this.currentLng-0.1},${this.currentLat+0.1},${this.currentLng+0.1},${this.currentLat-0.1}`);
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${this.searchQuery}&limit=5&viewbox=${this.currentLng - 0.1},${this.currentLat + 0.1},${this.currentLng + 0.1},${this.currentLat - 0.1}`);
         const data = await response.json();
         if (data.length > 0) {
           // Find the closest match
@@ -354,7 +368,7 @@ export default {
     async searchLocationD() {
       if (this.searchQuery_d && this.currentLat_d && this.currentLng_d) {
         this.searching_d = true;
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${this.searchQuery_d}&limit=5&viewbox=${this.currentLng_d-0.1},${this.currentLat_d+0.1},${this.currentLng_d+0.1},${this.currentLat_d-0.1}`);
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${this.searchQuery_d}&limit=5&viewbox=${this.currentLng_d - 0.1},${this.currentLat_d + 0.1},${this.currentLng_d + 0.1},${this.currentLat_d - 0.1}`);
         const data = await response.json();
         if (data.length > 0) {
           // Find the closest match
@@ -372,8 +386,9 @@ export default {
     },
     async fetchUser() {
       let user = JSON.parse(localStorage.getItem('userAuth'));
-      if (user && user) {
-        this.model.sucursale_id = user.id;
+      if (user && user.user) {
+        this.model.sucursale_id = user.user.id;
+        this.model.sucursale_nombre = user.user.nombre; // Asignar el nombre de la sucursal
       }
     }
   },
@@ -433,9 +448,11 @@ export default {
   justify-content: space-between;
   margin-top: 10px;
 }
+
 .coordinates {
   text-align: center;
 }
+
 .overlay {
   position: absolute;
   top: 0;
@@ -448,9 +465,11 @@ export default {
   justify-content: center;
   z-index: 1000;
 }
+
 .alert {
   text-align: center;
 }
+
 .table-responsive {
   overflow-x: auto;
 }

@@ -10,7 +10,7 @@
             </nuxtLink>
           </div>
         </div>
-{{user}}
+        <!-- {{user}} -->
         <div class="row">
           <div class="col-12">
             <div class="card border-rounded">
@@ -38,7 +38,7 @@
                         <th class="py-0 px-1">Ciudad/Departamento</th>
                         <th class="py-0 px-1">Nombre Destinatario</th>
                         <th class="py-0 px-1">CI Destinatario</th>
-                        <th class="py-0 px-1"></th>
+                        <th class="py-0 px-1">Estado</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -72,7 +72,6 @@
                         <td class="py-0 px-1">{{ m.nombre_d }}</td>
                         <td class="py-0 px-1">{{ m.ci_d }}</td>
                         <td class="py-0 px-1">{{ getEstadoLabel(m.estado) }}</td>
-                       
                       </tr>
                     </tbody>
                   </table>
@@ -104,13 +103,13 @@ export default {
       url_nuevo: '/admin/sucursal/sucursales/sucursal/nuevo',
       url_editar: '/admin/sucursal/sucursales/sucursal/editar/',
       user: {
-        user: []
+        sucursale: []
       }
     };
   },
   computed: {
     filteredList() {
-      return this.list.filter(item => item.sucursale.id === this.user.user.id && item.estado === 1);
+      return this.list.filter(item => item.sucursale.id === this.user.user.id && (item.estado === 1 ));
     },
     sortedList() {
       return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -172,6 +171,8 @@ export default {
           return 'En camino';
         case '3':
           return 'Entregados';
+        case '5':
+          return 'Pendientes';
         case '0':
           return 'Cancelados';
         default:

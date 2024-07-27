@@ -282,7 +282,7 @@ export default {
       return this.userType === 'cartero'; // Verifica si el tipo de usuario es cartero
     },
     isSucursale() {
-      return this.userType === 'sucursale'; // Verifica si el tipo de usuario es sucursale
+      return this.userType === 'sucursal'; // Verifica si el tipo de usuario es sucursale
     }
   },
   methods: {
