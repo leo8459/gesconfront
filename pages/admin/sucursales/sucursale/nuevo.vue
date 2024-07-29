@@ -11,7 +11,7 @@
                 <h3>Crear Nueva Sucursal</h3>
               </div>
               <div class="card-body">
-                <CrudCreate :model="model" :apiUrl="apiUrl">
+                <CrudCreate3 :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="">empresa</label>
@@ -76,7 +76,7 @@
 
                     
                   </div>
-                </CrudCreate>
+                </CrudCreate3>
               </div>
             </div>
           </div>
@@ -102,7 +102,7 @@ export default {
         acuerdos: '',
         empresa_id: '',
       },
-      apiUrl: 'sucursales',
+      apiUrl: 'sucursales1',
       page: 'sucursales',
       modulo: 'AGBC',
       load: true,
@@ -114,7 +114,7 @@ export default {
 
   methods: {
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$administrador.$get(path);
       return res;
     },
   },
@@ -122,7 +122,7 @@ export default {
   mounted() {
     this.$nextTick(async () => {
       try {
-        await Promise.all([this.GET_DATA('empresas')]).then((v) => {
+        await Promise.all([this.GET_DATA('empresas1')]).then((v) => {
           this.empresas = v[0];
         });
       } catch (e) {

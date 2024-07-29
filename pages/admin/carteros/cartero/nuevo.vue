@@ -10,7 +10,7 @@
                 <h3>Agregar</h3>
               </div>
               <div class="card-body">
-                <CrudCreate :model="model" :apiUrl="apiUrl">
+                <CrudCreate3 :model="model" :apiUrl="apiUrl">
 
 
 
@@ -50,7 +50,7 @@
                    
 
                   </div>
-                </CrudCreate>
+                </CrudCreate3>
               </div>
             </div>
           </div>
@@ -72,7 +72,7 @@ export default {
 
 
       },
-      apiUrl: 'carteros',
+      apiUrl: 'carteros1',
       page: 'Usuarios',
       modulo: 'AGBC',
       load: true,

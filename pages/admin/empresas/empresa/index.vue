@@ -70,7 +70,7 @@ export default {
     return {
       load: true,
       list: [], // tus datos originales
-      apiUrl: "empresas",//nombre de la variable para jlar la api ruta
+      apiUrl: "empresas1",//nombre de la variable para jlar la administrador ruta
       page: "Empresas",
       modulo: "AGBC",
       url_nuevo: "/admin/empresas/empresa/nuevo",
@@ -83,7 +83,7 @@ export default {
   methods: {
     async GET_DATA(path) {
       try {
-        const res = await this.$api.$get(path);
+        const res = await this.$administrador.$get(path);
         return res;
       } catch (error) {
         console.error(error);
@@ -92,7 +92,7 @@ export default {
     async EliminarItem(id) {
       this.load = true;
       try {
-        const res = await this.$api.$delete(this.apiUrl + "/" + id);
+        const res = await this.$administrador.$delete(this.apiUrl + "/" + id);
         console.log(res);
         const [data] = await Promise.all([this.GET_DATA(this.apiUrl)]);
         this.list = data;

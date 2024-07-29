@@ -200,7 +200,7 @@ export default {
       this.load = true;
       try {
         const carteroId = this.user.cartero.id;
-        const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
+        const response = await this.$administrador.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
         await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
           icon: 'success',
@@ -221,13 +221,13 @@ export default {
     },
 
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$administrador.$get(path);
       this.list = res;
     },
     async EliminarItem(id) {
       this.load = true;
       try {
-        const res = await this.$api.$delete(this.apiUrl + '/' + id);
+        const res = await this.$administrador.$delete(this.apiUrl + '/' + id);
         await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
           this.list = v[0];
         });
@@ -256,7 +256,7 @@ export default {
         const carteroId = this.user.cartero.id;
         const item = this.list.find(m => m.id === id);
         if (item) {
-          const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          const response = await this.$administrador.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
           item.estado = response.estado; // Actualizar estado desde la respuesta
           item.cartero_entrega_id = response.cartero_entrega_id; // Actualizar cartero de entrega desde la respuesta
           item.peso_v = response.peso_v; // Actualizar peso desde la respuesta
@@ -294,7 +294,7 @@ export default {
       try {
         const carteroId = this.user.cartero.id;
         for (let item of this.selectedItemsData) {
-          await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          await this.$administrador.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
         }
         await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
         this.$swal.fire({

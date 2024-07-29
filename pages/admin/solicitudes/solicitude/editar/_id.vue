@@ -10,7 +10,7 @@
                 <h3>Actualizar</h3>
               </div>
               <div class="card-body">
-                <CrudUpdate :model="model" :apiUrl="apiUrl">
+                <CrudUpdate3 :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="">Sucursal</label>
@@ -99,7 +99,7 @@
                       <input type="date" v-model="model.fecha_d" class="form-control" :min="fin_vigencia">
                     </div>                    
                   </div>
-                </CrudUpdate>
+                </CrudUpdate3>
               </div>
             </div>
           </div>
@@ -142,7 +142,7 @@ export default {
         fecha_d: '',
         estado: '',
       },
-      apiUrl: "solicitudes",
+      apiUrl: "solicitudes1",
       page: "solicitudes",
       modulo: "Agbc",
       sucursales: [],
@@ -152,7 +152,7 @@ export default {
   },
   methods: {
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$administrador.$get(path);
       return res
     },
   },

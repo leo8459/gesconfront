@@ -30,7 +30,7 @@
                       <tr v-for="(m, i) in resultados" :key="m.id">
                         <td class="py-0 px-1">{{ i + 1 }}</td>
                         <td class="py-0 px-1">{{ m.nombre }}</td>
-                        <td class="py-0 px-1">{{ m.apellidos }}</td>
+                        <td class="py-0 px-1">{{ m.nit }}</td>
                         <td class="py-0 px-1" :class="m.estado === 1 ? 'activo' : 'inactivo'">
                           {{ m.estado === 1 ? 'Activo' : 'Inactivo' }}
                         </td>
@@ -70,21 +70,16 @@ export default {
     return {
       load: true,
       list: [], // tus datos originales
-      apiUrl: "users1",//nombre de la variable para jlar la administrador ruta
-      page: "Usuarios",
+      apiUrl: "empresas",//nombre de la variable para jlar la administrador ruta
+      page: "Empresas",
       modulo: "AGBC",
-      url_nuevo: "/admin/usuarios/usuario/nuevo",
-      url_editar: "/admin/usuarios/usuario/editar/",//VA AL PRIMER ARCHIVO DE LA CARPETA
+      url_nuevo: "/admin/empresas/empresa/nuevo",
+      url_editar: "/admin/empresas/empresa/editar/",//VA AL PRIMER ARCHIVO DE LA CARPETA
       busqueda: "", // término de búsqueda
       resultados: [], // datos filtrados
-      headers: ['#', 'Nombre', 'Apellidos','Estado',' '],
+      headers: ['#', 'Nombre','nit','Estado',' '],
     };
   },
-  computed: {
-      user() {
-         return this.$store.state.auth.user;
-      },
-   },
   methods: {
     async GET_DATA(path) {
       try {
@@ -130,8 +125,11 @@ export default {
       );
     }
   },
+//cntrc+v
 
-mounted() {
+
+
+  mounted() {
     this.$nextTick(async () => {
       try {
         const [data] = await Promise.all([this.GET_DATA(this.apiUrl)]);

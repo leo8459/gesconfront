@@ -4,8 +4,7 @@
       <div class="page-header min-vh-100 d-flex">
         <!-- Imagen en la mitad izquierda -->
         <div class="col-6 d-flex align-items-center justify-content-center p-0">
-          <img ref="image" src="@/pages/admin/auth/img/mediana.jpg" alt="Logo"
-            class="img-fluid w-100 h-100 rounded shadow-lg">
+          <img ref="image" src="@/pages/admin/auth/img/mediana.jpg" alt="Logo" class="img-fluid w-100 h-100 rounded shadow-lg">
         </div>
         <!-- Formulario de inicio de sesión en la mitad derecha -->
         <div class="col-6 d-flex align-items-center justify-content-center">
@@ -26,6 +25,7 @@
                         <select v-model="model.userType" class="form-control rounded shadow-sm">
                           <option value="cartero">Cartero</option>
                           <option value="sucursale">Sucursal</option>
+                          <option value="administrador">Administrador</option>
                         </select>
                       </div>
                       <label>Email</label>
@@ -46,7 +46,9 @@
                           @click="Login()">
                           Ingresar
                         </button>
-                        <button @click="regresarBienvenida" class="btn bg-gradient-info w-100 mt-4 mb-0 rounded shadow">Regresar a Bienvenida</button> <!-- Botón añadido -->
+                        <button @click="regresarBienvenida" class="btn bg-gradient-info w-100 mt-4 mb-0 rounded shadow">
+                          Regresar a Bienvenida
+                        </button> <!-- Botón añadido -->
                       </div>
                     </div>
                   </div>
@@ -60,9 +62,11 @@
   </main>
 </template>
 
+
 <script>
 import api from '@/plugins/api';
 import sucursalesApi from '@/plugins/sucursales';
+import administradorApi from '@/plugins/administrador'; // Importar el plugin administrador
 const anime = require('animejs/lib/anime.js'); // Usando la versión CommonJS de anime.js
 
 export default {
@@ -104,66 +108,66 @@ export default {
       }
     },
     async Login() {
-    const recaptchaResponse = window.grecaptcha.getResponse();
+      const recaptchaResponse = window.grecaptcha.getResponse();
 
-    if (!recaptchaResponse) {
+      if (!recaptchaResponse) {
         this.$swal.fire({
-            title: "Por favor, verifica que no eres un robot",
-            showDenyButton: false,
-            showCancelButton: false,
-            confirmButtonText: "Ok"
+          title: "Por favor, verifica que no eres un robot",
+          showDenyButton: false,
+          showCancelButton: false,
+          confirmButtonText: "Ok"
         });
         return;
-    }
+      }
 
-    let apiClient;
-    let loginUrl;
+      let apiClient;
+      let loginUrl;
 
-    if (this.model.userType === 'cartero') {
+      if (this.model.userType === 'cartero') {
         apiClient = this.$api; // Utiliza el cliente API configurado para carteros
         loginUrl = 'login3';
-    } else if (this.model.userType === 'sucursale') {
+      } else if (this.model.userType === 'sucursale') {
         apiClient = this.$sucursales; // Utiliza el cliente API configurado para sucursales
         loginUrl = 'login2';
-    }
+      } else if (this.model.userType === 'administrador') {
+        apiClient = this.$administrador; // Utiliza el cliente API configurado para administradores
+        loginUrl = 'login';
+      }
 
-    try {
+      try {
         const res = await apiClient.post(loginUrl, {
-            email: this.model.email,
-            password: this.model.password,
-            recaptcha: recaptchaResponse
+          email: this.model.email,
+          password: this.model.password,
+          recaptcha: recaptchaResponse
         });
         console.log('API Response:', res);
 
         if (res.status !== 200 || !res.data.token) {
-            this.$swal.fire({
-                title: "Credenciales incorrectas",
-                showDenyButton: false,
-                showCancelButton: false,
-                confirmButtonText: "Ok"
-            });
-            return;
-        }
-
-        const userType = this.model.userType === 'cartero' ? 'cartero' : 'sucursal';
-        const user = res.data[userType];
-
-        localStorage.setItem('userAuth', JSON.stringify({ token: res.data.token, user, userType }));
-        this.$store.dispatch('auth/login', { token: res.data.token, user,userType });
-        this.$router.push('/admin');
-    } catch (e) {
-        console.log(e);
-        this.$swal.fire({
-            title: "No se pudo iniciar sesión",
+          this.$swal.fire({
+            title: "Credenciales incorrectas",
             showDenyButton: false,
             showCancelButton: false,
             confirmButtonText: "Ok"
+          });
+          return;
+        }
+
+        const userType = this.model.userType === 'cartero' ? 'cartero' : this.model.userType === 'sucursale' ? 'sucursal' : 'administrador';
+        const user = res.data[userType];
+
+        localStorage.setItem('userAuth', JSON.stringify({ token: res.data.token, user, userType }));
+        this.$store.dispatch('auth/login', { token: res.data.token, user, userType });
+        this.$router.push('/admin');
+      } catch (e) {
+        console.log(e);
+        this.$swal.fire({
+          title: "No se pudo iniciar sesión",
+          showDenyButton: false,
+          showCancelButton: false,
+          confirmButtonText: "Ok"
         });
-    }
-}
-
-
-,
+      }
+    },
     animateImage() {
       anime({
         targets: this.$refs.image,
@@ -184,6 +188,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped>
 .main-content {

@@ -103,7 +103,7 @@ export default {
       load: true,
       sucursales: [],
       selectedSucursal: {},
-      apiUrl: 'tarifas1',
+      apiUrl: 'tarifas',
       page: 'tarifas',
       modulo: 'AGBC',
       url_nuevo: '/admin/tarifas/tarifa/nuevo',

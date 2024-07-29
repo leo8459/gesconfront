@@ -77,7 +77,7 @@ export default {
     return {
       load: true,
       list: [],
-      apiUrl: 'cajeros',
+      apiUrl: 'cajeros1',
       page: 'cajeros',
       modulo: 'agbc',
       url_nuevo: '/admin/cajeros/cajero/nuevo',
@@ -191,13 +191,13 @@ export default {
 
 
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$administrador.$get(path);
       return res
     },
     async EliminarItem(id) {
       this.load = true
       try {
-        const res = await this.$api.$delete(this.apiUrl + '/' + id);
+        const res = await this.$administrador.$delete(this.apiUrl + '/' + id);
         console.log(res)
         await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
           this.list = v[0]

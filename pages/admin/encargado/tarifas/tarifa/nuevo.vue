@@ -86,7 +86,7 @@ export default {
         servicioprov: '',
         servicioexpress: '',
       },
-      apiUrl: 'tarifas1',
+      apiUrl: 'tarifas',
       page: 'tarifas',
       modulo: 'AGBC',
       load: true,
@@ -152,7 +152,7 @@ export default {
   mounted() {
     this.$nextTick(async () => {
       try {
-        await Promise.all([this.GET_DATA('sucursales1')]).then((v) => {
+        await Promise.all([this.GET_DATA('sucursales')]).then((v) => {
           this.sucursales = v[0];
         })
       } catch (e) {

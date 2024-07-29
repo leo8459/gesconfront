@@ -7,7 +7,7 @@ export default {
   },
   head: {
   
-    title: 'ADMINISTRADOR',
+    title: 'AGBC',
     htmlAttrs: {
       lang: 'en'
     },
@@ -46,7 +46,9 @@ export default {
   plugins: [
     '~/plugins/auth.js',
     '~/plugins/api',
-    '~/plugins/sucursales.js'
+    '~/plugins/sucursales.js',
+    '~/plugins/administrador.js'
+
 
   ],
 

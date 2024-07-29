@@ -104,7 +104,7 @@ export default {
     return {
       load: true,
       list: [],
-      apiUrl: 'clientes',
+      apiUrl: 'clientes1',
       page: 'clientes',
       modulo: 'agbc',
       url_nuevo: '/admin/clientes/cliente/nuevo',
@@ -142,7 +142,7 @@ export default {
     },
     async fetchData() {
       try {
-        const res = await this.$api.$get(this.apiUrl);
+        const res = await this.$administrador.$get(this.apiUrl);
         this.list = res;
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -152,7 +152,7 @@ export default {
     },
     async Eliminar(id) {
       try {
-        await this.$api.$delete(`${this.apiUrl}/${id}`);
+        await this.$administrador.$delete(`${this.apiUrl}/${id}`);
         await this.fetchData();
       } catch (error) {
         console.error("Error deleting item:", error);

@@ -163,7 +163,7 @@ export default {
 
   methods: {
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$administrador.$get(path);
       return res;
     },
   },

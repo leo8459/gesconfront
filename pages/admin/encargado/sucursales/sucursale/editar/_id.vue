@@ -10,7 +10,7 @@
                 <h3>Actualizar Sucursal</h3>
               </div>
               <div class="card-body">
-                <CrudUpdate3 :model="model" :apiUrl="apiUrl">
+                <CrudUpdate :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="">Sucursal</label>
@@ -64,7 +64,7 @@
                       <input type="text" v-model="model.contacto_administrativo" class="form-control" id="">
                     </div>
                   </div>
-                </CrudUpdate3>
+                </CrudUpdate>
               </div>
             </div>
           </div>
@@ -99,7 +99,7 @@ export default {
         password: '',
         empresa_id: '',
       },
-      apiUrl: "sucursales1",
+      apiUrl: "sucursales",
       page: "sucursales",
       modulo: "Agbc",
       empresas: [],

@@ -9,7 +9,7 @@
           </h6>
         </li>
 
-        <li class="nav-item">
+        <li class="nav-item" v-if="isAdministrador">
           <a @click="handleItemClick('admin')" data-bs-toggle="collapse" href="#perfil-admin" class="nav-link"
             aria-controls="configuracion-admin" role="button" aria-expanded="false">
             <div
@@ -283,7 +283,10 @@ export default {
     },
     isSucursale() {
       return this.userType === 'sucursal'; // Verifica si el tipo de usuario es sucursale
-    }
+    },
+    isAdministrador() {
+      return this.userType === 'administrador'; // Verifica si el tipo de usuario es sucursale
+    },
   },
   methods: {
     handleItemClick(role) {

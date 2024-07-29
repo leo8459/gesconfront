@@ -11,7 +11,7 @@
                 <h3>Actualizar</h3>
               </div>
               <div class="card-body">
-                <CrudUpdate3 :model="model" :apiUrl="apiUrl">
+                <CrudUpdate :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
 
                     <div class="form-group col-12">
@@ -42,7 +42,7 @@
                       <input type="text" v-model="model.servicioexpress" class="form-control" id="">
                     </div>
                   </div>
-                </CrudUpdate3>
+                </CrudUpdate>
               </div>
             </div>
           </div>
@@ -72,7 +72,7 @@ export default {
         servicioprov: '',
         servicioexpress: '',
       },
-      apiUrl: "tarifas1",
+      apiUrl: "tarifas",
       page: "tarifas",
       modulo: "Agbc",
       sucursales: [],

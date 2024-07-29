@@ -11,7 +11,7 @@
                 <h3>Actualizar</h3>
               </div>
               <div class="card-body">
-                <CrudUpdate :model="model" :apiUrl="apiUrl">
+                <CrudUpdate3 :model="model" :apiUrl="apiUrl">
 
 
 
@@ -56,7 +56,7 @@
 
 
                   </div>
-                </CrudUpdate>
+                </CrudUpdate3>
               </div>
             </div>
           </div>
@@ -86,14 +86,14 @@ export default {
         estado: '',
 
       },
-      apiUrl: 'empresas',
+      apiUrl: 'empresas1',
       page: 'Empresas',
       modulo: 'AGBC'
     };
   },
   methods: {
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$administrador.$get(path);
       return res
     },
 

@@ -105,7 +105,7 @@ export default {
   },
   methods: {
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$administrador.$get(path);
       return res;
     },
     async darDeBaja() {
@@ -127,7 +127,7 @@ export default {
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         this.model.fecha_d = `${day}/${month}/${year} ${hours}:${minutes}`;
-        await this.$api.$put(`${this.apiUrl}/${this.model.id}`, this.model);
+        await this.$administrador.$put(`${this.apiUrl}/${this.model.id}`, this.model);
         Swal.fire({
           icon: 'success',
           title: 'Éxito',

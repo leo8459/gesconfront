@@ -10,7 +10,7 @@
                 <h3>Agregar</h3>
               </div>
               <div class="card-body">
-                <CrudCreate3 :model="model" :apiUrl="apiUrl">
+                <CrudCreate :model="model" :apiUrl="apiUrl">
 
 
 
@@ -23,10 +23,11 @@
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="">Apellidos</label>
-                      <input type="text" v-model="model.apellidos" class="form-control" id="">
+                      <label for="">Nit</label>
+                      <input type="text" v-model="model.nit" class="form-control" id="">
                     </div>
 
+                    
 
 
                     <div class="form-group col-12">
@@ -45,7 +46,7 @@
                    
 
                   </div>
-                </CrudCreate3>
+                </CrudCreate>
               </div>
             </div>
           </div>
@@ -67,7 +68,7 @@ export default {
 
 
       },
-      apiUrl: 'users1',
+      apiUrl: 'empresas',
       page: 'Usuarios',
       modulo: 'AGBC',
       load: true,

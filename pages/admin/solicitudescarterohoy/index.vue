@@ -149,13 +149,13 @@ export default {
   },
   methods: {
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$administrador.$get(path);
       return res;
     },
     async EliminarItem(id) {
       this.load = true;
       try {
-        const res = await this.$api.$delete(this.apiUrl + '/' + id);
+        const res = await this.$administrador.$delete(this.apiUrl + '/' + id);
         await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
           this.list = v[0];
         });
@@ -186,7 +186,7 @@ export default {
           item.estado = 3; // Cambiar estado a 3 (Entregado)
           const laPazTime = new Date().toLocaleString('en-US', { timeZone: 'America/La_Paz' });
           item.fecha_d = laPazTime.replace(',', ''); // Establecer fecha y hora actual en La Paz
-          await this.$api.$put(this.apiUrl + '/' + id, item);
+          await this.$administrador.$put(this.apiUrl + '/' + id, item);
           await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
             this.list = v[0];
           });

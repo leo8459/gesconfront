@@ -11,24 +11,36 @@
                 <h3>Actualizar</h3>
               </div>
               <div class="card-body">
-                <CrudUpdate3 :model="model" :apiUrl="apiUrl">
+                <CrudUpdate :model="model" :apiUrl="apiUrl">
+
+
+
+
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="">Nombre</label>
                       <input type="text" v-model="model.nombre" class="form-control" id="">
                     </div>
                     <div class="form-group col-12">
-                      <label for="">Apellidos</label>
-                      <input type="text" v-model="model.apellidos" class="form-control" id="">
+                      <label for="">Nit</label>
+                      <input type="text" v-model="model.nit" class="form-control" id="">
                     </div>
                     <div class="form-group col-6">
                       <label for="">Email</label>
                       <input type="text" v-model="model.email" class="form-control" id="">
                     </div>
+
+
+
+
+
                     <div class="form-group col-6">
                       <label for="">Password</label>
                       <input type="password" v-model="model.password" class="form-control" id="">
                     </div>
+
+
+
                     <div class="form-group col-6">
                       <label for="">Estado de la cuenta</label>
                       <select v-model="model.estado" class="form-control">
@@ -36,8 +48,15 @@
                         <option value="0">Inactivo</option>
                       </select>
                     </div>
+
+
+
+
+
+
+
                   </div>
-                </CrudUpdate3>
+                </CrudUpdate>
               </div>
             </div>
           </div>
@@ -52,7 +71,7 @@ export default {
   name: "IndexPage",
   head() {
     return {
-      title: "Usuario",
+      title: "Empresa",
     };
     ;
   },
@@ -67,8 +86,8 @@ export default {
         estado: '',
 
       },
-      apiUrl: 'encargados1',
-      page: 'encargados',
+      apiUrl: 'empresas',
+      page: 'Empresas',
       modulo: 'AGBC'
     };
   },

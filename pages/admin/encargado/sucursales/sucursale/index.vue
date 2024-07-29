@@ -71,7 +71,7 @@ export default {
     return {
       load: true,
       list: [],
-      apiUrl: 'sucursales1',
+      apiUrl: 'sucursales',
       page: 'sucursales',
       modulo: 'agbc',
       url_nuevo: '/admin/sucursales/sucursale/nuevo',
