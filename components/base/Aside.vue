@@ -30,6 +30,12 @@
                 </nuxtLink>
               </li>
               <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/gestores/gestore">
+                  <span class="sidenav-mini-icon"> Gestores </span>
+                  <span class="sidenav-normal"> Gestores </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link" to="/admin/usuarios/usuario">
                   <span class="sidenav-mini-icon"> Usuario </span>
                   <span class="sidenav-normal"> Usuario </span>
@@ -210,8 +216,9 @@
 
 
         <!-- //COMERCIAL -->
+        
 
-        <li class="nav-item">
+        <li class="nav-item" v-if="isGestor">
           <a @click="handleItemClick('comercial')" data-bs-toggle="collapse" href="#perfil-comercial" class="nav-link"
             aria-controls="configuracion-comercial" role="button" aria-expanded="false">
             <div
@@ -223,9 +230,21 @@
           <div class="collapse" id="perfil-comercial">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/clientes/cliente">
-                  <span class="sidenav-mini-icon"> clientes </span>
-                  <span class="sidenav-normal"> clientes </span>
+                <nuxtLink class="nav-link" to="/admin/gestore/empresas/empresa">
+                  <span class="sidenav-mini-icon"> Empresas </span>
+                  <span class="sidenav-normal"> Empresas </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/gestore/sucursales/sucursale">
+                  <span class="sidenav-mini-icon"> Sucursales </span>
+                  <span class="sidenav-normal"> Sucursales </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/gestore/tarifas/tarifa">
+                  <span class="sidenav-mini-icon"> Tarifas </span>
+                  <span class="sidenav-normal"> Tarifas </span>
                 </nuxtLink>
               </li>
             </ul>
@@ -286,6 +305,9 @@ export default {
     },
     isAdministrador() {
       return this.userType === 'administrador'; // Verifica si el tipo de usuario es sucursale
+    },
+    isGestor() {
+      return this.userType === 'gestor'; // Verifica si el tipo de usuario es sucursale
     },
   },
   methods: {

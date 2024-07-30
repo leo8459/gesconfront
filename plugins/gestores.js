@@ -1,7 +1,7 @@
-//plugins/sucursale.js
+//plugins/administrador.js
 
 export default function ({ $axios, store, redirect }, inject) {
-    const sucursales = $axios.create({
+    const gestores = $axios.create({
       headers: {
         common: {
           Accept: 'text/plain, */*'
@@ -9,10 +9,10 @@ export default function ({ $axios, store, redirect }, inject) {
       }
     });
   
-    const url = 'http://localhost/backgescon2/public/sucursales/';
-    sucursales.setBaseURL(url);
+    const url = 'http://localhost/backgescon2/public/gestores/';
+    gestores.setBaseURL(url);
   
-    sucursales.interceptors.request.use(config => {
+    gestores.interceptors.request.use(config => {
       if (process.client) {
         const token = store.state.auth.token;
         if (token) {
@@ -22,7 +22,7 @@ export default function ({ $axios, store, redirect }, inject) {
       return config;
     });
   
-    sucursales.interceptors.response.use(
+    gestores.interceptors.response.use(
       response => response,
       error => {
         if (error.response && error.response.status === 401) {
@@ -33,6 +33,6 @@ export default function ({ $axios, store, redirect }, inject) {
       }
     );
   
-    inject('sucursales', sucursales);
+    inject('gestores', gestores);
   }
   

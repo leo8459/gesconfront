@@ -47,7 +47,9 @@ export default {
     '~/plugins/auth.js',
     '~/plugins/api',
     '~/plugins/sucursales.js',
-    '~/plugins/administrador.js'
+    '~/plugins/administrador.js',
+    '~/plugins/gestores.js',
+
 
 
   ],

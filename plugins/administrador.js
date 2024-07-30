@@ -9,7 +9,7 @@ export default function ({ $axios, store, redirect }, inject) {
       }
     });
   
-    const url = 'http://localhost/backgescon/public/administrador/';
+    const url = 'http://localhost/backgescon2/public/administrador/';
     administrador.setBaseURL(url);
   
     administrador.interceptors.request.use(config => {

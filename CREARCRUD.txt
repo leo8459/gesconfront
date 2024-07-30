@@ -1,6 +1,7 @@
 
-php artisan make:model TipoCasilla -rm --api
+php artisan make:model Gestore -rm --api
 php artisan make:model Seccion -rm --api
+php artisan migrate --path=/database/migrations/2024_07_29_165850_create_gestores_table.php
 
 
 

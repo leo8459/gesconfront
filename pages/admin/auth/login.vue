@@ -26,6 +26,7 @@
                           <option value="cartero">Cartero</option>
                           <option value="sucursale">Sucursal</option>
                           <option value="administrador">Administrador</option>
+                          <option value="gestor">Gestor</option>
                         </select>
                       </div>
                       <label>Email</label>
@@ -62,11 +63,11 @@
   </main>
 </template>
 
-
 <script>
 import api from '@/plugins/api';
 import sucursalesApi from '@/plugins/sucursales';
-import administradorApi from '@/plugins/administrador'; // Importar el plugin administrador
+import administradorApi from '@/plugins/administrador';
+import gestoresApi from '@/plugins/gestores'; // Importar el plugin gestores
 const anime = require('animejs/lib/anime.js'); // Usando la versión CommonJS de anime.js
 
 export default {
@@ -124,14 +125,17 @@ export default {
       let loginUrl;
 
       if (this.model.userType === 'cartero') {
-        apiClient = this.$api; // Utiliza el cliente API configurado para carteros
+        apiClient = this.$api;
         loginUrl = 'login3';
       } else if (this.model.userType === 'sucursale') {
-        apiClient = this.$sucursales; // Utiliza el cliente API configurado para sucursales
+        apiClient = this.$sucursales;
         loginUrl = 'login2';
       } else if (this.model.userType === 'administrador') {
-        apiClient = this.$administrador; // Utiliza el cliente API configurado para administradores
+        apiClient = this.$administrador;
         loginUrl = 'login';
+      } else if (this.model.userType === 'gestor') {
+        apiClient = this.$gestores;
+        loginUrl = 'login4';
       }
 
       try {
@@ -152,7 +156,7 @@ export default {
           return;
         }
 
-        const userType = this.model.userType === 'cartero' ? 'cartero' : this.model.userType === 'sucursale' ? 'sucursal' : 'administrador';
+        const userType = this.model.userType === 'cartero' ? 'cartero' : this.model.userType === 'sucursale' ? 'sucursal' : this.model.userType === 'administrador' ? 'administrador' : 'gestor';
         const user = res.data[userType];
 
         localStorage.setItem('userAuth', JSON.stringify({ token: res.data.token, user, userType }));
@@ -188,7 +192,6 @@ export default {
   }
 }
 </script>
-
 
 <style scoped>
 .main-content {

@@ -8,7 +8,7 @@ export default function ({ $axios, store, redirect }, inject) {
     }
   });
 
-  const url = 'http://localhost/backgescon/public/carteros/';
+  const url = 'http://localhost/backgescon2/public/carteros/';
   api.setBaseURL(url);
 
   api.interceptors.request.use(config => {
