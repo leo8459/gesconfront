@@ -27,6 +27,8 @@
                           <option value="sucursale">Sucursal</option>
                           <option value="administrador">Administrador</option>
                           <option value="gestor">Gestor</option>
+                          <option value="encargado">Encargado</option>
+
                         </select>
                       </div>
                       <label>Email</label>
@@ -137,6 +139,10 @@ export default {
         apiClient = this.$gestores;
         loginUrl = 'login4';
       }
+      else if (this.model.userType === 'encargado') {
+        apiClient = this.$encargados;
+        loginUrl = 'login5';
+      }
 
       try {
         const res = await apiClient.post(loginUrl, {
@@ -156,7 +162,7 @@ export default {
           return;
         }
 
-        const userType = this.model.userType === 'cartero' ? 'cartero' : this.model.userType === 'sucursale' ? 'sucursal' : this.model.userType === 'administrador' ? 'administrador' : 'gestor';
+        const userType = this.model.userType === 'cartero' ? 'cartero' : this.model.userType === 'sucursale' ? 'sucursal' : this.model.userType === 'administrador' ? 'administrador' : this.model.userType === 'gestor' ? 'gestor' : 'encargado';
         const user = res.data[userType];
 
         localStorage.setItem('userAuth', JSON.stringify({ token: res.data.token, user, userType }));

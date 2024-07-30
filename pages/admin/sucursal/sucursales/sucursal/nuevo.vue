@@ -31,12 +31,18 @@
                       <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente">
                     </div>
                     <div class="form-group col-12">
-                      <label for="direccion">Dirección</label>
-                      <input type="text" id="direccion" class="form-control" @click="openModal('direccion')"
-                        :value="currentLat && currentLng ? currentLat + ', ' + currentLng : ''" readonly>
-                      <input type="hidden" v-model="model.direccion_lat">
-                      <input type="hidden" v-model="model.direccion_lng">
-                    </div>
+    <label for="direccion_lat_lng">Dirección</label>
+    <input type="text" id="direccion_lat_lng" class="form-control" @click="openModal('direccion')"
+           :value="currentLat && currentLng ? currentLat + ', ' + currentLng : ''" readonly
+           :disabled="isDireccionFieldDisabled">
+    <input type="hidden" v-model="model.direccion_lat">
+    <input type="hidden" v-model="model.direccion_lng">
+  </div>
+  <div class="form-group col-12">
+    <label for="direccion">Dirección</label>
+    <input type="text" v-model.trim="model.direccion" class="form-control" id="direccion"
+           :disabled="isLatLngFieldDisabled">
+  </div>
                     <div class="form-group col-12">
                       <label for="peso_o">Zona Remitente</label>
                       <input type="text" v-model.trim="model.zona_r" class="form-control" id="zona_r">
@@ -201,6 +207,14 @@ export default {
       currentLng_d: null,
       searchQuery_d: '',
       searching_d: false
+    }
+  },
+  computed: {
+    isDireccionFieldDisabled() {
+      return !!this.model.direccion;
+    },
+    isLatLngFieldDisabled() {
+      return !!this.currentLat && !!this.currentLng;
     }
   },
   methods: {

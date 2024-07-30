@@ -49,6 +49,7 @@ export default {
     '~/plugins/sucursales.js',
     '~/plugins/administrador.js',
     '~/plugins/gestores.js',
+    '~/plugins/encargados.js',
 
 
 

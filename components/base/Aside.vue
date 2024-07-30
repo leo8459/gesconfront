@@ -193,7 +193,7 @@
         </li>
         <!-- //ENCARGADO -->
 
-        <li class="nav-item">
+        <li class="nav-item" v-if="isEncargado">
           <a @click="handleItemClick('encargado')" data-bs-toggle="collapse" href="#perfil-encargado" class="nav-link"
             aria-controls="configuracion-cajero" role="button" aria-expanded="false">
             <div
@@ -205,9 +205,27 @@
           <div class="collapse" id="perfil-encargado">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/clientes/cliente">
-                  <span class="sidenav-mini-icon"> clientes </span>
-                  <span class="sidenav-normal"> clientes </span>
+                <!-- <nuxtLink class="nav-link" to="/encargado/solicitudesj/solicitudej">
+                  <span class="sidenav-mini-icon"> Solicitud J </span>
+                  <span class="sidenav-normal"> Solicitud J </span>
+                </nuxtLink> -->
+                <nuxtLink class="nav-link" to="/admin/encargado/solicitudencargados/solicitudencargado">
+                  <span class="sidenav-mini-icon"> Solicitud J </span>
+                  <span class="sidenav-normal"> Solicitud J</span>
+                </nuxtLink>
+                <nuxtLink class="nav-link" to="/admin/encargado/recogidoencargados/recogidoencargado">
+                  <span class="sidenav-mini-icon"> Recogido J </span>
+                  <span class="sidenav-normal"> Recogido J</span>
+                </nuxtLink>
+                <nuxtLink class="nav-link" to="/admin/encargado/encaminoencargados/encaminoencargado">
+                  <span class="sidenav-mini-icon"> En Camino J </span>
+                  <span class="sidenav-normal"> En Camino J</span>
+                </nuxtLink>
+                
+                
+                <nuxtLink class="nav-link" to="/admin/encargado/entregadoencargados/entregadoencargado">
+                  <span class="sidenav-mini-icon"> Entregados J </span>
+                  <span class="sidenav-normal"> Entregados J</span>
                 </nuxtLink>
               </li>
             </ul>
@@ -308,6 +326,9 @@ export default {
     },
     isGestor() {
       return this.userType === 'gestor'; // Verifica si el tipo de usuario es sucursale
+    },
+    isEncargado() {
+      return this.userType === 'encargado'; // Verifica si el tipo de usuario es sucursale
     },
   },
   methods: {
