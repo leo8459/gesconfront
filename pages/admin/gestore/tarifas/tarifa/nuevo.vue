@@ -27,12 +27,24 @@
                     <input type="text" v-model="model.servicio" class="form-control" id="">
                   </div>
                   <div class="form-group">
+                    <label class="form-label" for="">Precio Servicio Courier Extra</label>
+                    <input type="text" v-model="model.nacional_extra" class="form-control" id="">
+                  </div>
+                  <div class="form-group">
                     <label class="form-label" for="">Precio Servicio Provincia</label>
                     <input type="text" v-model="model.servicioprov" class="form-control" id="">
                   </div>
                   <div class="form-group">
+                    <label class="form-label" for="">Precio Servicio Provincia Extra</label>
+                    <input type="text" v-model="model.prov_extra" class="form-control" id="">
+                  </div>
+                  <div class="form-group">
                     <label class="form-label" for="">Precio Servicio Express</label>
                     <input type="text" v-model="model.servicioexpress" class="form-control" id="">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="">Precio Servicio Express Extra</label>
+                    <input type="text" v-model="model.expres_extra" class="form-control" id="">
                   </div>
                 </div>
                 
@@ -52,12 +64,24 @@
                     <input type="text" v-model="clonado.servicio" class="form-control" id="">
                   </div>
                   <div class="form-group">
+                    <label class="form-label" for="">Precio Servicio Courier</label>
+                    <input type="text" v-model="clonado.nacional_extra" class="form-control" id="">
+                  </div>
+                  <div class="form-group">
                     <label class="form-label" for="">Precio Servicio Provincia</label>
                     <input type="text" v-model="clonado.servicioprov" class="form-control" id="">
                   </div>
                   <div class="form-group">
+                    <label class="form-label" for="">Precio Servicio Provincia</label>
+                    <input type="text" v-model="clonado.prov_extra" class="form-control" id="">
+                  </div>
+                  <div class="form-group">
                     <label class="form-label" for="">Precio Servicio Express</label>
                     <input type="text" v-model="clonado.servicioexpress" class="form-control" id="">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="">Precio Servicio Express</label>
+                    <input type="text" v-model="clonado.expres_extra" class="form-control" id="">
                   </div>
                   
                 </div>
@@ -85,6 +109,10 @@ export default {
         servicio: '',
         servicioprov: '',
         servicioexpress: '',
+        nacional_extra: '',
+        prov_extra: '',
+        expres_extra: '',
+
       },
       apiUrl: 'tarifas3',
       page: 'tarifas',

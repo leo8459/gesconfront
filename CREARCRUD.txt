@@ -1,7 +1,7 @@
 
 php artisan make:model Gestore -rm --api
 php artisan make:model Seccion -rm --api
-php artisan migrate --path=/database/migrations/2024_07_29_165850_create_gestores_table.php
+php artisan migrate --path=/database/migrations/2024_06_07_135921_create_solicitudes_table.php
 
 
 
