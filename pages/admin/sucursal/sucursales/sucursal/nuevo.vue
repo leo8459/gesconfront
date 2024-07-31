@@ -18,31 +18,55 @@
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="guia">Numero de Guia</label>
-                      <input type="text" v-model.trim="model.guia" class="form-control" id="guia">
+                      <label for="tarifas">Departamento de envio</label>
+                      <select name="" id="" class="form-control" v-model="model.tarifa_id">
+                        <option v-for="m in tarifas" :key="m.id" :value="m.id">{{ m.departamento }}</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group col-12">
+                      <label for="tipo_servicio">Tipo de Servicio</label>
+                      <select name="" id="tipo_servicio" class="form-control" v-model="model.tipo_servicio">
+                        <option value="servicio">Nacional</option>
+                        <option value="servicioprov">Provincia</option>
+                        <option value="servicioexpress">Servicio EMS</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group col-12">
+                      <label for="precios">Precio Estimado</label>
+                      <input type="text" id="precios" class="form-control" :value="precioSeleccionado" disabled>
                     </div>
                     <div class="form-group col-12">
                       <label for="peso_o">Peso (Medido en Kilogramos)</label>
-                      <input type="text" v-model.trim="model.peso_o" class="form-control" id="peso_o">
+                      <input type="number" v-model.number="model.peso_o" class="form-control" id="peso_o" step="0.001"
+                        @input="limitDecimals">
                     </div>
-                   
+
+
+                    <div class="form-group col-12">
+                      <label for="guia">Numero de Guia</label>
+                      <input type="text" v-model.trim="model.guia" class="form-control" id="guia">
+                    </div>
+
+
                     <div class="form-group col-12">
                       <label for="remitente">Remitente</label>
                       <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente">
                     </div>
                     <div class="form-group col-12">
-    <label for="direccion_lat_lng">Dirección</label>
-    <input type="text" id="direccion_lat_lng" class="form-control" @click="openModal('direccion')"
-           :value="currentLat && currentLng ? currentLat + ', ' + currentLng : ''" readonly
-           :disabled="isDireccionFieldDisabled">
-    <input type="hidden" v-model="model.direccion_lat">
-    <input type="hidden" v-model="model.direccion_lng">
-  </div>
-  <div class="form-group col-12">
-    <label for="direccion">Dirección</label>
-    <input type="text" v-model.trim="model.direccion" class="form-control" id="direccion"
-           :disabled="isLatLngFieldDisabled">
-  </div>
+                      <label for="direccion_lat_lng">Dirección</label>
+                      <input type="text" id="direccion_lat_lng" class="form-control" @click="openModal('direccion')"
+                        :value="currentLat && currentLng ? currentLat + ', ' + currentLng : ''" readonly
+                        :disabled="isDireccionFieldDisabled">
+                      <input type="hidden" v-model="model.direccion_lat">
+                      <input type="hidden" v-model="model.direccion_lng">
+                    </div>
+                    <div class="form-group col-12">
+                      <label for="direccion">Dirección</label>
+                      <input type="text" v-model.trim="model.direccion" class="form-control" id="direccion"
+                        :disabled="isLatLngFieldDisabled">
+                    </div>
                     <div class="form-group col-12">
                       <label for="peso_o">Zona Remitente</label>
                       <input type="text" v-model.trim="model.zona_r" class="form-control" id="zona_r">
@@ -71,11 +95,11 @@
                       <input type="hidden" v-model="model.direccion_d_lng">
                     </div>
                     <div class="form-group col-12">
-                      <label for="peso_o">Zona Destinario</label>
+                      <label for="peso_o">Zona Destinatario</label>
                       <input type="text" v-model.trim="model.zona_d" class="form-control" id="zona_d">
                     </div>
                     <div class="form-group col-12">
-                      <label for="ciudad">Ciudad o Departamento de Entrega</label>
+                      <label for="ciudad">Provincia</label>
                       <input type="text" v-model.trim="model.ciudad" class="form-control" id="ciudad">
                     </div>
                     <div class="form-group col-12">
@@ -159,7 +183,9 @@ export default {
   data() {
     return {
       model: {
+        tipo_servicio: 'servicio', // Valor inicial
         sucursale_id: '',
+        tarifa_id: '',
         sucursale_nombre: '', // Nuevo campo para el nombre de la sucursal
         cartero_id: null, // Permitir valor nulo
         guia: '',
@@ -185,12 +211,13 @@ export default {
         fecha_d: '',
         estado: '',
       },
-
       apiUrl: 'solicitudes2',
       page: 'solicitudes',
       modulo: 'AGBC',
       load: true,
       sucursales: [],
+      tarifas: [], // Definimos tarifas aquí
+      sucursale_id_logueada: '', // ID de la sucursal logueada
       ini_vigencia: '',
       fin_vigencia: '',
       map: null,
@@ -215,11 +242,58 @@ export default {
     },
     isLatLngFieldDisabled() {
       return !!this.currentLat && !!this.currentLng;
+    },
+    precioSeleccionado() {
+      const tarifa = this.tarifas.find(t => t.id === this.model.tarifa_id);
+      if (tarifa) {
+        let basePrice = 0;
+        let extraPrice = 0;
+
+        switch (this.model.tipo_servicio) {
+          case 'servicio':
+            basePrice = tarifa.servicio ? parseFloat(tarifa.servicio) : 0;
+            extraPrice = tarifa.nacional_extra ? parseFloat(tarifa.nacional_extra) : 0;
+            break;
+          case 'servicioprov':
+            basePrice = tarifa.servicioprov ? parseFloat(tarifa.servicioprov) : 0;
+            extraPrice = tarifa.prov_extra ? parseFloat(tarifa.prov_extra) : 0;
+            break;
+          case 'servicioexpress':
+            basePrice = tarifa.servicioexpress ? parseFloat(tarifa.servicioexpress) : 0;
+            extraPrice = tarifa.expres_extra ? parseFloat(tarifa.expres_extra) : 0;
+            break;
+          default:
+            return '';
+        }
+
+        const peso = parseFloat(this.model.peso_o);
+        if (isNaN(peso)) {
+          return ''; // No mostrar nada si el peso está vacío
+        }
+        if (peso > 1) {
+          const pesoAdicional = Math.ceil(peso - 1); // Redondea hacia arriba para cada 1.01, 2.01, etc.
+          return basePrice + pesoAdicional * extraPrice;
+        } else {
+          return basePrice;
+        }
+      }
+      return '';
     }
   },
   methods: {
-    async GET_DATA(path) {
-      const res = await this.$sucursales.$get(path);
+    limitDecimals(event) {
+      let value = parseFloat(event.target.value);
+
+      if (isNaN(value)) {
+        this.model.peso_o = '';
+      } else if (value > 25.999) {
+        this.model.peso_o = 25.999.toFixed(3);
+      } else {
+        this.model.peso_o = value.toFixed(3);
+      }
+    },
+    async GET_DATA(path, params = {}) {
+      const res = await this.$sucursales.$get(path, { params });
       return res;
     },
     openModal(type) {
@@ -402,17 +476,24 @@ export default {
       let user = JSON.parse(localStorage.getItem('userAuth'));
       if (user && user.user) {
         this.model.sucursale_id = user.user.id;
-        this.model.sucursale_nombre = user.user.nombre; // Asignar el nombre de la sucursal
+        this.model.sucursale_nombre = user.user.nombre;
+        this.sucursale_id_logueada = user.user.id; // Asignar el ID de la sucursal logueada
       }
     }
+
   },
   mounted() {
     this.$nextTick(async () => {
       await this.fetchUser();
 
       try {
-        const sucursales = await this.GET_DATA('sucursales');
+        const sucursales = await this.GET_DATA('sucursales2');
         this.sucursales = sucursales;
+
+        // Pasa el sucursale_id como parámetro de consulta
+        const tarifas = await this.GET_DATA('getTarifas2', { sucursale_id: this.sucursale_id_logueada });
+        console.log('Tarifas filtradas:', tarifas); // Verificar la respuesta aquí
+        this.tarifas = tarifas;
       } catch (e) {
         console.log(e);
       } finally {

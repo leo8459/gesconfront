@@ -38,7 +38,7 @@
                         <th class="py-0 px-1">Ciudad/Departamento</th>
                         <th class="py-0 px-1">Nombre Destinatario</th>
                         <th class="py-0 px-1">CI Destinatario</th>
-                        <th class="py-0 px-1">Estado</th>
+                        <th class="py-0 px-1">Tarifa</th> <!-- Nueva columna para tarifa -->
                       </tr>
                     </thead>
                     <tbody>
@@ -49,7 +49,9 @@
                         <td class="py-0 px-1">{{ m.peso_o }}</td>
                         <td class="py-0 px-1">{{ m.remitente }}</td>
                         <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank" class="btn btn-primary btn-sm">
+                          <a v-if="isCoordinates(m.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
+                            class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
                           <span v-else>{{ m.direccion }}</span>
@@ -63,7 +65,9 @@
                         <td class="py-0 px-1">{{ m.destinatario }}</td>
                         <td class="py-0 px-1">{{ m.telefono_d }}</td>
                         <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion_d)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank" class="btn btn-primary btn-sm">
+                          <a v-if="isCoordinates(m.direccion_d)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                            class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
                           <span v-else>{{ m.direccion_d }}</span>
@@ -71,9 +75,10 @@
                         <td class="py-0 px-1">{{ m.ciudad }}</td>
                         <td class="py-0 px-1">{{ m.nombre_d }}</td>
                         <td class="py-0 px-1">{{ m.ci_d }}</td>
-                        <td class="py-0 px-1">{{ getEstadoLabel(m.estado) }}</td>
+                        <td class="py-0 px-1">{{ getTarifaLabel(m.tarifa_id) }}</td> <!-- Mostrar la tarifa -->
                       </tr>
                     </tbody>
+
                   </table>
                 </div>
               </div>
@@ -100,6 +105,7 @@ export default {
       apiUrl: 'solicitudes2',
       page: 'solicitudes',
       modulo: 'solicitudes',
+      tarifas: [], // Inicializamos tarifas como un array vacío
       url_nuevo: '/admin/sucursal/sucursales/sucursal/nuevo',
       url_editar: '/admin/sucursal/sucursales/sucursal/editar/',
       user: {
@@ -109,7 +115,7 @@ export default {
   },
   computed: {
     filteredList() {
-      return this.list.filter(item => item.sucursale.id === this.user.user.id && (item.estado === 1 ));
+      return this.list.filter(item => item.sucursale.id === this.user.user.id && (item.estado === 1));
     },
     sortedList() {
       return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -146,38 +152,17 @@ export default {
         }
       });
     },
-    async DarDeBaja(id) {
-      this.load = true;
-      try {
-        const item = this.list.find(m => m.id === id);
-        if (item) {
-          item.estado = 3; // Cambiar estado a 3 (Entregado)
-          await this.$sucursales.$put(this.apiUrl + '/' + id, item);
-          await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-            this.list = v[0];
-          });
-        }
-      } catch (e) {
-        console.log(e);
-      } finally {
-        this.load = false;
+   
+    getTarifaLabel(tarifa_id) {
+      if (!this.tarifas) {
+        return 'Tarifas no cargadas';
       }
+      const tarifa = this.tarifas.find(t => t.id === tarifa_id);
+      return tarifa ? tarifa.departamento : 'Tarifa no encontrada';
     },
-    getEstadoLabel(estado) {
-      switch (estado) {
-        case '1':
-          return 'Solicitudes';
-        case '2':
-          return 'En camino';
-        case '3':
-          return 'Entregados';
-        case '5':
-          return 'Pendientes';
-        case '0':
-          return 'Cancelados';
-        default:
-          return 'Otro estado';
-      }
+    isCoordinates(address) {
+      const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+      return regex.test(address);
     },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
@@ -195,6 +180,14 @@ export default {
         } else {
           console.error('Los datos recuperados no son un array:', data);
         }
+
+        // Obtener tarifas para los nombres de tarifa
+        const tarifas = await this.GET_DATA('getTarifas2');
+        if (Array.isArray(tarifas)) {
+          this.tarifas = tarifas;
+        } else {
+          console.error('Las tarifas recuperadas no son un array:', tarifas);
+        }
       } catch (e) {
         console.error('Error al obtener los datos:', e);
       } finally {
@@ -210,21 +203,30 @@ export default {
   border-radius: 15px;
   border: 1px solid #dee2e6;
   margin-bottom: 1.5rem;
-  overflow: hidden; /* Para asegurar que los bordes redondeados se apliquen correctamente */
+  overflow: hidden;
+  /* Para asegurar que los bordes redondeados se apliquen correctamente */
 }
+
 .table-responsive {
   max-width: 100%;
   overflow-x: auto;
 }
-.table th, .table td {
+
+.table th,
+.table td {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .table th {
-  min-width: 100px; /* Ajusta este valor según sea necesario */
+  min-width: 100px;
+  /* Ajusta este valor según sea necesario */
 }
-.table th:first-child, .table td:first-child {
-  min-width: 30px; /* Ajusta este valor según sea necesario */
+
+.table th:first-child,
+.table td:first-child {
+  min-width: 30px;
+  /* Ajusta este valor según sea necesario */
 }
 </style>
