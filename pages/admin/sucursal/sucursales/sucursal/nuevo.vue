@@ -9,7 +9,11 @@
               <div class="card-header">
                 <h3>Agregar Solicitud</h3>
               </div>
+             
               <div class="card-body">
+                <div class="form-group col-12">
+                      <h4>Remitente</h4>
+                    </div>
                 <CrudCreate2 :model="model" :apiUrl="apiUrl" @success="onSuccess">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
@@ -18,19 +22,15 @@
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="tarifas">Departamento de envio</label>
-                      <select name="" id="" class="form-control" v-model="model.tarifa_id">
-                        <option v-for="m in tarifas" :key="m.id" :value="m.id">{{ m.departamento }}</option>
-                      </select>
-                    </div>
-
-                    <div class="form-group col-12">
-                      <label for="tipo_servicio">Tipo de Servicio</label>
-                      <select name="" id="tipo_servicio" class="form-control" v-model="model.tipo_servicio">
-                        <option value="servicio">Nacional</option>
-                        <option value="servicioprov">Provincia</option>
-                        <option value="servicioexpress">Servicio EMS</option>
-                      </select>
+                      <label for="tarifas">Departamento de envío</label>
+                      <v-select :options="tarifas" v-model="model.tarifa_id" label="departamento"
+                        :reduce="tarifa => tarifa.id" placeholder="Buscar departamento...">
+                        <template #option="option">
+                          <div>
+                            {{ option.departamento }} - {{ option.servicio }}
+                          </div>
+                        </template>
+                      </v-select>
                     </div>
 
                     <div class="form-group col-12">
@@ -43,12 +43,12 @@
                         @input="limitDecimals">
                     </div>
 
+                    
 
                     <div class="form-group col-12">
                       <label for="guia">Numero de Guia</label>
                       <input type="text" v-model.trim="model.guia" class="form-control" id="guia">
                     </div>
-
 
                     <div class="form-group col-12">
                       <label for="remitente">Remitente</label>
@@ -68,7 +68,7 @@
                         :disabled="isLatLngFieldDisabled">
                     </div>
                     <div class="form-group col-12">
-                      <label for="peso_o">Zona Remitente</label>
+                      <label for="zona_r">Zona Remitente</label>
                       <input type="text" v-model.trim="model.zona_r" class="form-control" id="zona_r">
                     </div>
                     <div class="form-group col-12">
@@ -79,6 +79,11 @@
                       <label for="contenido">Contenido</label>
                       <input type="text" v-model.trim="model.contenido" class="form-control" id="contenido">
                     </div>
+
+                    <div class="form-group col-12">
+                      <h4>Destinatario</h4>
+                    </div>
+
                     <div class="form-group col-12">
                       <label for="destinatario">Destinatario</label>
                       <input type="text" v-model.trim="model.destinatario" class="form-control" id="destinatario">
@@ -95,7 +100,7 @@
                       <input type="hidden" v-model="model.direccion_d_lng">
                     </div>
                     <div class="form-group col-12">
-                      <label for="peso_o">Zona Destinatario</label>
+                      <label for="zona_d">Zona Destinatario</label>
                       <input type="text" v-model.trim="model.zona_d" class="form-control" id="zona_d">
                     </div>
                     <div class="form-group col-12">
@@ -122,7 +127,6 @@
         </div>
       </div>
     </AdminTemplate>
-
     <!-- Modal for Leaflet Map -->
     <b-modal ref="mapsModal" title="Seleccionar Dirección" @ok="handleOk" size="lg">
       <div>
@@ -175,9 +179,12 @@ import moment from 'moment-timezone';
 import SignaturePad from 'signature_pad';
 import { BModal } from 'bootstrap-vue';
 import 'leaflet/dist/leaflet.css';
+import 'vue-select/dist/vue-select.css';
+import vSelect from 'vue-select';
 
 export default {
   components: {
+    vSelect,
     BModal
   },
   data() {
@@ -246,25 +253,8 @@ export default {
     precioSeleccionado() {
       const tarifa = this.tarifas.find(t => t.id === this.model.tarifa_id);
       if (tarifa) {
-        let basePrice = 0;
-        let extraPrice = 0;
-
-        switch (this.model.tipo_servicio) {
-          case 'servicio':
-            basePrice = tarifa.servicio ? parseFloat(tarifa.servicio) : 0;
-            extraPrice = tarifa.nacional_extra ? parseFloat(tarifa.nacional_extra) : 0;
-            break;
-          case 'servicioprov':
-            basePrice = tarifa.servicioprov ? parseFloat(tarifa.servicioprov) : 0;
-            extraPrice = tarifa.prov_extra ? parseFloat(tarifa.prov_extra) : 0;
-            break;
-          case 'servicioexpress':
-            basePrice = tarifa.servicioexpress ? parseFloat(tarifa.servicioexpress) : 0;
-            extraPrice = tarifa.expres_extra ? parseFloat(tarifa.expres_extra) : 0;
-            break;
-          default:
-            return '';
-        }
+        const basePrice = tarifa.precio ? parseFloat(tarifa.precio) : 0;
+        const extraPrice = tarifa.precio_extra ? parseFloat(tarifa.precio_extra) : 0;
 
         const peso = parseFloat(this.model.peso_o);
         if (isNaN(peso)) {
@@ -279,6 +269,7 @@ export default {
       }
       return '';
     }
+
   },
   methods: {
     limitDecimals(event) {
@@ -286,8 +277,8 @@ export default {
 
       if (isNaN(value)) {
         this.model.peso_o = '';
-      } else if (value > 25.999) {
-        this.model.peso_o = 25.999.toFixed(3);
+      } else if (value > 25.000) {
+        this.model.peso_o = 25.000.toFixed(3);
       } else {
         this.model.peso_o = value.toFixed(3);
       }

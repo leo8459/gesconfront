@@ -10,7 +10,8 @@
             </button>
           </div>
           <div class="col-3">
-            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control" placeholder="Buscar..." />
+            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
+              placeholder="Buscar..." />
           </div>
         </div>
         <div class="row">
@@ -55,7 +56,9 @@
                     <td class="py-0 px-1">{{ m.peso_v }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
                     <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank" class="btn btn-primary btn-sm">
+                      <a v-if="isCoordinates(m.direccion)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
+                        class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
                       <span v-else>{{ m.direccion }}</span>
@@ -69,7 +72,9 @@
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
                     <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank" class="btn btn-primary btn-sm">
+                      <a v-if="isCoordinates(m.direccion_d)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                        class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
                       <span v-else>{{ m.direccion_d }}</span>
@@ -89,174 +94,67 @@
             </div>
           </div>
         </div>
-        <div class="row mt-5" v-if="selectedForAssign.length > 0">
-          <div class="col-12">
-            <h5>Paquetes por enviar</h5>
-            <div class="table-responsive">
-              <table class="table table-sm table-bordered">
-                <thead>
-                  <tr>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Cartero</th>
-                    <th class="py-0 px-1">Cartero</th>
-                    <th class="py-0 px-1">Guia</th>
-                    <th class="py-0 px-1">Peso Empresa (Kg)</th>
-                    <th class="py-0 px-1">Peso Correos (Kg)</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Dirección</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha</th>
-                    <th class="py-0 px-1">Firma Remitente</th>
-                    <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono D</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Ciudad</th>
-                    <th class="py-0 px-1">Firma Destinatario</th>
-                    <th class="py-0 px-1">Nombre Destinatario</th>
-                    <th class="py-0 px-1">CI Destinatario</th>
-                    <th class="py-0 px-1">Fecha Destinatario</th>
-                    <th class="py-0 px-1">Estado</th>
-                    <th class="py-0 px-1">Tarifa</th> <!-- Nueva columna para tarifa -->
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in selectedForAssign" :key="'selected-' + i">
-                    <td class="py-0 px-1">{{ i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
-                    <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.peso_o }}</td>
-                    <td class="py-0 px-1">{{ m.peso_v }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
-                    </td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
-                    </td>
-                    <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                    <td class="py-0 px-1">{{ m.ci_d }}</td>
-                    <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">{{ m.estado === 5 ? 'Recogido' : m.estado }}</td>
-                    <td class="py-0 px-1">{{ getTarifaLabel(m.tarifa_id) }}</td> <!-- Mostrar la tarifa -->
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+
+        <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
+        <div v-if="selectedForDelivery.length > 0" class="mt-4">
+          <h5>Paquetes para entregar</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead>
+                <tr>
+                  <th class="py-0 px-1">#</th>
+                  <th class="py-0 px-1">Guía</th>
+                  <th class="py-0 px-1">Sucursal</th>
+                  <th class="py-0 px-1">Tarifa</th>
+                  <th class="py-0 px-1">Peso Correos (Kg)</th>
+                  <th class="py-0 px-1">Precio</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, index) in selectedForDelivery" :key="index">
+                  <td class="py-0 px-1">{{ index + 1 }}</td>
+                  <td class="py-0 px-1">{{ item.guia }}</td>
+                  <td class="py-0 px-1">{{ item.sucursale.nombre }}</td>
+                  <td class="py-0 px-1">{{ item.tarifa }}</td>
+                  <td class="py-0 px-1">{{ item.peso_v }}</td>
+                  <td class="py-0 px-1">{{ item.nombre_d }}</td> <!-- Mostrar el precio almacenado en nombre_d -->
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-        <div class="row mt-5" v-if="selectedForAssign.length > 0">
-          <div class="col-12">
-            <h5>Paquetes por enviar</h5>
-            <div class="table-responsive">
-              <table class="table table-sm table-bordered">
-                <thead>
-                  <tr>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Cartero</th>
-                    <th class="py-0 px-1">Cartero</th>
-                    <th class="py-0 px-1">Guia</th>
-                    <th class="py-0 px-1">Peso Empresa (Kg)</th>
-                    <th class="py-0 px-1">Peso Correos (Kg)</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Dirección</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha</th>
-                    <th class="py-0 px-1">Firma Remitente</th>
-                    <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono D</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Ciudad</th>
-                    <th class="py-0 px-1">Firma Destinatario</th>
-                    <th class="py-0 px-1">Nombre Destinatario</th>
-                    <th class="py-0 px-1">CI Destinatario</th>
-                    <th class="py-0 px-1">Fecha Destinatario</th>
-                    <th class="py-0 px-1">Estado</th>
-                    <th class="py-0 px-1">Tarifa</th> <!-- Nueva columna para tarifa -->
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in selectedForAssign" :key="'selected-' + i">
-                    <td class="py-0 px-1">{{ i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
-                    <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.peso_o }}</td>
-                    <td class="py-0 px-1">{{ m.peso_v }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
-                    </td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
-                    </td>
-                    <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                    <td class="py-0 px-1">{{ m.ci_d }}</td>
-                    <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">{{ m.estado === 5 ? 'Recogido' : m.estado }}</td>
-                    <td class="py-0 px-1">{{ getTarifaLabel(m.tarifa_id) }}</td> <!-- Mostrar la tarifa -->
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+
+
+
+
+
       </div>
     </AdminTemplate>
 
-    <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
+   <!-- Modal para añadir peso_v -->
+<b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
   <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
     <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
-    <input type="number" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" />
+    <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control"
+  @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" />
+
+
+
+    <!-- Campo de entrada deshabilitado para mostrar la tarifa -->
+    <input type="text" :value="item.tarifa" class="form-control mt-2" disabled />
+    <!-- Campo de entrada deshabilitado para mostrar el precio calculado -->
+    <input type="text" :value="item.precio" class="form-control mt-2" disabled />
+    <!-- Nuevo campo de entrada para copiar el valor de precio -->
+    <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control mt-2" readonly />
   </div>
   <div class="d-flex justify-content-end">
     <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
     <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
   </div>
 </b-modal>
+
+
+
   </div>
 </template>
 
@@ -287,6 +185,7 @@ export default {
       selected: {},
       selectedItemsData: [],
       selectedForAssign: [],
+      selectedForDelivery: [], // Nueva propiedad para almacenar los paquetes seleccionados para entregar
       user: {
         cartero: []
       }
@@ -340,6 +239,35 @@ export default {
       const tarifa = this.tarifas.find(t => t.id === tarifa_id);
       return tarifa ? tarifa.departamento : 'Tarifa no encontrada';
     },
+    calculatePrice(tarifa_id, peso_v) {
+      const tarifa = this.tarifas.find(t => t.id === tarifa_id);
+      if (tarifa) {
+        const basePrice = tarifa.precio ? parseFloat(tarifa.precio) : 0;
+        const extraPrice = tarifa.precio_extra ? parseFloat(tarifa.precio_extra) : 0;
+
+        const peso = parseFloat(peso_v);
+        if (isNaN(peso)) {
+          return ''; // No mostrar nada si el peso está vacío
+        }
+        if (peso > 1) {
+          const pesoAdicional = Math.ceil(peso - 1); // Redondea hacia arriba para cada 1.01, 2.01, etc.
+          return basePrice + pesoAdicional * extraPrice;
+        } else {
+          return basePrice;
+        }
+      }
+      return '';
+    },
+
+    updatePrice(item) {
+  const peso = parseFloat(item.peso_v);
+
+  item.precio = this.calculatePrice(item.tarifa_id, item.peso_v);
+  item.nombre_d = item.precio; // Actualiza nombre_d con el precio calculado
+},
+
+
+
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
       return res;
@@ -357,84 +285,94 @@ export default {
         this.load = false;
       }
     },
-    Eliminar(id) {
-      this.$swal.fire({
-        title: 'Deseas Eliminar?',
-        showDenyButton: false,
-        showCancelButton: true,
-        confirmButtonText: 'Eliminar',
-        cancelButtonText: 'Cancelar',
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          await this.EliminarItem(id);
-        }
-      });
-    },
-    async DarDeBaja(id) {
-      this.load = true;
-      try {
-        const carteroId = this.user.id;
-        const item = this.list.find(m => m.id === id);
-        if (item) {
-          const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
-          item.estado = response.estado; // Actualizar estado desde la respuesta
-          item.cartero_entrega_id = response.cartero_entrega_id; // Actualizar cartero de entrega desde la respuesta
-          item.peso_v = response.peso_v; // Actualizar peso desde la respuesta
-          await this.GET_DATA(this.apiUrl);
-        }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
-      } catch (e) {
-        console.log(e);
-      } finally {
-        this.load = false;
-      }
-    },
     openAssignModal() {
-    this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => ({
+  this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => {
+    const precio = this.calculatePrice(item.tarifa_id, item.peso_v);
+    return {
       id: item.id,
       guia: item.guia,
       sucursale: item.sucursale,
-      peso_v: item.peso_v || 0,
-      tarifa: this.getTarifaLabel(item.tarifa_id) // Añadir la tarifa al objeto
-    }));
-    this.isModalVisible = true;
-  },
+      peso_v: item.peso_v !== undefined && item.peso_v !== null && item.peso_v !== 0 ? item.peso_v : '', // Asegúrate de que peso_v esté vacío inicialmente
+      tarifa_id: item.tarifa_id,
+      tarifa: this.getTarifaLabel(item.tarifa_id),
+      nombre_d: precio,
+      precio: precio
+    };
+  });
+  this.isModalVisible = true;
+},
+
+
+
     handleSearchEnter() {
-      this.selectedItemsData = this.filteredData;
-      if (this.selectedItemsData.length > 0) {
+      const filteredItems = this.filteredData;
+      if (filteredItems.length > 0) {
+        const item = filteredItems[0]; // Seleccionar el primer elemento filtrado
+        this.selectedItemsData = [{
+          id: item.id,
+          guia: item.guia,
+          sucursale: item.sucursale,
+          peso_v: item.peso_v || 0,
+          tarifa_id: item.tarifa_id,
+          tarifa: this.getTarifaLabel(item.tarifa_id), // Añadir la tarifa al objeto
+          precio: this.calculatePrice(item.tarifa_id, item.peso_v) // Calcular el precio inicial
+        }];
         this.isModalVisible = true;
       }
     },
     confirmAssignSelected() {
-      this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData];
-      this.isModalVisible = false;
-      this.selected = {}; // Limpiar la selección después de asignar
-    },
-    async confirmAllAssignments() {
-      this.load = true;
-      try {
-        const carteroId = this.user.user.id;
-        for (let item of this.selectedForAssign) {
-          await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
-        }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
-        this.$swal.fire({
-          icon: 'success',
-          title: 'Carteros asignados',
-          text: 'Todos los carteros seleccionados han sido asignados.',
-        });
-        this.selectedForAssign = []; // Limpiar la selección después de asignar
-      } catch (e) {
-        console.error(e);
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un error al asignar los carteros.',
-        });
-      } finally {
-        this.load = false;
-      }
-    },
+  this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
+    // Validación final
+    let peso = parseFloat(item.peso_v);
+    if (isNaN(peso) || peso < 0.001) {
+      peso = 0.001;
+    } else if (peso > 25.000) {
+      peso = 25.000;
+    }
+    item.peso_v = peso.toFixed(3); // Ajustar y formatear el valor
+    item.nombre_d = item.precio; // Asegúrate de que nombre_d tenga el mismo valor que precio
+    return item;
+  })];
+  this.isModalVisible = false;
+  this.selected = {}; // Limpiar la selección después de asignar
+
+  // Actualizar la lista de paquetes para entregar
+  this.selectedForDelivery = [...this.selectedForAssign];
+},
+
+
+
+  async confirmAllAssignments() {
+  this.load = true;
+  try {
+    const carteroId = this.user.user.id;
+    for (let item of this.selectedForAssign) {
+      await this.$api.$put(`solicitudesentrega/${item.id}`, {
+        cartero_entrega_id: carteroId,
+        peso_v: item.peso_v,
+        precio: item.precio,
+        nombre_d: item.nombre_d // Incluir nombre_d en el envío
+      });
+    }
+    await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+    this.$swal.fire({
+      icon: 'success',
+      title: 'Carteros asignados',
+      text: 'Todos los carteros seleccionados han sido asignados.',
+    });
+    this.selectedForAssign = []; // Limpiar la selección después de asignar
+    this.selectedForDelivery = []; // Limpiar la lista de paquetes para entregar después de asignar
+  } catch (e) {
+    console.error(e);
+    this.$swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Hubo un error al asignar los carteros.',
+    });
+  } finally {
+    this.load = false;
+  }
+},
     selectAll(event, group) {
       const isChecked = event.target.checked;
       group.forEach(item => {
@@ -456,7 +394,7 @@ export default {
         } else {
           console.error('Los datos recuperados no son un array:', data);
         }
-        
+
         // Obtener tarifas para los nombres de tarifa
         const tarifas = await this.GET_DATA('getTarifas');
         if (Array.isArray(tarifas)) {

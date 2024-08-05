@@ -9,6 +9,7 @@
     "generate": "nuxt generate"
   },
   "dependencies": {
+    "@fortawesome/vue-fontawesome": "^2.0.10",
     "@nuxtjs/axios": "^5.13.6",
     "animejs": "^3.2.2",
     "bootstrap": "^5.3.3",
@@ -27,9 +28,11 @@
     "signature_pad": "^5.0.2",
     "sweetalert2": "^11.12.2",
     "vue": "^2.6.14",
+    "vue-autosuggest": "^2.2.0",
     "vue-flatpickr": "^2.3.0",
     "vue-google-autocomplete": "^1.1.4",
     "vue-loading-overlay": "3.0",
+    "vue-select": "^3.20.3",
     "vue-server-renderer": "^2.6.14",
     "vue-sweetalert2": "^5.0.5",
     "vue-template-compiler": "^2.6.14",

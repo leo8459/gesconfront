@@ -26,6 +26,7 @@
                     <th class="py-0 px-1">Guia</th>
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
+                    <th class="py-0 px-1">Precio (Bs)</th>
                     <th class="py-0 px-1">Remitente</th>
                     <th class="py-0 px-1">Dirección</th>
                     <th class="py-0 px-1">Teléfono</th>
@@ -37,7 +38,6 @@
                     <th class="py-0 px-1">Dirección Destinatario</th>
                     <th class="py-0 px-1">Ciudad</th>
                     <th class="py-0 px-1">Firma Destinatario</th>
-                    <th class="py-0 px-1">Nombre Destinatario</th>
                     <th class="py-0 px-1">CI Destinatario</th>
                     <th class="py-0 px-1">Fecha Destinatario</th>
                     <th class="py-0 px-1">Estado</th>
@@ -53,6 +53,7 @@
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.peso_v }}</td>
+                    <td class="py-0 px-1">{{ m.nombre_d }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank" class="btn btn-primary btn-sm">
@@ -78,7 +79,6 @@
                     <td class="py-0 px-1">
                       <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
                     </td>
-                    <td class="py-0 px-1">{{ m.nombre_d }}</td>
                     <td class="py-0 px-1">{{ m.ci_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
                     <td class="py-0 px-1">{{ m.estado === 2 ? 'En camino' : m.estado }}</td>

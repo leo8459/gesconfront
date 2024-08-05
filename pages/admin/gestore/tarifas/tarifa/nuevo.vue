@@ -13,77 +13,59 @@
               <div class="card-body">
                 <div class="form-horizontal">
                   <div class="form-group">
-                    <label class="form-label" for="">Sucursal</label>
-                    <select name="" id="" class="form-control" v-model="model.sucursale_id">
+                    <label class="form-label" for="sucursal">Sucursal</label>
+                    <select name="" id="sucursal" class="form-control" v-model="model.sucursale_id">
                       <option v-for="m in sucursales" :value="m.id">{{ m.nombre }}</option>
                     </select>
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="">Departamento de envio</label>
-                    <input type="text" v-model="model.departamento" class="form-control" id="">
+                    <label class="form-label" for="departamento">Departamento de envio</label>
+                    <input type="text" v-model="model.departamento" class="form-control" id="departamento">
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="">Precio Servicio Courier</label>
-                    <input type="text" v-model="model.servicio" class="form-control" id="">
+                    <label class="form-label" for="servicio">Servicio</label>
+                    <input type="text" v-model="model.servicio" class="form-control" id="servicio">
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="">Precio Servicio Courier Extra</label>
-                    <input type="text" v-model="model.nacional_extra" class="form-control" id="">
+                    <label class="form-label" for="precio">Precio Servicio</label>
+                    <input type="text" v-model="model.precio" class="form-control" id="precio">
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="">Precio Servicio Provincia</label>
-                    <input type="text" v-model="model.servicioprov" class="form-control" id="">
+                    <label class="form-label" for="precio_extra">Precio Servicio Extra</label>
+                    <input type="text" v-model="model.precio_extra" class="form-control" id="precio_extra">
                   </div>
-                  <div class="form-group">
-                    <label class="form-label" for="">Precio Servicio Provincia Extra</label>
-                    <input type="text" v-model="model.prov_extra" class="form-control" id="">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="">Precio Servicio Express</label>
-                    <input type="text" v-model="model.servicioexpress" class="form-control" id="">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="">Precio Servicio Express Extra</label>
-                    <input type="text" v-model="model.expres_extra" class="form-control" id="">
+                  <div class="form-group form-check">
+                    <input type="checkbox" v-model="model.envio_internacional" class="form-check-input" id="envio_internacional">
+                    <label class="form-check-label" for="envio_internacional">Envio Internacional</label>
                   </div>
                 </div>
-                
+
                 <div v-for="(clonado, index) in clonados" :key="index" class="form-horizontal cloned-form">
                   <div class="form-group">
-                    <label class="form-label" for="">Sucursal</label>
-                    <select name="" id="" class="form-control" v-model="clonado.sucursale_id">
+                    <label class="form-label" for="sucursal">Sucursal</label>
+                    <select name="" id="sucursal" class="form-control" v-model="clonado.sucursale_id">
                       <option v-for="m in sucursales" :value="m.id">{{ m.nombre }}</option>
                     </select>
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="">Departamento de envio</label>
-                    <input type="text" v-model="clonado.departamento" class="form-control" id="">
+                    <label class="form-label" for="departamento">Departamento de envio</label>
+                    <input type="text" v-model="clonado.departamento" class="form-control" id="departamento">
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="">Precio Servicio Courier</label>
-                    <input type="text" v-model="clonado.servicio" class="form-control" id="">
+                    <label class="form-label" for="servicio">Servicio</label>
+                    <input type="text" v-model="clonado.servicio" class="form-control" id="servicio">
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="">Precio Servicio Courier</label>
-                    <input type="text" v-model="clonado.nacional_extra" class="form-control" id="">
+                    <label class="form-label" for="precio">Precio Servicio</label>
+                    <input type="text" v-model="clonado.precio" class="form-control" id="precio">
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="">Precio Servicio Provincia</label>
-                    <input type="text" v-model="clonado.servicioprov" class="form-control" id="">
+                    <label class="form-label" for="precio_extra">Precio Servicio Extra</label>
+                    <input type="text" v-model="clonado.precio_extra" class="form-control" id="precio_extra">
                   </div>
-                  <div class="form-group">
-                    <label class="form-label" for="">Precio Servicio Provincia</label>
-                    <input type="text" v-model="clonado.prov_extra" class="form-control" id="">
+                  <div class="form-group form-check">
+                    <input type="checkbox" v-model="clonado.envio_internacional" class="form-check-input" :id="'envio_internacional_' + index">
                   </div>
-                  <div class="form-group">
-                    <label class="form-label" for="">Precio Servicio Express</label>
-                    <input type="text" v-model="clonado.servicioexpress" class="form-control" id="">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="">Precio Servicio Express</label>
-                    <input type="text" v-model="clonado.expres_extra" class="form-control" id="">
-                  </div>
-                  
                 </div>
                 
                 <div class="d-flex justify-content-between mt-3">
@@ -107,12 +89,9 @@ export default {
         sucursale_id: '',
         departamento: '',
         servicio: '',
-        servicioprov: '',
-        servicioexpress: '',
-        nacional_extra: '',
-        prov_extra: '',
-        expres_extra: '',
-
+        precio: '',
+        precio_extra: '',
+        envio_internacional: false
       },
       apiUrl: 'tarifas3',
       page: 'tarifas',

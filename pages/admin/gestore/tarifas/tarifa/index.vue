@@ -47,13 +47,11 @@
                 <tr>
                   <th class="p-1">#</th>
                   <th class="p-1">Departamento de origen</th>
-                  <th class="p-1">Departamento de envio</th>
-                  <th class="p-1">Servicio Courier (Bs)</th>
-                  <th class="p-1">Servicio Courier2 (Bs)</th>
-                  <th class="p-1">Servicio Provincia (Bs)</th>
-                  <th class="p-1">Servicio Provincia2 (Bs)</th>
-                  <th class="p-1">Servicio Express (Bs)</th>
-                  <th class="p-1">Servicio Express2 (Bs)</th>
+                  <th class="p-1">Departamento de Envio</th>
+                  <th class="p-1">Servicio (Bs)</th>
+                  <th class="p-1">Kilogramo Extra (Bs)</th>
+                  <th class="p-1">Kilogramo Extra (Bs)</th>
+
                   <th class="p-1"></th>
                 </tr>
               </thead>
@@ -63,11 +61,8 @@
                   <td class="p-1">{{ m.sucursale.origen }}</td>
                   <td class="p-1">{{ m.departamento }}</td>
                   <td class="p-1">{{ m.servicio }}</td>
-                  <td class="p-1">{{ m.nacional_extra }}</td>
-                  <td class="p-1">{{ m.servicioprov }}</td>
-                  <td class="p-1">{{ m.prov_extra }}</td>
-                  <td class="p-1">{{ m.servicioexpress }}</td>
-                  <td class="p-1">{{ m.expres_extra }}</td>
+                  <td class="p-1">{{ m.precio }}</td>
+                  <td class="p-1">{{ m.precio_extra }}</td>
                   <td class="p-1">
                     <div class="btn-group">
                       <button type="button" class="btn btn-info btn-sm p-1" @click="editarTarifa(m.id)">
