@@ -12,8 +12,8 @@
              
               <div class="card-body">
                 <div class="form-group col-12">
-                      <h4>Remitente</h4>
-                    </div>
+                  <h4>Remitente</h4>
+                </div>
                 <CrudCreate2 :model="model" :apiUrl="apiUrl" @success="onSuccess">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
@@ -30,6 +30,11 @@
                             {{ option.departamento }} - {{ option.servicio }}
                           </div>
                         </template>
+                        <template #selected-option="option">
+                          <div>
+                            {{ option.departamento }} - {{ option.servicio }}
+                          </div>
+                        </template>
                       </v-select>
                     </div>
 
@@ -42,8 +47,6 @@
                       <input type="number" v-model.number="model.peso_o" class="form-control" id="peso_o" step="0.001"
                         @input="limitDecimals">
                     </div>
-
-                    
 
                     <div class="form-group col-12">
                       <label for="guia">Numero de Guia</label>
@@ -93,11 +96,17 @@
                       <input type="text" v-model.trim="model.telefono_d" class="form-control" id="telefono_d">
                     </div>
                     <div class="form-group col-12">
-                      <label for="direccion_d">Dirección Destino</label>
-                      <input type="text" id="direccion_d" class="form-control" @click="openModal('direccion_d')"
-                        :value="currentLat_d && currentLng_d ? currentLat_d + ', ' + currentLng_d : ''" readonly>
+                      <label for="direccion_d_lat_lng">Dirección Destino</label>
+                      <input type="text" id="direccion_d_lat_lng" class="form-control" @click="openModal('direccion_d')"
+                        :value="currentLat_d && currentLng_d ? currentLat_d + ', ' + currentLng_d : ''" readonly
+                        :disabled="isDireccionDFieldDisabled">
                       <input type="hidden" v-model="model.direccion_d_lat">
                       <input type="hidden" v-model="model.direccion_d_lng">
+                    </div>
+                    <div class="form-group col-12">
+                      <label for="direccion_d">Dirección</label>
+                      <input type="text" v-model.trim="model.direccion_d" class="form-control" id="direccion_d"
+                        :disabled="isLatLngDFieldDisabled">
                     </div>
                     <div class="form-group col-12">
                       <label for="zona_d">Zona Destinatario</label>
@@ -190,11 +199,11 @@ export default {
   data() {
     return {
       model: {
-        tipo_servicio: 'servicio', // Valor inicial
+        tipo_servicio: 'servicio',
         sucursale_id: '',
         tarifa_id: '',
-        sucursale_nombre: '', // Nuevo campo para el nombre de la sucursal
-        cartero_id: null, // Permitir valor nulo
+        sucursale_nombre: '',
+        cartero_id: null,
         guia: '',
         peso_o: '',
         peso_v: '',
@@ -223,8 +232,8 @@ export default {
       modulo: 'AGBC',
       load: true,
       sucursales: [],
-      tarifas: [], // Definimos tarifas aquí
-      sucursale_id_logueada: '', // ID de la sucursal logueada
+      tarifas: [],
+      sucursale_id_logueada: '',
       ini_vigencia: '',
       fin_vigencia: '',
       map: null,
@@ -250,6 +259,12 @@ export default {
     isLatLngFieldDisabled() {
       return !!this.currentLat && !!this.currentLng;
     },
+    isDireccionDFieldDisabled() {
+      return !!this.model.direccion_d;
+    },
+    isLatLngDFieldDisabled() {
+      return !!this.currentLat_d && !!this.currentLng_d;
+    },
     precioSeleccionado() {
       const tarifa = this.tarifas.find(t => t.id === this.model.tarifa_id);
       if (tarifa) {
@@ -258,10 +273,10 @@ export default {
 
         const peso = parseFloat(this.model.peso_o);
         if (isNaN(peso)) {
-          return ''; // No mostrar nada si el peso está vacío
+          return '';
         }
         if (peso > 1) {
-          const pesoAdicional = Math.ceil(peso - 1); // Redondea hacia arriba para cada 1.01, 2.01, etc.
+          const pesoAdicional = Math.ceil(peso - 1);
           return basePrice + pesoAdicional * extraPrice;
         } else {
           return basePrice;
@@ -269,7 +284,6 @@ export default {
       }
       return '';
     }
-
   },
   methods: {
     limitDecimals(event) {
@@ -303,14 +317,14 @@ export default {
               this.currentLat = -16.290154;
               this.currentLng = -63.588653;
               this.$nextTick(() => {
-                this.initializeMap(-16.290154, -63.588653); // Fallback to Bolivia
+                this.initializeMap(-16.290154, -63.588653);
               });
             });
           } else {
             this.currentLat = -16.290154;
             this.currentLng = -63.588653;
             this.$nextTick(() => {
-              this.initializeMap(-16.290154, -63.588653); // Fallback to Bolivia
+              this.initializeMap(-16.290154, -63.588653);
             });
           }
         } else if (type === 'direccion_d') {
@@ -327,14 +341,14 @@ export default {
               this.currentLat_d = -16.290154;
               this.currentLng_d = -63.588653;
               this.$nextTick(() => {
-                this.initializeMapD(-16.290154, -63.588653); // Fallback to Bolivia
+                this.initializeMapD(-16.290154, -63.588653);
               });
             });
           } else {
             this.currentLat_d = -16.290154;
             this.currentLng_d = -63.588653;
             this.$nextTick(() => {
-              this.initializeMapD(-16.290154, -63.588653); // Fallback to Bolivia
+              this.initializeMapD(-16.290154, -63.588653);
             });
           }
         }
@@ -347,7 +361,7 @@ export default {
 
       if (process.client) {
         import('leaflet').then(L => {
-          this.map = L.map('map').setView([lat, lng], 14); // Center the map to user's location or fallback
+          this.map = L.map('map').setView([lat, lng], 14);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }).addTo(this.map);
@@ -374,7 +388,7 @@ export default {
 
       if (process.client) {
         import('leaflet').then(L => {
-          this.map_d = L.map('map_d').setView([lat, lng], 14); // Center the map to user's location or fallback
+          this.map_d = L.map('map_d').setView([lat, lng], 14);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }).addTo(this.map_d);
@@ -434,7 +448,6 @@ export default {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${this.searchQuery}&limit=5&viewbox=${this.currentLng - 0.1},${this.currentLat + 0.1},${this.currentLng + 0.1},${this.currentLat - 0.1}`);
         const data = await response.json();
         if (data.length > 0) {
-          // Find the closest match
           const closestMatch = data[0];
           const { lat, lon } = closestMatch;
           this.map.setView([lat, lon], 14);
@@ -450,7 +463,6 @@ export default {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${this.searchQuery_d}&limit=5&viewbox=${this.currentLng_d - 0.1},${this.currentLat_d + 0.1},${this.currentLng_d + 0.1},${this.currentLat_d - 0.1}`);
         const data = await response.json();
         if (data.length > 0) {
-          // Find the closest match
           const closestMatch = data[0];
           const { lat, lon } = closestMatch;
           this.map_d.setView([lat, lon], 14);
@@ -468,10 +480,9 @@ export default {
       if (user && user.user) {
         this.model.sucursale_id = user.user.id;
         this.model.sucursale_nombre = user.user.nombre;
-        this.sucursale_id_logueada = user.user.id; // Asignar el ID de la sucursal logueada
+        this.sucursale_id_logueada = user.user.id;
       }
     }
-
   },
   mounted() {
     this.$nextTick(async () => {
@@ -481,9 +492,8 @@ export default {
         const sucursales = await this.GET_DATA('sucursales2');
         this.sucursales = sucursales;
 
-        // Pasa el sucursale_id como parámetro de consulta
         const tarifas = await this.GET_DATA('getTarifas2', { sucursale_id: this.sucursale_id_logueada });
-        console.log('Tarifas filtradas:', tarifas); // Verificar la respuesta aquí
+        console.log('Tarifas filtradas:', tarifas);
         this.tarifas = tarifas;
       } catch (e) {
         console.log(e);
