@@ -45,8 +45,8 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(m, i) in filteredData" :key="m.id">
-                    <td class="py-0 px-1">{{ i + 1 }}</td>
+                  <tr v-for="(m, i) in paginatedData" :key="m.id">
+                    <td class="py-0 px-1">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
                     <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
                     <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
@@ -93,6 +93,11 @@
                 </tbody>
               </table>
             </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <button class="btn btn-secondary" :disabled="currentPage === 1" @click="currentPage--">Anterior</button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button class="btn btn-secondary" :disabled="currentPage === totalPages" @click="currentPage++">Siguiente</button>
+            </div>
           </div>
         </div>
       </div>
@@ -138,11 +143,26 @@ export default {
       selected: {},
       selectedItemsData: [],
       user: {},
+      currentPage: 1,
+      itemsPerPage: 10,
     };
   },
   computed: {
     filteredData() {
-      return this.list.filter(item => item.estado === 2);
+      const searchTerm = this.searchTerm.toLowerCase();
+      return this.list.filter(item =>
+        item.estado === 2 && Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        )
+      );
+    },
+    paginatedData() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredData.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredData.length / this.itemsPerPage);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
@@ -153,8 +173,29 @@ export default {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
-    
-
+    async markAsEnCamino(solicitudeId) {
+      this.load = true;
+      try {
+        const carteroId = this.user.user.id;
+        const response = await this.$encargados.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
+        await this.GET_DATA(this.apiUrl);
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Cartero asignado',
+          text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
+        });
+        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al asignar el cartero.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
     async GET_DATA(path) {
       const res = await this.$encargados.$get(path);
       this.list = Array.isArray(res) ? res : [];

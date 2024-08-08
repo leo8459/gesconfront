@@ -68,6 +68,7 @@ export default {
         nombre: '',
         apellidos: '',
         email: '',
+        zona: '',
         password: ''
 
 

@@ -18,7 +18,7 @@
                   <div slot="body" class="row">
 
                     <div class="form-group col-12">
-                      <label for="">Nombre</label>
+                      <label for="">Nombre Empresa</label>
                       <input type="text" v-model="model.nombre" class="form-control" id="">
                     </div>
 
@@ -69,7 +69,7 @@ export default {
 
       },
       apiUrl: 'empresas3',
-      page: 'Usuarios',
+      page: 'Empresa',
       modulo: 'AGBC',
       load: true,
 

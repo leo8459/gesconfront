@@ -45,8 +45,8 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(m, i) in filteredData" :key="i">
-                    <td class="py-0 px-1">{{ i + 1 }}</td>
+                  <tr v-for="(m, i) in paginatedData" :key="i">
+                    <td class="py-0 px-1">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
                     <td class="p-1">{{ m.sucursale.nombre }}</td>
                     <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
@@ -86,6 +86,11 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <button class="btn btn-secondary" :disabled="currentPage === 1" @click="currentPage--">Anterior</button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button class="btn btn-secondary" :disabled="currentPage === totalPages" @click="currentPage++">Siguiente</button>
             </div>
           </div>
         </div>
@@ -211,7 +216,9 @@ export default {
       selectedForAssign: [],
       user: {
         cartero: []
-      }
+      },
+      currentPage: 1,
+      itemsPerPage: 10,
     };
   },
   computed: {
@@ -222,6 +229,14 @@ export default {
           String(value).toLowerCase().includes(searchTerm)
         )
       );
+    },
+    paginatedData() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredData.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredData.length / this.itemsPerPage);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);

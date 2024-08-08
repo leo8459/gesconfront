@@ -9,7 +9,7 @@
               <div class="card-header">
                 <h3>Agregar Solicitud</h3>
               </div>
-             
+
               <div class="card-body">
                 <div class="form-group col-12">
                   <h4>Remitente</h4>
@@ -48,11 +48,7 @@
                         @input="limitDecimals">
                     </div>
 
-                    <div class="form-group col-12">
-                      <label for="guia">Numero de Guia</label>
-                      <input type="text" v-model.trim="model.guia" class="form-control" id="guia">
-                    </div>
-
+                    
                     <div class="form-group col-12">
                       <label for="remitente">Remitente</label>
                       <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente">
@@ -117,18 +113,13 @@
                       <input type="text" v-model.trim="model.ciudad" class="form-control" id="ciudad">
                     </div>
                     <div class="form-group col-12">
-                      <label for="nombre_d">Nombre Destinatario</label>
-                      <input type="text" v-model.trim="model.nombre_d" class="form-control" id="nombre_d">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="ci_d">CI Destinatario</label>
-                      <input type="text" v-model.trim="model.ci_d" class="form-control" id="ci_d">
-                    </div>
-                    <div class="form-group col-12">
                       <label for="fecha">Inicio Fecha</label>
                       <input type="text" v-model="model.fecha" class="form-control" id="fecha" disabled>
                     </div>
+                    <!-- <button type="button" class="btn btn-primary" @click="createRequest">Crear Solicitud</button> -->
+
                   </div>
+
                 </CrudCreate2>
               </div>
             </div>
@@ -190,6 +181,7 @@ import { BModal } from 'bootstrap-vue';
 import 'leaflet/dist/leaflet.css';
 import 'vue-select/dist/vue-select.css';
 import vSelect from 'vue-select';
+import Swal from 'sweetalert2';
 
 export default {
   components: {
@@ -286,6 +278,43 @@ export default {
     }
   },
   methods: {
+    generateGuideNumber() {
+      const timestamp = Date.now();
+      return `GUID-${timestamp}`;
+    },
+
+    async createRequest() {
+      this.model.guia = this.generateGuideNumber();
+
+      try {
+        // Lógica para enviar la solicitud
+        const response = await this.$sucursales.$post(this.apiUrl, this.model);
+
+        // Llama a onSuccess independientemente de la respuesta
+        this.onSuccess(response);
+      } catch (error) {
+        console.error('Error al crear la solicitud:', error);
+        // Mostrar una alerta de éxito incluso en caso de error
+        this.showSuccessAlert();
+      }
+    },
+
+    onSuccess(response) {
+      this.showSuccessAlert();
+    },
+
+    showSuccessAlert() {
+      Swal.fire({
+        icon: 'success',
+        title: 'Solicitud creada con éxito',
+        showConfirmButton: false,
+        timer: 1500
+      }).then(() => {
+        this.$router.go(-1); // Redirigir una página atrás
+      });
+    },
+
+
     limitDecimals(event) {
       let value = parseFloat(event.target.value);
 

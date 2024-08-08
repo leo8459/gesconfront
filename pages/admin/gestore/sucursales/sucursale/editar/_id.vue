@@ -13,6 +13,11 @@
                 <CrudUpdate4 :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
+                      <label for="">Nº de Contrato</label>
+                      <input type="text" v-model="model.codigo_cliente" class="form-control" id="">
+                    </div>
+
+                    <div class="form-group col-12">
                       <label for="">Sucursal</label>
                       <input type="text" v-model="model.nombre" class="form-control" id="">
                     </div>
@@ -95,6 +100,7 @@ export default {
         direccion: '',
         contacto_administrativo: '',
         acuerdos: '',
+        codigo_cliente: '',
         email: '',
         password: '',
         empresa_id: '',

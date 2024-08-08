@@ -4,17 +4,13 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-          <div class="col-2">
-            <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class="fas fa-plus"></i> Agregar
-            </nuxtLink>
-          </div>
+
         </div>
         <div class="row">
           <div class="col-12">
             <div class="card border-rounded">
               <div class="card-header">
-                Entregados
+                Cancelados
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
@@ -24,21 +20,6 @@
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Guía</th>
-                        <th class="py-0 px-1">Peso (Kg)</th>
-                        <th class="py-0 px-1">Remitente</th>
-                        <th class="py-0 px-1">Dirección</th>
-                        <th class="py-0 px-1">Teléfono</th>
-                        <th class="py-0 px-1">Contenido</th>
-                        <th class="py-0 px-1">Firma Destinatario</th>
-                        <th class="py-0 px-1">Fecha de Solicitud</th>
-                        <th class="py-0 px-1">Destinatario</th>
-                        <th class="py-0 px-1">Teléfono Destinatario</th>
-                        <th class="py-0 px-1">Dirección Destinatario</th>
-                        <th class="py-0 px-1">Ciudad</th>
-                        <th class="py-0 px-1">Zona</th>
-                        <th class="py-0 px-1">Precio (Bs)</th>
-                        <th class="py-0 px-1">Fecha de Entrega</th>
-
                       </tr>
                     </thead>
                     <tbody>
@@ -46,37 +27,6 @@
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.peso_o }}</td>
-                        <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion)"
-                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
-                            class="btn btn-primary btn-sm">
-                            Ver mapa
-                          </a>
-                          <span v-else>{{ m.direccion }}</span>
-                        </td>
-                        <td class="py-0 px-1">{{ m.telefono }}</td>
-                        <td class="py-0 px-1">{{ m.contenido }}</td>
-                        <td class="py-0 px-1">
-                          <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Origen" width="100" />
-                        </td>
-                        <td class="py-0 px-1">{{ m.fecha }}</td>
-                        <td class="py-0 px-1">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                        <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion_d)"
-                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                            class="btn btn-primary btn-sm">
-                            Ver mapa
-                          </a>
-                          <span v-else>{{ m.direccion_d }}</span>
-                        </td>
-                        <td class="py-0 px-1">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1">{{ m.zona_d }}</td>
-                        <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                        <td class="py-0 px-1">{{ m.fecha_d }}</td>
-
                       </tr>
                     </tbody>
                   </table>
@@ -132,7 +82,7 @@ export default {
   },
   computed: {
     filteredList() {
-      return this.list.filter(item => item.sucursale.id === this.user.user.id && (item.estado === 3));
+      return this.list.filter(item => item.sucursale.id === this.user.user.id && (item.estado === 0));
     },
     sortedList() {
       return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));

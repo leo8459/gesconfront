@@ -10,7 +10,7 @@
             </button>
           </div>
           <div class="col-3">
-            <input v-model="searchTerm"  type="text" class="form-control" placeholder="Buscar..." />
+            <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
           </div>
         </div>
         <div class="row">
@@ -21,8 +21,8 @@
                   <tr>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Cartero</th>
-                    <th class="py-0 px-1">Cartero</th>
+                    <th class="py-0 px-1">Cartero Recogida</th>
+                    <th class="py-0 px-1">Cartero Entrega</th>
                     <th class="py-0 px-1">Guia</th>
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
@@ -45,9 +45,9 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="i">
+                  <tr v-for="(m, i) in paginatedData" :key="m.id">
                     <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
+                    <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
                     <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
@@ -81,34 +81,39 @@
                     <td class="py-0 px-1">{{ m.nombre_d }}</td>
                     <td class="py-0 px-1">{{ m.ci_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">{{ m.estado ===  3? 'Entregado' : m.estado }}</td>
-                    <td class="py-0 px-1">
-                      
-                    </td>
+                    <td class="py-0 px-1">{{ m.estado === 3 ? 'Entregado' : m.estado }}</td>
+                    <td class="py-0 px-1"></td>
                   </tr>
                 </tbody>
               </table>
             </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button class="btn btn-secondary" :disabled="currentPage === totalPages" @click="nextPage">Siguiente</button>
+            </div>
+            <div class="pagination-controls">
+              <ul class="pagination">
+                <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray" :key="pageNumber">
+                  <button class="page-link" @click="goToPage(pageNumber)">{{ pageNumber }}</button>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-        <div class="row">
-  <div class="col-12 d-flex justify-content-between align-items-center">
-    <div>
-      <button @click="prevPage" :disabled="currentPage === 1" class="btn btn-secondary btn-sm">Anterior</button>
-      <button @click="nextPage" :disabled="currentPage >= totalPages" class="btn btn-secondary btn-sm ml-2">Siguiente</button>
-    </div>
-    <div class="pagination-controls">
-      <ul class="pagination">
-        <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray" :key="pageNumber">
-          <button class="page-link" @click="goToPage(pageNumber)">{{ pageNumber }}</button>
-        </li>
-      </ul>
-    </div>
-  </div>
-</div>
       </div>
     </AdminTemplate>
-
+    <!-- Modal para añadir peso_v -->
+    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
+      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }}</label>
+        <input type="number" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" />
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
+        <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -163,10 +168,11 @@ export default {
       return Math.ceil(this.filteredData.length / this.itemsPerPage);
     },
     totalPagesArray() {
-  return Array.from({ length: this.totalPages }, (_, i) => i + 1);
-},
-
-    
+      return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    },
+    hasSelectedItems() {
+      return Object.keys(this.selected).some(key => this.selected[key]);
+    }
   },
   methods: {
     prevPage() {
@@ -180,14 +186,12 @@ export default {
       }
     },
     goToPage(pageNumber) {
-  this.currentPage = pageNumber;
-},
-
+      this.currentPage = pageNumber;
+    },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
-
     async GET_DATA(path) {
       try {
         const res = await this.$encargados.$get(path);
@@ -226,11 +230,74 @@ export default {
         }
       });
     },
-    
-   
-    
-    
-    
+    async DarDeBaja(id) {
+      this.load = true;
+      try {
+        const carteroId = this.user.user.id;
+        const item = this.list.find(m => m.id === id);
+        if (item) {
+          const response = await this.$encargados.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          Object.assign(item, response); // Actualizar con los datos de la respuesta
+          await this.GET_DATA(this.apiUrl);
+        }
+      } catch (e) {
+        console.log(e);
+      } finally {
+        this.load = false;
+      }
+    },
+    openAssignModal() {
+      this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => ({
+        id: item.id,
+        guia: item.guia,
+        sucursale: item.sucursale,
+        peso_v: item.peso_v || 0
+      }));
+      this.isModalVisible = true;
+    },
+    handleSearchEnter() {
+      this.selectedItemsData = this.filteredData;
+      if (this.selectedItemsData.length > 0) {
+        this.isModalVisible = true;
+      }
+    },
+    async confirmAssignSelected() {
+      this.load = true;
+      try {
+        const carteroId = this.user.user.id;
+        for (let item of this.selectedItemsData) {
+          if (item && item.id) { // Verificación adicional
+            await this.$encargados.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          } else {
+            console.error('Item inválido:', item);
+          }
+        }
+        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Carteros asignados',
+          text: 'Todos los carteros seleccionados han sido asignados.',
+        });
+        this.isModalVisible = false;
+        this.selected = {}; // Limpiar la selección después de asignar
+        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al asignar los carteros.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
+    selectAll(event, group) {
+      const isChecked = event.target.checked;
+      group.forEach(item => {
+        this.$set(this.selected, item.id, isChecked);
+      });
+    },
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
     }

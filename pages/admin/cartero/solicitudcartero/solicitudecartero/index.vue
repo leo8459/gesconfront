@@ -10,7 +10,8 @@
             </button>
           </div>
           <div class="col-3">
-            <input v-model="searchTerm" @keypress.enter.prevent="handleSearchEnter" type="text" class="form-control" placeholder="Buscar..." />
+            <input v-model="searchTerm" @keypress.enter.prevent="handleSearchEnter" type="text" class="form-control"
+              placeholder="Buscar..." />
           </div>
           <div class="col-3">
             <select v-model="selectedSucursal" class="form-control" @change="handleSucursalChange">
@@ -32,77 +33,74 @@
                     </th>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Cartero Recojo</th>
-                    <th class="py-0 px-1">Cartero Entrega</th>
-                    <th class="py-0 px-1">Guia</th>
+                    <th class="py-0 px-1">Guía</th>
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
-                    <th class="py-0 px-1">Peso Correos (Kg)</th>
                     <th class="py-0 px-1">Remitente</th>
                     <th class="py-0 px-1">Dirección</th>
+                    <th class="py-0 px-1">Zona</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha</th>
-                    <th class="py-0 px-1">Firma Remitente</th>
                     <th class="py-0 px-1">Destinatario</th>
                     <th class="py-0 px-1">Teléfono D</th>
                     <th class="py-0 px-1">Dirección Destinatario</th>
                     <th class="py-0 px-1">Ciudad</th>
-                    <th class="py-0 px-1">Firma Destinatario</th>
-                    <th class="py-0 px-1">Nombre Destinatario</th>
-                    <th class="py-0 px-1">CI Destinatario</th>
-                    <th class="py-0 px-1">Fecha Destinatario</th>
-                    <th class="py-0 px-1">Estado</th>
-                    <th class="py-0 px-1"></th>
+                    <th class="py-0 px-1">Zona Destino</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(m, i) in filteredData" :key="i">
+                  <tr v-for="(m, i) in paginatedData" :key="i">
                     <td class="py-0 px-1">
                       <input type="checkbox" v-model="selected[m.id]" />
                     </td>
-                    <td class="py-0 px-1">{{ i + 1 }}</td>
+                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                     <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-                    <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
-                    <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
-                    <td class="py-0 px-1">{{ m.peso_v }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
                     <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank" class="btn btn-primary btn-sm">
+                      <a v-if="isCoordinates(m.direccion)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
+                        class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
                       <span v-else>{{ m.direccion }}</span>
                     </td>
+                    <td class="py-0 px-1">{{ m.zona_r }}</td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
-                    </td>
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
                     <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank" class="btn btn-primary btn-sm">
+                      <a v-if="isCoordinates(m.direccion_d)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                        class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
                       <span v-else>{{ m.direccion_d }}</span>
                     </td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
-                    </td>
-                    <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                    <td class="py-0 px-1">{{ m.ci_d }}</td>
-                    <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">{{ m.estado === 2 ? 'En camino' : m.estado }}</td>
-                    <td class="py-0 px-1">
-                      
-                    </td>
+                    <td class="py-0 px-1">{{ m.zona_d }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
+            <!-- Paginación -->
+            <nav aria-label="Page navigation">
+              <ul class="pagination justify-content-between">
+                <li class="page-item" :class="{ disabled: currentPage === 0 }">
+                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0">&lt;</button>
+                </li>
+                <li class="page-item" v-for="page in totalPages" :key="page"
+                  :class="{ active: currentPage === page - 1 }">
+                  <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+                </li>
+                <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
+                  <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
+                </li>
+              </ul>
+            </nav>
           </div>
         </div>
       </div>
@@ -110,7 +108,8 @@
 
     <!-- Modal para mostrar seleccionados -->
     <b-modal v-model="isSelectedModalVisible" title="Resultados de la Búsqueda" hide-backdrop>
-      <div v-for="(item, index) in selectedItemsData" :key="item.id" class="form-group d-flex justify-content-between align-items-center">
+      <div v-for="(item, index) in selectedItemsData" :key="item.id"
+        class="form-group d-flex justify-content-between align-items-center">
         <label>{{ item.sucursale.nombre }} - {{ item.guia }}</label>
         <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
       </div>
@@ -153,7 +152,9 @@ export default {
       selectedItemsData: [],
       user: {
         cartero: []
-      }
+      },
+      currentPage: 0,
+      itemsPerPage: 10,
     };
   },
   computed: {
@@ -168,6 +169,14 @@ export default {
           (this.selectedSucursal && item.sucursale && item.sucursale.id === this.selectedSucursal)
         )
       ).sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordenar del más nuevo al más antiguo
+    },
+    paginatedData() {
+      const start = this.currentPage * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredData.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredData.length / this.itemsPerPage);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
@@ -228,7 +237,7 @@ export default {
     },
     Eliminar(id) {
       this.$swal.fire({
-        title: 'Deseas Eliminar?',
+        title: '¿Deseas eliminar?',
         showDenyButton: false,
         showCancelButton: true,
         confirmButtonText: 'Eliminar',
@@ -332,6 +341,19 @@ export default {
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages - 1) {
+        this.currentPage++;
+      }
+    },
+    previousPage() {
+      if (this.currentPage > 0) {
+        this.currentPage--;
+      }
+    },
+    goToPage(page) {
+      this.currentPage = page;
     }
   },
   mounted() {

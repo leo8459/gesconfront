@@ -22,33 +22,29 @@
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
                     <th class="py-0 px-1">Cartero</th>
-                    <th class="py-0 px-1">Cartero</th>
                     <th class="py-0 px-1">Guia</th>
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
                     <th class="py-0 px-1">Remitente</th>
                     <th class="py-0 px-1">Dirección</th>
+                    <th class="py-0 px-1">Zona Remitente</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha</th>
-                    <th class="py-0 px-1">Firma Remitente</th>
                     <th class="py-0 px-1">Destinatario</th>
                     <th class="py-0 px-1">Teléfono D</th>
                     <th class="py-0 px-1">Dirección Destinatario</th>
                     <th class="py-0 px-1">Ciudad</th>
+                    <th class="py-0 px-1">Zona Destinatario</th>
                     <th class="py-0 px-1">Firma Destinatario</th>
-                    <th class="py-0 px-1">Nombre Destinatario</th>
-                    <th class="py-0 px-1">CI Destinatario</th>
+                    <th class="py-0 px-1">Precio (Bs)</th>
                     <th class="py-0 px-1">Fecha Destinatario</th>
-                    <th class="py-0 px-1">Estado</th>
-                    <th class="py-0 px-1"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(m, i) in filteredData" :key="i">
-                    <td class="py-0 px-1">{{ i + 1 }}</td>
+                  <tr v-for="(m, i) in paginatedData" :key="i">
+                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                     <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
@@ -60,12 +56,10 @@
                       </a>
                       <span v-else>{{ m.direccion }}</span>
                     </td>
+                    <td class="py-0 px-1">{{ m.zona_r }}</td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
-                    </td>
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
                     <td class="py-0 px-1">
@@ -75,20 +69,30 @@
                       <span v-else>{{ m.direccion_d }}</span>
                     </td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
+                    <td class="py-0 px-1">{{ m.zona_d }}</td>
                     <td class="py-0 px-1">
                       <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
                     </td>
                     <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                    <td class="py-0 px-1">{{ m.ci_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">{{ m.estado ===  3? 'Entregado' : m.estado }}</td>
-                    <td class="py-0 px-1">
-                      
-                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
+            <!-- Paginación -->
+            <nav aria-label="Page navigation">
+              <ul class="pagination justify-content-between">
+                <li class="page-item" :class="{ disabled: currentPage === 0 }">
+                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0"><</button>
+                </li>
+                <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page - 1 }">
+                  <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+                </li>
+                <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
+                  <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">></button>
+                </li>
+              </ul>
+            </nav>
           </div>
         </div>
       </div>
@@ -135,7 +139,9 @@ export default {
       selectedItemsData: [],
       user: {
         cartero: []
-      }
+      },
+      currentPage: 0,
+      itemsPerPage: 10,
     };
   },
   computed: {
@@ -148,6 +154,14 @@ export default {
           String(value).toLowerCase().includes(searchTerm)
         )
       );
+    },
+    paginatedData() {
+      const start = this.currentPage * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredData.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredData.length / this.itemsPerPage);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
@@ -181,7 +195,6 @@ export default {
         this.load = false;
       }
     },
-
     async GET_DATA(path) {
       try {
         const res = await this.$api.$get(path);
@@ -257,9 +270,13 @@ export default {
     async confirmAssignSelected() {
       this.load = true;
       try {
-        const carteroId = this.user.id;
+        const carteroId = this.user.user.id;
         for (let item of this.selectedItemsData) {
-          await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          if (item && item.id) { // Verificación adicional
+            await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          } else {
+            console.error('Item inválido:', item);
+          }
         }
         await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
         this.$swal.fire({
@@ -289,6 +306,19 @@ export default {
     },
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages - 1) {
+        this.currentPage++;
+      }
+    },
+    previousPage() {
+      if (this.currentPage > 0) {
+        this.currentPage--;
+      }
+    },
+    goToPage(page) {
+      this.currentPage = page;
     }
   },
   mounted() {

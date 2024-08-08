@@ -171,11 +171,18 @@
           <div class="collapse" id="perfil-empresa">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item" v-if="isSucursale">
+                <nuxtLink class="nav-link" to="/admin/sucursal/canceladossucursales/canceladosucursal">
+                  <span class="sidenav-mini-icon"> Cancelados Empresa</span>
+                  <span class="sidenav-normal">Cancelados Empresa </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item" v-if="isSucursale">
                 <nuxtLink class="nav-link" to="/admin/sucursal/sucursales/sucursal">
                   <span class="sidenav-mini-icon"> Solicitud Empresa</span>
                   <span class="sidenav-normal">Solicitud Empresa </span>
                 </nuxtLink>
               </li>
+             
               <li class="nav-item" v-if="isSucursale">
                 <nuxtLink class="nav-link" to="/admin/sucursal/encaminosucursales/encaminosucursal">
                   <span class="sidenav-mini-icon"> En Camino Empresa</span>

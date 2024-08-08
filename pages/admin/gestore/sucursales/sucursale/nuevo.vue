@@ -14,12 +14,27 @@
                 <CrudCreate4 :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
-                      <label for="">empresa</label>
-                      <select name="" id="" class="form-control" v-model="model.empresa_id">
-                        <option v-for="m in empresas" :value="m.id">{{ m.nombre }}</option>
-                      </select>
+  <label for="empresa">Empresa</label>
+  <v-select :options="empresas" v-model="model.empresa_id" label="nombre"
+    :reduce="empresa => empresa.id" placeholder="Buscar empresa...">
+    <template #option="option">
+      <div>
+        {{ option.nombre }}
+      </div>
+    </template>
+    <template #selected-option="option">
+      <div>
+        {{ option.nombre }}
+      </div>
+    </template>
+  </v-select>
+</div>
+
+                    <div class="form-group col-12">
+                      <label for="">Codigo de Cliente</label>
+                      <input type="text" v-model="model.codigo_cliente" class="form-control" id="">
                     </div>
-                    
+
                     <div class="form-group col-12">
                       <label for="">Sucursal</label>
                       <input type="text" v-model="model.nombre" class="form-control" id="">
@@ -87,7 +102,12 @@
 </template>
 
 <script>
+import 'vue-select/dist/vue-select.css';
+import vSelect from 'vue-select';
 export default {
+  components: {
+    vSelect,
+  },
   data() {
     return {
       model: {
@@ -100,6 +120,7 @@ export default {
         direccion: '',
         contacto_administrativo: '',
         acuerdos: '',
+        codigo_cliente: '',
         empresa_id: '',
       },
       apiUrl: 'sucursales3',
