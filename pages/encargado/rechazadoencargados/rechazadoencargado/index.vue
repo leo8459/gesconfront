@@ -4,11 +4,6 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-          <div class="col-3" v-if="hasSelectedItems">
-            <button @click="markSelectedAsVerified" class="btn btn-success btn-sm w-100">
-              <i class="fas fa-check"></i> Verificar seleccionados
-            </button>
-          </div>
           <div class="col-3">
             <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
           </div>
@@ -19,9 +14,6 @@
               <table class="table table-sm table-bordered">
                 <thead>
                   <tr>
-                    <th class="py-0 px-1">
-                      <input type="checkbox" @change="selectAll($event, paginatedData)" />
-                    </th>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
                     <th class="py-0 px-1">Cartero Recogida</th>
@@ -43,15 +35,13 @@
                     <th class="py-0 px-1">Nombre Destinatario</th>
                     <th class="py-0 px-1">CI Destinatario</th>
                     <th class="py-0 px-1">Fecha Destinatario</th>
-                    <th class="py-0 px-1">Estado</th>
+                    <th class="py-0 px-1">Observacion</th>
                     <th class="py-0 px-1"></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(m, i) in paginatedData" :key="m.id">
-                    <td class="py-0 px-1">
-                      <input type="checkbox" v-model="selected[m.id]" />
-                    </td>
+                   
                     <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
                     <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
                     <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
@@ -91,7 +81,7 @@
                     <td class="py-0 px-1">{{ m.nombre_d }}</td>
                     <td class="py-0 px-1">{{ m.ci_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">{{ m.estado === 3 ? 'Entregado' : m.estado }}</td>
+                    <td class="py-0 px-1">{{ m.observacion }}</td>
                     <td class="py-0 px-1"></td>
                   </tr>
                 </tbody>
@@ -115,17 +105,6 @@
         </div>
       </div>
     </AdminTemplate>
-    <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
-      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }}</label>
-        <input type="number" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" />
-      </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-        <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
-      </div>
-    </b-modal>
   </div>
 </template>
 
@@ -165,7 +144,7 @@ export default {
     filteredData() {
       const searchTerm = this.searchTerm.toLowerCase();
       return this.list.filter(item =>
-        item.estado === 3 &&
+        item.estado === 6 &&
         Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
         )
@@ -222,40 +201,8 @@ export default {
     
    
   
-    async markSelectedAsVerified() {
-      this.load = true;
-      try {
-        const selectedIds = Object.keys(this.selected).filter(key => this.selected[key]);
-        for (let id of selectedIds) {
-          await this.$encargados.$put(`verificarsolicitudes5/${id}`);
-        }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
-        this.$swal.fire({
-          icon: 'success',
-          title: 'Solicitudes verificadas',
-          text: 'Todas las solicitudes seleccionadas han sido marcadas como verificadas.',
-        });
-        this.selected = {}; // Limpiar la selección después de verificar
-      } catch (e) {
-        console.error(e);
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un error al verificar las solicitudes.',
-        });
-      } finally {
-        this.load = false;
-      }
-    },
-    selectAll(event, group) {
-      const isChecked = event.target.checked;
-      group.forEach(item => {
-        this.$set(this.selected, item.id, isChecked);
-      });
-    },
-    toggleCollapse(estado) {
-      this.$set(this.collapseState, estado, !this.collapseState[estado]);
-    }
+    
+    
   },
   mounted() {
     this.$nextTick(async () => {

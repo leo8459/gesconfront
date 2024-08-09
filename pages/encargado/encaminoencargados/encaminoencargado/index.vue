@@ -27,21 +27,23 @@
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
                     <th class="py-0 px-1">Remitente</th>
+                    <th class="py-0 px-1">Dirección maps</th>
                     <th class="py-0 px-1">Dirección</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha</th>
                     <th class="py-0 px-1">Firma Remitente</th>
-                    <th class="py-0 px-1">Destinatario</th>
+                    <th class="py-0 px-1">Nombre Destinatario</th>
                     <th class="py-0 px-1">Teléfono D</th>
+                    <th class="py-0 px-1">Dirección Destinatario maps</th>
                     <th class="py-0 px-1">Dirección Destinatario</th>
                     <th class="py-0 px-1">Ciudad</th>
                     <th class="py-0 px-1">Firma Destinatario</th>
-                    <th class="py-0 px-1">Nombre Destinatario</th>
+                    <th class="py-0 px-1">Precio (Bs)</th>
                     <th class="py-0 px-1">CI Destinatario</th>
                     <th class="py-0 px-1">Fecha Destinatario</th>
                     <th class="py-0 px-1">Estado</th>
-                    <th class="py-0 px-1"></th>
+                    <th class="py-0 px-1">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -60,6 +62,7 @@
                       </a>
                       <span v-else>{{ m.direccion }}</span>
                     </td>
+                    <td class="py-0 px-1">{{ m.direccion_especifica }}</td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>
@@ -78,16 +81,15 @@
                     <td class="py-0 px-1">
                       <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
                     </td>
+                    <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
                     <td class="py-0 px-1">{{ m.nombre_d }}</td>
                     <td class="py-0 px-1">{{ m.ci_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
                     <td class="py-0 px-1">{{ m.estado === 2 ? 'En camino' : m.estado }}</td>
                     <td class="py-0 px-1">
-                      <div class="btn-group">
-                        <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
-                          <i class="fas fa-ban"></i> Dar de Baja
-                        </nuxtLink>
-                      </div>
+                      <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
+                        <i class="fas fa-undo"></i> Devolver a destino
+                      </button>
                     </td>
                   </tr>
                 </tbody>
@@ -112,6 +114,18 @@
       <div class="d-flex justify-content-end">
         <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
         <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
+      </div>
+    </b-modal>
+
+    <!-- Modal para añadir observación -->
+    <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop>
+      <div class="form-group">
+        <label for="observacion">Observación</label>
+        <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isObservationModalVisible = false">Cancelar</button>
+        <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
       </div>
     </b-modal>
   </div>
@@ -139,12 +153,15 @@ export default {
       url_asignar: '/admin/solicitudes/solicitude/asignar',
       collapseState: {},
       isModalVisible: false,
+      isObservationModalVisible: false,
       currentId: null,
       selected: {},
       selectedItemsData: [],
       user: {},
       currentPage: 1,
       itemsPerPage: 10,
+      observacion: '',
+      selectedSolicitudeId: null,
     };
   },
   computed: {
@@ -173,24 +190,22 @@ export default {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
-    async markAsEnCamino(solicitudeId) {
+    async markAsRejected(solicitudeId) {
       this.load = true;
       try {
-        const carteroId = this.user.user.id;
-        const response = await this.$encargados.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
-        await this.GET_DATA(this.apiUrl);
+        await this.$encargados.$put(`rechazado5/${solicitudeId}`);
+        await this.GET_DATA(this.apiUrl); // Actualizar la lista después de la operación
         this.$swal.fire({
           icon: 'success',
-          title: 'Cartero asignado',
-          text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
+          title: 'Solicitud rechazada',
+          text: `La solicitud ${solicitudeId} ha sido marcada como 'Devuelta a destino'.`,
         });
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
       } catch (e) {
         console.error(e);
         this.$swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'Hubo un error al asignar el cartero.',
+          text: 'Hubo un error al devolver la solicitud a destino.',
         });
       } finally {
         this.load = false;
@@ -250,6 +265,10 @@ export default {
       }));
       this.isModalVisible = true;
     },
+    openObservationModal(id) {
+      this.selectedSolicitudeId = id;
+      this.isObservationModalVisible = true;
+    },
     handleSearchEnter() {
       this.selectedItemsData = this.filteredData;
       if (this.selectedItemsData.length > 0) {
@@ -282,6 +301,29 @@ export default {
           icon: 'error',
           title: 'Error',
           text: 'Hubo un error al asignar los carteros.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
+    async confirmRechazar() {
+      this.load = true;
+      try {
+        await this.$encargados.$put(`rechazado5/${this.selectedSolicitudeId}`, { observacion: this.observacion });
+        await this.GET_DATA(this.apiUrl); // Actualizar la lista después de la operación
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Solicitud rechazada',
+          text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
+        });
+        this.isObservationModalVisible = false;
+        this.observacion = ''; // Limpiar el campo de observación
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al devolver la solicitud a destino.',
         });
       } finally {
         this.load = false;

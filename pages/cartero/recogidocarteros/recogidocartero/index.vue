@@ -28,13 +28,12 @@
                     <th class="py-0 px-1">Zona Remitente</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha</th>
+                    <th class="py-0 px-1">Fecha Solicitud</th>
                     <th class="py-0 px-1">Destinatario</th>
                     <th class="py-0 px-1">Teléfono D</th>
                     <th class="py-0 px-1">Dirección Destinatario</th>
                     <th class="py-0 px-1">Ciudad</th>
                     <th class="py-0 px-1">Zona Destinatario</th>
-                    <th class="py-0 px-1">Tarifa</th> <!-- Nueva columna para tarifa -->
                   </tr>
                 </thead>
                 <tbody>
@@ -67,7 +66,6 @@
                     </td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
                     <td class="py-0 px-1">{{ m.zona_d }}</td>
-                    <td class="py-0 px-1">{{ getTarifaLabel(m.tarifa_id) }}</td> <!-- Mostrar la tarifa -->
                   </tr>
                 </tbody>
               </table>
@@ -101,7 +99,6 @@
                   <th class="py-0 px-1">Sucursal</th>
                   <th class="py-0 px-1">Tarifa</th>
                   <th class="py-0 px-1">Peso Correos (Kg)</th>
-                  <th class="py-0 px-1">Precio</th>
                 </tr>
               </thead>
               <tbody>
@@ -111,7 +108,6 @@
                   <td class="py-0 px-1">{{ item.sucursale.nombre }}</td>
                   <td class="py-0 px-1">{{ item.tarifa }}</td>
                   <td class="py-0 px-1">{{ item.peso_v }}</td>
-                  <td class="py-0 px-1">{{ item.nombre_d }}</td> <!-- Mostrar el precio almacenado en nombre_d -->
                 </tr>
               </tbody>
             </table>
@@ -120,21 +116,28 @@
       </div>
     </AdminTemplate>
 
-    <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
-      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
-        <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control"
-          @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" />
-        <input type="text" :value="item.tarifa" class="form-control mt-2" disabled />
-        <input type="text" :value="item.precio" class="form-control mt-2" disabled />
-        <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control mt-2" readonly />
-      </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-        <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
-      </div>
-    </b-modal>
+   <!-- Modal para añadir peso_v -->
+<!-- Modal para añadir peso_v -->
+<b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
+  <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+    <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+    
+    <!-- Título para el campo peso_v -->
+    <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
+    <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control"
+      @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" />
+    
+    <!-- Campo nombre_d oculto pero funcional -->
+    <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
+    <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
+  </div>
+  <div class="d-flex justify-content-end">
+    <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
+    <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
+  </div>
+</b-modal>
+
+
   </div>
 </template>
 

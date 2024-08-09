@@ -54,7 +54,7 @@
                       <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente">
                     </div>
                     <div class="form-group col-12">
-                      <label for="direccion_lat_lng">Dirección</label>
+                      <label for="direccion_lat_lng">Dirección Maps</label>
                       <input type="text" id="direccion_lat_lng" class="form-control" @click="openModal('direccion')"
                         :value="currentLat && currentLng ? currentLat + ', ' + currentLng : ''" readonly
                         :disabled="isDireccionFieldDisabled">
@@ -63,8 +63,7 @@
                     </div>
                     <div class="form-group col-12">
                       <label for="direccion">Dirección</label>
-                      <input type="text" v-model.trim="model.direccion" class="form-control" id="direccion"
-                        :disabled="isLatLngFieldDisabled">
+                      <input type="text" v-model.trim="model.direccion_especifica" class="form-control" id="direccion_especifica">
                     </div>
                     <div class="form-group col-12">
                       <label for="zona_r">Zona Remitente</label>
@@ -92,7 +91,7 @@
                       <input type="text" v-model.trim="model.telefono_d" class="form-control" id="telefono_d">
                     </div>
                     <div class="form-group col-12">
-                      <label for="direccion_d_lat_lng">Dirección Destino</label>
+                      <label for="direccion_d_lat_lng">Dirección Destino Maps</label>
                       <input type="text" id="direccion_d_lat_lng" class="form-control" @click="openModal('direccion_d')"
                         :value="currentLat_d && currentLng_d ? currentLat_d + ', ' + currentLng_d : ''" readonly
                         :disabled="isDireccionDFieldDisabled">
@@ -101,8 +100,7 @@
                     </div>
                     <div class="form-group col-12">
                       <label for="direccion_d">Dirección</label>
-                      <input type="text" v-model.trim="model.direccion_d" class="form-control" id="direccion_d"
-                        :disabled="isLatLngDFieldDisabled">
+                      <input type="text" v-model.trim="model.direccion_especifica_d" class="form-control" id="direccion_especifica_d">
                     </div>
                     <div class="form-group col-12">
                       <label for="zona_d">Zona Destinatario</label>
@@ -208,6 +206,8 @@ export default {
         fecha: '',
         firma_o: '',
         destinatario: '',
+        direccion_especifica_d: '',
+        direccion_especifica: '',
         telefono_d: '',
         direccion_d: '',
         direccion_d_lat: '',

@@ -26,14 +26,17 @@
                         <th class="py-0 px-1">Guía</th>
                         <th class="py-0 px-1">Peso (Kg)</th>
                         <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Dirección maps</th>
                         <th class="py-0 px-1">Dirección</th>
                         <th class="py-0 px-1">Teléfono</th>
                         <th class="py-0 px-1">Contenido</th>
                         <th class="py-0 px-1">Fecha de Solicitud</th>
                         <th class="py-0 px-1">Destinatario</th>
                         <th class="py-0 px-1">Teléfono Destinatario</th>
+                        <th class="py-0 px-1">Dirección Destinatario maps</th>
                         <th class="py-0 px-1">Dirección Destinatario</th>
                         <th class="py-0 px-1">Ciudad</th>
+                        <th class="py-0 px-1">Precio (Bs)</th>
                         <th class="py-0 px-1">Fecha de Entrega</th>
                       </tr>
                     </thead>
@@ -52,6 +55,7 @@
                           </a>
                           <span v-else>{{ m.direccion }}</span>
                         </td>
+                        <td class="py-0 px-1">{{ m.direccion_especifica }}</td>
                         <td class="py-0 px-1">{{ m.telefono }}</td>
                         <td class="py-0 px-1">{{ m.contenido }}</td>
 
@@ -67,7 +71,9 @@
                           </a>
                           <span v-else>{{ m.direccion_d }}</span>
                         </td>
+                        <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
                         <td class="py-0 px-1">{{ m.ciudad }}</td>
+                        <td class="py-0 px-1">{{ m.nombre_d }}</td>
                         <td class="py-0 px-1">{{ m.fecha_d }}</td>
 
                       </tr>

@@ -223,22 +223,28 @@
                   <span class="sidenav-normal"> Solicitud J </span>
                 </nuxtLink> -->
                 <nuxtLink class="nav-link" to="/encargado/solicitudencargados/solicitudencargado">
-                  <span class="sidenav-mini-icon"> Solicitud J </span>
-                  <span class="sidenav-normal"> Solicitud J</span>
+                  <span class="sidenav-mini-icon"> Solicitud de recojo </span>
+                  <span class="sidenav-normal"> Solicitud de recojo </span>
                 </nuxtLink>
                 <nuxtLink class="nav-link" to="/encargado/recogidoencargados/recogidoencargado">
-                  <span class="sidenav-mini-icon"> Recogido J </span>
-                  <span class="sidenav-normal"> Recogido J</span>
+                  <span class="sidenav-mini-icon"> Correspondencia recogida  </span>
+                  <span class="sidenav-normal"> Correspondencia recogida </span>
                 </nuxtLink>
                 <nuxtLink class="nav-link" to="/encargado/encaminoencargados/encaminoencargado">
-                  <span class="sidenav-mini-icon"> En Camino J </span>
-                  <span class="sidenav-normal"> En Camino J</span>
+                  <span class="sidenav-mini-icon"> Correspondencia en camino  </span>
+                  <span class="sidenav-normal"> Correspondencia en camino </span>
                 </nuxtLink>
-                
-                
                 <nuxtLink class="nav-link" to="/encargado/entregadoencargados/entregadoencargado">
-                  <span class="sidenav-mini-icon"> Entregados J </span>
-                  <span class="sidenav-normal"> Entregados J</span>
+                  <span class="sidenav-mini-icon"> Correspondencia Entregada</span>
+                  <span class="sidenav-normal"> Correspondencia Entregada</span>
+                </nuxtLink>
+                <nuxtLink class="nav-link" to="/encargado/verificadoencargados/verificadoencargado">
+                  <span class="sidenav-mini-icon"> Correspondencia Verificada </span>
+                  <span class="sidenav-normal"> Correspondencia Verificada</span>
+                </nuxtLink>
+                <nuxtLink class="nav-link" to="/encargado/rechazadoencargados/rechazadoencargado">
+                  <span class="sidenav-mini-icon"> Correspondencia Rechazada </span>
+                  <span class="sidenav-normal"> Correspondencia Rechazada</span>
                 </nuxtLink>
               </li>
             </ul>

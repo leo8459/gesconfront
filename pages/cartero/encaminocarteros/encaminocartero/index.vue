@@ -23,17 +23,14 @@
                     <th class="py-0 px-1">Sucursal</th>
                     <th class="py-0 px-1">Guia</th>
                     <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Dirección</th>
-                    <th class="py-0 px-1">Zona Remitente</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha</th>
                     <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono D</th>
+                    <th class="py-0 px-1">Teléfono Destinatario</th>
+                    <th class="py-0 px-1">Dirección Destinatario Maps</th>
                     <th class="py-0 px-1">Dirección Destinatario</th>
                     <th class="py-0 px-1">Ciudad</th>
                     <th class="py-0 px-1">Zona Destinatario</th>
-                    <th class="py-0 px-1">Precio</th>
                     <th class="py-0 px-1"></th>
                   </tr>
                 </thead>
@@ -43,18 +40,9 @@
                     <td class="p-1">{{ m.sucursale.nombre }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.zona_r }}</td>
+                  
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
                     <td class="py-0 px-1">
@@ -65,9 +53,10 @@
                       </a>
                       <span v-else>{{ m.direccion_d }}</span>
                     </td>
+                    <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
                     <td class="py-0 px-1">{{ m.zona_d }}</td>
-                    <td class="py-0 px-1">{{ m.nombre_d }}</td>
+
                     <td class="py-0 px-1">
                       <div class="btn-group">
                         <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
