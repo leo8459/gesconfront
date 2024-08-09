@@ -45,8 +45,8 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(m, i) in filteredData" :key="i">
-                    <td class="py-0 px-1">{{ i + 1 }}</td>
+                  <tr v-for="(m, i) in paginatedData" :key="i">
+                    <td class="py-0 px-1">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
                     <td class="p-1">{{ m.sucursale.nombre }}</td>
                     <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
@@ -86,6 +86,11 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <button class="btn btn-secondary" :disabled="currentPage === 1" @click="currentPage--">Anterior</button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button class="btn btn-secondary" :disabled="currentPage === totalPages" @click="currentPage++">Siguiente</button>
             </div>
           </div>
         </div>
@@ -211,7 +216,9 @@ export default {
       selectedForAssign: [],
       user: {
         cartero: []
-      }
+      },
+      currentPage: 1,
+      itemsPerPage: 10,
     };
   },
   computed: {
@@ -222,6 +229,14 @@ export default {
           String(value).toLowerCase().includes(searchTerm)
         )
       );
+    },
+    paginatedData() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredData.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredData.length / this.itemsPerPage);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
@@ -236,7 +251,7 @@ export default {
       this.load = true;
       try {
         const carteroId = this.user.id;
-        const response = await this.$encargado.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
+        const response = await this.$encargados.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
         await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
           icon: 'success',
@@ -257,13 +272,13 @@ export default {
     },
 
     async GET_DATA(path) {
-      const res = await this.$encargado.$get(path);
+      const res = await this.$encargados.$get(path);
       this.list = res;
     },
     async EliminarItem(id) {
       this.load = true;
       try {
-        const res = await this.$encargado.$delete(this.apiUrl + '/' + id);
+        const res = await this.$encargados.$delete(this.apiUrl + '/' + id);
         await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
           this.list = v[0];
         });
@@ -292,7 +307,7 @@ export default {
         const carteroId = this.user.id;
         const item = this.list.find(m => m.id === id);
         if (item) {
-          const response = await this.$encargado.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          const response = await this.$encargados.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
           item.estado = response.estado; // Actualizar estado desde la respuesta
           item.cartero_entrega_id = response.cartero_entrega_id; // Actualizar cartero de entrega desde la respuesta
           item.peso_v = response.peso_v; // Actualizar peso desde la respuesta
@@ -330,7 +345,7 @@ export default {
       try {
         const carteroId = this.user.user.id;
         for (let item of this.selectedForAssign) {
-          await this.$encargado.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          await this.$encargados.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
         }
         await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
         this.$swal.fire({

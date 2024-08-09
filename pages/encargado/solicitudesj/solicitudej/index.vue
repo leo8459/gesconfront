@@ -17,8 +17,7 @@
         </div>
         <div class="row">
           {{ user }}
-
-          <div v-for="(group, estado) in groupedData" :key="estado" class="col-12">
+          <div v-for="(group, estado) in paginatedData" :key="estado" class="col-12">
             <div class="card border-rounded">
               <div class="card-header" @click="toggleCollapse(estado)">
                 {{ estado === '1' ? 'Solicitudes' : estado === '2' ? 'En camino' : estado === '3' ? 'Entregados' :
@@ -29,12 +28,9 @@
                   <div class="table-responsive">
                     <table class="table table-sm table-bordered">
                       <thead>
-                        
                         <tr>
-
                           <th class="py-0 px-1">#</th>
                           <th class="py-0 px-1">Sucursal</th>
-                          <th class="py-0 px-1">Cartero</th>
                           <th class="py-0 px-1">Cartero</th>
                           <th class="py-0 px-1">Guia</th>
                           <th class="py-0 px-1">Peso Empresa (Kg)</th>
@@ -58,8 +54,8 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <tr v-for="(m, i) in group" :key="i">
-                          <td class="py-0 px-1">{{ i + 1 }}</td>
+                        <tr v-for="(m, i) in group.data" :key="i">
+                          <td class="py-0 px-1">{{ group.startIndex + i + 1 }}</td>
                           <td class="p-1">{{ m.sucursale.nombre }}</td>
                           <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                           <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
@@ -109,6 +105,20 @@
                       </tbody>
                     </table>
                   </div>
+                  <!-- Paginación -->
+                  <nav aria-label="Page navigation" v-if="group.totalPages > 1">
+                    <ul class="pagination justify-content-between">
+                      <li class="page-item" :class="{ disabled: group.currentPage === 0 }">
+                        <button class="page-link" @click="previousPage(estado)" :disabled="group.currentPage === 0"><</button>
+                      </li>
+                      <li class="page-item" v-for="page in group.totalPages" :key="page" :class="{ active: group.currentPage === page - 1 }">
+                        <button class="page-link" @click="goToPage(estado, page - 1)">{{ page }}</button>
+                      </li>
+                      <li class="page-item" :class="{ disabled: group.currentPage >= group.totalPages - 1 }">
+                        <button class="page-link" @click="nextPage(estado)" :disabled="group.currentPage >= group.totalPages - 1">></button>
+                      </li>
+                    </ul>
+                  </nav>
                 </div>
               </b-collapse>
             </div>
@@ -142,7 +152,9 @@ export default {
       currentId: null,
       user: {
         encargado: []
-      }
+      },
+      itemsPerPage: 10, // Número de elementos por página
+      currentPageState: {} // Estado de la página actual por grupo
     };
   },
   computed: {
@@ -151,10 +163,26 @@ export default {
       this.list.forEach(item => {
         if (!grouped[item.estado]) {
           grouped[item.estado] = [];
+          this.currentPageState[item.estado] = 0; // Inicializar página actual para cada grupo
         }
         grouped[item.estado].push(item);
       });
       return grouped;
+    },
+    paginatedData() {
+      const paginated = {};
+      for (const estado in this.groupedData) {
+        const group = this.groupedData[estado];
+        const totalPages = Math.ceil(group.length / this.itemsPerPage);
+        const currentPage = this.currentPageState[estado] || 0;
+        paginated[estado] = {
+          data: group.slice(currentPage * this.itemsPerPage, (currentPage + 1) * this.itemsPerPage),
+          totalPages: totalPages,
+          currentPage: currentPage,
+          startIndex: currentPage * this.itemsPerPage
+        };
+      }
+      return paginated;
     }
   },
   methods: {
@@ -180,7 +208,6 @@ export default {
         this.load = false;
       }
     },
-
     async GET_DATA(path) {
       const res = await this.$encargado.$get(path);
       return res;
@@ -230,6 +257,19 @@ export default {
     },
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
+    },
+    nextPage(estado) {
+      if (this.currentPageState[estado] < this.paginatedData[estado].totalPages - 1) {
+        this.currentPageState[estado]++;
+      }
+    },
+    previousPage(estado) {
+      if (this.currentPageState[estado] > 0) {
+        this.currentPageState[estado]--;
+      }
+    },
+    goToPage(estado, page) {
+      this.currentPageState[estado] = page;
     }
   },
   mounted() {

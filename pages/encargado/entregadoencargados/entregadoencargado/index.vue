@@ -10,7 +10,7 @@
             </button>
           </div>
           <div class="col-3">
-            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control" placeholder="Buscar..." />
+            <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
           </div>
         </div>
         <div class="row">
@@ -21,8 +21,8 @@
                   <tr>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Cartero</th>
-                    <th class="py-0 px-1">Cartero</th>
+                    <th class="py-0 px-1">Cartero Recogida</th>
+                    <th class="py-0 px-1">Cartero Entrega</th>
                     <th class="py-0 px-1">Guia</th>
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
@@ -45,9 +45,9 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(m, i) in filteredData" :key="i">
-                    <td class="py-0 px-1">{{ i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
+                  <tr v-for="(m, i) in paginatedData" :key="m.id">
+                    <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
+                    <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
                     <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
@@ -81,19 +81,28 @@
                     <td class="py-0 px-1">{{ m.nombre_d }}</td>
                     <td class="py-0 px-1">{{ m.ci_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">{{ m.estado ===  3? 'Entregado' : m.estado }}</td>
-                    <td class="py-0 px-1">
-                      
-                    </td>
+                    <td class="py-0 px-1">{{ m.estado === 3 ? 'Entregado' : m.estado }}</td>
+                    <td class="py-0 px-1"></td>
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button class="btn btn-secondary" :disabled="currentPage === totalPages" @click="nextPage">Siguiente</button>
+            </div>
+            <div class="pagination-controls">
+              <ul class="pagination">
+                <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray" :key="pageNumber">
+                  <button class="page-link" @click="goToPage(pageNumber)">{{ pageNumber }}</button>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
       </div>
     </AdminTemplate>
-
     <!-- Modal para añadir peso_v -->
     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
@@ -135,7 +144,9 @@ export default {
       selectedItemsData: [],
       user: {
         cartero: []
-      }
+      },
+      currentPage: 1,
+      itemsPerPage: 10,
     };
   },
   computed: {
@@ -143,48 +154,47 @@ export default {
       const searchTerm = this.searchTerm.toLowerCase();
       return this.list.filter(item =>
         item.estado === 3 && 
-        item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
         Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
         )
       );
+    },
+    paginatedData() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredData.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+    },
+    totalPagesArray() {
+      return Array.from({ length: this.totalPages }, (_, i) => i + 1);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
     }
   },
   methods: {
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage -= 1;
+      }
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage += 1;
+      }
+    },
+    goToPage(pageNumber) {
+      this.currentPage = pageNumber;
+    },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
-    async markAsEnCamino(solicitudeId) {
-      this.load = true;
-      try {
-        const carteroId = this.user.id;
-        const response = await this.$encargado.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
-        await this.GET_DATA(this.apiUrl);
-        this.$swal.fire({
-          icon: 'success',
-          title: 'Cartero asignado',
-          text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
-        });
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
-      } catch (e) {
-        console.error(e);
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un error al asignar el cartero.',
-        });
-      } finally {
-        this.load = false;
-      }
-    },
-
     async GET_DATA(path) {
       try {
-        const res = await this.$encargado.$get(path);
+        const res = await this.$encargados.$get(path);
         if (Array.isArray(res)) {
           this.list = res;
         } else {
@@ -197,7 +207,7 @@ export default {
     async EliminarItem(id) {
       this.load = true;
       try {
-        const res = await this.$encargado.$delete(this.apiUrl + '/' + id);
+        const res = await this.$encargados.$delete(this.apiUrl + '/' + id);
         await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
           this.list = v[0];
         });
@@ -223,16 +233,13 @@ export default {
     async DarDeBaja(id) {
       this.load = true;
       try {
-        const carteroId = this.user.id;
+        const carteroId = this.user.user.id;
         const item = this.list.find(m => m.id === id);
         if (item) {
-          const response = await this.$encargado.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
-          item.estado = response.estado; // Actualizar estado desde la respuesta
-          item.cartero_entrega_id = response.cartero_entrega_id; // Actualizar cartero de entrega desde la respuesta
-          item.peso_v = response.peso_v; // Actualizar peso desde la respuesta
+          const response = await this.$encargados.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          Object.assign(item, response); // Actualizar con los datos de la respuesta
           await this.GET_DATA(this.apiUrl);
         }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
       } catch (e) {
         console.log(e);
       } finally {
@@ -257,9 +264,13 @@ export default {
     async confirmAssignSelected() {
       this.load = true;
       try {
-        const carteroId = this.user.id;
+        const carteroId = this.user.user.id;
         for (let item of this.selectedItemsData) {
-          await this.$encargado.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          if (item && item.id) { // Verificación adicional
+            await this.$encargados.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          } else {
+            console.error('Item inválido:', item);
+          }
         }
         await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
         this.$swal.fire({
@@ -321,15 +332,22 @@ export default {
 </script>
 
 <style scoped>
-.card.border-rounded {
-  border-radius: 15px;
-  border: 1px solid #dee2e6;
-  margin-bottom: 1.5rem;
-  overflow: hidden;
+/* Add your styles here */
+.pagination-controls .pagination {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
-
-.table-responsive {
-  max-width: 100%;
-  overflow-x: auto;
+.pagination-controls .page-item {
+  margin: 0 2px;
+}
+.pagination-controls .page-item .page-link {
+  cursor: pointer;
+}
+.pagination-controls .page-item.active .page-link {
+  font-weight: bold;
+  background-color: #007bff;
+  color: white;
 }
 </style>

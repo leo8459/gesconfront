@@ -111,73 +111,93 @@ export default {
       }
     },
     async Login() {
-      const recaptchaResponse = window.grecaptcha.getResponse();
+  const recaptchaResponse = window.grecaptcha.getResponse();
 
-      if (!recaptchaResponse) {
-        this.$swal.fire({
-          title: "Por favor, verifica que no eres un robot",
-          showDenyButton: false,
-          showCancelButton: false,
-          confirmButtonText: "Ok"
-        });
-        return;
-      }
+  if (!recaptchaResponse) {
+    this.$swal.fire({
+      title: "Por favor, verifica que no eres un robot",
+      showDenyButton: false,
+      showCancelButton: false,
+      confirmButtonText: "Ok"
+    });
+    return;
+  }
 
-      let apiClient;
-      let loginUrl;
+  let apiClient;
+  let loginUrl;
 
-      if (this.model.userType === 'cartero') {
-        apiClient = this.$api;
-        loginUrl = 'login3';
-      } else if (this.model.userType === 'sucursale') {
-        apiClient = this.$sucursales;
-        loginUrl = 'login2';
-      } else if (this.model.userType === 'administrador') {
-        apiClient = this.$administrador;
-        loginUrl = 'login';
-      } else if (this.model.userType === 'gestor') {
-        apiClient = this.$gestores;
-        loginUrl = 'login4';
-      }
-      else if (this.model.userType === 'encargado') {
-        apiClient = this.$encargados;
-        loginUrl = 'login5';
-      }
+  if (this.model.userType === 'cartero') {
+    apiClient = this.$api;
+    loginUrl = 'login3';
+  } else if (this.model.userType === 'sucursale') {
+    apiClient = this.$sucursales;
+    loginUrl = 'login2';
+  } else if (this.model.userType === 'administrador') {
+    apiClient = this.$administrador;
+    loginUrl = 'login';
+  } else if (this.model.userType === 'gestor') {
+    apiClient = this.$gestores;
+    loginUrl = 'login4';
+  } else if (this.model.userType === 'encargado') {
+    apiClient = this.$encargados;
+    loginUrl = 'login5';
+  }
 
-      try {
-        const res = await apiClient.post(loginUrl, {
-          email: this.model.email,
-          password: this.model.password,
-          recaptcha: recaptchaResponse
-        });
-        console.log('API Response:', res);
+  try {
+    const res = await apiClient.post(loginUrl, {
+      email: this.model.email,
+      password: this.model.password,
+      recaptcha: recaptchaResponse
+    });
+    console.log('API Response:', res);
 
-        if (res.status !== 200 || !res.data.token) {
-          this.$swal.fire({
-            title: "Credenciales incorrectas",
-            showDenyButton: false,
-            showCancelButton: false,
-            confirmButtonText: "Ok"
-          });
-          return;
-        }
+    if (res.status !== 200 || !res.data.token) {
+      this.$swal.fire({
+        title: "Credenciales incorrectas",
+        showDenyButton: false,
+        showCancelButton: false,
+        confirmButtonText: "Ok"
+      });
+      return;
+    }
 
-        const userType = this.model.userType === 'cartero' ? 'cartero' : this.model.userType === 'sucursale' ? 'sucursal' : this.model.userType === 'administrador' ? 'administrador' : this.model.userType === 'gestor' ? 'gestor' : 'encargado';
-        const user = res.data[userType];
+    const userType = this.model.userType === 'sucursale' ? 'sucursal' : this.model.userType;
+    const user = res.data[userType];
 
-        localStorage.setItem('userAuth', JSON.stringify({ token: res.data.token, user, userType }));
-        this.$store.dispatch('auth/login', { token: res.data.token, user, userType });
-        this.$router.push('/admin');
-      } catch (e) {
-        console.log(e);
-        this.$swal.fire({
-          title: "No se pudo iniciar sesión",
-          showDenyButton: false,
-          showCancelButton: false,
-          confirmButtonText: "Ok"
-        });
-      }
-    },
+    if (!user || !user.id) {
+      throw new Error('Usuario o ID del usuario no está definido.');
+    }
+
+    localStorage.setItem('userAuth', JSON.stringify({ token: res.data.token, user, userType }));
+    this.$store.dispatch('auth/login', { token: res.data.token, user, userType });
+
+    let redirectPath = '';
+    if (userType === 'administrador') {
+      redirectPath = '/admin';
+    } else if (userType === 'sucursal') {
+      redirectPath = '/sucursal';
+    } else if (userType === 'cartero') {
+      redirectPath = '/cartero';
+    } else if (userType === 'gestor') {
+      redirectPath = '/gestore';
+    } else if (userType === 'encargado') {
+      redirectPath = '/encargado';
+    }
+
+    this.$router.push(redirectPath);
+  } catch (e) {
+    console.log(e);
+    this.$swal.fire({
+      title: "No se pudo iniciar sesión",
+      text: e.message,
+      showDenyButton: false,
+      showCancelButton: false,
+      confirmButtonText: "Ok"
+    });
+  }
+},
+
+
     animateImage() {
       anime({
         targets: this.$refs.image,

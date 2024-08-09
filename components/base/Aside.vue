@@ -128,25 +128,31 @@
           <div class="collapse" id="perfil-cartero">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/cartero/solicitudcartero/solicitudecartero">
+                <nuxtLink class="nav-link" to="/cartero">
+                  <span class="sidenav-mini-icon"> Volver a menu principal </span>
+                  <span class="sidenav-normal"> Volver a menu principal</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/cartero/solicitudcartero/solicitudecartero">
                   <span class="sidenav-mini-icon"> Solicitud Cartero </span>
                   <span class="sidenav-normal"> Solicitud Cartero</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/cartero/recogidocarteros/recogidocartero">
+                <nuxtLink class="nav-link" to="/cartero/recogidocarteros/recogidocartero">
                   <span class="sidenav-mini-icon"> Recogido Cartero </span>
                   <span class="sidenav-normal"> Recogido Cartero</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/cartero/encaminocarteros/encaminocartero">
+                <nuxtLink class="nav-link" to="/cartero/encaminocarteros/encaminocartero">
                   <span class="sidenav-mini-icon"> En camino Cartero </span>
                   <span class="sidenav-normal"> En camino Cartero</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/cartero/entregadocarteros/entregadocartero">
+                <nuxtLink class="nav-link" to="/cartero/entregadocarteros/entregadocartero">
                   <span class="sidenav-mini-icon"> Entregado Cartero </span>
                   <span class="sidenav-normal"> Entregado Cartero</span>
                 </nuxtLink>
@@ -171,26 +177,26 @@
           <div class="collapse" id="perfil-empresa">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item" v-if="isSucursale">
-                <nuxtLink class="nav-link" to="/admin/sucursal/canceladossucursales/canceladosucursal">
+                <nuxtLink class="nav-link" to="/sucursal/canceladossucursales/canceladosucursal">
                   <span class="sidenav-mini-icon"> Cancelados Empresa</span>
                   <span class="sidenav-normal">Cancelados Empresa </span>
                 </nuxtLink>
               </li>
               <li class="nav-item" v-if="isSucursale">
-                <nuxtLink class="nav-link" to="/admin/sucursal/sucursales/sucursal">
+                <nuxtLink class="nav-link" to="/sucursal/sucursales/sucursal">
                   <span class="sidenav-mini-icon"> Solicitud Empresa</span>
                   <span class="sidenav-normal">Solicitud Empresa </span>
                 </nuxtLink>
               </li>
              
               <li class="nav-item" v-if="isSucursale">
-                <nuxtLink class="nav-link" to="/admin/sucursal/encaminosucursales/encaminosucursal">
+                <nuxtLink class="nav-link" to="/sucursal/encaminosucursales/encaminosucursal">
                   <span class="sidenav-mini-icon"> En Camino Empresa</span>
                   <span class="sidenav-normal"> En Camino Empresa </span>
                 </nuxtLink>
               </li>
               <li class="nav-item" v-if="isSucursale">
-                <nuxtLink class="nav-link" to="/admin/sucursal/entregadosucursales/entregadosucursal">
+                <nuxtLink class="nav-link" to="/sucursal/entregadosucursales/entregadosucursal">
                   <span class="sidenav-mini-icon"> Entregados Empresa</span>
                   <span class="sidenav-normal">Entregados Empresa </span>
                 </nuxtLink>
@@ -216,21 +222,21 @@
                   <span class="sidenav-mini-icon"> Solicitud J </span>
                   <span class="sidenav-normal"> Solicitud J </span>
                 </nuxtLink> -->
-                <nuxtLink class="nav-link" to="/admin/encargado/solicitudencargados/solicitudencargado">
+                <nuxtLink class="nav-link" to="/encargado/solicitudencargados/solicitudencargado">
                   <span class="sidenav-mini-icon"> Solicitud J </span>
                   <span class="sidenav-normal"> Solicitud J</span>
                 </nuxtLink>
-                <nuxtLink class="nav-link" to="/admin/encargado/recogidoencargados/recogidoencargado">
+                <nuxtLink class="nav-link" to="/encargado/recogidoencargados/recogidoencargado">
                   <span class="sidenav-mini-icon"> Recogido J </span>
                   <span class="sidenav-normal"> Recogido J</span>
                 </nuxtLink>
-                <nuxtLink class="nav-link" to="/admin/encargado/encaminoencargados/encaminoencargado">
+                <nuxtLink class="nav-link" to="/encargado/encaminoencargados/encaminoencargado">
                   <span class="sidenav-mini-icon"> En Camino J </span>
                   <span class="sidenav-normal"> En Camino J</span>
                 </nuxtLink>
                 
                 
-                <nuxtLink class="nav-link" to="/admin/encargado/entregadoencargados/entregadoencargado">
+                <nuxtLink class="nav-link" to="/encargado/entregadoencargados/entregadoencargado">
                   <span class="sidenav-mini-icon"> Entregados J </span>
                   <span class="sidenav-normal"> Entregados J</span>
                 </nuxtLink>
@@ -255,19 +261,19 @@
           <div class="collapse" id="perfil-comercial">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/gestore/empresas/empresa">
+                <nuxtLink class="nav-link" to="/gestore/empresas/empresa">
                   <span class="sidenav-mini-icon"> Empresas </span>
                   <span class="sidenav-normal"> Empresas </span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/gestore/sucursales/sucursale">
+                <nuxtLink class="nav-link" to="/gestore/sucursales/sucursale">
                   <span class="sidenav-mini-icon"> Sucursales </span>
                   <span class="sidenav-normal"> Sucursales </span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/gestore/tarifas/tarifa">
+                <nuxtLink class="nav-link" to="/gestore/tarifas/tarifa">
                   <span class="sidenav-mini-icon"> Tarifas </span>
                   <span class="sidenav-normal"> Tarifas </span>
                 </nuxtLink>
