@@ -110,7 +110,7 @@ export default {
         });
       }
     },
-    async Login() {
+  async Login() {
   const recaptchaResponse = window.grecaptcha.getResponse();
 
   if (!recaptchaResponse) {
@@ -164,10 +164,7 @@ export default {
     const userType = this.model.userType === 'sucursale' ? 'sucursal' : this.model.userType;
     const user = res.data[userType];
 
-    if (!user || !user.id) {
-      throw new Error('Usuario o ID del usuario no está definido.');
-    }
-
+    
     localStorage.setItem('userAuth', JSON.stringify({ token: res.data.token, user, userType }));
     this.$store.dispatch('auth/login', { token: res.data.token, user, userType });
 
