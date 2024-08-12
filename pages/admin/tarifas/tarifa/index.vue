@@ -6,7 +6,7 @@
         <div class="row justify-content-end">
           <div class="col-2">
             <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class="fas fa-plus"></i> Agregar
+              <i class=""></i> Agregar Tarifa
             </nuxtLink>
           </div>
           <div class="col-12">
@@ -47,10 +47,11 @@
                 <tr>
                   <th class="p-1">#</th>
                   <th class="p-1">Departamento de origen</th>
-                  <th class="p-1">Departamento de envio</th>
-                  <th class="p-1">Servicio Courier (Bs)</th>
-                  <th class="p-1">Servicio Provincia  (Bs)</th>
-                  <th class="p-1">Servicio Express (Bs)</th>
+                  <th class="p-1">Departamento de Envio</th>
+                  <th class="p-1">Servicio (Bs)</th>
+                  <th class="p-1">Kilogramo Extra (Bs)</th>
+                  <th class="p-1">Kilogramo Extra (Bs)</th>
+
                   <th class="p-1"></th>
                 </tr>
               </thead>
@@ -60,8 +61,8 @@
                   <td class="p-1">{{ m.sucursale.origen }}</td>
                   <td class="p-1">{{ m.departamento }}</td>
                   <td class="p-1">{{ m.servicio }}</td>
-                  <td class="p-1">{{ m.servicioprov }}</td>
-                  <td class="p-1">{{ m.servicioexpress }}</td>
+                  <td class="p-1">{{ m.precio }}</td>
+                  <td class="p-1">{{ m.precio_extra }}</td>
                   <td class="p-1">
                     <div class="btn-group">
                       <button type="button" class="btn btn-info btn-sm p-1" @click="editarTarifa(m.id)">

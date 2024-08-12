@@ -116,19 +116,15 @@ export default {
   mounted() {
     this.$nextTick(async () => {
       try {
-        await Promise.all([
-          this.GET_DATA(this.apiUrl + '/' + this.$route.params.id),
-          this.GET_DATA('empresas')
-        ]).then((v) => {
-          this.model = v[0];
-          this.empresas = v[1];
-        })
+        const routeData = await this.GET_DATA(this.apiUrl + '/' + this.$route.params.id);
+        this.model = routeData;
       } catch (e) {
         console.log(e);
       } finally {
         this.load = false;
       }
     });
+
   }
 };
 </script>

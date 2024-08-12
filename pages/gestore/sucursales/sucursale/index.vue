@@ -4,9 +4,34 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end">
-          <div class="col-2">
+          
+          <!-- Campo de selección de sucursal -->
+          <div class="col-md-2">
+            <label for="sucursal" class="form-label">Sucursal</label>
+            <select v-model="selectedSucursal" id="sucursal" class="form-control">
+              <option value="">Todas</option>
+              <option v-for="sucursal in sucursales" :key="sucursal.id" :value="sucursal.id">
+                {{ sucursal.nombre }}
+              </option>
+            </select>
+          </div>
+          <!-- Campos para seleccionar fechas y botón para generar reporte -->
+          <div class="col-md-2">
+            <label for="startDate" class="form-label">Fecha Inicial</label>
+            <input type="date" v-model="startDate" id="startDate" class="form-control">
+          </div>
+          <div class="col-md-2">
+            <label for="endDate" class="form-label">Fecha Final</label>
+            <input type="date" v-model="endDate" id="endDate" class="form-control">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button @click="exportToExcel" class="btn btn-success btn-sm w-100">
+              <i class="fas fa-file-excel"></i> Generar Reporte
+            </button>
+          </div>
+          <div class="col-md-2">
             <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class=""></i> Agregar Contrato
+              <i class=""></i> Agregar Solicitud
             </nuxtLink>
           </div>
           <div class="col-12">
@@ -80,22 +105,30 @@
   </div>
 </template>
 
+
 <script>
+import ExcelJS from 'exceljs';
+import Swal from 'sweetalert2';
+
 export default {
   name: "IndexPage",
   data() {
     return {
       load: true,
       list: [],
-      apiUrl: 'sucursales3',
-      page: 'Sucursales',
+      sucursales: [], // Almacenar las sucursales para el dropdown
+      selectedSucursal: '', // Sucursal seleccionada
+      apiUrls: ['sucursales3', 'solicitudes3'],
+      page: 'Sucursales y Solicitudes',
       modulo: 'AGBC',
-      url_nuevo: '/admin/gestore/sucursales/sucursale/nuevo',
-      url_editar: '/admin/gestore/sucursales/sucursale/editar/',
-      busqueda: "", // término de búsqueda
-      resultados: [], // datos filtrados
+      url_nuevo: '/gestore/sucursales/sucursale/nuevo',
+      url_editar: '/gestore/sucursales/sucursale/editar/',
+      busqueda: "",
+      resultados: [],
       currentPage: 0,
       itemsPerPage: 10,
+      startDate: '',
+      endDate: '',
     };
   },
   computed: {
@@ -113,15 +146,31 @@ export default {
       const res = await this.$gestores.$get(path);
       return res;
     },
+    async fetchAllData() {
+      try {
+        const [sucursalesData, solicitudesData] = await Promise.all(
+          this.apiUrls.map((url) => this.GET_DATA(url))
+        );
+        
+        // Almacenar sucursales para el dropdown
+        this.sucursales = sucursalesData;
+        
+        // Combina los datos
+        this.list = [...sucursalesData, ...solicitudesData];
+        this.buscar(); // Actualizar la búsqueda con la lista combinada
+      } catch (e) {
+        console.error('Error al obtener los datos:', e);
+      } finally {
+        this.load = false;
+      }
+    },
     async EliminarItem(id) {
       this.load = true;
       try {
-        const res = await this.$gestores.$delete(this.apiUrl + '/' + id);
-        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0];
-        });
-        this.goToPage(0); // Resetear a la primera página después de eliminar
-        this.buscar(); // Actualizar los resultados después de eliminar
+        const res = await this.$gestores.$delete(this.apiUrls[0] + '/' + id);
+        await this.fetchAllData(); // Volver a cargar todos los datos después de eliminar
+        this.goToPage(0);
+        this.buscar(); 
       } catch (e) {
         console.log(e);
       } finally {
@@ -143,7 +192,8 @@ export default {
     },
     buscar() {
       this.resultados = this.list.filter((item) =>
-        item.nombre.toLowerCase().includes(this.busqueda.toLowerCase())
+        item.nombre?.toLowerCase().includes(this.busqueda.toLowerCase()) ||
+        item.origen?.toLowerCase().includes(this.busqueda.toLowerCase())
       );
     },
     nextPage() {
@@ -158,27 +208,184 @@ export default {
     },
     goToPage(page) {
       this.currentPage = page;
-    }
+    },
+    async exportToExcel() {
+      // Validar las fechas seleccionadas
+      if (!this.startDate || !this.endDate) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Fechas requeridas',
+          text: 'Por favor, selecciona ambas fechas para generar el reporte.',
+        });
+        return;
+      }
+
+      const start = new Date(this.startDate);
+      const end = new Date(this.endDate);
+
+      if (start > end) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Fechas incorrectas',
+          text: 'La fecha de inicio no puede ser mayor que la fecha de fin.',
+        });
+        return;
+      }
+
+      // Filtrar los datos por el rango de fechas, estado 3 y sucursal seleccionada
+      const filteredData = this.list.filter(m => {
+        const fechaD = new Date(m.fecha_d);
+        return fechaD >= start && fechaD <= end && m.estado === 3 &&
+               (!this.selectedSucursal || m.sucursale.id === this.selectedSucursal);
+      });
+
+      if (filteredData.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Sin datos',
+          text: 'No hay datos dentro del rango de fechas seleccionado.',
+        });
+        return;
+      }
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
+
+      worksheet.columns = [
+        { header: '#', key: 'index', width: 5 },
+        { header: 'Sucursal', key: 'sucursal', width: 20 },
+        { header: 'Guía', key: 'guia', width: 20 },
+        { header: 'Peso (Kg)', key: 'peso', width: 10 },
+        { header: 'Remitente', key: 'remitente', width: 20 },
+        { header: 'Dirección', key: 'direccion', width: 30 },
+        { header: 'Teléfono', key: 'telefono', width: 15 },
+        { header: 'Contenido', key: 'contenido', width: 20 },
+        { header: 'Firma Destinatario', key: 'firma_destinatario', width: 25 },
+        { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
+        { header: 'Destinatario', key: 'destinatario', width: 20 },
+        { header: 'Teléfono Destinatario', key: 'telefono_destinatario', width: 15 },
+        { header: 'Dirección Destinatario', key: 'direccion_destinatario', width: 30 },
+        { header: 'Ciudad', key: 'ciudad', width: 15 },
+        { header: 'Zona', key: 'zona', width: 15 },
+        { header: 'Precio (Bs)', key: 'precio', width: 10 },
+        { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
+      ];
+
+      worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+      worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+      worksheet.getRow(1).border = {
+        top: { style: 'thick' },
+        left: { style: 'thick' },
+        bottom: { style: 'thick' },
+        right: { style: 'thick' }
+      };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF000080' }
+      };
+
+      let totalPrice = 0;
+
+      for (let i = 0; i < filteredData.length; i++) {
+        const m = filteredData[i];
+        const row = worksheet.addRow({
+          index: i + 1,
+          sucursal: m.sucursale.nombre,
+          guia: m.guia,
+          peso: m.peso_o,
+          remitente: m.remitente,
+          direccion: m.direccion_especifica,
+          telefono: m.telefono,
+          contenido: m.contenido,
+          fecha: m.fecha,
+          destinatario: m.destinatario,
+          telefono_destinatario: m.telefono_d,
+          direccion_destinatario: m.direccion_especifica_d,
+          ciudad: m.ciudad,
+          zona: m.zona_d,
+          precio: m.nombre_d,
+          fecha_entrega: m.fecha_d,
+        });
+
+        totalPrice += parseFloat(m.nombre_d) || 0;
+
+        if (m.firma_d) {
+          const signatureId = workbook.addImage({
+            base64: m.firma_d,
+            extension: 'png',
+          });
+
+          worksheet.addImage(signatureId, {
+            tl: { col: 8, row: row.number - 1 },
+            ext: { width: 100, height: 50 }
+          });
+        }
+
+        const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
+        row.eachCell({ includeEmpty: true }, function (cell) {
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: fillColor }
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+      }
+
+      const totalRow = worksheet.addRow({
+        zona: 'Total',
+        precio: totalPrice.toFixed(2),
+      });
+
+      totalRow.eachCell({ includeEmpty: true }, function (cell, colNumber) {
+        if (colNumber === 1) {
+          cell.font = { bold: true };
+          cell.alignment = { horizontal: 'right' };
+        }
+        if (colNumber === 16) {
+          cell.font = { bold: true };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFFFD700' }
+          };
+          cell.border = {
+            top: { style: 'thick' },
+            left: { style: 'thick' },
+            bottom: { style: 'thick' },
+            right: { style: 'thick' }
+          };
+        }
+      });
+
+      worksheet.eachRow({ includeEmpty: true }, function (row) {
+        row.height = 25;
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'Solicitudes_Entregadas.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
   },
   mounted() {
     this.$nextTick(async () => {
-      try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-          this.buscar(); // Llamar a buscar para cargar todos los datos al principio
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
-      } catch (e) {
-        console.error('Error al obtener los datos:', e);
-      } finally {
-        this.load = false;
-      }
+      await this.fetchAllData(); 
     });
   },
 };
 </script>
+
 
 <style scoped>
 .activo {

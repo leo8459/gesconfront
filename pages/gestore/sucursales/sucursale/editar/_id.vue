@@ -13,11 +13,6 @@
                 <CrudUpdate4 :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
-                      <label for="">Nº de Contrato</label>
-                      <input type="text" v-model="model.codigo_cliente" class="form-control" id="">
-                    </div>
-
-                    <div class="form-group col-12">
                       <label for="">Sucursal</label>
                       <input type="text" v-model="model.nombre" class="form-control" id="">
                     </div>
@@ -100,7 +95,6 @@ export default {
         direccion: '',
         contacto_administrativo: '',
         acuerdos: '',
-        codigo_cliente: '',
         email: '',
         password: '',
         empresa_id: '',
@@ -115,7 +109,7 @@ export default {
   },
   methods: {
     async GET_DATA(path) {
-      const res = await this.$administrador.$get(path);
+      const res = await this.$gestores.$get(path);
       return res
     },
   },
@@ -124,7 +118,7 @@ export default {
       try {
         await Promise.all([
           this.GET_DATA(this.apiUrl + '/' + this.$route.params.id),
-          this.GET_DATA('empresas')
+          this.GET_DATA('empresas3')
         ]).then((v) => {
           this.model = v[0];
           this.empresas = v[1];
