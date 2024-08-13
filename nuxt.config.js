@@ -50,6 +50,7 @@ export default {
     '~/plugins/administrador.js',
     '~/plugins/gestores.js',
     '~/plugins/encargados.js',
+    '~/plugins/contratos.js',
 
 
 

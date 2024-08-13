@@ -5,22 +5,22 @@
       <div slot="body">
         <div class="row justify-content-end mb-3">
           <div class="row align-items-end mb-3">
-  <div class="col-md-2">
-    <label for="startDate" class="form-label">Fecha Inicial</label>
-    <input type="date" v-model="startDate" id="startDate" class="form-control" placeholder="Fecha inicio">
-  </div>
+            <div class="col-md-2">
+              <label for="startDate" class="form-label">Fecha Inicial</label>
+              <input type="date" v-model="startDate" id="startDate" class="form-control" placeholder="Fecha inicio">
+            </div>
 
-  <div class="col-md-2">
-    <label for="endDate" class="form-label">Fecha Final</label>
-    <input type="date" v-model="endDate" id="endDate" class="form-control" placeholder="Fecha fin">
-  </div>
+            <div class="col-md-2">
+              <label for="endDate" class="form-label">Fecha Final</label>
+              <input type="date" v-model="endDate" id="endDate" class="form-control" placeholder="Fecha fin">
+            </div>
 
-  <div class="col-md-2 d-flex align-items-end">
-    <button @click="exportToExcel" class="btn btn-success btn-sm">
-      <i class="fas fa-file-excel"></i> Exportar a Excel
-    </button>
-  </div>
-</div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button @click="exportToExcel" class="btn btn-success btn-sm">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+              </button>
+            </div>
+          </div>
 
           <div class="col-3">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
@@ -140,6 +140,7 @@
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
 import ExcelJS from 'exceljs';
+import Swal from 'sweetalert2';
 
 export default {
   name: "IndexPage",
@@ -176,7 +177,7 @@ export default {
     filteredData() {
       const searchTerm = this.searchTerm.toLowerCase();
       return this.list.filter(item =>
-        item.estado === 3 &&
+        (item.estado === 3 || item.estado === 4) &&
         item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
         Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
@@ -196,7 +197,6 @@ export default {
     }
   },
   methods: {
-
     async exportToExcel() {
     // Validar las fechas seleccionadas
     if (!this.startDate || !this.endDate) {
@@ -220,43 +220,61 @@ export default {
       return;
     }
 
-    // Filtrar los datos por el rango de fechas
-    const filteredData = this.filteredData.filter(m => {
-      const fechaD = new Date(m.fecha_d);
-      return fechaD >= start && fechaD <= end;
+    // Filtrar los datos por el rango de fechas, estados 3 y 4, y cartero logueado
+    const filteredData = this.list.filter(m => {
+      // Verificar si m.fecha_d está definido y si el cartero corresponde al logueado
+      if (!m.fecha_d || !m.cartero_entrega || m.cartero_entrega.id !== this.user.user.id) {
+        return false;
+      }
+
+      // Convertir fecha_d al formato Date
+      const [day, month, yearTime] = m.fecha_d.split('/');
+      if (!day || !month || !yearTime) {
+        return false; // Si el formato es incorrecto, ignorar el registro
+      }
+
+      const [year, time] = yearTime.split(' ');
+      if (!year || !time) {
+        return false; // Si el formato es incorrecto, ignorar el registro
+      }
+
+      const [hours, minutes] = time.split(':');
+      if (!hours || !minutes) {
+        return false; // Si el formato es incorrecto, ignorar el registro
+      }
+
+      const fechaD = new Date(year, month - 1, day, hours, minutes);
+      
+      // Comparar si fechaD está entre start y end, y si el estado es 3 o 4
+      return (m.estado === 3 || m.estado === 4) && fechaD >= start && fechaD <= end;
     });
 
     if (filteredData.length === 0) {
       Swal.fire({
         icon: 'info',
         title: 'Sin datos',
-        text: 'No hay datos dentro del rango de fechas seleccionado.',
+        text: 'No hay registros dentro del rango de fechas y estados seleccionados.',
       });
       return;
     }
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Solicitudes');
+    const worksheet = workbook.addWorksheet('Solicitudes Filtradas');
 
-    // Definir las columnas y su anchura en el orden solicitado
     worksheet.columns = [
       { header: '#', key: 'index', width: 5 },
-      { header: 'Servicio', key: 'servicio', width: 20 }, // Nueva columna para servicio
+      { header: 'Servicio', key: 'servicio', width: 20 },
       { header: 'Guia', key: 'guia', width: 20 },
-      { header: 'Sucursal', key: 'sucursal', width: 20 },
-      { header: 'Origen', key: 'origen', width: 10 }, // Origen de sucursale_id
-      { header: 'Dirección Destinatario', key: 'direccion_destinatario', width: 25 },
       { header: 'Fecha', key: 'fecha', width: 15 },
       { header: 'Ciudad', key: 'ciudad', width: 25 },
       { header: 'Zona Destinatario', key: 'zona_destinatario', width: 30 },
       { header: 'Cartero', key: 'cartero', width: 20 },
       { header: 'Peso', key: 'peso_correos', width: 10 },
       { header: 'Fecha Destinatario', key: 'fecha_destinatario', width: 25 },
-      { header: 'Estado', key: 'estado', width: 20 }, // Columna para estado
-      { header: 'Observación', key: 'observacion', width: 25 }, // Columna de observación
+      { header: 'Estado', key: 'estado', width: 20 },
+      { header: 'Observación', key: 'observacion', width: 25 },
     ];
 
-    // Aplicar estilo a la primera fila (encabezados)
     worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
     worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
     worksheet.getRow(1).border = {
@@ -268,30 +286,27 @@ export default {
     worksheet.getRow(1).fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF000080' } // Azul oscuro
+      fgColor: { argb: 'FF000080' }
     };
 
-    // Añadir filas y aplicar estilos personalizados
     filteredData.forEach((m, i) => {
+      const estadoTexto = m.estado === 3 ? 'ENTREGADO' : 'ENTREGADO';
+
       const row = worksheet.addRow({
-        index: this.currentPage * this.itemsPerPage + i + 1,
-        servicio: m.tarifa.servicio, // Mostrar el campo servicio desde tarifa
+        index: i + 1,
+        servicio: m.tarifa.servicio,
         guia: m.guia,
-        sucursal: m.sucursale.nombre,
-        origen: m.sucursale.origen, // Usar origen en lugar de tarifa
-        direccion_destinatario: m.direccion_especifica_d,
         fecha: m.fecha,
         ciudad: m.ciudad,
         zona_destinatario: m.zona_d,
         cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
-        peso_correos: m.peso_v + ' Kg', // Añadir "Kg" después del valor de peso
+        peso_correos: m.peso_v + ' Kg',
         fecha_destinatario: m.fecha_d,
-        estado: m.estado === 3 ? 'ENTREGADO' : '', // Mostrar "ENTREGADO" si el estado es 5
-        observacion: m.observacion, // Recuperar la observación
+        estado: estadoTexto,
+        observacion: m.observacion,
       });
 
-      // Alternar color de fondo para filas
-      const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF'; // Verde claro / Azul claro
+      const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
       row.eachCell({ includeEmpty: true }, function (cell) {
         cell.fill = {
           type: 'pattern',
@@ -307,22 +322,20 @@ export default {
       });
     });
 
-    // Establecer altura de las filas
     worksheet.eachRow({ includeEmpty: true }, function (row) {
-      row.height = 25; // Ajusta la altura a tu gusto
+      row.height = 25;
     });
 
-    // Exportar el archivo
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'Entregados.xlsx';
+    link.download = 'Solicitudes_Filtradas.xlsx';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   },
-  loadImage(url) {
+    loadImage(url) {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'Anonymous';
@@ -341,48 +354,48 @@ export default {
 
 
     generateThumbnail(base64Image) {
-  const img = new Image();
-  img.src = base64Image;
+      const img = new Image();
+      img.src = base64Image;
 
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
 
-  // Ajustar la resolución del thumbnail
-  const MAX_WIDTH = 100; // Ajustar según sea necesario
-  const MAX_HEIGHT = 100; // Ajustar según sea necesario
+      // Ajustar la resolución del thumbnail
+      const MAX_WIDTH = 100; // Ajustar según sea necesario
+      const MAX_HEIGHT = 100; // Ajustar según sea necesario
 
-  let width = img.width;
-  let height = img.height;
+      let width = img.width;
+      let height = img.height;
 
-  if (width > height) {
-    if (width > MAX_WIDTH) {
-      height *= MAX_WIDTH / width;
-      width = MAX_WIDTH;
-    }
-  } else {
-    if (height > MAX_HEIGHT) {
-      width *= MAX_HEIGHT / height;
-      height = MAX_HEIGHT;
-    }
-  }
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
 
-  canvas.width = width;
-  canvas.height = height;
-  ctx.drawImage(img, 0, 0, width, height);
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
 
-  // Aquí no es necesario comprimir el thumbnail en exceso si queremos mostrar una imagen más clara
-  return canvas.toDataURL('image/jpeg', 0.1);
-},
+      // Aquí no es necesario comprimir el thumbnail en exceso si queremos mostrar una imagen más clara
+      return canvas.toDataURL('image/jpeg', 0.1);
+    },
 
 
     downloadImage(base64Image) {
-  const link = document.createElement('a');
-  link.href = base64Image; // Aquí estás usando la imagen original almacenada
-  link.download = 'imagen_capturada.jpg';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-},
+      const link = document.createElement('a');
+      link.href = base64Image; // Aquí estás usando la imagen original almacenada
+      link.download = 'imagen_capturada.jpg';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
 
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;

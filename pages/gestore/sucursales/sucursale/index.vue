@@ -209,174 +209,201 @@ export default {
     goToPage(page) {
       this.currentPage = page;
     },
+
+
+    
     async exportToExcel() {
-      // Validar las fechas seleccionadas
-      if (!this.startDate || !this.endDate) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Fechas requeridas',
-          text: 'Por favor, selecciona ambas fechas para generar el reporte.',
-        });
-        return;
+    // Validar las fechas seleccionadas
+    if (!this.startDate || !this.endDate) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Fechas requeridas',
+        text: 'Por favor, selecciona ambas fechas para generar el reporte.',
+      });
+      return;
+    }
+
+    // Convertir las fechas de entrada a objetos Date
+    const start = new Date(this.startDate);
+    const end = new Date(this.endDate);
+
+    if (start > end) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Fechas incorrectas',
+        text: 'La fecha de inicio no puede ser mayor que la fecha de fin.',
+      });
+      return;
+    }
+
+    // Filtrar los datos por el rango de fechas usando fecha_d y los estados 4 y 6
+    const filteredData = this.list.filter(m => {
+      // Verificar si m.fecha_d está definido
+      if (!m.fecha_d) {
+        return false;
       }
 
-      const start = new Date(this.startDate);
-      const end = new Date(this.endDate);
-
-      if (start > end) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Fechas incorrectas',
-          text: 'La fecha de inicio no puede ser mayor que la fecha de fin.',
-        });
-        return;
+      // Convertir fecha_d al formato Date
+      const [day, month, yearTime] = m.fecha_d.split('/');
+      if (!day || !month || !yearTime) {
+        return false; // Si el formato es incorrecto, ignorar el registro
       }
 
-      // Filtrar los datos por el rango de fechas, estado 3 y sucursal seleccionada
-      const filteredData = this.list.filter(m => {
-        const fechaD = new Date(m.fecha_d);
-        return fechaD >= start && fechaD <= end && m.estado === 3 &&
-               (!this.selectedSucursal || m.sucursale.id === this.selectedSucursal);
+      const [year, time] = yearTime.split(' ');
+      if (!year || !time) {
+        return false; // Si el formato es incorrecto, ignorar el registro
+      }
+
+      const [hours, minutes] = time.split(':');
+      if (!hours || !minutes) {
+        return false; // Si el formato es incorrecto, ignorar el registro
+      }
+
+      const fechaD = new Date(year, month - 1, day, hours, minutes);
+      
+      // Comparar si fechaD está entre start y end, y si el estado es 4 o 6
+      return fechaD >= start && fechaD <= end && (m.estado === 4 || m.estado === 6) &&
+        (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal);
+    });
+
+    if (filteredData.length === 0) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Sin datos',
+        text: 'No hay datos dentro del rango de fechas seleccionado.',
+      });
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Solicitudes Verificadas');
+
+    worksheet.columns = [
+      { header: '#', key: 'index', width: 5 },
+      { header: 'Sucursal', key: 'sucursal', width: 20 },
+      { header: 'Guía', key: 'guia', width: 20 },
+      { header: 'Peso (Kg)', key: 'peso', width: 10 },
+      { header: 'Remitente', key: 'remitente', width: 20 },
+      { header: 'Dirección', key: 'direccion', width: 30 },
+      { header: 'Teléfono', key: 'telefono', width: 15 },
+      { header: 'Contenido', key: 'contenido', width: 20 },
+      { header: 'Firma Destinatario', key: 'firma_destinatario', width: 25 },
+      { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
+      { header: 'Destinatario', key: 'destinatario', width: 20 },
+      { header: 'Teléfono Destinatario', key: 'telefono_destinatario', width: 15 },
+      { header: 'Dirección Destinatario', key: 'direccion_destinatario', width: 30 },
+      { header: 'Ciudad', key: 'ciudad', width: 15 },
+      { header: 'Zona', key: 'zona', width: 15 },
+      { header: 'Precio (Bs)', key: 'precio', width: 10 },
+      { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
+    ];
+
+    worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+    worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheet.getRow(1).border = {
+      top: { style: 'thick' },
+      left: { style: 'thick' },
+      bottom: { style: 'thick' },
+      right: { style: 'thick' }
+    };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF000080' }
+    };
+
+    let totalPrice = 0;
+
+    for (let i = 0; i < filteredData.length; i++) {
+      const m = filteredData[i];
+      const row = worksheet.addRow({
+        index: i + 1,
+        sucursal: m.sucursale.nombre,
+        guia: m.guia,
+        peso: m.peso_o,
+        remitente: m.remitente,
+        direccion: m.direccion_especifica,
+        telefono: m.telefono,
+        contenido: m.contenido,
+        fecha: m.fecha,
+        destinatario: m.destinatario,
+        telefono_destinatario: m.telefono_d,
+        direccion_destinatario: m.direccion_especifica_d,
+        ciudad: m.ciudad,
+        zona: m.zona_d,
+        precio: m.nombre_d,
+        fecha_entrega: m.fecha_d,
       });
 
-      if (filteredData.length === 0) {
-        Swal.fire({
-          icon: 'info',
-          title: 'Sin datos',
-          text: 'No hay datos dentro del rango de fechas seleccionado.',
-        });
-        return;
-      }
+      totalPrice += parseFloat(m.nombre_d) || 0;
 
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
-
-      worksheet.columns = [
-        { header: '#', key: 'index', width: 5 },
-        { header: 'Sucursal', key: 'sucursal', width: 20 },
-        { header: 'Guía', key: 'guia', width: 20 },
-        { header: 'Peso (Kg)', key: 'peso', width: 10 },
-        { header: 'Remitente', key: 'remitente', width: 20 },
-        { header: 'Dirección', key: 'direccion', width: 30 },
-        { header: 'Teléfono', key: 'telefono', width: 15 },
-        { header: 'Contenido', key: 'contenido', width: 20 },
-        { header: 'Firma Destinatario', key: 'firma_destinatario', width: 25 },
-        { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
-        { header: 'Destinatario', key: 'destinatario', width: 20 },
-        { header: 'Teléfono Destinatario', key: 'telefono_destinatario', width: 15 },
-        { header: 'Dirección Destinatario', key: 'direccion_destinatario', width: 30 },
-        { header: 'Ciudad', key: 'ciudad', width: 15 },
-        { header: 'Zona', key: 'zona', width: 15 },
-        { header: 'Precio (Bs)', key: 'precio', width: 10 },
-        { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
-      ];
-
-      worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
-      worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getRow(1).border = {
-        top: { style: 'thick' },
-        left: { style: 'thick' },
-        bottom: { style: 'thick' },
-        right: { style: 'thick' }
-      };
-      worksheet.getRow(1).fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FF000080' }
-      };
-
-      let totalPrice = 0;
-
-      for (let i = 0; i < filteredData.length; i++) {
-        const m = filteredData[i];
-        const row = worksheet.addRow({
-          index: i + 1,
-          sucursal: m.sucursale.nombre,
-          guia: m.guia,
-          peso: m.peso_o,
-          remitente: m.remitente,
-          direccion: m.direccion_especifica,
-          telefono: m.telefono,
-          contenido: m.contenido,
-          fecha: m.fecha,
-          destinatario: m.destinatario,
-          telefono_destinatario: m.telefono_d,
-          direccion_destinatario: m.direccion_especifica_d,
-          ciudad: m.ciudad,
-          zona: m.zona_d,
-          precio: m.nombre_d,
-          fecha_entrega: m.fecha_d,
+      if (m.firma_d) {
+        const signatureId = workbook.addImage({
+          base64: m.firma_d,
+          extension: 'png',
         });
 
-        totalPrice += parseFloat(m.nombre_d) || 0;
-
-        if (m.firma_d) {
-          const signatureId = workbook.addImage({
-            base64: m.firma_d,
-            extension: 'png',
-          });
-
-          worksheet.addImage(signatureId, {
-            tl: { col: 8, row: row.number - 1 },
-            ext: { width: 100, height: 50 }
-          });
-        }
-
-        const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
-        row.eachCell({ includeEmpty: true }, function (cell) {
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: fillColor }
-          };
-          cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-          };
+        worksheet.addImage(signatureId, {
+          tl: { col: 8, row: row.number - 1 },
+          ext: { width: 100, height: 50 }
         });
       }
 
-      const totalRow = worksheet.addRow({
-        zona: 'Total',
-        precio: totalPrice.toFixed(2),
+      const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
+      row.eachCell({ includeEmpty: true }, function (cell) {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: fillColor }
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
       });
+    }
 
-      totalRow.eachCell({ includeEmpty: true }, function (cell, colNumber) {
-        if (colNumber === 1) {
-          cell.font = { bold: true };
-          cell.alignment = { horizontal: 'right' };
-        }
-        if (colNumber === 16) {
-          cell.font = { bold: true };
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFFFD700' }
-          };
-          cell.border = {
-            top: { style: 'thick' },
-            left: { style: 'thick' },
-            bottom: { style: 'thick' },
-            right: { style: 'thick' }
-          };
-        }
-      });
+    const totalRow = worksheet.addRow({
+      zona: 'Total',
+      precio: totalPrice.toFixed(2),
+    });
 
-      worksheet.eachRow({ includeEmpty: true }, function (row) {
-        row.height = 25;
-      });
+    totalRow.eachCell({ includeEmpty: true }, function (cell, colNumber) {
+      if (colNumber === 1) {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: 'right' };
+      }
+      if (colNumber === 16) {
+        cell.font = { bold: true };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFD700' }
+        };
+        cell.border = {
+          top: { style: 'thick' },
+          left: { style: 'thick' },
+          bottom: { style: 'thick' },
+          right: { style: 'thick' }
+        };
+      }
+    });
 
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'Solicitudes_Entregadas.xlsx';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    },
+    worksheet.eachRow({ includeEmpty: true }, function (row) {
+      row.height = 25;
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'Solicitudes_Verificadas.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
   },
   mounted() {
     this.$nextTick(async () => {

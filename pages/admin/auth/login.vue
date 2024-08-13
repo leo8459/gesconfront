@@ -28,6 +28,7 @@
                           <option value="administrador">Administrador</option>
                           <option value="gestor">Gestor</option>
                           <option value="encargado">Encargado</option>
+                          <option value="contrato">Contratos</option>
 
                         </select>
                       </div>
@@ -70,6 +71,7 @@ import api from '@/plugins/api';
 import sucursalesApi from '@/plugins/sucursales';
 import administradorApi from '@/plugins/administrador';
 import gestoresApi from '@/plugins/gestores'; // Importar el plugin gestores
+import contratosApi from '@/plugins/contratos'; // Importar el plugin contratos
 const anime = require('animejs/lib/anime.js'); // Usando la versión CommonJS de anime.js
 
 export default {
@@ -141,6 +143,9 @@ export default {
   } else if (this.model.userType === 'encargado') {
     apiClient = this.$encargados;
     loginUrl = 'login5';
+  }else if (this.model.userType === 'contrato') {
+    apiClient = this.$contratos;
+    loginUrl = 'login6';
   }
 
   try {
@@ -179,6 +184,8 @@ export default {
       redirectPath = '/gestore';
     } else if (userType === 'encargado') {
       redirectPath = '/encargado';
+    }else if (userType === 'contrato') {
+      redirectPath = '/contrato';
     }
 
     this.$router.push(redirectPath);

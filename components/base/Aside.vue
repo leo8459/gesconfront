@@ -108,7 +108,12 @@
                 </nuxtLink>
               </li>
 
-
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/admin/contratos/contrato">
+                  <span class="sidenav-mini-icon"> contratos </span>
+                  <span class="sidenav-normal"> contratos </span>
+                </nuxtLink>
+              </li>
             </ul>
           </div>
 
@@ -290,9 +295,10 @@
 
 
         <!-- //CONTRATOS -->
+    
 
-        <li class="nav-item">
-          <a @click="handleItemClick('contratos')" data-bs-toggle="collapse" href="#perfil-contratos" class="nav-link"
+          <li class="nav-item" v-if="isContrato">
+            <a @click="handleItemClick('contratos')" data-bs-toggle="collapse" href="#perfil-contratos" class="nav-link"
             aria-controls="configuracion-cajero" role="button" aria-expanded="false">
             <div
               class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
@@ -303,9 +309,29 @@
           <div class="collapse" id="perfil-contratos">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/admin/clientes/cliente">
-                  <span class="sidenav-mini-icon"> clientes </span>
-                  <span class="sidenav-normal"> clientes </span>
+                <!-- <nuxtLink class="nav-link" to="/contrato/solicitudencargados/solicitudencargado">
+                  <span class="sidenav-mini-icon"> Solicitud de recojo </span>
+                  <span class="sidenav-normal"> Solicitud de recojo </span>
+                </nuxtLink>
+                <nuxtLink class="nav-link" to="/contrato/recogidoencargados/recogidoencargado">
+                  <span class="sidenav-mini-icon"> Correspondencia recogida  </span>
+                  <span class="sidenav-normal"> Correspondencia recogida </span>
+                </nuxtLink>
+                <nuxtLink class="nav-link" to="/contrato/encaminoencargados/encaminoencargado">
+                  <span class="sidenav-mini-icon"> Correspondencia en camino  </span>
+                  <span class="sidenav-normal"> Correspondencia en camino </span>
+                </nuxtLink>
+                <nuxtLink class="nav-link" to="/contrato/entregadoencargados/entregadoencargado">
+                  <span class="sidenav-mini-icon"> Correspondencia Entregada</span>
+                  <span class="sidenav-normal"> Correspondencia Entregada</span>
+                </nuxtLink> -->
+                <nuxtLink class="nav-link" to="/contrato/verificadoencargados/verificadoencargado">
+                  <span class="sidenav-mini-icon"> Correspondencia Verificada </span>
+                  <span class="sidenav-normal"> Correspondencia Verificada</span>
+                </nuxtLink>
+                <nuxtLink class="nav-link" to="/contrato/rechazadoencargados/rechazadoencargado">
+                  <span class="sidenav-mini-icon"> Correspondencia Rechazada </span>
+                  <span class="sidenav-normal"> Correspondencia Rechazada</span>
                 </nuxtLink>
               </li>
             </ul>
@@ -348,6 +374,9 @@ export default {
     },
     isEncargado() {
       return this.userType === 'encargado'; // Verifica si el tipo de usuario es sucursale
+    },
+    isContrato() {
+      return this.userType === 'contrato'; // Verifica si el tipo de usuario es sucursale
     },
   },
   methods: {

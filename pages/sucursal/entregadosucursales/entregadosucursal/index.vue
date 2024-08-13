@@ -172,7 +172,7 @@ export default {
           direccionDestinatario.includes(searchTerm) ||
           fechaEntrega.includes(searchTerm)
         );
-      }).filter(item => item.sucursale.id === this.user.user.id && (item.estado === 3));
+      }).filter(item => item.sucursale.id === this.user.user.id && (item.estado === 3 || item.estado === 4));
     },
     sortedList() {
       return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -189,193 +189,202 @@ export default {
   methods: {
 
 
-
-
-
-
     async exportToExcel() {
-  // Validar las fechas seleccionadas
-  if (!this.startDate || !this.endDate) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Fechas requeridas',
-      text: 'Por favor, selecciona ambas fechas para generar el reporte.',
-    });
-    return;
-  }
-
-  const start = new Date(this.startDate);
-  const end = new Date(this.endDate);
-
-  if (start > end) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Fechas incorrectas',
-      text: 'La fecha de inicio no puede ser mayor que la fecha de fin.',
-    });
-    return;
-  }
-
-  // Filtrar los datos por el rango de fechas
-  const filteredData = this.sortedList.filter(m => {
-    const fechaD = new Date(m.fecha_d);
-    return fechaD >= start && fechaD <= end;
-  });
-
-  if (filteredData.length === 0) {
-    Swal.fire({
-      icon: 'info',
-      title: 'Sin datos',
-      text: 'No hay datos dentro del rango de fechas seleccionado.',
-    });
-    return;
-  }
-
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
-
-  // Definir las columnas y su anchura en el orden solicitado
-  worksheet.columns = [
-    { header: '#', key: 'index', width: 5 },
-    { header: 'Sucursal', key: 'sucursal', width: 25 },
-    { header: 'Guía', key: 'guia', width: 25 },
-    { header: 'Código de Barras', key: 'codigo_barras', width: 30 }, // Aumentar el ancho de la columna de código de barras
-    { header: 'Peso (Kg)', key: 'peso', width: 15 },
-    { header: 'Remitente', key: 'remitente', width: 25 },
-    { header: 'Dirección', key: 'direccion', width: 35 },
-    { header: 'Teléfono', key: 'telefono', width: 20 },
-    { header: 'Contenido', key: 'contenido', width: 25 },
-    { header: 'Firma Destinatario', key: 'firma_destinatario', width: 30 }, // Aumentar el ancho de la columna de firma
-    { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
-    { header: 'Destinatario', key: 'destinatario', width: 25 },
-    { header: 'Teléfono Destinatario', key: 'telefono_destinatario', width: 20 },
-    { header: 'Dirección Destinatario', key: 'direccion_destinatario', width: 35 },
-    { header: 'Ciudad', key: 'ciudad', width: 20 },
-    { header: 'Zona', key: 'zona', width: 20 },
-    { header: 'Precio (Bs)', key: 'precio', width: 15 },
-    { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
-  ];
-
-  worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
-  worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
-  worksheet.getRow(1).border = {
-    top: { style: 'thick' },
-    left: { style: 'thick' },
-    bottom: { style: 'thick' },
-    right: { style: 'thick' }
-  };
-  worksheet.getRow(1).fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FF000080' } // Azul oscuro
-  };
-
-  let totalPrice = 0;
-
-  // Añadir filas y aplicar estilos personalizados
-  for (let i = 0; i < filteredData.length; i++) {
-    const m = filteredData[i];
-    const row = worksheet.addRow({
-      index: i + 1,
-      sucursal: m.sucursale.nombre,
-      guia: m.guia,
-      peso: m.peso_o,
-      remitente: m.remitente,
-      direccion: m.direccion_especifica,
-      telefono: m.telefono,
-      contenido: m.contenido,
-      fecha: m.fecha,
-      destinatario: m.destinatario,
-      telefono_destinatario: m.telefono_d,
-      direccion_destinatario: m.direccion_especifica_d,
-      ciudad: m.ciudad,
-      zona: m.zona_d,
-      precio: m.nombre_d,
-      fecha_entrega: m.fecha_d,
-    });
-
-    // Agregar la imagen del código de barras si está presente
-    if (m.codigo_barras) {
-      const barcodeId = workbook.addImage({
-        base64: m.codigo_barras, // Asume que `m.codigo_barras` es una cadena en base64
-        extension: 'png',
+    // Validar que se seleccionaron ambas fechas
+    if (!this.startDate || !this.endDate) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Fechas requeridas',
+        text: 'Por favor, selecciona ambas fechas para generar el reporte.',
       });
-
-      worksheet.addImage(barcodeId, {
-        tl: { col: 3, row: row.number - 1 }, // Columna y fila de inicio
-        ext: { width: 125, height: 30 } // Tamaño de la imagen del código de barras reducido
-      });
+      return;
     }
 
-    // Sumar el precio al total
-    totalPrice += parseFloat(m.nombre_d) || 0;
+    // Adaptar las fechas de inicio y fin para que incluyan la hora (00:00 para start y 23:59 para end)
+    const start = new Date(this.startDate);
+    start.setHours(0, 0, 0, 0); // Establecer la hora al inicio del día
 
-    // Agregar la imagen de la firma si está presente
-    if (m.firma_d) {
-      const signatureId = workbook.addImage({
-        base64: m.firma_d, // Asume que `m.firma_d` es una cadena en base64
-        extension: 'png',
-      });
+    const end = new Date(this.endDate);
+    end.setHours(23, 59, 59, 999); // Establecer la hora al final del día
 
-      worksheet.addImage(signatureId, {
-        tl: { col: 9, row: row.number - 1 }, // Columna y fila de inicio
-        ext: { width: 150, height: 40 } // Tamaño de la imagen de la firma reducido
+    if (start > end) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Fechas incorrectas',
+        text: 'La fecha de inicio no puede ser mayor que la fecha de fin.',
       });
+      return;
     }
 
-    // Alternar color de fondo para filas
-    const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF'; // Verde claro / Azul claro
-    row.eachCell({ includeEmpty: true }, function (cell) {
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: fillColor }
-      };
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      };
+    // Filtrar los datos por estado 3 y 4, por la sucursal logueada y por el rango de fechas
+    const filteredData = this.sortedList.filter(m => {
+      const [datePart, timePart] = m.fecha_d.split(' ');
+      const [day, month, year] = datePart.split('/');
+      const [hour, minute] = timePart.split(':');
+
+      // Crear un objeto de fecha con hora incluida
+      const date = new Date(year, month - 1, day, hour, minute);
+
+      // Comparar las fechas con la hora incluida
+      return (m.estado === 3 || m.estado === 4) &&
+             m.sucursale.id === this.user.user.sucursale_id &&
+             date >= start && date <= end;
     });
-  }
 
-  // Agregar fila de total
-  const totalRow = worksheet.addRow({
-    index: 'TOTAL',
-    precio: totalPrice.toFixed(2),
-  });
+    if (filteredData.length === 0) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Sin datos',
+        text: 'No hay registros en estado 3 o 4 para la sucursal seleccionada dentro del rango de fechas.',
+      });
+      return;
+    }
 
-  // Aplicar estilo a la fila de total
-  totalRow.font = { bold: true };
-  totalRow.eachCell({ includeEmpty: true }, function (cell) {
-    cell.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFFFCC00' } // Amarillo claro
-    };
-    cell.border = {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
+
+    // Definir las columnas y su anchura en el orden solicitado
+    worksheet.columns = [
+      { header: '#', key: 'index', width: 5 },
+      { header: 'Sucursal', key: 'sucursal', width: 25 },
+      { header: 'Guía', key: 'guia', width: 25 },
+      { header: 'Código de Barras', key: 'codigo_barras', width: 30 },
+      { header: 'Peso (Kg)', key: 'peso', width: 15 },
+      { header: 'Remitente', key: 'remitente', width: 25 },
+      { header: 'Dirección', key: 'direccion', width: 35 },
+      { header: 'Teléfono', key: 'telefono', width: 20 },
+      { header: 'Contenido', key: 'contenido', width: 25 },
+      { header: 'Firma Destinatario', key: 'firma_destinatario', width: 30 },
+      { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
+      { header: 'Destinatario', key: 'destinatario', width: 25 },
+      { header: 'Teléfono Destinatario', key: 'telefono_destinatario', width: 20 },
+      { header: 'Dirección Destinatario', key: 'direccion_destinatario', width: 35 },
+      { header: 'Ciudad', key: 'ciudad', width: 20 },
+      { header: 'Zona', key: 'zona', width: 20 },
+      { header: 'Precio (Bs)', key: 'precio', width: 15 },
+      { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
+    ];
+
+    worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+    worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheet.getRow(1).border = {
       top: { style: 'thick' },
       left: { style: 'thick' },
       bottom: { style: 'thick' },
       right: { style: 'thick' }
     };
-  });
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF000080' } // Azul oscuro
+    };
 
-  worksheet.eachRow({ includeEmpty: true }, function (row) {
-    row.height = 25; // Ajusta la altura a tu gusto
-  });
+    let totalPrice = 0;
 
-  // Exportar el archivo
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'Solicitudes_Entregadas.xlsx';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
+    // Añadir filas y aplicar estilos personalizados
+    for (let i = 0; i < filteredData.length; i++) {
+      const m = filteredData[i];
+      const row = worksheet.addRow({
+        index: i + 1,
+        sucursal: m.sucursale.nombre,
+        guia: m.guia,
+        peso: m.peso_o,
+        remitente: m.remitente,
+        direccion: m.direccion_especifica,
+        telefono: m.telefono,
+        contenido: m.contenido,
+        fecha: m.fecha,
+        destinatario: m.destinatario,
+        telefono_destinatario: m.telefono_d,
+        direccion_destinatario: m.direccion_especifica_d,
+        ciudad: m.ciudad,
+        zona: m.zona_d,
+        precio: m.nombre_d,
+        fecha_entrega: m.fecha_d,
+      });
+
+      // Agregar la imagen del código de barras si está presente
+      if (m.codigo_barras) {
+        const barcodeId = workbook.addImage({
+          base64: m.codigo_barras,
+          extension: 'png',
+        });
+
+        worksheet.addImage(barcodeId, {
+          tl: { col: 3, row: row.number - 1 },
+          ext: { width: 125, height: 30 }
+        });
+      }
+
+      // Sumar el precio al total
+      totalPrice += parseFloat(m.nombre_d) || 0;
+
+      // Agregar la imagen de la firma si está presente
+      if (m.firma_d) {
+        const signatureId = workbook.addImage({
+          base64: m.firma_d,
+          extension: 'png',
+        });
+
+        worksheet.addImage(signatureId, {
+          tl: { col: 9, row: row.number - 1 },
+          ext: { width: 150, height: 40 }
+        });
+      }
+
+      // Alternar color de fondo para filas
+      const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
+      row.eachCell({ includeEmpty: true }, function (cell) {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: fillColor }
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+    }
+
+    // Agregar fila de total
+    const totalRow = worksheet.addRow({
+      index: 'TOTAL',
+      precio: totalPrice.toFixed(2),
+    });
+
+    // Aplicar estilo a la fila de total
+    totalRow.font = { bold: true };
+    totalRow.eachCell({ includeEmpty: true }, function (cell) {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFCC00' }
+      };
+      cell.border = {
+        top: { style: 'thick' },
+        left: { style: 'thick' },
+        bottom: { style: 'thick' },
+        right: { style: 'thick' }
+      };
+    });
+
+    worksheet.eachRow({ includeEmpty: true }, function (row) {
+      row.height = 25;
+    });
+
+    // Exportar el archivo
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'Solicitudes_Entregadas.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
 
 

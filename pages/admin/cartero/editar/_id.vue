@@ -188,55 +188,56 @@ export default {
   fileInput.addEventListener('change', (event) => {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
 
-          // Definir una resolución extremadamente baja
-          const maxWidth = 5000; // Ancho máximo
-          const maxHeight = 5000; // Alto máximo
+                // Definir una resolución baja
+                const maxWidth = 2500; // Ancho máximo
+                const maxHeight = 2500; // Alto máximo
 
-          let width = img.width;
-          let height = img.height;
+                let width = img.width;
+                let height = img.height;
 
-          // Escalar la imagen a las dimensiones más pequeñas posibles
-          if (width > height) {
-            if (width > maxWidth) {
-              height *= maxWidth / width;
-              width = maxWidth;
-            }
-          } else {
-            if (height > maxHeight) {
-              width *= maxHeight / height;
-              height = maxHeight;
-            }
-          }
+                // Escalar la imagen a las dimensiones más pequeñas posibles
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+                }
 
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
 
-          // Comprimir la imagen lo máximo posible
-          let quality = 0.5; // Calidad muy baja
-          let dataurl = canvas.toDataURL('image/jpeg', quality);
+                // Comprimir la imagen en formato WebP lo máximo posible
+                let quality = 0.5; // Calidad baja
+                let dataurl = canvas.toDataURL('image/webp', quality);
 
-          // Intentar reducir el tamaño por debajo de 1 KB
-          while (dataurl.length > 100000 && quality > 0.01) {
-            quality -= 0.01;
-            dataurl = canvas.toDataURL('image/jpeg', quality);
-          }
+                // Intentar reducir el tamaño por debajo de 1 KB
+                while (dataurl.length > 100000 && quality > 0.01) {
+                    quality -= 0.01;
+                    dataurl = canvas.toDataURL('image/webp', quality);
+                }
 
-          console.log('Imagen final en base64:', dataurl);
-          this.model.imagen = dataurl; // Guardar la imagen comprimida en el modelo
+                console.log('Imagen final en base64:', dataurl);
+                this.model.imagen = dataurl; // Guardar la imagen comprimida en el modelo
+            };
+            img.src = e.target.result;
         };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
     }
-  });
+});
+
     });
   }
 };
