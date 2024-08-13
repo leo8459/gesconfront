@@ -20,6 +20,7 @@
                 <thead>
                   <tr>
                     <th class="py-0 px-1">#</th>
+                    <th class="py-0 px-1">Imagen Capturada</th>
                     <th class="py-0 px-1">Sucursal</th>
                     <th class="py-0 px-1">Cartero</th>
                     <th class="py-0 px-1">Guia</th>
@@ -44,6 +45,10 @@
                 <tbody>
                   <tr v-for="(m, i) in paginatedData" :key="i">
                     <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                    <td class="py-0 px-1">
+                      <img v-if="m.imagen" :src="m.imagen" alt="Imagen Capturada" width="100" />
+                      <span v-else>No Image</span>
+                    </td>
                     <td class="p-1">{{ m.sucursale.nombre }}</td>
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>

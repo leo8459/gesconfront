@@ -10,7 +10,7 @@
                 <h3>Actualizar</h3>
               </div>
               <div class="card-body">
-                <CrudUpdate :model="model" :apiUrl="apiUrl">
+                <CrudUpdate2 :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="sucursal">Sucursal</label>
@@ -73,7 +73,7 @@
                       <input type="text" v-model="model.fecha" class="form-control" id="fecha" disabled>
                     </div>
                   </div>
-                </CrudUpdate>
+                </CrudUpdate2>
               </div>
             </div>
           </div>
@@ -157,7 +157,7 @@ export default {
   },
   methods: {
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$sucursales.$get(path);
       return res;
     },
     openModal() {

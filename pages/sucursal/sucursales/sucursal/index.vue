@@ -10,7 +10,15 @@
             </nuxtLink>
           </div>
         </div>
-        <!-- {{user}} -->
+
+        <!-- Campo para buscar por código de barras -->
+        <div class="row mb-3">
+          <div class="col-6">
+            <input v-model="codigoBarras" @keyup.enter="buscarPorCodigoBarras" class="form-control"
+              placeholder="Buscar por código de barras">
+          </div>
+        </div>
+
         <div class="row">
           <div class="col-12">
             <div class="card border-rounded">
@@ -25,6 +33,7 @@
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Número de Guía</th>
+                        <th class="py-0 px-1">Código de Barras</th>
                         <th class="py-0 px-1">Peso (Kg)</th>
                         <th class="py-0 px-1">Remitente</th>
                         <th class="py-0 px-1">Dirección maps</th>
@@ -46,6 +55,9 @@
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1">{{ m.guia }}</td>
+                        <td class="py-0 px-1">
+                          <img v-if="m.codigo_barras" :src="'data:image/png;base64,' + m.codigo_barras" alt="Código de Barras" width="200" height="100" />
+                        </td>
                         <td class="py-0 px-1">{{ m.peso_o }}</td>
                         <td class="py-0 px-1">{{ m.remitente }}</td>
                         <td class="py-0 px-1">
@@ -78,6 +90,9 @@
                             <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
                               <i class="fas fa-trash trash-icon"></i>
                             </button>
+                            <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
+                              <i class="fas fa-pen"></i>
+                            </nuxtLink>
                           </div>
                         </td>
                       </tr>
@@ -125,6 +140,7 @@ export default {
       page: 'solicitudes',
       modulo: 'solicitudes',
       tarifas: [], // Inicializamos tarifas como un array vacío
+      codigoBarras: '', // Para almacenar el código de barras ingresado
       url_nuevo: '/sucursal/sucursales/sucursal/nuevo',
       url_editar: '/sucursal/sucursales/sucursal/editar/',
       user: {
@@ -188,6 +204,32 @@ export default {
           await this.EliminarItem(id);
         }
       });
+    },
+    async buscarPorCodigoBarras() {
+      try {
+        const res = await this.$sucursales.$get('/solicitudes/buscar-por-codigo-barras', {
+          params: {
+            codigo_barras: this.codigoBarras
+          }
+        });
+
+        if (res) {
+          this.list = [res]; // Muestra solo la solicitud encontrada
+        } else {
+          this.$swal.fire({
+            icon: 'error',
+            title: 'No encontrado',
+            text: 'No se encontró ninguna solicitud con ese código de barras.',
+          });
+        }
+      } catch (e) {
+        console.error('Error al buscar la solicitud:', e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error al buscar la solicitud.',
+        });
+      }
     },
     getTarifaLabel(tarifa_id) {
       if (!this.tarifas) {
@@ -273,5 +315,11 @@ export default {
 .table td:first-child {
   min-width: 30px;
   /* Ajusta este valor según sea necesario */
+}
+
+td img {
+  max-width: 100px;
+  /* Ajusta el tamaño según tus necesidades */
+  height: auto;
 }
 </style>
