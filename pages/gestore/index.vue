@@ -101,7 +101,7 @@ export default {
       },
       variableInt: null,
       page: "Dashboard",
-      modulo: "Dashboard",
+      modulo: "AGBC",
       load: false,
       dashboard: {
         totalSucursalesConContrato: 0,

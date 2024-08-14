@@ -34,7 +34,6 @@
                 <thead>
                   <tr>
                     <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Imagen Capturada</th>
                     <th class="py-0 px-1">Sucursal</th>
                     <th class="py-0 px-1">Cartero</th>
                     <th class="py-0 px-1">Guia</th>
@@ -54,16 +53,13 @@
                     <th class="py-0 px-1">Firma Destinatario</th>
                     <th class="py-0 px-1">Precio (Bs)</th>
                     <th class="py-0 px-1">Fecha Destinatario</th>
+                    <th class="py-0 px-1">Imagen Capturada</th>
+
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">
-                      <img v-if="m.imagen" :src="generateThumbnail(m.imagen)" alt="Imagen Capturada" width="100" />
-                      <span v-else>No Image</span>
-                      <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                        class="btn btn-sm btn-primary mt-1">Descargar</button>
-                    </td>
+                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                     <td class="p-1">{{ m.sucursale.nombre }}</td>
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
@@ -99,6 +95,12 @@
                     </td>
                     <td class="py-0 px-1">{{ m.nombre_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
+                    <td class="py-0 px-1">
+                      <img v-if="m.imagen" :src="generateThumbnail(m.imagen)" alt="Imagen Capturada" width="100" />
+                      <span v-else>No Image</span>
+                      <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                        class="btn btn-sm btn-primary mt-1">Descargar</button>
+                    </td>
                   </tr>
                 </tbody>
               </table>

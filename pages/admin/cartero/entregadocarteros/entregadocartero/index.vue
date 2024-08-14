@@ -39,7 +39,7 @@
                     <th class="py-0 px-1">Zona Destinatario</th>
                     <th class="py-0 px-1">Firma Destinatario</th>
                     <th class="py-0 px-1">Precio (Bs)</th>
-                    <th class="py-0 px-1">Fecha Destinatario</th>
+                    <th class="py-0 px-1">Fecha de Entrega</th>
                   </tr>
                 </thead>
                 <tbody>

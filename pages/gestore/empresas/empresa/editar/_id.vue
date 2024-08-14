@@ -12,10 +12,6 @@
               </div>
               <div class="card-body">
                 <CrudUpdate4 :model="model" :apiUrl="apiUrl">
-
-
-
-
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="">Nombre</label>

@@ -14,7 +14,7 @@
                 <div class="card card-plain mt-8 shadow-lg rounded bg-white">
                   <div class="card-header pb-0 text-start">
                     <h3 ref="typingTitle" class="font-weight-bolder text-info text-gradient typing">
-                      Sistema de Casillas AGBC
+                      Sistema Gescon AGBC
                     </h3>
                     <p ref="typingSubtitle" class="mb-0 typing">Ingresa tu email y tu password para iniciar.</p>
                   </div>

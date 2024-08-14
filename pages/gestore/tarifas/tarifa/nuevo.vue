@@ -23,6 +23,10 @@
                     <input type="text" v-model="model.departamento" class="form-control" id="departamento">
                   </div>
                   <div class="form-group">
+                    <label class="form-label" for="departamento">Provincia de envio</label>
+                    <input type="text" v-model="model.provincia" class="form-control" id="provincia">
+                  </div>
+                  <div class="form-group">
                     <label class="form-label" for="servicio">Servicio</label>
                     <input type="text" v-model="model.servicio" class="form-control" id="servicio">
                   </div>
@@ -50,6 +54,10 @@
                   <div class="form-group">
                     <label class="form-label" for="departamento">Departamento de envio</label>
                     <input type="text" v-model="clonado.departamento" class="form-control" id="departamento">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="departamento">Provincia de envio</label>
+                    <input type="text" v-model="model.provincia" class="form-control" id="provincia">
                   </div>
                   <div class="form-group">
                     <label class="form-label" for="servicio">Servicio</label>
@@ -91,6 +99,7 @@ export default {
         servicio: '',
         precio: '',
         precio_extra: '',
+        provincia: '',
         envio_internacional: false
       },
       apiUrl: 'tarifas3',

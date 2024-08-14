@@ -119,16 +119,16 @@
 
         </li>
 
-          <!-- //CARTERO -->
+        <!-- //CARTERO -->
 
-          <li class="nav-item" v-if="isCartero">
-            <a @click="handleItemClick('cartero')" data-bs-toggle="collapse" href="#perfil-cartero" class="nav-link"
+        <li class="nav-item" v-if="isCartero">
+          <a @click="handleItemClick('cartero')" data-bs-toggle="collapse" href="#perfil-cartero" class="nav-link"
             aria-controls="configuracion-cajero" role="button" aria-expanded="false">
             <div
               class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
               <i v-if="role === 'cartero'" class="fas fa-money-bill blue-icon"></i>
             </div>
-            <span class="nav-link-text ms-1">Solicitud Cartero</span>
+            <span class="nav-link-text ms-1">Cartero</span>
           </a>
           <div class="collapse" id="perfil-cartero">
             <ul class="nav ms-4 ps-3">
@@ -162,7 +162,7 @@
                   <span class="sidenav-normal"> Entregado Cartero</span>
                 </nuxtLink>
               </li>
-             
+
             </ul>
           </div>
         </li>
@@ -177,10 +177,16 @@
               class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
               <i v-if="role === 'empresa'" class="fas fa-money-bill blue-icon"></i>
             </div>
-            <span class="nav-link-text ms-1">Solicitud Empresa</span>
+            <span class="nav-link-text ms-1">Empresa</span>
           </a>
           <div class="collapse" id="perfil-empresa">
             <ul class="nav ms-4 ps-3">
+              <li class="nav-item" v-if="isSucursale">
+                <nuxtLink class="nav-link" to="/sucursal">
+                  <span class="sidenav-mini-icon"> Dashboard </span>
+                  <span class="sidenav-normal"> Dashboard </span>
+                </nuxtLink>
+              </li>
               <li class="nav-item" v-if="isSucursale">
                 <nuxtLink class="nav-link" to="/sucursal/canceladossucursales/canceladosucursal">
                   <span class="sidenav-mini-icon"> Cancelados Empresa</span>
@@ -193,7 +199,7 @@
                   <span class="sidenav-normal">Solicitud Empresa </span>
                 </nuxtLink>
               </li>
-             
+
               <li class="nav-item" v-if="isSucursale">
                 <nuxtLink class="nav-link" to="/sucursal/encaminosucursales/encaminosucursal">
                   <span class="sidenav-mini-icon"> En Camino Empresa</span>
@@ -218,25 +224,27 @@
               class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
               <i v-if="role === 'encargado'" class="fas fa-money-bill blue-icon"></i>
             </div>
-            <span class="nav-link-text ms-1">Solicitud Encargado</span>
+            <span class="nav-link-text ms-1">Encargado </span>
           </a>
           <div class="collapse" id="perfil-encargado">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
-                <!-- <nuxtLink class="nav-link" to="/encargado/solicitudesj/solicitudej">
-                  <span class="sidenav-mini-icon"> Solicitud J </span>
-                  <span class="sidenav-normal"> Solicitud J </span>
-                </nuxtLink> -->
+                <nuxtLink class="nav-link" to="/encargado">
+                  <span class="sidenav-mini-icon"> Dashboard </span>
+                  <span class="sidenav-normal"> Dashboard </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link" to="/encargado/solicitudencargados/solicitudencargado">
                   <span class="sidenav-mini-icon"> Solicitud de recojo </span>
                   <span class="sidenav-normal"> Solicitud de recojo </span>
                 </nuxtLink>
                 <nuxtLink class="nav-link" to="/encargado/recogidoencargados/recogidoencargado">
-                  <span class="sidenav-mini-icon"> Correspondencia recogida  </span>
+                  <span class="sidenav-mini-icon"> Correspondencia recogida </span>
                   <span class="sidenav-normal"> Correspondencia recogida </span>
                 </nuxtLink>
                 <nuxtLink class="nav-link" to="/encargado/encaminoencargados/encaminoencargado">
-                  <span class="sidenav-mini-icon"> Correspondencia en camino  </span>
+                  <span class="sidenav-mini-icon"> Correspondencia en camino </span>
                   <span class="sidenav-normal"> Correspondencia en camino </span>
                 </nuxtLink>
                 <nuxtLink class="nav-link" to="/encargado/entregadoencargados/entregadoencargado">
@@ -258,7 +266,7 @@
 
 
         <!-- //COMERCIAL -->
-        
+
 
         <li class="nav-item" v-if="isGestor">
           <a @click="handleItemClick('comercial')" data-bs-toggle="collapse" href="#perfil-comercial" class="nav-link"
@@ -267,10 +275,16 @@
               class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
               <i v-if="role === 'comercial'" class="fas fa-money-bill blue-icon"></i>
             </div>
-            <span class="nav-link-text ms-1">Solicitud Comercial</span>
+            <span class="nav-link-text ms-1">Comercial</span>
           </a>
           <div class="collapse" id="perfil-comercial">
             <ul class="nav ms-4 ps-3">
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/gestore">
+                  <span class="sidenav-mini-icon"> Dashboard </span>
+                  <span class="sidenav-normal"> Dashboard </span>
+                </nuxtLink>
+              </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link" to="/gestore/empresas/empresa">
                   <span class="sidenav-mini-icon"> Empresas </span>
@@ -295,19 +309,25 @@
 
 
         <!-- //CONTRATOS -->
-    
 
-          <li class="nav-item" v-if="isContrato">
-            <a @click="handleItemClick('contratos')" data-bs-toggle="collapse" href="#perfil-contratos" class="nav-link"
+
+        <li class="nav-item" v-if="isContrato">
+          <a @click="handleItemClick('contratos')" data-bs-toggle="collapse" href="#perfil-contratos" class="nav-link"
             aria-controls="configuracion-cajero" role="button" aria-expanded="false">
             <div
               class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
               <i v-if="role === 'contratos'" class="fas fa-money-bill blue-icon"></i>
             </div>
-            <span class="nav-link-text ms-1">Solicitud Contratos</span>
+            <span class="nav-link-text ms-1">Contratos</span>
           </a>
           <div class="collapse" id="perfil-contratos">
             <ul class="nav ms-4 ps-3">
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/contrato">
+                  <span class="sidenav-mini-icon"> Dashboard </span>
+                  <span class="sidenav-normal"> Dashboard </span>
+                </nuxtLink>
+              </li>
               <li class="nav-item">
                 <!-- <nuxtLink class="nav-link" to="/contrato/solicitudencargados/solicitudencargado">
                   <span class="sidenav-mini-icon"> Solicitud de recojo </span>

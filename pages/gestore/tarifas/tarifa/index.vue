@@ -48,8 +48,9 @@
                   <th class="p-1">#</th>
                   <th class="p-1">Departamento de origen</th>
                   <th class="p-1">Departamento de Envio</th>
-                  <th class="p-1">Servicio (Bs)</th>
-                  <th class="p-1">Kilogramo Extra (Bs)</th>
+                  <th class="p-1">Provincia</th>
+                  <th class="p-1">Servicio</th>
+                  <th class="p-1">1 Kilogramo (Bs)</th>
                   <th class="p-1">Kilogramo Extra (Bs)</th>
 
                   <th class="p-1"></th>
@@ -60,6 +61,7 @@
                   <td class="p-1">{{ i + 1 }}</td>
                   <td class="p-1">{{ m.sucursale.origen }}</td>
                   <td class="p-1">{{ m.departamento }}</td>
+                  <td class="p-1">{{ m.provincia }}</td>
                   <td class="p-1">{{ m.servicio }}</td>
                   <td class="p-1">{{ m.precio }}</td>
                   <td class="p-1">{{ m.precio_extra }}</td>
@@ -107,8 +109,8 @@ export default {
       apiUrl: 'tarifas3',
       page: 'tarifas',
       modulo: 'AGBC',
-      url_nuevo: '/admin/gestore/tarifas/tarifa/nuevo',
-      url_editar: '/admin/gestore/tarifas/tarifa/editar/',
+      url_nuevo: '/gestore/tarifas/tarifa/nuevo',
+      url_editar: '/gestore/tarifas/tarifa/editar/',
     };
   },
   methods: {

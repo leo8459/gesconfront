@@ -39,7 +39,7 @@
                     <th class="py-0 px-1">Firma Destinatario</th>
                     <th class="py-0 px-1">Nombre Destinatario</th>
                     <th class="py-0 px-1">CI Destinatario</th>
-                    <th class="py-0 px-1">Fecha Destinatario</th>
+                    <th class="py-0 px-1">Fecha de Entrega</th>
                     <th class="py-0 px-1">Estado</th>
                     <th class="py-0 px-1"></th>
                   </tr>

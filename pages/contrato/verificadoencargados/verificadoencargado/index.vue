@@ -59,13 +59,12 @@
                     <th class="py-0 px-1">Destinatario</th>
                     <th class="py-0 px-1">Teléfono D</th>
                     <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Ciudad</th>
+                    <th class="py-0 px-1">Zona</th>
+                    <th class="py-0 px-1">Ciudad/Provincia</th>
                     <th class="py-0 px-1">Firma Destinatario</th>
-                    <th class="py-0 px-1">Nombre Destinatario</th>
-                    <th class="py-0 px-1">CI Destinatario</th>
-                    <th class="py-0 px-1">Fecha Destinatario</th>
-                    <th class="py-0 px-1">Estado</th>
-                    <th class="py-0 px-1"></th>
+                    <th class="py-0 px-1">Precio (Bs)</th>
+                    <th class="py-0 px-1">Fecha de Entrega</th>
+                    <th class="py-0 px-1">Imagen Capturada</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -102,15 +101,19 @@
                       </a>
                       <span v-else>{{ m.direccion_d }}</span>
                     </td>
+                    <td class="py-0 px-1">{{ m.zona_d }}</td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
                     <td class="py-0 px-1">
                       <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
                     </td>
                     <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                    <td class="py-0 px-1">{{ m.ci_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">{{ m.estado === 3 ? 'Entregado' : m.estado }}</td>
-                    <td class="py-0 px-1"></td>
+                    <td class="py-0 px-1">
+                      <img v-if="m.imagen" :src="generateThumbnail(m.imagen)" alt="Imagen Capturada" width="100" />
+                      <span v-else>No Image</span>
+                      <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                        class="btn btn-sm btn-primary mt-1">Descargar</button>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -203,6 +206,47 @@ export default {
     }
   },
   methods: {
+    generateThumbnail(base64Image) {
+      const img = new Image();
+      img.src = base64Image;
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Ajustar la resolución del thumbnail
+      const MAX_WIDTH = 100; // Ajustar según sea necesario
+      const MAX_HEIGHT = 100; // Ajustar según sea necesario
+
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Aquí no es necesario comprimir el thumbnail en exceso si queremos mostrar una imagen más clara
+      return canvas.toDataURL('image/jpeg', 0.1);
+    },
+    downloadImage(base64Image) {
+      const link = document.createElement('a');
+      link.href = base64Image; // Aquí estás usando la imagen original almacenada
+      link.download = 'imagen_capturada.jpg';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
     async fetchSucursales() {
     try {
       const res = await this.$contratos.$get('sucursales4'); // Cambia 'sucursales_endpoint' por el endpoint real
@@ -250,6 +294,11 @@ export default {
   const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
 
   const filteredData = this.list.filter(m => {
+    if (!m.fecha_d) {
+      console.error('fecha_d es nulo o indefinido:', m);
+      return false; // Excluye este registro del filtrado
+    }
+
     // Convertir fecha_d a Date y ajustar la hora para evitar el desplazamiento de fecha
     const [day, month, yearAndTime] = m.fecha_d.split('/');
     const [year, time] = yearAndTime.split(' ');
@@ -404,6 +453,7 @@ export default {
   link.click();
   document.body.removeChild(link);
 }
+
 
 
 
