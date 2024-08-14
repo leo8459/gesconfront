@@ -16,13 +16,27 @@
                       <label for="">Sucursal</label>
                       <input type="text" v-model="model.nombre" class="form-control" id="">
                     </div>
-                    <div class="form-group col-6">
+                    <div class="form-group col-12">
+                      <label for="">Codigo de Cliente</label>
+                      <input type="text" v-model="model.codigo_cliente" class="form-control" id="">
+                    </div>
+                    <div class="form-group col-12">
+                      <label for="">Numero de Contrato</label>
+                      <input type="text" v-model="model.n_contrato" class="form-control" id="">
+                    </div>
+                    <div class="form-group col-12">
+                      <label for="">Sucursal</label>
+                      <input type="text" v-model="model.nombre" class="form-control" id="">
+                    </div>
+
+                    <div class="form-group col-12">
                       <label for="">Email</label>
                       <input type="text" v-model="model.email" class="form-control" id="">
                     </div>
-                    <div class="form-group col-6">
+
+                    <div class="form-group col-12">
                       <label for="">Password</label>
-                      <input type="password" v-model="model.password" class="form-control" id="">
+                      <input type="text" v-model="model.password" class="form-control" id="">
                     </div>
 
                     <div class="form-group col-12">
@@ -33,32 +47,32 @@
                       <label for="">Inicio Fecha</label>
                       <input type="date" v-model="model.ini_vigencia" class="form-control" :min="ini_vigencia">
                     </div>
+
                     <div class="form-group col-12">
                       <label for="">Fin Fecha</label>
                       <input type="date" v-model="model.fin_vigencia" class="form-control" :min="fin_vigencia">
                     </div>
+
                     <div class="form-group col-12">
                       <label for="">limite</label>
                       <input type="text" v-model="model.limite" class="form-control" id="">
                     </div>
+
                     <div class="form-group col-12">
                       <label for="">cobertura</label>
                       <input type="text" v-model="model.cobertura" class="form-control" id="">
                     </div>
-                    <div class="form-group col-12">
-                      <label for="">empresa</label>
-                      <select name="" id="" class="form-control" v-model="model.empresa_id">
-                        <option v-for="m in empresas" :value="m.id">{{ m.nombre }}</option>
-                      </select>
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="">Direccion</label>
-                      <input type="text" v-model="model.direccion" class="form-control" id="">
-                    </div>
+
                     <div class="form-group col-12">
                       <label for="">Acuerdo Recojo</label>
                       <input type="text" v-model="model.acuerdos" class="form-control" id="">
                     </div>
+
+                    <div class="form-group col-12">
+                      <label for="">Direccion</label>
+                      <input type="text" v-model="model.direccion" class="form-control" id="">
+                    </div>
+
                     <div class="form-group col-12">
                       <label for="">Contacto Administrativo</label>
                       <input type="text" v-model="model.contacto_administrativo" class="form-control" id="">

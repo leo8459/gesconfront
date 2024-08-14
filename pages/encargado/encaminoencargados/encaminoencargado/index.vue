@@ -307,28 +307,39 @@ export default {
       }
     },
     async confirmRechazar() {
-      this.load = true;
-      try {
-        await this.$encargados.$put(`rechazado5/${this.selectedSolicitudeId}`, { observacion: this.observacion });
+    this.load = true;
+    try {
+        const now = new Date();
+        const options = {
+            timeZone: 'America/La_Paz',
+        };
+        const formattedDate = now.toLocaleDateString('es-ES', options) + ' ' + now.toLocaleTimeString('es-ES', options);
+
+        await this.$encargados.$put(`rechazado5/${this.selectedSolicitudeId}`, { 
+            observacion: this.observacion,
+            fecha_d: formattedDate // Envía la fecha y hora actuales en formato dd/MM/yyyy HH:mm
+        });
         await this.GET_DATA(this.apiUrl); // Actualizar la lista después de la operación
         this.$swal.fire({
-          icon: 'success',
-          title: 'Solicitud rechazada',
-          text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
+            icon: 'success',
+            title: 'Solicitud rechazada',
+            text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
         });
         this.isObservationModalVisible = false;
         this.observacion = ''; // Limpiar el campo de observación
-      } catch (e) {
+    } catch (e) {
         console.error(e);
         this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un error al devolver la solicitud a destino.',
+            icon: 'error',
+            title: 'Error',
+            text: 'Hubo un error al devolver la solicitud a destino.',
         });
-      } finally {
+    } finally {
         this.load = false;
-      }
-    },
+    }
+},
+
+
     selectAll(event, group) {
       const isChecked = event.target.checked;
       group.forEach(item => {

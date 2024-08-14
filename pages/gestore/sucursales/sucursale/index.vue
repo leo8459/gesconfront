@@ -52,6 +52,7 @@
                     <th class="py-0 px-1">Cobertura</th>
                     <th class="py-0 px-1">Dirección</th>
                     <th class="py-0 px-1">Acuerdos</th>
+                    <th class="py-0 px-1">Codigo Cliente</th>
                     <th class="py-0 px-1">Contrato</th>
                     <th class="py-0 px-1">Contacto</th>
                     <th class="py-0 px-1"></th>
@@ -68,6 +69,7 @@
                       <td class="py-0 px-1">{{ m.direccion }}</td>
                       <td class="py-0 px-1">{{ m.acuerdos }}</td>
                       <td class="py-0 px-1">{{ m.codigo_cliente }}</td>
+                      <td class="py-0 px-1">{{ m.n_contrato }}</td>
                       <td class="py-0 px-1">{{ m.contacto_administrativo }}</td>
                       <td class="py-0 px-1">
                         <div class="btn-group">

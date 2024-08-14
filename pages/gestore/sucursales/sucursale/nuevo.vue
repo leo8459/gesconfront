@@ -14,32 +14,35 @@
                 <CrudCreate4 :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
-  <label for="empresa">Empresa</label>
-  <v-select :options="empresas" v-model="model.empresa_id" label="nombre"
-    :reduce="empresa => empresa.id" placeholder="Buscar empresa...">
-    <template #option="option">
-      <div>
-        {{ option.nombre }}
-      </div>
-    </template>
-    <template #selected-option="option">
-      <div>
-        {{ option.nombre }}
-      </div>
-    </template>
-  </v-select>
-</div>
+                      <label for="empresa">Empresa</label>
+                      <v-select :options="empresas" v-model="model.empresa_id" label="nombre"
+                        :reduce="empresa => empresa.id" placeholder="Buscar empresa...">
+                        <template #option="option">
+                          <div>
+                            {{ option.nombre }}
+                          </div>
+                        </template>
+                        <template #selected-option="option">
+                          <div>
+                            {{ option.nombre }}
+                          </div>
+                        </template>
+                      </v-select>
+                    </div>
 
                     <div class="form-group col-12">
                       <label for="">Codigo de Cliente</label>
                       <input type="text" v-model="model.codigo_cliente" class="form-control" id="">
                     </div>
-
+                    <div class="form-group col-12">
+                      <label for="">Numero de Contrato</label>
+                      <input type="text" v-model="model.n_contrato" class="form-control" id="">
+                    </div>
                     <div class="form-group col-12">
                       <label for="">Sucursal</label>
                       <input type="text" v-model="model.nombre" class="form-control" id="">
                     </div>
-                    
+
                     <div class="form-group col-12">
                       <label for="">Email</label>
                       <input type="text" v-model="model.email" class="form-control" id="">
@@ -89,7 +92,7 @@
                       <input type="text" v-model="model.contacto_administrativo" class="form-control" id="">
                     </div>
 
-                    
+
                   </div>
                 </CrudCreate4>
               </div>
@@ -130,7 +133,7 @@ export default {
       empresas: [],
       ini_vigencia: '',
       fin_vigencia: ''
-        }
+    }
   },
 
   methods: {
