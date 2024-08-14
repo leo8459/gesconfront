@@ -8,15 +8,17 @@
             <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
           </div>
           <div class="row justify-content-end mb-3">
-  <div class="col-md-2">
-    <label for="sucursal" class="form-label">Sucursal</label>
-    <select v-model="selectedSucursal" id="sucursal" class="form-control">
-      <option value="">Todas</option>
-      <option v-for="sucursal in sucursales" :key="sucursal.id" :value="sucursal.id">
-        {{ sucursal.nombre }}
-      </option>
-    </select>
-  </div>
+            <div class="col-md-2">
+  <label for="sucursal" class="form-label">Sucursal</label>
+  <select v-model="selectedSucursal" id="sucursal" class="form-control">
+    <option value="">Todas</option>
+    <option v-for="sucursal in sucursales" :key="sucursal.id" :value="sucursal.id">
+      {{ sucursal.nombre }}
+    </option>
+  </select>
+</div>
+
+
   <div class="col-md-2">
     <label for="startDate" class="form-label">Fecha Inicial</label>
     <input type="date" v-model="startDate" id="startDate" class="form-control">
@@ -203,7 +205,7 @@ export default {
   methods: {
     async fetchSucursales() {
     try {
-      const res = await this.$gestores.$get('sucursales_endpoint'); // Cambia 'sucursales_endpoint' por el endpoint real
+      const res = await this.$contratos.$get('sucursales4'); // Cambia 'sucursales_endpoint' por el endpoint real
       this.sucursales = res;
     } catch (error) {
       console.error('Error al cargar las sucursales:', error);
@@ -238,174 +240,180 @@ export default {
         console.error('Error al obtener los datos:', e);
       }
     },
+
+
+
+
+    
     async exportToExcel() {
-    // Validar las fechas seleccionadas
-    if (!this.startDate || !this.endDate) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Fechas requeridas',
-        text: 'Por favor, selecciona ambas fechas para generar el reporte.',
-      });
-      return;
-    }
+  const start = this.startDate ? new Date(this.startDate + 'T00:00:00') : null;
+  const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
 
-    const start = new Date(this.startDate);
-    const end = new Date(this.endDate);
+  const filteredData = this.list.filter(m => {
+    // Convertir fecha_d a Date y ajustar la hora para evitar el desplazamiento de fecha
+    const [day, month, yearAndTime] = m.fecha_d.split('/');
+    const [year, time] = yearAndTime.split(' ');
+    const [hour, minute] = time.split(':');
+    const fechaD = new Date(year, month - 1, day, hour, minute);
 
-    if (start > end) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Fechas incorrectas',
-        text: 'La fecha de inicio no puede ser mayor que la fecha de fin.',
-      });
-      return;
-    }
+    const isWithinDateRange = (!start || fechaD >= start) && (!end || fechaD <= end);
+    const isMatchingSucursal = !this.selectedSucursal || m.sucursale?.id === this.selectedSucursal;
 
-    // Filtrar los datos por el rango de fechas, estado 3, y sucursal seleccionada
-    const filteredData = this.list.filter(m => {
-      const fechaD = new Date(m.fecha_d);
-      return fechaD >= start && fechaD <= end && m.estado === 4 &&
-             (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal);
+    return (m.estado === 4 || m.estado === 6) && isMatchingSucursal && isWithinDateRange;
+  });
+
+  if (filteredData.length === 0) {
+    Swal.fire({
+      icon: 'info',
+      title: 'Sin datos',
+      text: 'No hay datos disponibles para los criterios seleccionados.',
+    });
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
+
+  worksheet.columns = [
+    { header: '#', key: 'index', width: 5 },
+    { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
+    { header: 'Guía', key: 'guia', width: 20 },
+    { header: 'Sucursal Origen', key: 'sucursal_origen', width: 20 },
+    { header: 'Dirección', key: 'direccion', width: 30 },
+    { header: 'Sucursal', key: 'sucursal', width: 20 },
+    { header: 'Departamento/Servicio', key: 'servicio', width: 20 },
+    { header: 'Ciudad', key: 'ciudad', width: 15 },
+    { header: 'Zona', key: 'zona', width: 15 },
+    { header: 'Contenido', key: 'contenido', width: 20 },
+    { header: 'Peso (Kg)', key: 'peso', width: 10 },
+    { header: 'Precio (Bs)', key: 'precio', width: 10 },
+    { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
+    { header: 'Destinatario', key: 'destinatario', width: 20 },
+    { header: 'Nombre del Cartero', key: 'cartero', width: 20 },
+    { header: 'Observaciones', key: 'observacion', width: 25 },
+    { header: 'Firma', key: 'Firma', width: 25 },
+  ];
+
+  worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+  worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(1).border = {
+    top: { style: 'thick' },
+    left: { style: 'thick' },
+    bottom: { style: 'thick' },
+    right: { style: 'thick' }
+  };
+  worksheet.getRow(1).fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF000080' }
+  };
+
+  let totalPrice = 0;
+  let totalWeight = 0;
+
+  for (let i = 0; i < filteredData.length; i++) {
+    const m = filteredData[i];
+    const row = worksheet.addRow({
+      index: i + 1,
+      fecha: m.fecha,
+      guia: m.guia,
+      sucursal_origen: m.sucursale.origen,  // Campo ajustado
+      direccion: m.direccion_especifica,
+      sucursal: m.sucursale.nombre,
+      servicio: m.tarifa.departamento,  // Ajuste según tu estructura
+      ciudad: m.ciudad,
+      zona: m.zona_d,
+      contenido: m.contenido,
+      peso: m.peso_v,
+      precio: m.nombre_d,
+      fecha_entrega: m.fecha_d,
+      destinatario: m.destinatario,
+      cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
+      observacion: m.observacion,
     });
 
-    if (filteredData.length === 0) {
-      Swal.fire({
-        icon: 'info',
-        title: 'Sin datos',
-        text: 'No hay datos dentro del rango de fechas seleccionado.',
-      });
-      return;
-    }
+    totalPrice += parseFloat(m.nombre_d) || 0;
+    totalWeight += parseFloat(m.peso_v) || 0;
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
-
-    worksheet.columns = [
-      { header: '#', key: 'index', width: 5 },
-      { header: 'Sucursal', key: 'sucursal', width: 20 },
-      { header: 'Guía', key: 'guia', width: 20 },
-      { header: 'Peso (Kg)', key: 'peso', width: 10 },
-      { header: 'Remitente', key: 'remitente', width: 20 },
-      { header: 'Dirección', key: 'direccion', width: 30 },
-      { header: 'Teléfono', key: 'telefono', width: 15 },
-      { header: 'Contenido', key: 'contenido', width: 20 },
-      { header: 'Firma Destinatario', key: 'firma_destinatario', width: 25 },
-      { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
-      { header: 'Destinatario', key: 'destinatario', width: 20 },
-      { header: 'Teléfono Destinatario', key: 'telefono_destinatario', width: 15 },
-      { header: 'Dirección Destinatario', key: 'direccion_destinatario', width: 30 },
-      { header: 'Ciudad', key: 'ciudad', width: 15 },
-      { header: 'Zona', key: 'zona', width: 15 },
-      { header: 'Precio (Bs)', key: 'precio', width: 10 },
-      { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
-    ];
-
-    worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
-    worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
-    worksheet.getRow(1).border = {
-      top: { style: 'thick' },
-      left: { style: 'thick' },
-      bottom: { style: 'thick' },
-      right: { style: 'thick' }
-    };
-    worksheet.getRow(1).fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF000080' }
-    };
-
-    let totalPrice = 0;
-
-    for (let i = 0; i < filteredData.length; i++) {
-      const m = filteredData[i];
-      const row = worksheet.addRow({
-        index: i + 1,
-        sucursal: m.sucursale.nombre,
-        guia: m.guia,
-        peso: m.peso_o,
-        remitente: m.remitente,
-        direccion: m.direccion,
-        telefono: m.telefono,
-        contenido: m.contenido,
-        fecha: m.fecha,
-        destinatario: m.destinatario,
-        telefono_destinatario: m.telefono_d,
-        direccion_destinatario: m.direccion_d,
-        ciudad: m.ciudad,
-        zona: m.zona_d,
-        precio: m.nombre_d,
-        fecha_entrega: m.fecha_d,
+    if (m.firma_d) {
+      const signatureId = workbook.addImage({
+        base64: m.firma_d,
+        extension: 'png',
       });
 
-      totalPrice += parseFloat(m.nombre_d) || 0;
-
-      if (m.firma_d) {
-        const signatureId = workbook.addImage({
-          base64: m.firma_d,
-          extension: 'png',
-        });
-
-        worksheet.addImage(signatureId, {
-          tl: { col: 8, row: row.number - 1 },
-          ext: { width: 100, height: 50 }
-        });
-      }
-
-      const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
-      row.eachCell({ includeEmpty: true }, function (cell) {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: fillColor }
-        };
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' }
-        };
+      worksheet.addImage(signatureId, {
+        tl: { col: 16, row: row.number - 1 },
+        ext: { width: 100, height: 50 }
       });
     }
 
-    const totalRow = worksheet.addRow({
-      zona: 'Total',
-      precio: totalPrice.toFixed(2),
+    const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
+    row.eachCell({ includeEmpty: true }, function (cell) {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: fillColor }
+      };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
     });
+  }
 
-    totalRow.eachCell({ includeEmpty: true }, function (cell, colNumber) {
-      if (colNumber === 1) {
-        cell.font = { bold: true };
-        cell.alignment = { horizontal: 'right' };
-      }
-      if (colNumber === 16) {
-        cell.font = { bold: true };
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFFFD700' }
-        };
-        cell.border = {
-          top: { style: 'thick' },
-          left: { style: 'thick' },
-          bottom: { style: 'thick' },
-          right: { style: 'thick' }
-        };
-      }
-    });
+  // Añadir la fila de totales
+  const totalRow = worksheet.addRow({
+    zona: 'Total',
+    peso: totalWeight.toFixed(3) + ' Kg',
+    precio: totalPrice.toFixed(2) + ' Bs',
+  });
 
-    worksheet.eachRow({ includeEmpty: true }, function (row) {
-      row.height = 25;
-    });
+  totalRow.eachCell({ includeEmpty: true }, function (cell, colNumber) {
+    if (colNumber === 1) {
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: 'right' };
+    }
+    if (colNumber === 11 || colNumber === 12) { // Asegurarse de que el total de peso y precio se resalte
+      cell.font = { bold: true };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFD700' }
+      };
+      cell.border = {
+        top: { style: 'thick' },
+        left: { style: 'thick' },
+        bottom: { style: 'thick' },
+        right: { style: 'thick' }
+      };
+    }
+  });
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'Solicitudes_Entregadas.xlsx';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  },
+  worksheet.eachRow({ includeEmpty: true }, function (row) {
+    row.height = 25;
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'Solicitudes_Entregadas.xlsx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+
+
+
+
+
+
+
+
+,
    
     
     

@@ -190,7 +190,7 @@ export default {
 
 
     async exportToExcel() {
-    // Validar que se seleccionaron ambas fechas
+    // Validar las fechas seleccionadas
     if (!this.startDate || !this.endDate) {
       Swal.fire({
         icon: 'warning',
@@ -200,12 +200,9 @@ export default {
       return;
     }
 
-    // Adaptar las fechas de inicio y fin para que incluyan la hora (00:00 para start y 23:59 para end)
-    const start = new Date(this.startDate);
-    start.setHours(0, 0, 0, 0); // Establecer la hora al inicio del día
+    const start = this.startDate ? new Date(this.startDate + 'T00:00:00') : null;
+const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
 
-    const end = new Date(this.endDate);
-    end.setHours(23, 59, 59, 999); // Establecer la hora al final del día
 
     if (start > end) {
       Swal.fire({
@@ -216,26 +213,40 @@ export default {
       return;
     }
 
-    // Filtrar los datos por estado 3 y 4, por la sucursal logueada y por el rango de fechas
-    const filteredData = this.sortedList.filter(m => {
-      const [datePart, timePart] = m.fecha_d.split(' ');
-      const [day, month, year] = datePart.split('/');
-      const [hour, minute] = timePart.split(':');
+    // Filtrar los datos por el rango de fechas, estados 3 y 4, y sucursal logueada
+    const filteredData = this.list.filter(m => {
+      // Verificar si m.fecha_d está definido
+      if (!m.fecha_d || !m.sucursale || m.sucursale.id !== this.user.user.id) {
+        return false;
+      }
 
-      // Crear un objeto de fecha con hora incluida
-      const date = new Date(year, month - 1, day, hour, minute);
+      // Convertir fecha_d al formato Date
+      const [day, month, yearTime] = m.fecha_d.split('/');
+      if (!day || !month || !yearTime) {
+        return false; // Si el formato es incorrecto, ignorar el registro
+      }
 
-      // Comparar las fechas con la hora incluida
-      return (m.estado === 3 || m.estado === 4) &&
-             m.sucursale.id === this.user.user.sucursale_id &&
-             date >= start && date <= end;
+      const [year, time] = yearTime.split(' ');
+      if (!year || !time) {
+        return false; // Si el formato es incorrecto, ignorar el registro
+      }
+
+      const [hours, minutes] = time.split(':');
+      if (!hours || !minutes) {
+        return false; // Si el formato es incorrecto, ignorar el registro
+      }
+
+      const fechaD = new Date(year, month - 1, day, hours, minutes);
+      
+      // Comparar si fechaD está entre start y end, y si el estado es 3 o 4
+      return (m.estado === 3 || m.estado === 4) && fechaD >= start && fechaD <= end;
     });
 
     if (filteredData.length === 0) {
       Swal.fire({
         icon: 'info',
         title: 'Sin datos',
-        text: 'No hay registros en estado 3 o 4 para la sucursal seleccionada dentro del rango de fechas.',
+        text: 'No hay registros dentro del rango de fechas y estados seleccionados.',
       });
       return;
     }

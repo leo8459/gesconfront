@@ -208,8 +208,9 @@ export default {
       return;
     }
 
-    const start = new Date(this.startDate);
-    const end = new Date(this.endDate);
+    const start = this.startDate ? new Date(this.startDate + 'T00:00:00') : null;
+const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
+
 
     if (start > end) {
       Swal.fire({
