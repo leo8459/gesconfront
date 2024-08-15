@@ -7,7 +7,7 @@
           <div class="col-sm-8 col-12">
             <div class="card">
               <div class="card-header">
-                <h3>Agregar</h3>
+                <h3>Crear empresa matriz</h3>
               </div>
               <div class="card-body">
                 <CrudCreate4 :model="model" :apiUrl="apiUrl">

@@ -322,7 +322,7 @@ export default {
         await this.GET_DATA(this.apiUrl); // Actualizar la lista después de la operación
         this.$swal.fire({
             icon: 'success',
-            title: 'Solicitud rechazada',
+            title: 'Solicitud a sido Retornada',
             text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
         });
         this.isObservationModalVisible = false;

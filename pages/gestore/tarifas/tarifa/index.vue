@@ -6,7 +6,7 @@
         <div class="row justify-content-end">
           <div class="col-2">
             <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class=""></i> Agregar Tarifa
+              <i class=""></i> Crear tarifas
             </nuxtLink>
           </div>
           <div class="col-12">
@@ -19,7 +19,7 @@
                   <div class="card-body d-flex flex-column">
                     <p class="card-text">
                       <button class="btn btn-block" style="background-color: #B99C46; color: #FFFFFF;" @click="openModal(sucursal)">
-                        Ver Tarifas
+                        Ver tarifas de sucursal
                       </button>
                     </p>
                   </div>
@@ -48,7 +48,7 @@
                   <th class="p-1">#</th>
                   <th class="p-1">Departamento de origen</th>
                   <th class="p-1">Departamento de Envio</th>
-                  <th class="p-1">Provincia</th>
+                  <th class="p-1">Municipio</th>
                   <th class="p-1">Servicio</th>
                   <th class="p-1">1 Kilogramo (Bs)</th>
                   <th class="p-1">Kilogramo Extra (Bs)</th>

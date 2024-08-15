@@ -31,14 +31,14 @@
           </div>
           <div class="col-md-2">
             <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class=""></i> Agregar Solicitud
+              <i class=""></i> Crear sucursal
             </nuxtLink>
           </div>
           <div class="col-12">
             <div class="card">
               <div class="card-body">
                 <!-- Campo de búsqueda -->
-                <input type="text" v-model="busqueda" class="form-control" placeholder="Buscar por nombre"
+                <input type="text" v-model="busqueda" class="form-control" placeholder="Buscar"
                   @keyup.enter="buscar" @input="buscar" />
                 <br>
                 <table class="table">
@@ -53,7 +53,7 @@
                     <th class="py-0 px-1">Dirección</th>
                     <th class="py-0 px-1">Acuerdos</th>
                     <th class="py-0 px-1">Codigo Cliente</th>
-                    <th class="py-0 px-1">Contrato</th>
+                    <th class="py-0 px-1">Numero de Contrato</th>
                     <th class="py-0 px-1">Contacto</th>
                     <th class="py-0 px-1"></th>
                   </thead>
@@ -123,7 +123,7 @@ export default {
       sucursales: [], // Almacenar las sucursales para el dropdown
       selectedSucursal: '', // Sucursal seleccionada
       apiUrls: ['sucursales3', 'solicitudes3'],
-      page: 'Sucursales y Solicitudes',
+      page: 'Sucursales',
       modulo: 'AGBC',
       url_nuevo: '/gestore/sucursales/sucursale/nuevo',
       url_editar: '/gestore/sucursales/sucursale/editar/',

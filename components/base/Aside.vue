@@ -303,6 +303,12 @@
                   <span class="sidenav-normal"> Tarifas </span>
                 </nuxtLink>
               </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/gestore/direcciones/direccione">
+                  <span class="sidenav-mini-icon"> Direcciones </span>
+                  <span class="sidenav-normal"> Direcciones </span>
+                </nuxtLink>
+              </li>
             </ul>
           </div>
         </li>

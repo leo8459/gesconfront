@@ -23,7 +23,7 @@
                     <input type="text" v-model="model.departamento" class="form-control" id="departamento">
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="departamento">Provincia de envio</label>
+                    <label class="form-label" for="provincia">Municipio de envio</label>
                     <input type="text" v-model="model.provincia" class="form-control" id="provincia">
                   </div>
                   <div class="form-group">
@@ -56,8 +56,8 @@
                     <input type="text" v-model="clonado.departamento" class="form-control" id="departamento">
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="departamento">Provincia de envio</label>
-                    <input type="text" v-model="model.provincia" class="form-control" id="provincia">
+                    <label class="form-label" for="provincia">Municipio de envio</label>
+                    <input type="text" v-model="clonado.provincia" class="form-control" id="provincia">
                   </div>
                   <div class="form-group">
                     <label class="form-label" for="servicio">Servicio</label>

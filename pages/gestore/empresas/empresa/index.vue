@@ -8,7 +8,7 @@
           <div class="col-12">
             <div class="card">
               <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-                <i class=""></i> Agregar Empresa Matriz
+                <i class=""></i> Crear empresa matriz
               </nuxtLink>
               <div class="card-body">
                 <!-- Campo de búsqueda -->
