@@ -19,7 +19,7 @@
                     </select>
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="departamento">Departamento de envio</label>
+                    <label class="form-label" for="departamento">Departamento de destino</label>
                     <input type="text" v-model="model.departamento" class="form-control" id="departamento">
                   </div>
                   <div class="form-group">
@@ -31,11 +31,11 @@
                     <input type="text" v-model="model.servicio" class="form-control" id="servicio">
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="precio">Precio Servicio</label>
+                    <label class="form-label" for="precio">Precio Servicio por 1 kilo (Bs)</label>
                     <input type="text" v-model="model.precio" class="form-control" id="precio">
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="precio_extra">Precio Servicio Extra</label>
+                    <label class="form-label" for="precio_extra">Precio Servicio por  kilo extra (Bs)</label>
                     <input type="text" v-model="model.precio_extra" class="form-control" id="precio_extra">
                   </div>
                   <div class="form-group form-check">

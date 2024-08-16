@@ -3,6 +3,14 @@
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
+        <div class="row justify-content-end mb-3">
+          <div class="col-2">
+            <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
+              <i class=""></i> Crear solicitud de Correspondencia
+            </nuxtLink>
+          </div>
+        </div>
+
         <div class="row align-items-end mb-3">
           <div class="col-md-2">
             <label for="startDate" class="form-label">Fecha Inicial</label>

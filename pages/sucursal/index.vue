@@ -3,6 +3,16 @@
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
+        <!-- Barra superior con botón de Agregar y Cerrar Sesión -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex align-items-center">
+            <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm mr-3">
+              <i class=""></i> Crear solicitud de Correspondencia
+            </nuxtLink>
+          
+          </div>
+        </div>
+
         <div class="row">
           <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
             <div class="card">
@@ -204,6 +214,7 @@ export default {
         totalSolicitudes: 0,
         totalGastado: 0
       },
+      url_nuevo: '/sucursal/sucursales/sucursal/nuevo' // Aquí defines la URL del nuevo botón
     };
   },
   methods: {
@@ -221,10 +232,6 @@ export default {
         const totalSolicitudesEstado2 = await this.GET_DATA('/solicitudes-estado-2', { sucursal_id: sucursalId });
         const totalSolicitudesEstado3 = await this.GET_DATA('/solicitudes-estado-3', { sucursal_id: sucursalId });
         const totalSolicitudesEstado0 = await this.GET_DATA('/solicitudes-estado-0', { sucursal_id: sucursalId });
-
-
-
-
 
         this.dashboard.totalSolicitudes = totalSolicitudesData.total;
         this.dashboard.totalGastado = totalGastadoData.total_gastado;
@@ -269,5 +276,9 @@ export default {
   width: 100px;
   height: 100px;
   object-fit: cover;
+}
+
+.mr-3 {
+  margin-right: 1rem;
 }
 </style>

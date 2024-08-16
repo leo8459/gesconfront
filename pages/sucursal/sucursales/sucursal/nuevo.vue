@@ -22,7 +22,7 @@
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="tarifas">Departamento de envío</label>
+                      <label for="tarifas">Departamento de destino</label>
                       <v-select :options="tarifas" v-model="model.tarifa_id" label="departamento"
                         :reduce="tarifa => tarifa.id" placeholder="Buscar departamento...">
                         <template #option="option">
@@ -38,26 +38,26 @@
                       </v-select>
                     </div>
                     <div class="form-group col-12">
-  <label for="direccion">Dirección</label>
-  <v-select :options="direcciones" v-model="model.direccion_id" label="direccion"
-    :reduce="direccion => direccion.id" placeholder="Seleccionar dirección...">
-    <template #option="option">
-      <div>
-        {{ option.nombre }}
-      </div>
-    </template>
-    <template #selected-option="option">
-      <div>
-        {{ option.nombre }}
-      </div>
-    </template>
-  </v-select>
+                      <label for="direccion">Dirección de recojo</label>
+                      <v-select :options="direcciones" v-model="model.direccion_id" label="direccion"
+                        :reduce="direccion => direccion.id" placeholder="Seleccionar dirección...">
+                        <template #option="option">
+                          <div>
+                            {{ option.nombre }}
+                          </div>
+                        </template>
+                        <template #selected-option="option">
+                          <div>
+                            {{ option.nombre }}
+                          </div>
+                        </template>
+                      </v-select>
 
-  <!-- Botón para agregar nueva dirección dentro del mismo div -->
-  <button @click="redirectToAddNewAddress" class="btn btn-primary btn-sm mt-2">
-    Agregar nueva dirección de recogida
-  </button>
-</div>
+                      <!-- Botón para agregar nueva dirección dentro del mismo div -->
+                      <button @click="redirectToAddNewAddress" class="btn btn-primary btn-sm mt-2">
+                        Agregar nueva dirección de recogida
+                      </button>
+                    </div>
                     <div class="form-group col-12">
                       <label for="precios">Precio Estimado</label>
                       <input type="text" id="precios" class="form-control" :value="precioSeleccionado" disabled>
@@ -302,8 +302,8 @@ export default {
   },
   methods: {
     redirectToAddNewAddress() {
-    this.$router.push(this.url_nuevo);
-  },
+      this.$router.push(this.url_nuevo);
+    },
     async fetchDirecciones() {
       try {
         const direcciones = await this.GET_DATA('direcciones', { sucursale_id: this.sucursale_id_logueada });
