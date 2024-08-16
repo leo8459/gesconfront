@@ -10,7 +10,7 @@
                 <h3>Crear Nueva Dirección</h3>
               </div>
               <div class="card-body">
-                <CrudCreate4 :model="model" :apiUrl="apiUrl">
+                <CrudCreate2 :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
 
                     <div class="form-group col-12">
@@ -52,7 +52,7 @@
                     </div>
 
                   </div>
-                </CrudCreate4>
+                </CrudCreate2>
               </div>
             </div>
           </div>
@@ -109,7 +109,7 @@ export default {
         sucursale_id: null, // Este campo se relaciona con la sucursal seleccionada
       },
       sucursales: [], // Aquí se almacenarán las sucursales
-      apiUrl: 'direcciones3',
+      apiUrl: 'direcciones2',
       page: 'Direcciones',
       modulo: 'AGBC',
       load: true,
@@ -211,15 +211,18 @@ export default {
       }
     },
     async GET_DATA(path) {
-      const res = await this.$gestores.$get(path);
+      const res = await this.$sucursales.$get(path);
       return res;
     },
   },
   mounted() {
     this.$nextTick(async () => {
       try {
-        const sucursalesData = await this.GET_DATA('sucursales3');
-        this.sucursales = sucursalesData; // Asignar las sucursales al dropdown
+        let user = JSON.parse(localStorage.getItem('userAuth'));
+        if (user && user.user) {
+          this.model.sucursale_id = user.user.id; // Asignar el ID de la sucursal logueada
+          this.sucursales = [user.user]; // Asignar la sucursal logueada al dropdown
+        }
       } catch (e) {
         console.log(e);
       } finally {
@@ -227,6 +230,7 @@ export default {
       }
     });
   },
+
 };
 </script>
 

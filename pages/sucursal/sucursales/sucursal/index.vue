@@ -34,10 +34,15 @@
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Número de Guía</th>
                         <th class="py-0 px-1">Código de Barras</th>
+                        <th class="py-0 px-1">Nombre</th> <!-- Nueva columna para el nombre -->
+                        <th class="py-0 px-1">Dirección Específica</th>
+
+                        <!-- Nueva columna para la dirección específica -->
+                        <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
+                        <th class="py-0 px-1">Dirección maps</th>
                         <th class="py-0 px-1">Peso (Kg)</th>
                         <th class="py-0 px-1">Remitente</th>
-                        <th class="py-0 px-1">Dirección maps</th>
-                        <th class="py-0 px-1">Dirección</th>
+                        <!-- <th class="py-0 px-1">Dirección</th> -->
                         <th class="py-0 px-1">Teléfono</th>
                         <th class="py-0 px-1">Contenido</th>
                         <th class="py-0 px-1">Fecha de Solicitud</th>
@@ -50,17 +55,32 @@
                         <th class="py-0 px-1"></th>
                       </tr>
                     </thead>
+
                     <tbody>
                       <tr v-for="(m, i) in paginatedList" :key="i">
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1">{{ m.guia }}</td>
                         <td class="py-0 px-1">
-                          <img v-if="m.codigo_barras" :src="'data:image/png;base64,' + m.codigo_barras" alt="Código de Barras" width="200" height="100" />
+                          <img v-if="m.codigo_barras" :src="'data:image/png;base64,' + m.codigo_barras"
+                            alt="Código de Barras" width="200" height="100" />
                         </td>
+                        <td class="py-0 px-1">{{ m.direccion.nombre }}</td> <!-- Mostrar el nombre -->
+                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                        <!-- Mostrar la dirección específica -->
+                        <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion.direccion }}</span>
+                        </td>
+
                         <td class="py-0 px-1">{{ m.peso_o }}</td>
                         <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <td class="py-0 px-1">
+                        <!-- <td class="py-0 px-1">
                           <a v-if="isCoordinates(m.direccion)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
                             class="btn btn-primary btn-sm">
@@ -68,7 +88,7 @@
                           </a>
                           <span v-else>{{ m.direccion }}</span>
                         </td>
-                        <td class="py-0 px-1">{{ m.direccion_especifica }}</td>
+                        <td class="py-0 px-1">{{ m.direccion_especifica }}</td> -->
                         <td class="py-0 px-1">{{ m.telefono }}</td>
                         <td class="py-0 px-1">{{ m.contenido }}</td>
                         <td class="py-0 px-1">{{ m.fecha }}</td>
@@ -82,6 +102,7 @@
                           </a>
                           <span v-else>{{ m.direccion_d }}</span>
                         </td>
+
                         <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
                         <td class="py-0 px-1">{{ m.ciudad }}</td>
                         <td class="py-0 px-1">{{ getTarifaLabel(m.tarifa_id) }}</td>
@@ -97,6 +118,7 @@
                         </td>
                       </tr>
                     </tbody>
+
                   </table>
                 </div>
                 <!-- Paginación -->
@@ -148,6 +170,8 @@ export default {
       },
       currentPage: 0,
       itemsPerPage: 10,
+      direcciones: [], // Agregar aquí la propiedad para almacenar las direcciones
+
     };
   },
   computed: {
@@ -167,6 +191,14 @@ export default {
     }
   },
   methods: {
+    getDireccionLabel(direccion_id) {
+      if (!this.direcciones) {
+        return 'Direcciones no cargadas';
+      }
+      const direccion = this.direcciones.find(d => d.id === direccion_id);
+      return direccion ? `${direccion.nombre} - ${direccion.direccion_especifica}` : 'Dirección no encontrada';
+    },
+
     async GET_DATA(path) {
       const res = await this.$sucursales.$get(path);
       return res;
@@ -274,6 +306,14 @@ export default {
           this.tarifas = tarifas;
         } else {
           console.error('Las tarifas recuperadas no son un array:', tarifas);
+        }
+
+        // Obtener direcciones para los nombres de dirección
+        const direcciones = await this.GET_DATA('direcciones', { sucursale_id: this.user.user.id });
+        if (Array.isArray(direcciones)) {
+          this.direcciones = direcciones;
+        } else {
+          console.error('Las direcciones recuperadas no son un array:', direcciones);
         }
       } catch (e) {
         console.error('Error al obtener los datos:', e);
