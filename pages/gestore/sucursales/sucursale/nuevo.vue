@@ -35,21 +35,49 @@
                       <input type="text" v-model="model.nombre" class="form-control" id="">
                     </div>
 
-                    <div class="form-group col-12">
-                      <label for="">Codigo de sucursal</label>
-                      <input type="text" v-model="model.codigo_cliente" class="form-control" id="">
-                    </div>
+
                     <div class="form-group col-12">
                       <label for="">Numero de Contrato</label>
                       <input type="text" v-model="model.n_contrato" class="form-control" id="">
                     </div>
-                   
 
-                    
+
+
                     <div class="form-group col-12">
-                      <label for="">Departamento origen</label>
-                      <input type="text" v-model="model.origen" class="form-control" id="">
+                      <label for="origen">Departamento origen</label>
+                      <select v-model="model.origen" class="form-control" id="origen">
+                        <option value="LPB">La Paz (LPB)</option>
+                        <option value="SCZ">Santa Cruz (SCZ)</option>
+                        <option value="CBB">Cochabamba (CBB)</option>
+                        <option value="ORU">Oruro (ORU)</option>
+                        <option value="PTS">Potosí (PTS)</option>
+                        <option value="TJA">Tarija (TJA)</option>
+                        <option value="CHU">Sucre (CHU)</option>
+                        <option value="BEN">Trinidad (BEN)</option>
+                        <option value="PAN">Cobija (PAN)</option>
+                      </select>
                     </div>
+
+
+                    <div class="form-group col-12">
+                      <label for="acuerdo_contrato">Acuerdo contrato</label>
+                      <select v-model="model.acuerdo_contrato" class="form-control" id="acuerdo_contrato">
+                        <option value="CONTRATO">CONTRATO</option>
+                        <option value="CONVENIO">CONVENIO</option>
+                        <option value="POSTPAGO">POSTPAGO</option>
+                        <option value="TASITA RECONDUCCIÓN">TASITA RECONDUCCIÓN</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group col-12">
+                      <label for="tipo_contrato">Tipo de Contrato</label>
+                      <select v-model="model.tipo_contrato" class="form-control" id="tipo_contrato">
+                        <option value="EMS">EMS</option>
+                        <option value="ECA">ECA</option>
+                        <option value="EMS Y ECA">EMS Y ECA</option>
+                      </select>
+                    </div>
+
                     <div class="form-group col-12">
                       <label for="">Inicio de contrato</label>
                       <input type="date" v-model="model.ini_vigencia" class="form-control" :min="ini_vigencia">
@@ -134,6 +162,9 @@ export default {
         acuerdos: '',
         codigo_cliente: '',
         empresa_id: '',
+        tipo_contrato: '', // Este será llenado al recibir los datos del backend
+        acuerdo_contrato: '', // Este será llenado al recibir los datos del backend
+
       },
       apiUrl: 'sucursales3',
       page: 'sucursales',

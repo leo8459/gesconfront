@@ -15,6 +15,7 @@
               </option>
             </select>
           </div>
+
           <!-- Campos para seleccionar fechas y botón para generar reporte -->
           <div class="col-md-2">
             <label for="startDate" class="form-label">Fecha Inicial</label>
@@ -34,56 +35,62 @@
               <i class=""></i> Crear sucursal
             </nuxtLink>
           </div>
+
+          <!-- Tabla de datos -->
           <div class="col-12">
-            <div class="card">
+            <div class="card w-100">
               <div class="card-body">
-                <!-- Campo de búsqueda -->
-                <input type="text" v-model="busqueda" class="form-control" placeholder="Buscar"
-                  @keyup.enter="buscar" @input="buscar" />
-                <br>
-                <table class="table">
-                  <thead>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Departamento Origen</th>
-                    <th class="py-0 px-1">Inicio Contrato</th>
-                    <th class="py-0 px-1">Fin Contrato</th>
-                    <th class="py-0 px-1">Límite Presupuestario</th>
-                    <th class="py-0 px-1">Cobertura</th>
-                    <th class="py-0 px-1">Dirección</th>
-                    <th class="py-0 px-1">Acuerdos</th>
-                    <th class="py-0 px-1">Codigo Cliente</th>
-                    <th class="py-0 px-1">Numero de Contrato</th>
-                    <th class="py-0 px-1">Contacto</th>
-                    <th class="py-0 px-1"></th>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(m, i) in paginatedList" :key="i">
-                      <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                      <td class="py-0 px-1">{{ m.nombre }}</td>
-                      <td class="py-0 px-1">{{ m.origen }}</td>
-                      <td class="py-0 px-1">{{ m.ini_vigencia }}</td>
-                      <td class="py-0 px-1">{{ m.fin_vigencia }}</td>
-                      <td class="py-0 px-1">{{ m.limite }}</td>
-                      <td class="py-0 px-1">{{ m.cobertura }}</td>
-                      <td class="py-0 px-1">{{ m.direccion }}</td>
-                      <td class="py-0 px-1">{{ m.acuerdos }}</td>
-                      <td class="py-0 px-1">{{ m.codigo_cliente }}</td>
-                      <td class="py-0 px-1">{{ m.n_contrato }}</td>
-                      <td class="py-0 px-1">{{ m.contacto_administrativo }}</td>
-                      <td class="py-0 px-1">
-                        <div class="btn-group">
-                          <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
-                            <i class="fas fa-pen"></i>
-                          </nuxtLink>
-                          <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
-                            <i class="fas fa-trash"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <!-- Contenedor de la tabla para hacerlo responsive -->
+                <div class="table-responsive">
+                  <table class="table table-striped table-bordered">
+                    <thead>
+                      <th class="py-0 px-1">#</th>
+                      <th class="py-0 px-1">Sucursal</th>
+                      <th class="py-0 px-1">Acuerdo contrato</th>
+                      <th class="py-0 px-1">Tipo de Contrato</th>
+                      <th class="py-0 px-1">Departamento Origen</th>
+                      <th class="py-0 px-1">Inicio Contrato</th>
+                      <th class="py-0 px-1">Fin Contrato</th>
+                      <th class="py-0 px-1">Límite Presupuestario</th>
+                      <th class="py-0 px-1">Cobertura</th>
+                      <th class="py-0 px-1">Dirección</th>
+                      <th class="py-0 px-1">Acuerdos</th>
+                      <th class="py-0 px-1">Codigo Cliente</th>
+                      <th class="py-0 px-1">Numero de Contrato</th>
+                      <th class="py-0 px-1">Contacto</th>
+                      <th class="py-0 px-1"></th>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedList" :key="i">
+                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td class="py-0 px-1">{{ m.nombre }}</td>
+                        <td class="py-0 px-1">{{ m.tipo_contrato }}</td>
+                        <td class="py-0 px-1">{{ m.acuerdo_contrato }}</td>
+                        <td class="py-0 px-1">{{ m.origen }}</td>
+                        <td class="py-0 px-1">{{ m.ini_vigencia }}</td>
+                        <td class="py-0 px-1">{{ m.fin_vigencia }}</td>
+                        <td class="py-0 px-1">{{ m.limite }}</td>
+                        <td class="py-0 px-1">{{ m.cobertura }}</td>
+                        <td class="py-0 px-1">{{ m.direccion }}</td>
+                        <td class="py-0 px-1">{{ m.acuerdos }}</td>
+                        <td class="py-0 px-1">{{ m.codigo_cliente }}</td>
+                        <td class="py-0 px-1">{{ m.n_contrato }}</td>
+                        <td class="py-0 px-1">{{ m.contacto_administrativo }}</td>
+                        <td class="py-0 px-1">
+                          <div class="btn-group">
+                            <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
+                              <i class="fas fa-pen"></i>
+                            </nuxtLink>
+                            <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div> <!-- Cierre del contenedor table-responsive -->
+                
                 <!-- Paginación -->
                 <nav aria-label="Page navigation">
                   <ul class="pagination justify-content-between">
@@ -108,7 +115,6 @@
     </AdminTemplate>
   </div>
 </template>
-
 
 <script>
 import ExcelJS from 'exceljs';
@@ -213,9 +219,6 @@ export default {
     goToPage(page) {
       this.currentPage = page;
     },
-
-
-
     async exportToExcel() {
       // Validar las fechas seleccionadas
       if (!this.startDate || !this.endDate) {
@@ -417,7 +420,6 @@ export default {
 };
 </script>
 
-
 <style scoped>
 .activo {
   color: blue;
@@ -436,5 +438,14 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 800px; /* Ajusta este valor según tus necesidades */
 }
 </style>

@@ -20,9 +20,23 @@
                       <label for="sucursal">Sucursal</label>
                       <input type="text" id="sucursal" class="form-control" v-model="model.sucursale_nombre" disabled>
                     </div>
+                    <div class="form-group col-12">
+                      <label for="remitente">Remitente</label>
+                      <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente">
+                    </div>
 
                     <div class="form-group col-12">
-                      <label for="tarifas">Departamento de destino</label>
+                      <label for="telefono">Teléfono</label>
+                      <input type="text" v-model.trim="model.telefono" class="form-control" id="telefono">
+                    </div>
+                    <div class="form-group col-12">
+                      <label for="contenido">Contenido</label>
+                      <input type="text" v-model.trim="model.contenido" class="form-control" id="contenido">
+                    </div>
+                  
+
+                    <div class="form-group col-12">
+                      <label for="tarifas">Destino y servicio</label>
                       <v-select :options="tarifas" v-model="model.tarifa_id" label="departamento"
                         :reduce="tarifa => tarifa.id" placeholder="Buscar departamento...">
                         <template #option="option">
@@ -58,29 +72,21 @@
                         Agregar nueva dirección de recogida
                       </button>
                     </div>
-                    <div class="form-group col-12">
-                      <label for="precios">Precio Estimado</label>
-                      <input type="text" id="precios" class="form-control" :value="precioSeleccionado" disabled>
-                    </div>
+
                     <div class="form-group col-12">
                       <label for="peso_o">Peso (Medido en Kilogramos)</label>
                       <input type="number" v-model.number="model.peso_o" class="form-control" id="peso_o" step="0.001"
                         @input="limitDecimals">
                     </div>
 
-                    <div class="form-group col-12">
-                      <label for="remitente">Remitente</label>
-                      <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente">
-                    </div>
 
                     <div class="form-group col-12">
-                      <label for="telefono">Teléfono</label>
-                      <input type="text" v-model.trim="model.telefono" class="form-control" id="telefono">
+                      <label for="precios">Precio Estimado</label>
+                      <input type="text" id="precios" class="form-control" :value="precioSeleccionado" disabled>
                     </div>
-                    <div class="form-group col-12">
-                      <label for="contenido">Contenido</label>
-                      <input type="text" v-model.trim="model.contenido" class="form-control" id="contenido">
-                    </div>
+                   
+
+                  
 
                     <div class="form-group col-12">
                       <h4>Destinatario</h4>
