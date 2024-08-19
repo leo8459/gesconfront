@@ -9,31 +9,31 @@
           </div>
           <div class="row justify-content-end mb-3">
             <div class="col-md-2">
-  <label for="sucursal" class="form-label">Sucursal</label>
-  <select v-model="selectedSucursal" id="sucursal" class="form-control">
-    <option value="">Todas</option>
-    <option v-for="sucursal in sucursales" :key="sucursal.id" :value="sucursal.id">
-      {{ sucursal.nombre }}
-    </option>
-  </select>
-</div>
+              <label for="sucursal" class="form-label">Sucursal</label>
+              <select v-model="selectedSucursal" id="sucursal" class="form-control">
+                <option value="">Todas</option>
+                <option v-for="sucursal in sucursales" :key="sucursal.id" :value="sucursal.id">
+                  {{ sucursal.nombre }}
+                </option>
+              </select>
+            </div>
 
 
-  <div class="col-md-2">
-    <label for="startDate" class="form-label">Fecha Inicial</label>
-    <input type="date" v-model="startDate" id="startDate" class="form-control">
-  </div>
-  <div class="col-md-2">
-    <label for="endDate" class="form-label">Fecha Final</label>
-    <input type="date" v-model="endDate" id="endDate" class="form-control">
-  </div>
-  <div class="col-md-2 d-flex align-items-end">
-  <button @click="exportToExcel" class="btn btn-success btn-sm w-100">
-    <i class="fas fa-file-excel"></i> Generar Reporte
-  </button>
-</div>
+            <div class="col-md-2">
+              <label for="startDate" class="form-label">Fecha Inicial</label>
+              <input type="date" v-model="startDate" id="startDate" class="form-control">
+            </div>
+            <div class="col-md-2">
+              <label for="endDate" class="form-label">Fecha Final</label>
+              <input type="date" v-model="endDate" id="endDate" class="form-control">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button @click="exportToExcel" class="btn btn-success btn-sm w-100">
+                <i class="fas fa-file-excel"></i> Generar Reporte
+              </button>
+            </div>
 
-</div>
+          </div>
 
         </div>
         <div class="row">
@@ -42,7 +42,7 @@
               <table class="table table-sm table-bordered">
                 <thead>
                   <tr>
-                   
+
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
                     <th class="py-0 px-1">Cartero Recogida</th>
@@ -51,11 +51,13 @@
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
                     <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Dirección</th>
-                    <th class="py-0 px-1">Teléfono</th>
+                    <th class="py-0 px-1">Detalles de Domicilio</th>
+
+<!-- Nueva columna para la dirección específica -->
+<th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
+<th class="py-0 px-1">Dirección maps</th>                    <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha</th>
-                    <th class="py-0 px-1">Firma Remitente</th>
                     <th class="py-0 px-1">Destinatario</th>
                     <th class="py-0 px-1">Teléfono D</th>
                     <th class="py-0 px-1">Dirección Destinatario</th>
@@ -77,20 +79,20 @@
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.peso_v }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
+                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                    <!-- Mostrar la dirección específica -->
+                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
                     <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
-                        class="btn btn-primary btn-sm">
+                      <a v-if="isCoordinates(m.direccion.direccion)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                        target="_blank" class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
-                      <span v-else>{{ m.direccion }}</span>
+                      <span v-else>{{ m.direccion.direccion }}</span>
                     </td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
-                    </td>
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
                     <td class="py-0 px-1">
@@ -153,9 +155,9 @@ export default {
   data() {
     return {
       startDate: '', // Fecha de inicio seleccionada
-    endDate: '',   // Fecha de fin seleccionada
-    selectedSucursal: '', // Sucursal seleccionada
-    sucursales: [], // Lista de sucursales para el dropdown
+      endDate: '',   // Fecha de fin seleccionada
+      selectedSucursal: '', // Sucursal seleccionada
+      sucursales: [], // Lista de sucursales para el dropdown
       load: true,
       list: [],
       searchTerm: '',
@@ -175,21 +177,21 @@ export default {
       },
       currentPage: 1,
       itemsPerPage: 10,
-      
+
     };
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    return this.list.filter(item => {
-      const fechaD = new Date(item.fecha_d);
-      const isWithinDateRange = (!this.startDate || fechaD >= new Date(this.startDate)) && (!this.endDate || fechaD <= new Date(this.endDate));
-      const isMatchingSucursal = !this.selectedSucursal || item.sucursale?.id === this.selectedSucursal;
-      return isWithinDateRange && isMatchingSucursal &&
-             item.estado === 4 &&
-             Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
-    });
-  },
+      const searchTerm = this.searchTerm.toLowerCase();
+      return this.list.filter(item => {
+        const fechaD = new Date(item.fecha_d);
+        const isWithinDateRange = (!this.startDate || fechaD >= new Date(this.startDate)) && (!this.endDate || fechaD <= new Date(this.endDate));
+        const isMatchingSucursal = !this.selectedSucursal || item.sucursale?.id === this.selectedSucursal;
+        return isWithinDateRange && isMatchingSucursal &&
+          item.estado === 4 &&
+          Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
+      });
+    },
     paginatedData() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -248,13 +250,13 @@ export default {
       document.body.removeChild(link);
     },
     async fetchSucursales() {
-    try {
-      const res = await this.$contratos.$get('sucursales4'); // Cambia 'sucursales_endpoint' por el endpoint real
-      this.sucursales = res;
-    } catch (error) {
-      console.error('Error al cargar las sucursales:', error);
-    }
-  },
+      try {
+        const res = await this.$contratos.$get('sucursales4'); // Cambia 'sucursales_endpoint' por el endpoint real
+        this.sucursales = res;
+      } catch (error) {
+        console.error('Error al cargar las sucursales:', error);
+      }
+    },
     prevPage() {
       if (this.currentPage > 1) {
         this.currentPage -= 1;
@@ -288,171 +290,171 @@ export default {
 
 
 
-    
+
     async exportToExcel() {
-  const start = this.startDate ? new Date(this.startDate + 'T00:00:00') : null;
-  const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
+      const start = this.startDate ? new Date(this.startDate + 'T00:00:00') : null;
+      const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
 
-  const filteredData = this.list.filter(m => {
-    if (!m.fecha_d) {
-      console.error('fecha_d es nulo o indefinido:', m);
-      return false; // Excluye este registro del filtrado
-    }
+      const filteredData = this.list.filter(m => {
+        if (!m.fecha_d) {
+          console.error('fecha_d es nulo o indefinido:', m);
+          return false; // Excluye este registro del filtrado
+        }
 
-    // Convertir fecha_d a Date y ajustar la hora para evitar el desplazamiento de fecha
-    const [day, month, yearAndTime] = m.fecha_d.split('/');
-    const [year, time] = yearAndTime.split(' ');
-    const [hour, minute] = time.split(':');
-    const fechaD = new Date(year, month - 1, day, hour, minute);
+        // Convertir fecha_d a Date y ajustar la hora para evitar el desplazamiento de fecha
+        const [day, month, yearAndTime] = m.fecha_d.split('/');
+        const [year, time] = yearAndTime.split(' ');
+        const [hour, minute] = time.split(':');
+        const fechaD = new Date(year, month - 1, day, hour, minute);
 
-    const isWithinDateRange = (!start || fechaD >= start) && (!end || fechaD <= end);
-    const isMatchingSucursal = !this.selectedSucursal || m.sucursale?.id === this.selectedSucursal;
+        const isWithinDateRange = (!start || fechaD >= start) && (!end || fechaD <= end);
+        const isMatchingSucursal = !this.selectedSucursal || m.sucursale?.id === this.selectedSucursal;
 
-    return (m.estado === 4 || m.estado === 6) && isMatchingSucursal && isWithinDateRange;
-  });
-
-  if (filteredData.length === 0) {
-    Swal.fire({
-      icon: 'info',
-      title: 'Sin datos',
-      text: 'No hay datos disponibles para los criterios seleccionados.',
-    });
-    return;
-  }
-
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
-
-  worksheet.columns = [
-    { header: '#', key: 'index', width: 5 },
-    { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
-    { header: 'Guía', key: 'guia', width: 20 },
-    { header: 'Sucursal Origen', key: 'sucursal_origen', width: 20 },
-    { header: 'Dirección', key: 'direccion', width: 30 },
-    { header: 'Sucursal', key: 'sucursal', width: 20 },
-    { header: 'Departamento/Servicio', key: 'servicio', width: 20 },
-    { header: 'Ciudad', key: 'ciudad', width: 15 },
-    { header: 'Zona', key: 'zona', width: 15 },
-    { header: 'Contenido', key: 'contenido', width: 20 },
-    { header: 'Peso (Kg)', key: 'peso', width: 10 },
-    { header: 'Precio (Bs)', key: 'precio', width: 10 },
-    { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
-    { header: 'Destinatario', key: 'destinatario', width: 20 },
-    { header: 'Nombre del Cartero', key: 'cartero', width: 20 },
-    { header: 'Observaciones', key: 'observacion', width: 25 },
-    { header: 'Firma', key: 'Firma', width: 25 },
-  ];
-
-  worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
-  worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
-  worksheet.getRow(1).border = {
-    top: { style: 'thick' },
-    left: { style: 'thick' },
-    bottom: { style: 'thick' },
-    right: { style: 'thick' }
-  };
-  worksheet.getRow(1).fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FF000080' }
-  };
-
-  let totalPrice = 0;
-  let totalWeight = 0;
-
-  for (let i = 0; i < filteredData.length; i++) {
-    const m = filteredData[i];
-    const row = worksheet.addRow({
-      index: i + 1,
-      fecha: m.fecha,
-      guia: m.guia,
-      sucursal_origen: m.sucursale.origen,  // Campo ajustado
-      direccion: m.direccion_especifica,
-      sucursal: m.sucursale.nombre,
-      servicio: m.tarifa.departamento,  // Ajuste según tu estructura
-      ciudad: m.ciudad,
-      zona: m.zona_d,
-      contenido: m.contenido,
-      peso: m.peso_v,
-      precio: m.nombre_d,
-      fecha_entrega: m.fecha_d,
-      destinatario: m.destinatario,
-      cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
-      observacion: m.observacion,
-    });
-
-    totalPrice += parseFloat(m.nombre_d) || 0;
-    totalWeight += parseFloat(m.peso_v) || 0;
-
-    if (m.firma_d) {
-      const signatureId = workbook.addImage({
-        base64: m.firma_d,
-        extension: 'png',
+        return (m.estado === 4 || m.estado === 6) && isMatchingSucursal && isWithinDateRange;
       });
 
-      worksheet.addImage(signatureId, {
-        tl: { col: 16, row: row.number - 1 },
-        ext: { width: 100, height: 50 }
-      });
-    }
+      if (filteredData.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Sin datos',
+          text: 'No hay datos disponibles para los criterios seleccionados.',
+        });
+        return;
+      }
 
-    const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
-    row.eachCell({ includeEmpty: true }, function (cell) {
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: fillColor }
-      };
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      };
-    });
-  }
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
 
-  // Añadir la fila de totales
-  const totalRow = worksheet.addRow({
-    zona: 'Total',
-    peso: totalWeight.toFixed(3) + ' Kg',
-    precio: totalPrice.toFixed(2) + ' Bs',
-  });
+      worksheet.columns = [
+        { header: '#', key: 'index', width: 5 },
+        { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
+        { header: 'Guía', key: 'guia', width: 20 },
+        { header: 'Sucursal Origen', key: 'sucursal_origen', width: 20 },
+        { header: 'Dirección', key: 'direccion', width: 30 },
+        { header: 'Sucursal', key: 'sucursal', width: 20 },
+        { header: 'Departamento/Servicio', key: 'servicio', width: 20 },
+        { header: 'Ciudad', key: 'ciudad', width: 15 },
+        { header: 'Zona', key: 'zona', width: 15 },
+        { header: 'Contenido', key: 'contenido', width: 20 },
+        { header: 'Peso (Kg)', key: 'peso', width: 10 },
+        { header: 'Precio (Bs)', key: 'precio', width: 10 },
+        { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
+        { header: 'Destinatario', key: 'destinatario', width: 20 },
+        { header: 'Nombre del Cartero', key: 'cartero', width: 20 },
+        { header: 'Observaciones', key: 'observacion', width: 25 },
+        { header: 'Firma', key: 'Firma', width: 25 },
+      ];
 
-  totalRow.eachCell({ includeEmpty: true }, function (cell, colNumber) {
-    if (colNumber === 1) {
-      cell.font = { bold: true };
-      cell.alignment = { horizontal: 'right' };
-    }
-    if (colNumber === 11 || colNumber === 12) { // Asegurarse de que el total de peso y precio se resalte
-      cell.font = { bold: true };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFFFD700' }
-      };
-      cell.border = {
+      worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+      worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+      worksheet.getRow(1).border = {
         top: { style: 'thick' },
         left: { style: 'thick' },
         bottom: { style: 'thick' },
         right: { style: 'thick' }
       };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF000080' }
+      };
+
+      let totalPrice = 0;
+      let totalWeight = 0;
+
+      for (let i = 0; i < filteredData.length; i++) {
+        const m = filteredData[i];
+        const row = worksheet.addRow({
+          index: i + 1,
+          fecha: m.fecha,
+          guia: m.guia,
+          sucursal_origen: m.sucursale.origen,  // Campo ajustado
+          direccion: m.direccion_especifica,
+          sucursal: m.sucursale.nombre,
+          servicio: m.tarifa.departamento,  // Ajuste según tu estructura
+          ciudad: m.ciudad,
+          zona: m.zona_d,
+          contenido: m.contenido,
+          peso: m.peso_v,
+          precio: m.nombre_d,
+          fecha_entrega: m.fecha_d,
+          destinatario: m.destinatario,
+          cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
+          observacion: m.observacion,
+        });
+
+        totalPrice += parseFloat(m.nombre_d) || 0;
+        totalWeight += parseFloat(m.peso_v) || 0;
+
+        if (m.firma_d) {
+          const signatureId = workbook.addImage({
+            base64: m.firma_d,
+            extension: 'png',
+          });
+
+          worksheet.addImage(signatureId, {
+            tl: { col: 16, row: row.number - 1 },
+            ext: { width: 100, height: 50 }
+          });
+        }
+
+        const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
+        row.eachCell({ includeEmpty: true }, function (cell) {
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: fillColor }
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+      }
+
+      // Añadir la fila de totales
+      const totalRow = worksheet.addRow({
+        zona: 'Total',
+        peso: totalWeight.toFixed(3) + ' Kg',
+        precio: totalPrice.toFixed(2) + ' Bs',
+      });
+
+      totalRow.eachCell({ includeEmpty: true }, function (cell, colNumber) {
+        if (colNumber === 1) {
+          cell.font = { bold: true };
+          cell.alignment = { horizontal: 'right' };
+        }
+        if (colNumber === 11 || colNumber === 12) { // Asegurarse de que el total de peso y precio se resalte
+          cell.font = { bold: true };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFFFD700' }
+          };
+          cell.border = {
+            top: { style: 'thick' },
+            left: { style: 'thick' },
+            bottom: { style: 'thick' },
+            right: { style: 'thick' }
+          };
+        }
+      });
+
+      worksheet.eachRow({ includeEmpty: true }, function (row) {
+        row.height = 25;
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'Solicitudes_Entregadas.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
-  });
-
-  worksheet.eachRow({ includeEmpty: true }, function (row) {
-    row.height = 25;
-  });
-
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'Solicitudes_Entregadas.xlsx';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
 
 
 
@@ -463,20 +465,20 @@ export default {
 
 
 
-,
-   
-    
-    
-   
-  
-    
-    
+    ,
+
+
+
+
+
+
+
   },
   mounted() {
     this.$nextTick(async () => {
       await this.fetchSucursales(); // Cargar sucursales
-    await this.GET_DATA(this.apiUrl); // Cargar datos existentes
-    this.load = false;
+      await this.GET_DATA(this.apiUrl); // Cargar datos existentes
+      this.load = false;
       let user = localStorage.getItem('userAuth');
       if (user) {
         this.user = JSON.parse(user);

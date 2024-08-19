@@ -40,8 +40,11 @@
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
                     <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Dirección</th>
-                    <th class="py-0 px-1">Zona Remitente</th>
+                    <th class="py-0 px-1">Detalles de Domicilio</th>
+
+                    <!-- Nueva columna para la dirección específica -->
+                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
+                    <th class="py-0 px-1">Dirección maps</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha</th>
@@ -66,15 +69,17 @@
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.peso_v }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
+                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                    <!-- Mostrar la dirección específica -->
+                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
                     <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
-                        class="btn btn-primary btn-sm">
+                      <a v-if="isCoordinates(m.direccion.direccion)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                        target="_blank" class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
-                      <span v-else>{{ m.direccion }}</span>
+                      <span v-else>{{ m.direccion.direccion }}</span>
                     </td>
-                    <td class="py-0 px-1">{{ m.zona_r }}</td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>
@@ -109,7 +114,8 @@
             <nav aria-label="Page navigation">
               <ul class="pagination justify-content-between">
                 <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0"><</button>
+                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0">
+                    <</button>
                 </li>
                 <li class="page-item" v-for="page in totalPages" :key="page"
                   :class="{ active: currentPage === page - 1 }">
@@ -200,144 +206,144 @@ export default {
   },
   methods: {
     async exportToExcel() {
-    // Validar las fechas seleccionadas
-    if (!this.startDate || !this.endDate) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Fechas requeridas',
-        text: 'Por favor, selecciona ambas fechas para generar el reporte.',
-      });
-      return;
-    }
-
-    const start = this.startDate ? new Date(this.startDate + 'T00:00:00') : null;
-const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
-
-
-    if (start > end) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Fechas incorrectas',
-        text: 'La fecha de inicio no puede ser mayor que la fecha de fin.',
-      });
-      return;
-    }
-
-    // Filtrar los datos por el rango de fechas, estados 3 y 4, y cartero logueado
-    const filteredData = this.list.filter(m => {
-      // Verificar si m.fecha_d está definido y si el cartero corresponde al logueado
-      if (!m.fecha_d || !m.cartero_entrega || m.cartero_entrega.id !== this.user.user.id) {
-        return false;
+      // Validar las fechas seleccionadas
+      if (!this.startDate || !this.endDate) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Fechas requeridas',
+          text: 'Por favor, selecciona ambas fechas para generar el reporte.',
+        });
+        return;
       }
 
-      // Convertir fecha_d al formato Date
-      const [day, month, yearTime] = m.fecha_d.split('/');
-      if (!day || !month || !yearTime) {
-        return false; // Si el formato es incorrecto, ignorar el registro
+      const start = this.startDate ? new Date(this.startDate + 'T00:00:00') : null;
+      const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
+
+
+      if (start > end) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Fechas incorrectas',
+          text: 'La fecha de inicio no puede ser mayor que la fecha de fin.',
+        });
+        return;
       }
 
-      const [year, time] = yearTime.split(' ');
-      if (!year || !time) {
-        return false; // Si el formato es incorrecto, ignorar el registro
+      // Filtrar los datos por el rango de fechas, estados 3 y 4, y cartero logueado
+      const filteredData = this.list.filter(m => {
+        // Verificar si m.fecha_d está definido y si el cartero corresponde al logueado
+        if (!m.fecha_d || !m.cartero_entrega || m.cartero_entrega.id !== this.user.user.id) {
+          return false;
+        }
+
+        // Convertir fecha_d al formato Date
+        const [day, month, yearTime] = m.fecha_d.split('/');
+        if (!day || !month || !yearTime) {
+          return false; // Si el formato es incorrecto, ignorar el registro
+        }
+
+        const [year, time] = yearTime.split(' ');
+        if (!year || !time) {
+          return false; // Si el formato es incorrecto, ignorar el registro
+        }
+
+        const [hours, minutes] = time.split(':');
+        if (!hours || !minutes) {
+          return false; // Si el formato es incorrecto, ignorar el registro
+        }
+
+        const fechaD = new Date(year, month - 1, day, hours, minutes);
+
+        // Comparar si fechaD está entre start y end, y si el estado es 3 o 4
+        return (m.estado === 3 || m.estado === 4) && fechaD >= start && fechaD <= end;
+      });
+
+      if (filteredData.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Sin datos',
+          text: 'No hay registros dentro del rango de fechas y estados seleccionados.',
+        });
+        return;
       }
 
-      const [hours, minutes] = time.split(':');
-      if (!hours || !minutes) {
-        return false; // Si el formato es incorrecto, ignorar el registro
-      }
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Solicitudes Filtradas');
 
-      const fechaD = new Date(year, month - 1, day, hours, minutes);
-      
-      // Comparar si fechaD está entre start y end, y si el estado es 3 o 4
-      return (m.estado === 3 || m.estado === 4) && fechaD >= start && fechaD <= end;
-    });
+      worksheet.columns = [
+        { header: '#', key: 'index', width: 5 },
+        { header: 'Servicio', key: 'servicio', width: 20 },
+        { header: 'Guia', key: 'guia', width: 20 },
+        { header: 'Fecha', key: 'fecha', width: 15 },
+        { header: 'Ciudad', key: 'ciudad', width: 25 },
+        { header: 'Zona Destinatario', key: 'zona_destinatario', width: 30 },
+        { header: 'Cartero', key: 'cartero', width: 20 },
+        { header: 'Peso', key: 'peso_correos', width: 10 },
+        { header: 'Fecha Destinatario', key: 'fecha_destinatario', width: 25 },
+        { header: 'Estado', key: 'estado', width: 20 },
+        { header: 'Observación', key: 'observacion', width: 25 },
+      ];
 
-    if (filteredData.length === 0) {
-      Swal.fire({
-        icon: 'info',
-        title: 'Sin datos',
-        text: 'No hay registros dentro del rango de fechas y estados seleccionados.',
-      });
-      return;
-    }
+      worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+      worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+      worksheet.getRow(1).border = {
+        top: { style: 'thick' },
+        left: { style: 'thick' },
+        bottom: { style: 'thick' },
+        right: { style: 'thick' }
+      };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF000080' }
+      };
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Solicitudes Filtradas');
+      filteredData.forEach((m, i) => {
+        const estadoTexto = m.estado === 3 ? 'ENTREGADO' : 'ENTREGADO';
 
-    worksheet.columns = [
-      { header: '#', key: 'index', width: 5 },
-      { header: 'Servicio', key: 'servicio', width: 20 },
-      { header: 'Guia', key: 'guia', width: 20 },
-      { header: 'Fecha', key: 'fecha', width: 15 },
-      { header: 'Ciudad', key: 'ciudad', width: 25 },
-      { header: 'Zona Destinatario', key: 'zona_destinatario', width: 30 },
-      { header: 'Cartero', key: 'cartero', width: 20 },
-      { header: 'Peso', key: 'peso_correos', width: 10 },
-      { header: 'Fecha Destinatario', key: 'fecha_destinatario', width: 25 },
-      { header: 'Estado', key: 'estado', width: 20 },
-      { header: 'Observación', key: 'observacion', width: 25 },
-    ];
+        const row = worksheet.addRow({
+          index: i + 1,
+          servicio: m.tarifa.servicio,
+          guia: m.guia,
+          fecha: m.fecha,
+          ciudad: m.ciudad,
+          zona_destinatario: m.zona_d,
+          cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
+          peso_correos: m.peso_v + ' Kg',
+          fecha_destinatario: m.fecha_d,
+          estado: estadoTexto,
+          observacion: m.observacion,
+        });
 
-    worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
-    worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
-    worksheet.getRow(1).border = {
-      top: { style: 'thick' },
-      left: { style: 'thick' },
-      bottom: { style: 'thick' },
-      right: { style: 'thick' }
-    };
-    worksheet.getRow(1).fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF000080' }
-    };
-
-    filteredData.forEach((m, i) => {
-      const estadoTexto = m.estado === 3 ? 'ENTREGADO' : 'ENTREGADO';
-
-      const row = worksheet.addRow({
-        index: i + 1,
-        servicio: m.tarifa.servicio,
-        guia: m.guia,
-        fecha: m.fecha,
-        ciudad: m.ciudad,
-        zona_destinatario: m.zona_d,
-        cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
-        peso_correos: m.peso_v + ' Kg',
-        fecha_destinatario: m.fecha_d,
-        estado: estadoTexto,
-        observacion: m.observacion,
+        const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
+        row.eachCell({ includeEmpty: true }, function (cell) {
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: fillColor }
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
       });
 
-      const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
-      row.eachCell({ includeEmpty: true }, function (cell) {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: fillColor }
-        };
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' }
-        };
+      worksheet.eachRow({ includeEmpty: true }, function (row) {
+        row.height = 25;
       });
-    });
 
-    worksheet.eachRow({ includeEmpty: true }, function (row) {
-      row.height = 25;
-    });
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'Solicitudes_Filtradas.xlsx';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  },
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'Solicitudes_Filtradas.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
     loadImage(url) {
       return new Promise((resolve, reject) => {
         const img = new Image();

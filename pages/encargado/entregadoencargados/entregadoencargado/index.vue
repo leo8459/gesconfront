@@ -30,21 +30,24 @@
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
                     <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Dirección</th>
+                    <th class="py-0 px-1">Detalles de Domicilio</th>
+
+                    <!-- Nueva columna para la dirección específica -->
+                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
+                    <th class="py-0 px-1">Dirección maps</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha</th>
-                    <th class="py-0 px-1">Firma Remitente</th>
                     <th class="py-0 px-1">Destinatario</th>
                     <th class="py-0 px-1">Teléfono D</th>
                     <th class="py-0 px-1">Dirección Destinatario</th>
                     <th class="py-0 px-1">Ciudad</th>
+                    <th class="py-0 px-1">Detalles domoicilio destinatario</th>
+                    <th class="py-0 px-1">zona destinatario</th>
+
                     <th class="py-0 px-1">Firma Destinatario</th>
-                    <th class="py-0 px-1">Nombre Destinatario</th>
-                    <th class="py-0 px-1">CI Destinatario</th>
                     <th class="py-0 px-1">Fecha Destinatario</th>
                     <th class="py-0 px-1">Estado</th>
-                    <th class="py-0 px-1"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -60,20 +63,21 @@
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.peso_v }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
+                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                    <!-- Mostrar la dirección específica -->
+                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
                     <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
-                        class="btn btn-primary btn-sm">
+                      <a v-if="isCoordinates(m.direccion.direccion)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                        target="_blank" class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
-                      <span v-else>{{ m.direccion }}</span>
+                      <span v-else>{{ m.direccion.direccion }}</span>
                     </td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
-                    </td>
+                    
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
                     <td class="py-0 px-1">
@@ -85,14 +89,14 @@
                       <span v-else>{{ m.direccion_d }}</span>
                     </td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
+                    <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
+                    <td class="py-0 px-1">{{ m.zona_d }}</td>
+
                     <td class="py-0 px-1">
                       <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
                     </td>
-                    <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                    <td class="py-0 px-1">{{ m.ci_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
                     <td class="py-0 px-1">{{ m.estado === 3 ? 'Entregado' : m.estado }}</td>
-                    <td class="py-0 px-1"></td>
                   </tr>
                 </tbody>
               </table>
@@ -216,12 +220,12 @@ export default {
         console.error('Error al obtener los datos:', e);
       }
     },
-   
-   
-    
-    
-   
-  
+
+
+
+
+
+
     async markSelectedAsVerified() {
       this.load = true;
       try {

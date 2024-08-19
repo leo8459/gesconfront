@@ -36,9 +36,11 @@
                     <th class="py-0 px-1">Guía</th>
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Remitente</th>
+                    <th class="py-0 px-1">Detalles de Domicilio</th>
+
+                    <!-- Nueva columna para la dirección específica -->
+                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
                     <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Dirección</th>
-                    <th class="py-0 px-1">Zona</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha</th>
@@ -60,16 +62,17 @@
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
+                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                    <!-- Mostrar la dirección específica -->
+                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
                     <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
-                        class="btn btn-primary btn-sm">
+                      <a v-if="isCoordinates(m.direccion.direccion)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                        target="_blank" class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
-                      <span v-else>{{ m.direccion }}</span>
+                      <span v-else>{{ m.direccion.direccion }}</span>
                     </td>
-                    <td class="py-0 px-1">{{ m.direccion_especifica }}</td>
-                    <td class="py-0 px-1">{{ m.zona_r }}</td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>

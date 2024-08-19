@@ -40,7 +40,6 @@
                     <td class="p-1">{{ m.sucursale.nombre }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
-                  
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
@@ -56,13 +55,17 @@
                     <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
                     <td class="py-0 px-1">{{ m.zona_d }}</td>
-
                     <td class="py-0 px-1">
                       <div class="btn-group">
                         <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
                           <i class="fas fa-ban"></i> Dar de Baja
                         </nuxtLink>
                       </div>
+                    </td>
+                    <td class="py-0 px-1">
+                      <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
+                        <i class="fas fa-undo"></i> Devolver a destino
+                      </button>
                     </td>
                   </tr>
                 </tbody>
@@ -86,6 +89,23 @@
         </div>
       </div>
     </AdminTemplate>
+    
+    <!-- Modal para añadir observación -->
+    <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop>
+      <div class="form-group">
+        <label for="observacion">Observación</label>
+        <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="capturephoto">Subir Foto (Opcional)</label>
+        <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
+        <img v-if="uploadedImage" :src="uploadedImage" class="img-fluid mt-2" />
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isObservationModalVisible = false">Cancelar</button>
+        <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
+      </div>
+    </b-modal>
 
     <!-- Modal para añadir peso_v -->
     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
@@ -129,6 +149,9 @@ export default {
       user: {},
       currentPage: 0,
       itemsPerPage: 10,
+      isObservationModalVisible: false,
+      observacion: '',
+      uploadedImage: '', // Añadido para manejar la imagen subida
     };
   },
   computed: {
@@ -155,6 +178,54 @@ export default {
     }
   },
   methods: {
+    handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.uploadedImage = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    async confirmRechazar() {
+      this.load = true;
+      try {
+        const now = new Date();
+        const options = {
+          timeZone: 'America/La_Paz',
+        };
+        const formattedDate = now.toLocaleDateString('es-ES', options) + ' ' + now.toLocaleTimeString('es-ES', options);
+
+        await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, { 
+          observacion: this.observacion,
+          fecha_d: formattedDate,
+          imagen: this.uploadedImage, // Enviar la imagen junto con la observación
+        });
+        await this.GET_DATA(this.apiUrl);
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Solicitud ha sido Retornada',
+          text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
+        });
+        this.isObservationModalVisible = false;
+        this.observacion = ''; 
+        this.uploadedImage = ''; // Limpiar la imagen después de guardar
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al devolver la solicitud a destino.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
+    openObservationModal(id) {
+      this.selectedSolicitudeId = id;
+      this.isObservationModalVisible = true;
+    },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
@@ -170,7 +241,7 @@ export default {
           title: 'Cartero asignado',
           text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
         });
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.GET_DATA(this.apiUrl); 
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -217,7 +288,7 @@ export default {
         const item = this.list.find(m => m.id === id);
         if (item) {
           const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
-          Object.assign(item, response); // Actualizar con los datos de la respuesta
+          Object.assign(item, response); 
           await this.GET_DATA(this.apiUrl);
         }
       } catch (e) {
@@ -246,21 +317,21 @@ export default {
       try {
         const carteroId = this.user.user.id;
         for (let item of this.selectedItemsData) {
-          if (item && item.id) { // Verificación adicional
+          if (item && item.id) {
             await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
           } else {
             console.error('Item inválido:', item);
           }
         }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.GET_DATA(this.apiUrl); 
         this.$swal.fire({
           icon: 'success',
           title: 'Carteros asignados',
           text: 'Todos los carteros seleccionados han sido asignados.',
         });
         this.isModalVisible = false;
-        this.selected = {}; // Limpiar la selección después de asignar
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        this.selected = {}; 
+        await this.GET_DATA(this.apiUrl);
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -327,5 +398,10 @@ export default {
 .table-responsive {
   max-width: 100%;
   overflow-x: auto;
+}
+
+.img-fluid {
+  max-width: 100%;
+  height: auto;
 }
 </style>

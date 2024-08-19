@@ -11,7 +11,6 @@
               </div>
               <div class="card-body">
                 <div slot="body" class="row">
-                 
                   <div class="form-group col-12">
                     <label for="">Peso Empresa (Kg)</label>
                     <input type="text" v-model="model.peso_o" class="form-control" id="" disabled>
@@ -23,9 +22,10 @@
 
                   <div class="form-group col-12">
                     <label for="firma_d">Firma Destino</label>
-                    <input type="hidden" v-model.trim="model.firma_d" class="form-control" id="firma_d">
+                    <input type="text" v-model.trim="model.firma_d" class="form-control" id="firma_d">
                     <div class="position-relative">
-                      <canvas id="canvas2" class="border border-2 rounded-3 bg-white" width="560px" height="250px"></canvas>
+                      <canvas id="canvas2" class="border border-2 rounded-3 bg-white" width="560px"
+                        height="250px"></canvas>
                       <div class="btn-canvas">
                         <button type="button" id="guardar2" class="btn btn-primary">Guardar</button>
                         <button type="button" id="limpiar2" class="btn btn-secondary">Limpiar</button>
@@ -36,6 +36,19 @@
                     <label for="fecha_d">Fin Fecha</label>
                     <input type="text" v-model="model.fecha_d" class="form-control" id="fecha_d" disabled>
                   </div>
+                </div>
+                <input type="text" v-model.trim="model.imagen" class="form-control" id="imagen" placeholder="imagen">
+                <div id="div2" class="mb-3 text-center">
+
+                  <label class="border border-black rounded-2 w-100 bg-white pt-5 pb-5">
+                    <div class="d-flex justify-content-center">
+                      <div class="d-flex flex-column px-5 pt-4">
+                        <i class="fa-solid fa-image fa-bounce fa-5x" style="color: #74C0FC;"></i>
+                        <p>Sacar Foto</p>
+                      </div>
+                    </div>
+                    <input type="file" accept="image/*" id="capturephoto" capture="camera" class="d-none">
+                  </label>
                 </div>
                 <button class="btn btn-danger" @click="darDeBaja">Entregar Correspondencia</button>
               </div>
@@ -82,6 +95,7 @@ export default {
         ci_d: '',
         fecha_d: '',
         estado: '',
+        imagen: '',
       },
       apiUrl: "solicitudes",
       page: "solicitudes",
@@ -97,7 +111,7 @@ export default {
       const res = await this.$api.$get(path);
       return res;
     },
-    
+
     async darDeBaja() {
       if (!this.model.firma_d) {
         Swal.fire({
@@ -123,7 +137,7 @@ export default {
           title: 'Éxito',
           text: 'El registro ha sido dado de baja.'
         }).then(() => {
-          window.location.href = 'http://localhost:3005/admin/cartero/solicitudcartero/solicitudecartero'; // Redirigir a la URL especificada
+          window.location.href = 'http://localhost:3005/cartero/entregadocarteros/entregadocartero'; // Redirigir a la URL especificada
         });
       } catch (error) {
         console.error('Error al dar de baja:', error);
@@ -135,38 +149,95 @@ export default {
       }
     }
   },
-   mounted() {
+  mounted() {
     this.$nextTick(async () => {
-      try {
-        const routeData = await this.GET_DATA(this.apiUrl + '/' + this.$route.params.id);
-        this.GET_DATA('sucursales'),
-        this.model = routeData;
-        this.sucursales = sucursalesData;
-      } catch (e) {
-        console.log(e);
-      } finally {
-        this.load = false;
-      }
+  try {
+    const routeData = await this.GET_DATA(this.apiUrl + '/' + this.$route.params.id);
+    this.model = routeData;
+    this.sucursales = await this.GET_DATA('sucursales');
+  } catch (e) {
+    console.log(e);
+  } finally {
+    this.load = false;
+  }
 
-      var canvas2 = document.getElementById('canvas2');
-      var signaturePad2 = new SignaturePad(canvas2);
-      var clearButton2 = document.getElementById('limpiar2');
-      var generateButton2 = document.getElementById('guardar2');
-      clearButton2.addEventListener('click', () => {
-        signaturePad2.clear();
-        this.model.firma_d = "";
-      });
+  // Código relacionado con la firma (sin cambios)
+  var canvas2 = document.getElementById('canvas2');
+  var signaturePad2 = new SignaturePad(canvas2);
+  var clearButton2 = document.getElementById('limpiar2');
+  var generateButton2 = document.getElementById('guardar2');
 
-      generateButton2.addEventListener('click', () => {
-        console.log('guardar2');
-        var firma2 = signaturePad2.toDataURL();
-        this.model.firma_d = firma2;
-        Swal.fire({
-          icon: 'success',
-          title: 'Firma registrada',
-          text: 'Firma registrada exitosamente.'
-        });
-      });
+  clearButton2.addEventListener('click', () => {
+    signaturePad2.clear();
+    this.model.firma_d = "";
+  });
+
+  generateButton2.addEventListener('click', () => {
+    var firma2 = signaturePad2.toDataURL();
+    this.model.firma_d = firma2;
+    Swal.fire({
+      icon: 'success',
+      title: 'Firma registrada',
+      text: 'Firma registrada exitosamente.'
+    });
+  });
+
+  // Manejo de la captura de foto con límite de tamaño muy bajo
+  var fileInput = document.getElementById('capturephoto');
+
+  fileInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Definir una resolución baja
+                const maxWidth = 2500; // Ancho máximo
+                const maxHeight = 2500; // Alto máximo
+
+                let width = img.width;
+                let height = img.height;
+
+                // Escalar la imagen a las dimensiones más pequeñas posibles
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Comprimir la imagen en formato WebP lo máximo posible
+                let quality = 0.5; // Calidad baja
+                let dataurl = canvas.toDataURL('image/webp', quality);
+
+                // Intentar reducir el tamaño por debajo de 1 KB
+                while (dataurl.length > 100000 && quality > 0.01) {
+                    quality -= 0.01;
+                    dataurl = canvas.toDataURL('image/webp', quality);
+                }
+
+                console.log('Imagen final en base64:', dataurl);
+                this.model.imagen = dataurl; // Guardar la imagen comprimida en el modelo
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
     });
   }
 };

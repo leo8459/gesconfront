@@ -48,8 +48,6 @@
                         <th class="py-0 px-1">Guía</th>
                         <th class="py-0 px-1">Peso (Kg)</th>
                         <th class="py-0 px-1">Remitente</th>
-                        <th class="py-0 px-1">Dirección maps</th>
-                        <th class="py-0 px-1">Dirección</th>
                         <th class="py-0 px-1">Teléfono</th>
                         <th class="py-0 px-1">Contenido</th>
                         <th class="py-0 px-1">Firma Destinatario</th>
@@ -63,6 +61,7 @@
                         <th class="py-0 px-1">Zona</th>
                         <th class="py-0 px-1">Precio (Bs)</th>
                         <th class="py-0 px-1">Fecha de Entrega</th>
+                        <th class="py-0 px-1">Imagen</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -70,17 +69,9 @@
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.peso_o }}</td>
+                        <td class="py-0 px-1">{{ m.peso_v }}</td>
                         <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion)"
-                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
-                            class="btn btn-primary btn-sm">
-                            Ver mapa
-                          </a>
-                          <span v-else>{{ m.direccion }}</span>
-                        </td>
-                        <td class="py-0 px-1">{{ m.direccion_especifica }}</td>
+              
                         <td class="py-0 px-1">{{ m.telefono }}</td>
                         <td class="py-0 px-1">{{ m.contenido }}</td>
                         <td class="py-0 px-1">
@@ -106,6 +97,13 @@
                         <td class="py-0 px-1">{{ m.zona_d }}</td>
                         <td class="py-0 px-1">{{ m.nombre_d }}</td>
                         <td class="py-0 px-1">{{ m.fecha_d }}</td>
+
+                        <td class="py-0 px-1">
+                      <img v-if="m.imagen" :src="generateThumbnail(m.imagen)" alt="Imagen Capturada" width="100" />
+                      <span v-else>No Image</span>
+                      <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                        class="btn btn-sm btn-primary mt-1">Descargar</button>
+                    </td>
                       </tr>
                     </tbody>
                   </table>
@@ -195,7 +193,49 @@ export default {
     }
   },
   methods: {
+    generateThumbnail(base64Image) {
+      const img = new Image();
+      img.src = base64Image;
 
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Ajustar la resolución del thumbnail
+      const MAX_WIDTH = 100; // Ajustar según sea necesario
+      const MAX_HEIGHT = 100; // Ajustar según sea necesario
+
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Aquí no es necesario comprimir el thumbnail en exceso si queremos mostrar una imagen más clara
+      return canvas.toDataURL('image/jpeg', 0.1);
+    },
+
+
+    downloadImage(base64Image) {
+      const link = document.createElement('a');
+      link.href = base64Image; // Aquí estás usando la imagen original almacenada
+      link.download = 'imagen_capturada.jpg';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
 
     async exportToExcel() {
     // Validar las fechas seleccionadas

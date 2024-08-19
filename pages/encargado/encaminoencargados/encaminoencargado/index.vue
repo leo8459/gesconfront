@@ -10,7 +10,8 @@
             </button>
           </div>
           <div class="col-3">
-            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control" placeholder="Buscar..." />
+            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
+              placeholder="Buscar..." />
           </div>
         </div>
         <div class="row">
@@ -27,22 +28,15 @@
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
                     <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Dirección</th>
-                    <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha</th>
-                    <th class="py-0 px-1">Firma Remitente</th>
                     <th class="py-0 px-1">Nombre Destinatario</th>
                     <th class="py-0 px-1">Teléfono D</th>
                     <th class="py-0 px-1">Dirección Destinatario maps</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
                     <th class="py-0 px-1">Ciudad</th>
-                    <th class="py-0 px-1">Firma Destinatario</th>
-                    <th class="py-0 px-1">Precio (Bs)</th>
-                    <th class="py-0 px-1">CI Destinatario</th>
-                    <th class="py-0 px-1">Fecha Destinatario</th>
-                    <th class="py-0 px-1">Estado</th>
+                    <th class="py-0 px-1">Dirección Destinatario</th>
+                    <th class="py-0 px-1">Zona destinatario</th>
+
                     <th class="py-0 px-1">Acciones</th>
                   </tr>
                 </thead>
@@ -56,36 +50,21 @@
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.peso_v }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.direccion_especifica }}</td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
-                    </td>
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
                     <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank" class="btn btn-primary btn-sm">
+                      <a v-if="isCoordinates(m.direccion_d)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                        class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
                       <span v-else>{{ m.direccion_d }}</span>
                     </td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
-                    </td>
                     <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
-                    <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                    <td class="py-0 px-1">{{ m.ci_d }}</td>
-                    <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">{{ m.estado === 2 ? 'En camino' : m.estado }}</td>
+                    <td class="py-0 px-1">{{ m.zona_d }}</td>
                     <td class="py-0 px-1">
                       <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
                         <i class="fas fa-undo"></i> Devolver a destino
@@ -98,7 +77,8 @@
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="currentPage--">Anterior</button>
               <span>Página {{ currentPage }} de {{ totalPages }}</span>
-              <button class="btn btn-secondary" :disabled="currentPage === totalPages" @click="currentPage++">Siguiente</button>
+              <button class="btn btn-secondary" :disabled="currentPage === totalPages"
+                @click="currentPage++">Siguiente</button>
             </div>
           </div>
         </div>
@@ -121,7 +101,8 @@
     <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop>
       <div class="form-group">
         <label for="observacion">Observación</label>
-        <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
+        <textarea id="observacion" v-model="observacion" class="form-control" rows="3"
+          placeholder="Ingrese la observación..."></textarea>
       </div>
       <div class="d-flex justify-content-end">
         <button class="btn btn-secondary" @click="isObservationModalVisible = false">Cancelar</button>
@@ -307,37 +288,37 @@ export default {
       }
     },
     async confirmRechazar() {
-    this.load = true;
-    try {
+      this.load = true;
+      try {
         const now = new Date();
         const options = {
-            timeZone: 'America/La_Paz',
+          timeZone: 'America/La_Paz',
         };
         const formattedDate = now.toLocaleDateString('es-ES', options) + ' ' + now.toLocaleTimeString('es-ES', options);
 
-        await this.$encargados.$put(`rechazado5/${this.selectedSolicitudeId}`, { 
-            observacion: this.observacion,
-            fecha_d: formattedDate // Envía la fecha y hora actuales en formato dd/MM/yyyy HH:mm
+        await this.$encargados.$put(`rechazado5/${this.selectedSolicitudeId}`, {
+          observacion: this.observacion,
+          fecha_d: formattedDate // Envía la fecha y hora actuales en formato dd/MM/yyyy HH:mm
         });
         await this.GET_DATA(this.apiUrl); // Actualizar la lista después de la operación
         this.$swal.fire({
-            icon: 'success',
-            title: 'Solicitud a sido Retornada',
-            text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
+          icon: 'success',
+          title: 'Solicitud a sido Retornada',
+          text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
         });
         this.isObservationModalVisible = false;
         this.observacion = ''; // Limpiar el campo de observación
-    } catch (e) {
+      } catch (e) {
         console.error(e);
         this.$swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Hubo un error al devolver la solicitud a destino.',
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al devolver la solicitud a destino.',
         });
-    } finally {
+      } finally {
         this.load = false;
-    }
-},
+      }
+    },
 
 
     selectAll(event, group) {

@@ -24,8 +24,11 @@
                     <th class="py-0 px-1">Sucursal</th>
                     <th class="py-0 px-1">Guía</th>
                     <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Dirección</th>
-                    <th class="py-0 px-1">Zona Remitente</th>
+                    <th class="py-0 px-1">Detalles de Domicilio</th>
+
+                    <!-- Nueva columna para la dirección específica -->
+                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
+                    <th class="py-0 px-1">Dirección maps</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha Solicitud</th>
@@ -42,15 +45,17 @@
                     <td class="p-1">{{ m.sucursale.nombre }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
+                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                    <!-- Mostrar la dirección específica -->
+                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
                     <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
-                        class="btn btn-primary btn-sm">
+                      <a v-if="isCoordinates(m.direccion.direccion)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                        target="_blank" class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
-                      <span v-else>{{ m.direccion }}</span>
+                      <span v-else>{{ m.direccion.direccion }}</span>
                     </td>
-                    <td class="py-0 px-1">{{ m.zona_r }}</td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>
@@ -76,7 +81,8 @@
                 <li class="page-item" :class="{ disabled: currentPage === 0 }">
                   <button class="page-link" @click="previousPage" :disabled="currentPage === 0">&lt;</button>
                 </li>
-                <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page - 1 }">
+                <li class="page-item" v-for="page in totalPages" :key="page"
+                  :class="{ active: currentPage === page - 1 }">
                   <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
                 </li>
                 <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
@@ -116,26 +122,26 @@
       </div>
     </AdminTemplate>
 
-   <!-- Modal para añadir peso_v -->
-<!-- Modal para añadir peso_v -->
-<b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
-  <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-    <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
-    
-    <!-- Título para el campo peso_v -->
-    <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
-    <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control"
-      @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" />
-    
-    <!-- Campo nombre_d oculto pero funcional -->
-    <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
-    <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
-  </div>
-  <div class="d-flex justify-content-end">
-    <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-    <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
-  </div>
-</b-modal>
+    <!-- Modal para añadir peso_v -->
+    <!-- Modal para añadir peso_v -->
+    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
+      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+
+        <!-- Título para el campo peso_v -->
+        <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
+        <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control"
+          @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" />
+
+        <!-- Campo nombre_d oculto pero funcional -->
+        <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
+        <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
+        <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
+      </div>
+    </b-modal>
 
 
   </div>
