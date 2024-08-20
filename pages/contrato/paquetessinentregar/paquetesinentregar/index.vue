@@ -190,8 +190,8 @@ export default {
       list: [],
       searchTerm: '',
       apiUrl: 'solicitudes4',
-      page: 'solicitudes',
-      modulo: 'solicitudes',
+      page: 'Con Multa',
+      modulo: 'Con Multa',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
       url_editar: '/admin/cartero/editar2/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',
@@ -210,28 +210,79 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item => {
-        const fechaD = new Date(item.fecha_d);
-        const isWithinDateRange = (!this.startDate || fechaD >= new Date(this.startDate)) && (!this.endDate || fechaD <= new Date(this.endDate));
-        const isMatchingSucursal = !this.selectedSucursal || item.sucursale?.id === this.selectedSucursal;
-        const isMatchingState = [1, 2, 5].includes(item.estado);
-        return isWithinDateRange && isMatchingSucursal && isMatchingState &&
-          Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
-      });
-    },
+    const searchTerm = this.searchTerm.toLowerCase();
+    return this.list.filter(item => {
+      const servicio = item.tarifa.servicio;
+      let fechaLimite;
 
-    paginatedData() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
-    },
-    totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
-    },
-    totalPagesArray() {
-      return Array.from({ length: this.totalPages }, (_, i) => i + 1);
-    },
+      // Servicios que se calculan por días
+      const serviciosPorDias = [
+        "SERVICIO COURIER NACIONAL (Normal)",
+        "SERVICIO COURIER LOCAL (Normal)",
+        "SERVICIO DE PROVINCIAS A NIVEL NACIONAL"
+      ];
+
+      // Servicios que se calculan por horas
+      const serviciosPorHoras = [
+        "SERVICIO COURIER NACIONAL (Expreso)",
+        "SERVICIO COURIER LOCAL (Expreso)"
+      ];
+
+      const recojoDate = new Date(item.fecha_recojo_c);
+
+      if (isNaN(recojoDate.getTime())) {
+        return false;
+      }
+
+      if (serviciosPorDias.includes(servicio)) {
+        const diasEntrega = item.tarifa.dias_entrega / 24;
+        fechaLimite = this.addBusinessDays(recojoDate, diasEntrega);
+        fechaLimite.setHours(20, 0, 0, 0);
+      } else if (serviciosPorHoras.includes(servicio)) {
+        fechaLimite = new Date(recojoDate);
+
+        if (recojoDate.getDay() === 5 && recojoDate.getHours() >= 17) {
+          fechaLimite = this.addBusinessDays(recojoDate, 1);
+          fechaLimite.setHours(10, 0, 0, 0);
+        } else if (recojoDate.getHours() >= 8 && recojoDate.getHours() < 10) {
+          fechaLimite.setHours(20, 0, 0, 0);
+        } else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 19) {
+          fechaLimite = this.addBusinessDays(recojoDate, 1);
+          fechaLimite.setHours(10, 0, 0, 0);
+        } else {
+          fechaLimite = new Date(recojoDate.getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000);
+          if (fechaLimite.getDay() === 6) {
+            fechaLimite = this.addBusinessDays(fechaLimite, 2);
+            fechaLimite.setHours(10, 0, 0, 0);
+          } else if (fechaLimite.getDay() === 0) {
+            fechaLimite = this.addBusinessDays(fechaLimite, 1);
+            fechaLimite.setHours(10, 0, 0, 0);
+          }
+        }
+      } else {
+        return false;
+      }
+
+      const isLate = new Date() > fechaLimite;
+      const isValidState = [1, 2, 5].includes(item.estado);
+
+      return isLate && isValidState && Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
+    });
+  },
+
+  paginatedData() {
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    return this.filteredData.slice(start, end);
+  },
+
+  totalPages() {
+    return Math.ceil(this.filteredData.length / this.itemsPerPage);
+  },
+
+  totalPagesArray() {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
     }
@@ -521,7 +572,10 @@ export default {
     const today = new Date();
     console.log(`Fecha y hora actual: ${today.toLocaleDateString()} ${today.toLocaleTimeString()}`);
 
-    const pendingDeliveries = this.list.filter(item => {
+    // Filtrar solo los elementos visibles en la tabla
+    const visibleItems = this.paginatedData; // Asumiendo que `paginatedData` contiene los datos visibles en la tabla
+
+    const pendingDeliveries = visibleItems.filter(item => {
       const servicio = item.tarifa.servicio; // Obtener el servicio del item
       let fechaLimite;
 
@@ -538,45 +592,38 @@ export default {
         "SERVICIO COURIER LOCAL (Expreso)"
       ];
 
-      // Parsear la fecha de la solicitud
-      const solicitudDate = new Date(item.fecha);
-      console.log(`Fecha de solicitud para la guía ${item.guia}: ${solicitudDate.toLocaleDateString()} ${solicitudDate.toLocaleTimeString()}`);
+      // Parsear la fecha de recojo
+      const recojoDate = new Date(item.fecha_recojo_c);
+      console.log(`Fecha de recojo para la guía ${item.guia}: ${recojoDate.toLocaleDateString()} ${recojoDate.toLocaleTimeString()}`);
 
-      if (isNaN(solicitudDate.getTime())) {
-        console.error('Fecha inválida:', item.fecha);
+      if (isNaN(recojoDate.getTime())) {
+        console.error('Fecha de recojo inválida:', item.fecha_recojo_c);
         return false;
       }
 
       if (serviciosPorDias.includes(servicio)) {
-        // Convertir horas a días si es necesario (por ejemplo, 72 horas -> 3 días)
         const diasEntrega = item.tarifa.dias_entrega / 24;
-        fechaLimite = this.addBusinessDays(solicitudDate, diasEntrega);
+        fechaLimite = this.addBusinessDays(recojoDate, diasEntrega);
 
         // Ajustar la hora límite a las 8 PM (20:00)
         fechaLimite.setHours(20, 0, 0, 0);
       } else if (serviciosPorHoras.includes(servicio)) {
-        fechaLimite = new Date(solicitudDate);
+        fechaLimite = new Date(recojoDate);
 
-        if (solicitudDate.getDay() === 5 && solicitudDate.getHours() >= 17) {
-          // Si es viernes después de las 5 PM, el límite es el lunes a las 10 AM
-          fechaLimite = this.addBusinessDays(solicitudDate, 1);
+        if (recojoDate.getDay() === 5 && recojoDate.getHours() >= 17) {
+          fechaLimite = this.addBusinessDays(recojoDate, 1);
           fechaLimite.setHours(10, 0, 0, 0);
-        } else if (solicitudDate.getHours() >= 8 && solicitudDate.getHours() < 10) {
-          // Si la solicitud es entre 8 AM y 10 AM, límite es el mismo día hasta las 8 PM
+        } else if (recojoDate.getHours() >= 8 && recojoDate.getHours() < 10) {
           fechaLimite.setHours(20, 0, 0, 0);
-        } else if (solicitudDate.getHours() >= 17 && solicitudDate.getHours() < 19) {
-          // Si la solicitud es entre 5 PM y 7 PM, el límite es 10 AM del día siguiente
-          fechaLimite = this.addBusinessDays(solicitudDate, 1);
+        } else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 19) {
+          fechaLimite = this.addBusinessDays(recojoDate, 1);
           fechaLimite.setHours(10, 0, 0, 0);
         } else {
-          // Calcular la fecha límite sumando las horas de entrega
-          fechaLimite = new Date(solicitudDate.getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000);
+          fechaLimite = new Date(recojoDate.getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000);
           if (fechaLimite.getDay() === 6) {
-            // Si cae en sábado, mover a lunes
             fechaLimite = this.addBusinessDays(fechaLimite, 2);
             fechaLimite.setHours(10, 0, 0, 0);
           } else if (fechaLimite.getDay() === 0) {
-            // Si cae en domingo, mover a lunes
             fechaLimite = this.addBusinessDays(fechaLimite, 1);
             fechaLimite.setHours(10, 0, 0, 0);
           }
@@ -588,24 +635,13 @@ export default {
 
       console.log(`Fecha límite para la guía ${item.guia}: ${fechaLimite.toLocaleDateString()} ${fechaLimite.toLocaleTimeString()}`);
 
-      // Verificar si la fecha actual es mayor a la fecha límite
       const isLate = today > fechaLimite;
       console.log(`Comparación para la guía ${item.guia}: Hoy (${today.toLocaleDateString()} ${today.toLocaleTimeString()}) ${isLate ? 'es mayor' : 'no es mayor'} que la fecha límite (${fechaLimite.toLocaleDateString()} ${fechaLimite.toLocaleTimeString()})`);
 
       return isLate;
     });
 
-    // Si hay correspondencia sin entrega, mostrar una alerta
-    if (pendingDeliveries.length > 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Correspondencia sin entrega',
-        text: `Tienes ${pendingDeliveries.length} correspondencia(s) sin entrega.`,
-        html: `<ul>${pendingDeliveries.map(item => `<li>Guía: ${item.guia}, Fecha de solicitud: ${item.fecha}, Fecha límite: ${new Date(new Date(item.fecha).getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000).toLocaleDateString()} ${new Date(new Date(item.fecha).getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000).toLocaleTimeString()}</li>`).join('')}</ul>`,
-      });
-    } else {
-      console.log('No hay correspondencias pendientes de entrega.');
-    }
+   
   }
 },
 

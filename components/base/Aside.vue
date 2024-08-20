@@ -162,6 +162,12 @@
                   <span class="sidenav-normal"> Entregado Cartero</span>
                 </nuxtLink>
               </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/cartero/devolucioncarteros/devolucioncartero">
+                  <span class="sidenav-mini-icon"> Devolucion Cartero </span>
+                  <span class="sidenav-normal"> Devolucion Cartero</span>
+                </nuxtLink>
+              </li>
 
             </ul>
           </div>
@@ -352,8 +358,8 @@
                   <span class="sidenav-normal"> Correspondencia Entregada</span>
                 </nuxtLink> -->
                 <nuxtLink class="nav-link" to="/contrato/paquetessinentregar/paquetesinentregar">
-                  <span class="sidenav-mini-icon"> Paquetes sin entregar </span>
-                  <span class="sidenav-normal"> Paquetes sin entregar </span>
+                  <span class="sidenav-mini-icon"> Paquetes con  multa </span>
+                  <span class="sidenav-normal"> Paquetes con  multa </span>
                 </nuxtLink>
                 <nuxtLink class="nav-link" to="/contrato/verificadoencargados/verificadoencargado">
                   <span class="sidenav-mini-icon"> Correspondencia Verificada </span>
