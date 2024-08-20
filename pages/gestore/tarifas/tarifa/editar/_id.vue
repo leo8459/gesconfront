@@ -34,6 +34,14 @@
                       <label class="form-label" for="">Precio Servicio Extra</label>
                       <input type="text" v-model="model.precio_extra" class="form-control" id="">
                     </div>
+                    <div class="form-group col-12">
+                      <label class="form-label" for="">retencion (si aplica)</label>
+                      <input type="text" v-model="model.retencion" class="form-control" id="">
+                    </div>
+                    <div class="form-group col-12">
+                      <label class="form-label" for="">Dias de entrega</label>
+                      <input type="text" v-model="model.dias_entrega" class="form-control" id="">
+                    </div>
                   </div>
                 </CrudUpdate4>
               </div>
@@ -62,6 +70,9 @@ export default {
         servicio: '',
         precio: '',
         precio_extra: '',
+        retencion: '',
+        dias_entrega: '',
+
       },
       apiUrl: "tarifas3",
       page: "tarifas",

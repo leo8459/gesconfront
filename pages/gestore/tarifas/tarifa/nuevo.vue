@@ -18,28 +18,56 @@
                       <option v-for="m in sucursales" :value="m.id">{{ m.nombre }}</option>
                     </select>
                   </div>
-                  <div class="form-group">
-                    <label class="form-label" for="departamento">Departamento de destino</label>
-                    <input type="text" v-model="model.departamento" class="form-control" id="departamento">
+                  <div class="form-group col-12">
+                    <label for="origen">Departamento de envio</label>
+                    <select v-model="model.departamento" class="form-control" id="departamento">
+                      <option value="LPB">La Paz (LPB)</option>
+                      <option value="SCZ">Santa Cruz (SCZ)</option>
+                      <option value="CBB">Cochabamba (CBB)</option>
+                      <option value="ORU">Oruro (ORU)</option>
+                      <option value="PTS">Potosí (PTS)</option>
+                      <option value="TJA">Tarija (TJA)</option>
+                      <option value="CHU">Sucre (CHU)</option>
+                      <option value="BEN">Trinidad (BEN)</option>
+                      <option value="PAN">Cobija (PAN)</option>
+                    </select>
                   </div>
+
                   <div class="form-group">
                     <label class="form-label" for="provincia">Municipio de envio</label>
                     <input type="text" v-model="model.provincia" class="form-control" id="provincia">
                   </div>
                   <div class="form-group">
                     <label class="form-label" for="servicio">Servicio</label>
-                    <input type="text" v-model="model.servicio" class="form-control" id="servicio">
+                    <select v-model="model.servicio" class="form-control" id="servicio">
+                      <option value="SERVICIO COURIER NACIONAL (Normal)">SERVICIO COURIER NACIONAL (Normal)</option>
+                      <option value="SERVICIO COURIER NACIONAL (Expreso)">SERVICIO COURIER NACIONAL (Expreso)</option>
+                      <option value="SERVICIO COURIER LOCAL (Normal)">SERVICIO COURIER LOCAL (Normal)</option>
+                      <option value="SERVICIO COURIER LOCAL (Expreso)">SERVICIO COURIER LOCAL (Expreso)</option>
+                      <option value="SERVICIO DE PROVINCIAS A NIVEL NACIONAL">SERVICIO DE PROVINCIAS A NIVEL NACIONAL
+                      </option>
+                    </select>
                   </div>
+
                   <div class="form-group">
                     <label class="form-label" for="precio">Precio Servicio por 1 kilo (Bs)</label>
                     <input type="text" v-model="model.precio" class="form-control" id="precio">
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="precio_extra">Precio Servicio por  kilo extra (Bs)</label>
+                    <label class="form-label" for="precio_extra">Precio Servicio por kilo extra (Bs)</label>
                     <input type="text" v-model="model.precio_extra" class="form-control" id="precio_extra">
                   </div>
+                  <div class="form-group">
+                    <label class="form-label" for="retencion">Retencion (si aplica)</label>
+                    <input type="text" v-model="model.retencion" class="form-control" id="retencion">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="retencion">Dias de entrega</label>
+                    <input type="text" v-model="model.dias_entrega" class="form-control" id="dias_entrega">
+                  </div>
                   <div class="form-group form-check">
-                    <input type="checkbox" v-model="model.envio_internacional" class="form-check-input" id="envio_internacional">
+                    <input type="checkbox" v-model="model.envio_internacional" class="form-check-input"
+                      id="envio_internacional">
                     <label class="form-check-label" for="envio_internacional">Envio Internacional</label>
                   </div>
                 </div>
@@ -51,9 +79,19 @@
                       <option v-for="m in sucursales" :value="m.id">{{ m.nombre }}</option>
                     </select>
                   </div>
-                  <div class="form-group">
-                    <label class="form-label" for="departamento">Departamento de envio</label>
-                    <input type="text" v-model="clonado.departamento" class="form-control" id="departamento">
+                  <div class="form-group col-12">
+                    <label for="origen">Departamento de envio</label>
+                    <select v-model="clonado.departamento" class="form-control" id="departamento">
+                      <option value="LPB">La Paz (LPB)</option>
+                      <option value="SCZ">Santa Cruz (SCZ)</option>
+                      <option value="CBB">Cochabamba (CBB)</option>
+                      <option value="ORU">Oruro (ORU)</option>
+                      <option value="PTS">Potosí (PTS)</option>
+                      <option value="TJA">Tarija (TJA)</option>
+                      <option value="CHU">Sucre (CHU)</option>
+                      <option value="BEN">Trinidad (BEN)</option>
+                      <option value="PAN">Cobija (PAN)</option>
+                    </select>
                   </div>
                   <div class="form-group">
                     <label class="form-label" for="provincia">Municipio de envio</label>
@@ -61,8 +99,16 @@
                   </div>
                   <div class="form-group">
                     <label class="form-label" for="servicio">Servicio</label>
-                    <input type="text" v-model="clonado.servicio" class="form-control" id="servicio">
+                    <select v-model="clonado.servicio" class="form-control" id="servicio">
+                      <option value="SERVICIO COURIER NACIONAL (Normal)">SERVICIO COURIER NACIONAL (Normal)</option>
+                      <option value="SERVICIO COURIER NACIONAL (Expreso)">SERVICIO COURIER NACIONAL (Expreso)</option>
+                      <option value="SERVICIO COURIER LOCAL (Normal)">SERVICIO COURIER LOCAL (Normal)</option>
+                      <option value="SERVICIO COURIER LOCAL (Expreso)">SERVICIO COURIER LOCAL (Expreso)</option>
+                      <option value="SERVICIO DE PROVINCIAS A NIVEL NACIONAL">SERVICIO DE PROVINCIAS A NIVEL NACIONAL
+                      </option>
+                    </select>
                   </div>
+
                   <div class="form-group">
                     <label class="form-label" for="precio">Precio Servicio</label>
                     <input type="text" v-model="clonado.precio" class="form-control" id="precio">
@@ -71,11 +117,20 @@
                     <label class="form-label" for="precio_extra">Precio Servicio Extra</label>
                     <input type="text" v-model="clonado.precio_extra" class="form-control" id="precio_extra">
                   </div>
+                  <div class="form-group">
+                    <label class="form-label" for="retencion">Retencion (si aplica)</label>
+                    <input type="text" v-model="clonado.retencion" class="form-control" id="retencion">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="retencion">Dias de entrega</label>
+                    <input type="text" v-model="clonado.dias_entrega" class="form-control" id="dias_entrega">
+                  </div>
                   <div class="form-group form-check">
-                    <input type="checkbox" v-model="clonado.envio_internacional" class="form-check-input" :id="'envio_internacional_' + index">
+                    <input type="checkbox" v-model="clonado.envio_internacional" class="form-check-input"
+                      :id="'envio_internacional_' + index">
                   </div>
                 </div>
-                
+
                 <div class="d-flex justify-content-between mt-3">
                   <button class="btn btn-secondary" @click.prevent="clonarFormulario">Clonar</button>
                   <button class="btn btn-dark" @click.prevent="guardarTodos">Guardar y Agregar</button>
@@ -100,7 +155,10 @@ export default {
         precio: '',
         precio_extra: '',
         provincia: '',
-        envio_internacional: false
+        envio_internacional: false,
+        retencion: '',
+        dias_entrega: '',
+
       },
       apiUrl: 'tarifas3',
       page: 'tarifas',
@@ -187,14 +245,17 @@ export default {
   flex-wrap: wrap;
   gap: 20px;
 }
+
 .form-horizontal .form-group {
   flex: 1;
   min-width: 200px;
 }
+
 .form-horizontal .form-label {
   display: block;
   margin-bottom: 5px;
 }
+
 .cloned-form {
   border: 1px solid #ddd;
   padding: 20px;

@@ -57,6 +57,8 @@
                   <th class="p-1">Servicio</th>
                   <th class="p-1">1 Kilogramo (Bs)</th>
                   <th class="p-1">Kilogramo Extra (Bs)</th>
+                  <th class="p-1">Retencion</th>
+                  <th class="p-1">Dias de entrega</th>
 
                   <th class="p-1"></th>
                 </tr>
@@ -70,6 +72,9 @@
                   <td class="p-1">{{ m.servicio }}</td>
                   <td class="p-1">{{ m.precio }}</td>
                   <td class="p-1">{{ m.precio_extra }}</td>
+                  <td class="p-1">{{ m.retencion }}</td>
+                  <td class="p-1">{{ m.dias_entrega }}</td>
+
                   <td class="p-1">
                     <div class="btn-group">
                       <button type="button" class="btn btn-info btn-sm p-1" @click="editarTarifa(m.id)">

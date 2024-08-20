@@ -351,6 +351,10 @@
                   <span class="sidenav-mini-icon"> Correspondencia Entregada</span>
                   <span class="sidenav-normal"> Correspondencia Entregada</span>
                 </nuxtLink> -->
+                <nuxtLink class="nav-link" to="/contrato/paquetessinentregar/paquetesinentregar">
+                  <span class="sidenav-mini-icon"> Paquetes sin entregar </span>
+                  <span class="sidenav-normal"> Paquetes sin entregar </span>
+                </nuxtLink>
                 <nuxtLink class="nav-link" to="/contrato/verificadoencargados/verificadoencargado">
                   <span class="sidenav-mini-icon"> Correspondencia Verificada </span>
                   <span class="sidenav-normal"> Correspondencia Verificada</span>

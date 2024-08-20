@@ -13,7 +13,7 @@
                 <div slot="body" class="row">
                  
                   <div class="form-group col-12">
-                    <label for="">Peso Agencia (Kg)</label>
+                    <label for="">Justificacion</label>
                     <input type="text" v-model="model.justificacion" class="form-control" id="justificacion" >
                   </div>
 
