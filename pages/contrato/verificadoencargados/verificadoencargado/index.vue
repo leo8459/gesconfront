@@ -68,6 +68,10 @@
                     <th class="py-0 px-1">Precio (Bs)</th>
                     <th class="py-0 px-1">Fecha de Entrega</th>
                     <th class="py-0 px-1">Imagen Capturada</th>
+                    <th class="py-0 px-1">Justificacion</th>
+                    <th class="py-0 px-1">Imagen Justificacion</th>
+                    <th class="py-0 px-1"></th>
+
                   </tr>
                 </thead>
                 <tbody>
@@ -112,10 +116,33 @@
                     <td class="py-0 px-1">{{ m.nombre_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
                     <td class="py-0 px-1">
-                      <img v-if="m.imagen" :src="generateThumbnail(m.imagen)" alt="Imagen Capturada" width="100" />
-                      <span v-else>No Image</span>
-                      <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                        class="btn btn-sm btn-primary mt-1">Descargar</button>
+                      <div class="d-flex flex-column align-items-center">
+                        <img v-if="m.imagen" :src="generateThumbnail(m.imagen)" alt="Imagen Capturada" width="100" />
+                        <span v-else>No Image</span>
+                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                          class="btn btn-sm btn-primary mt-1 align-self-start">
+                          Descargar
+                        </button>
+                      </div>
+                    </td>
+                    <td class="py-0 px-1">{{ m.justificacion }}</td>
+                    <td class="py-0 px-1">
+                      <div class="d-flex flex-column align-items-center">
+                        <img v-if="m.imagen_justificacion" :src="generateThumbnail(m.imagen_justificacion)"
+                          alt="Imagen Capturada" width="100" />
+                        <span v-else>No Image</span>
+                        <button v-if="m.imagen_justificacion" @click="downloadImage(m.imagen_justificacion)"
+                          class="btn btn-sm btn-primary mt-1 align-self-start">
+                          Descargar
+                        </button>
+                      </div>
+                    </td>
+                    <td class="py-0 px-1">
+                      <div class="btn-group">
+                        <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
+                          <i class="fas fa-ban"></i> Justificar Correspondencia
+                        </nuxtLink>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -166,7 +193,7 @@ export default {
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
-      url_editar: '/admin/solicitudescartero/solicitudecartero/editar/',
+      url_editar: '/admin/cartero/editar2/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',
       collapseState: {},
       isModalVisible: false,
