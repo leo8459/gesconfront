@@ -43,7 +43,8 @@
 
                     <div class="form-group col-12">
                       <label for="direccion_especifica">Dirección Específica</label>
-                      <input type="text" v-model="model.direccion_especifica" class="form-control" id="direccion_especifica">
+                      <input type="text" v-model="model.direccion_especifica" class="form-control"
+                        id="direccion_especifica">
                     </div>
 
                     <div class="form-group col-12">
@@ -193,8 +194,12 @@ export default {
     handleOk() {
       this.model.direccion_lat = this.currentLat;
       this.model.direccion_lng = this.currentLng;
-      this.model.direccion = this.currentLat + ', ' + this.currentLng;
+      // Asigna la dirección completa
+      this.model.direccion = `${this.currentLat}, ${this.currentLng}`;
+      // Actualiza visualmente el campo en el formulario
+      document.getElementById('direccion_lat_lng').value = this.model.direccion;
     },
+
     async searchLocation() {
       if (this.searchQuery && this.currentLat && this.currentLng) {
         this.searching = true;

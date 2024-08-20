@@ -53,9 +53,10 @@
                     <th class="py-0 px-1">Remitente</th>
                     <th class="py-0 px-1">Detalles de Domicilio</th>
 
-<!-- Nueva columna para la dirección específica -->
-<th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
-<th class="py-0 px-1">Dirección maps</th>                    <th class="py-0 px-1">Teléfono</th>
+                    <!-- Nueva columna para la dirección específica -->
+                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
+                    <th class="py-0 px-1">Dirección maps</th>
+                    <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha</th>
                     <th class="py-0 px-1">Destinatario</th>

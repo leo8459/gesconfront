@@ -67,8 +67,8 @@
                     <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"target="_blank" 
+                        class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
                       <span v-else>{{ m.direccion.direccion }}</span>
@@ -346,9 +346,10 @@ export default {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
     },
     isCoordinates(address) {
-      const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
-      return regex.test(address);
-    },
+  const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+  return regex.test(address);
+},
+
     nextPage() {
       if (this.currentPage < this.totalPages - 1) {
         this.currentPage++;
