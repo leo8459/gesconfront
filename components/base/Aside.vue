@@ -278,6 +278,10 @@
                   <span class="sidenav-mini-icon"> Correspondencia Rechazada </span>
                   <span class="sidenav-normal"> Correspondencia Rechazada</span>
                 </nuxtLink>
+                <nuxtLink class="nav-link" to="/encargado/devueltoencargados/devueltoencargado">
+                  <span class="sidenav-mini-icon"> Correspondencia devuelta </span>
+                  <span class="sidenav-normal"> Correspondencia devuelta</span>
+                </nuxtLink>
               </li>
             </ul>
           </div>

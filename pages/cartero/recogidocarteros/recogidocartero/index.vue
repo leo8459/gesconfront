@@ -123,25 +123,39 @@
     </AdminTemplate>
 
     <!-- Modal para añadir peso_v -->
-    <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
-      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop @shown="focusPesoInput">
+  <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+    <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
 
-        <!-- Título para el campo peso_v -->
-        <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
-        <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control"
-          @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" />
+    <!-- Campo de entrada con ref para enfoque directo -->
+    <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
+    <input 
+      type="text" 
+      :id="'peso_v-' + item.id" 
+      v-model="item.peso_v" 
+      class="form-control"
+      @input="updatePrice(item)" 
+      placeholder="000.001" 
+      step="0.001" 
+      min="0.001" 
+      ref="pesoInput" />
 
-        <!-- Campo nombre_d oculto pero funcional -->
-        <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
-        <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
-      </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-        <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
-      </div>
-    </b-modal>
+    <!-- Campo oculto para nombre_d -->
+    <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
+    <input 
+      type="text" 
+      :id="'nombre_d-' + item.id" 
+      v-model="item.nombre_d" 
+      class="form-control d-none" 
+      readonly />
+  </div>
+  <div class="d-flex justify-content-end">
+    <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
+    <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
+  </div>
+</b-modal>
+
+
 
 
   </div>
@@ -155,6 +169,13 @@ export default {
   components: {
     BCollapse,
     BModal
+  },
+  directives: {
+    focus: {
+      inserted(el) {
+        el.focus();
+      }
+    }
   },
   data() {
     return {
@@ -204,6 +225,9 @@ export default {
     }
   },
   methods: {
+    focusPesoInput() {
+    this.$refs.pesoInput[0].focus(); // Asegúrate de que el campo de entrada esté enfocado
+  },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
@@ -311,23 +335,32 @@ export default {
       }
     },
     confirmAssignSelected() {
-      this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
-        // Validación final
-        let peso = parseFloat(item.peso_v);
-        if (isNaN(peso) || peso < 0.001) {
-          peso = 0.001;
-        } else if (peso > 25.000) {
-          peso = 25.000;
-        }
-        item.peso_v = peso.toFixed(3); // Ajustar y formatear el valor
-        item.nombre_d = item.precio; // Asegúrate de que nombre_d tenga el mismo valor que precio
-        return item;
-      })];
-      this.isModalVisible = false;
-      this.selected = {}; // Limpiar la selección después de asignar
-      // Actualizar la lista de paquetes para entregar
-      this.selectedForDelivery = [...this.selectedForAssign];
-    },
+  this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
+    // Validación final
+    let peso = parseFloat(item.peso_v);
+    if (isNaN(peso) || peso < 0.001) {
+      peso = 0.001;
+    } else if (peso > 25.000) {
+      peso = 25.000;
+    }
+    item.peso_v = peso.toFixed(3); // Ajustar y formatear el valor
+    item.nombre_d = item.precio; // Asegúrate de que nombre_d tenga el mismo valor que precio
+    return item;
+  })];
+  
+  // Actualizar la lista de paquetes para entregar
+  this.selectedForDelivery = [...this.selectedForAssign];
+  
+  // Remover los elementos seleccionados de la lista original (tabla de arriba)
+  this.list = this.list.filter(item => !this.selectedForAssign.some(selectedItem => selectedItem.id === item.id));
+
+  this.isModalVisible = false;
+  this.selected = {}; // Limpiar la selección después de asignar
+
+  // Limpiar el campo de búsqueda
+  this.searchTerm = '';
+},
+
     async confirmAllAssignments() {
       this.load = true;
       try {

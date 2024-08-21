@@ -117,8 +117,7 @@
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
                     <td class="py-0 px-1">
                       <div class="d-flex flex-column align-items-center">
-                        <img v-if="m.imagen" :src="generateThumbnail(m.imagen)" alt="Imagen Capturada" width="100" />
-                        <span v-else>No Image</span>
+                       
                         <button v-if="m.imagen" @click="downloadImage(m.imagen)"
                           class="btn btn-sm btn-primary mt-1 align-self-start">
                           Descargar
@@ -128,9 +127,7 @@
                     <td class="py-0 px-1">{{ m.justificacion }}</td>
                     <td class="py-0 px-1">
                       <div class="d-flex flex-column align-items-center">
-                        <img v-if="m.imagen_justificacion" :src="generateThumbnail(m.imagen_justificacion)"
-                          alt="Imagen Capturada" width="100" />
-                        <span v-else>No Image</span>
+                        
                         <button v-if="m.imagen_justificacion" @click="downloadImage(m.imagen_justificacion)"
                           class="btn btn-sm btn-primary mt-1 align-self-start">
                           Descargar

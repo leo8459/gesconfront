@@ -17,7 +17,7 @@
           <div class="col-12">
             <div class="card border-rounded">
               <div class="card-header">
-                Cancelados
+                Devueltos
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
@@ -29,6 +29,8 @@
                         <th class="py-0 px-1">Guía</th>
                         <th class="py-0 px-1">Observación</th>
                         <th class="py-0 px-1">Foto</th>
+                        <th class="py-0 px-1">Fecha devolucion</th>
+                        <th class="py-0 px-1">Foto</th>
 
                       </tr>
                     </thead>
@@ -39,10 +41,24 @@
                         <td class="py-0 px-1">{{ m.guia }}</td>
                         <td class="py-0 px-1">{{ m.observacion }}</td>
                         <td class="py-0 px-1">
+                      <div class="d-flex flex-column align-items-center">
+                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                          class="btn btn-sm btn-primary mt-1 align-self-start">
+                          Descargar
+                        </button>
+                      </div>
+                    </td>               
+                    <td class="py-0 px-1">{{ m.fecha_devolucion }}</td>
+
+                    <td class="py-0 px-1">
+                      <div class="d-flex flex-column align-items-center">
                       
-                      <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                        class="btn btn-sm btn-primary mt-1">Descargar</button>
-                    </td>
+                        <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
+                          class="btn btn-sm btn-primary mt-1 align-self-start">
+                          Descargar
+                        </button>
+                      </div>
+                    </td>                  
                       </tr>
                     </tbody>
                   </table>
@@ -84,7 +100,7 @@ export default {
     return {
       load: true,
       list: [],
-      apiUrl: 'solicitudes2',
+      apiUrl: 'solicitudes5',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/sucursal/sucursales/sucursal/nuevo',
@@ -97,20 +113,26 @@ export default {
     };
   },
   computed: {
-    filteredList() {
-      return this.list.filter(item => item.sucursale.id === this.user.user.id && (item.estado === 0 || item.estado === 6));
-    },
-    sortedList() {
-      return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-    },
-    paginatedList() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.sortedList.slice(start, end);
-    },
-    totalPages() {
-      return Math.ceil(this.sortedList.length / this.itemsPerPage);
-    }
+    filteredData() {
+    const searchTerm = this.searchTerm ? this.searchTerm.toLowerCase() : '';
+    return this.list.filter(item =>
+      item.estado === 7 && Object.values(item).some(value =>
+        String(value).toLowerCase().includes(searchTerm)
+      )
+    );
+  },
+  sortedList() {
+    // Asegúrate de que filteredData retorne un array antes de intentar ordenarlo
+    return this.filteredData.slice().sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  },
+  paginatedList() {
+    const start = this.currentPage * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    return this.sortedList.slice(start, end);
+  },
+  totalPages() {
+    return Math.ceil(this.sortedList.length / this.itemsPerPage);
+  }
   },
   methods: {
     generateThumbnail(base64Image) {
@@ -158,13 +180,13 @@ export default {
     },
 
     async GET_DATA(path) {
-      const res = await this.$sucursales.$get(path);
+      const res = await this.$encargados.$get(path);
       return res;
     },
     async EliminarItem(id) {
       this.load = true;
       try {
-        const res = await this.$sucursales.$delete(this.apiUrl + '/' + id);
+        const res = await this.$encargados.$delete(this.apiUrl + '/' + id);
         await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
           this.list = v[0];
         });
@@ -193,7 +215,7 @@ export default {
         const item = this.list.find(m => m.id === id);
         if (item) {
           item.estado = 3; // Cambiar estado a 3 (Entregado)
-          await this.$sucursales.$put(this.apiUrl + '/' + id, item);
+          await this.$encargados.$put(this.apiUrl + '/' + id, item);
           await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
             this.list = v[0];
           });

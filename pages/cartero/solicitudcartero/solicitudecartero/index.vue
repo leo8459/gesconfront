@@ -115,16 +115,16 @@
 
     <!-- Modal para mostrar seleccionados -->
     <b-modal v-model="isSelectedModalVisible" title="Resultados de la Búsqueda" hide-backdrop>
-      <div v-for="(item, index) in selectedItemsData" :key="item.id"
-        class="form-group d-flex justify-content-between align-items-center">
-        <label>{{ item.sucursale.nombre }} - {{ item.guia }}</label>
-        <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
-      </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-primary" @click="collectSelected">Recoger</button>
-        <button class="btn btn-secondary ml-2" @click="isSelectedModalVisible = false">Cancelar</button>
-      </div>
-    </b-modal>
+  <div v-for="(item, index) in selectedItemsData" :key="item.id"
+    class="form-group d-flex justify-content-between align-items-center">
+    <label>{{ item.sucursale.nombre }} - {{ item.guia }}</label>
+    <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
+  </div>
+  <div class="d-flex justify-content-end">
+    <button class="btn btn-primary" @click="collectSelected">Recoger</button>
+    <button class="btn btn-secondary ml-2" @click="isSelectedModalVisible = false">Cancelar</button>
+  </div>
+</b-modal>
   </div>
 </template>
 
@@ -275,8 +275,10 @@ export default {
       }
     },
     openSelectedModal() {
-      this.isSelectedModalVisible = true;
-    },
+  this.selectedItemsData = this.filteredData.filter(item => this.selected[item.id]);
+  this.isSelectedModalVisible = true;
+},
+
     async collectSelected() {
       this.load = true;
       try {
@@ -334,11 +336,14 @@ export default {
       );
     },
     selectAll(event) {
-      const isChecked = event.target.checked;
-      this.filteredData.forEach(item => {
-        this.$set(this.selected, item.id, isChecked);
-      });
-    },
+  const isChecked = event.target.checked;
+  this.filteredData.forEach(item => {
+    this.$set(this.selected, item.id, isChecked);
+  });
+
+  this.selectedItemsData = this.filteredData.filter(item => this.selected[item.id]);
+},
+
     removeItem(index) {
       this.selectedItemsData.splice(index, 1);
     },

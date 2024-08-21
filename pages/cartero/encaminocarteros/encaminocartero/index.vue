@@ -58,7 +58,7 @@
                     <td class="py-0 px-1">
                       <div class="btn-group">
                         <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
-                          <i class="fas fa-ban"></i> Dar de Baja
+                          <i class="fas fa-ban"></i> Entregar Correspondencia
                         </nuxtLink>
                       </div>
                     </td>
@@ -237,11 +237,11 @@ export default {
       });
 
       const canvas = document.createElement('canvas');
-      canvas.width = 1500; // Ancho deseado
-      canvas.height = img.height * (1500 / img.width); // Mantiene la proporción de aspecto
+      canvas.width = 750; // Ancho deseado
+      canvas.height = img.height * (750 / img.width); // Mantiene la proporción de aspecto
 
       await pica.resize(img, canvas);
-      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.5); // Convertir a WebP con calidad 50%
+      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.3); // Convertir a WebP con calidad 50%
       return optimizedImageDataUrl;
     },
 

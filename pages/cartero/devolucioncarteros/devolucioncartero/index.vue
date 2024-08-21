@@ -56,8 +56,7 @@
                     <td class="py-0 px-1">{{ m.observacion }}</td>
                     <td class="py-0 px-1">
                       <div class="d-flex flex-column align-items-center">
-                        <img v-if="m.imagen" :src="generateThumbnail(m.imagen)" alt="Imagen Capturada" width="100" />
-                        <span v-else>No Image</span>
+                        
                         <button v-if="m.imagen" @click="downloadImage(m.imagen)"
                           class="btn btn-sm btn-primary mt-1 align-self-start">
                           Descargar
@@ -224,8 +223,8 @@ export default {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
 
-      const MAX_WIDTH = 1500;
-      const MAX_HEIGHT = 1500;
+      const MAX_WIDTH = 1000;
+      const MAX_HEIGHT = 1000;
 
       let width = img.width;
       let height = img.height;
@@ -246,7 +245,7 @@ export default {
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
 
-      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.5); // Convertir a WebP con calidad 70%
+      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.4); // Convertir a WebP con calidad 70%
       return optimizedImageDataUrl;
     },
 
