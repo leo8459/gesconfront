@@ -168,7 +168,13 @@
                   <span class="sidenav-normal"> Devolucion Cartero</span>
                 </nuxtLink>
               </li>
-
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/cartero/devueltoscarteros/devueltoscartero">
+                  <span class="sidenav-mini-icon"> Retornados Cartero </span>
+                  <span class="sidenav-normal"> Retornados Cartero</span>
+                </nuxtLink>
+              </li>
+              
             </ul>
           </div>
         </li>
@@ -216,6 +222,13 @@
                 <nuxtLink class="nav-link" to="/sucursal/entregadosucursales/entregadosucursal">
                   <span class="sidenav-mini-icon"> Entregados Empresa</span>
                   <span class="sidenav-normal">Entregados Empresa </span>
+                </nuxtLink>
+              </li>
+              
+              <li class="nav-item" v-if="isSucursale">
+                <nuxtLink class="nav-link" to="/sucursal/devueltosucursales/devueltosucursale">
+                  <span class="sidenav-mini-icon"> Devueltos Empresa</span>
+                  <span class="sidenav-normal">Devueltos Empresa </span>
                 </nuxtLink>
               </li>
             </ul>

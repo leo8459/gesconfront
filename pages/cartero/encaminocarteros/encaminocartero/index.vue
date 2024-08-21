@@ -123,6 +123,7 @@
 
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
+import Pica from 'pica'; // Importa Pica para redimensionar y comprimir imágenes
 
 export default {
   name: "IndexPage",
@@ -189,38 +190,87 @@ export default {
       }
     },
     async confirmRechazar() {
-      this.load = true;
-      try {
-        const now = new Date();
-        const options = {
-          timeZone: 'America/La_Paz',
-        };
-        const formattedDate = now.toLocaleDateString('es-ES', options) + ' ' + now.toLocaleTimeString('es-ES', options);
+  this.load = true;
 
-        await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, { 
-          observacion: this.observacion,
-          fecha_d: formattedDate,
-          imagen: this.uploadedImage, // Enviar la imagen junto con la observación
-        });
-        await this.GET_DATA(this.apiUrl);
-        this.$swal.fire({
-          icon: 'success',
-          title: 'Solicitud ha sido Retornada',
-          text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
-        });
-        this.isObservationModalVisible = false;
-        this.observacion = ''; 
-        this.uploadedImage = ''; // Limpiar la imagen después de guardar
-      } catch (e) {
-        console.error(e);
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un error al devolver la solicitud a destino.',
-        });
-      } finally {
-        this.load = false;
-      }
+  try {
+    // Almacenar la imagen original antes de optimizarla
+    const originalImage = this.uploadedImage;
+
+    // Redimensionar y comprimir la imagen antes de enviarla
+    const optimizedImage = await this.optimizeImage(originalImage);
+
+    // Formatear la fecha actual
+    const formattedDate = this.getFormattedDate();
+
+    // Enviar la solicitud de actualización con la imagen optimizada
+    await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, {
+      observacion: this.observacion,
+      fecha_d: formattedDate,
+      imagen: optimizedImage, // Enviar la imagen optimizada
+      imagen_original: originalImage, // También enviar la imagen original
+    });
+
+    // Recargar los datos
+    await this.GET_DATA(this.apiUrl);
+
+    // Mostrar mensaje de éxito
+    this.showSuccessMessage();
+
+    // Limpiar la entrada de datos después de guardar
+    this.resetForm();
+  } catch (e) {
+    console.error(e);
+    this.showErrorMessage();
+  } finally {
+    this.load = false;
+  }
+},
+
+
+    async optimizeImage(imageDataUrl) {
+      const pica = Pica();
+      const img = new Image();
+      img.src = imageDataUrl;
+
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 1500; // Ancho deseado
+      canvas.height = img.height * (1500 / img.width); // Mantiene la proporción de aspecto
+
+      await pica.resize(img, canvas);
+      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.5); // Convertir a WebP con calidad 50%
+      return optimizedImageDataUrl;
+    },
+
+    getFormattedDate() {
+      const now = new Date();
+      const options = { timeZone: 'America/La_Paz' };
+      return now.toLocaleDateString('es-ES', options) + ' ' + now.toLocaleTimeString('es-ES', options);
+    },
+
+    showSuccessMessage() {
+      this.$swal.fire({
+        icon: 'success',
+        title: 'Solicitud ha sido Retornada',
+        text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
+      });
+    },
+
+    showErrorMessage() {
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un error al devolver la solicitud a destino.',
+      });
+    },
+
+    resetForm() {
+      this.isObservationModalVisible = false;
+      this.observacion = '';
+      this.uploadedImage = ''; // Limpiar la imagen después de guardar
     },
     openObservationModal(id) {
       this.selectedSolicitudeId = id;

@@ -24,14 +24,17 @@
                     <th class="py-0 px-1">Guía</th>
                     <th class="py-0 px-1">Remitente</th>
                     <th class="py-0 px-1">Detalles de Domicilio</th>
-                    <th class="py-0 px-1">Zona</th>
+
+                    <!-- Nueva columna para la dirección específica -->
+                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
                     <th class="py-0 px-1">Dirección maps</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha Solicitud</th>
                     <th class="py-0 px-1">Observacion</th>
-                    <th class="py-0 px-1">Imagen</th>
-                    <th class="py-0 px-1"></th>
+                    <th class="py-0 px-1">imagen Devolucion</th>
+
+                    
                   </tr>
                 </thead>
                 <tbody>
@@ -41,7 +44,8 @@
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
                     <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td>
+                    <!-- Mostrar la dirección específica -->
+                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion.direccion)"
                         :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
@@ -56,19 +60,15 @@
                     <td class="py-0 px-1">{{ m.observacion }}</td>
                     <td class="py-0 px-1">
                       <div class="d-flex flex-column align-items-center">
-                        <img v-if="m.imagen" :src="generateThumbnail(m.imagen)" alt="Imagen Capturada" width="100" />
+                        <img v-if="m.imagen_devolucion" :src="generateThumbnail(m.imagen_devolucion)" alt="Imagen Capturada" width="100" />
                         <span v-else>No Image</span>
-                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                        <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
                           class="btn btn-sm btn-primary mt-1 align-self-start">
                           Descargar
                         </button>
                       </div>
-                    </td>
-                    <td class="py-0 px-1">
-                      <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
-                        <i class="fas fa-undo"></i> Devolver a destino
-                      </button>
-                    </td>
+                    </td>                    
+                   
                   </tr>
                 </tbody>
               </table>
@@ -94,6 +94,7 @@
     
     <!-- Modal para añadir observación -->
     <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop>
+      
       <div class="form-group">
         <label for="capturephoto">Subir Foto (Opcional)</label>
         <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
@@ -120,7 +121,6 @@
 </template>
 
 <script>
-import Pica from 'pica'; // Importa Pica para redimensionar y comprimir imágenes
 import { BCollapse, BModal } from 'bootstrap-vue';
 
 export default {
@@ -155,14 +155,14 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item =>
-        item.estado === 6 && 
-        Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        )
-      );
-    },
+  const searchTerm = this.searchTerm.toLowerCase();
+  return this.list.filter(item =>
+    item.estado === 7 && 
+    Object.values(item).some(value =>
+      String(value).toLowerCase().includes(searchTerm)
+    )
+  );
+},
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -176,108 +176,6 @@ export default {
     }
   },
   methods: {
-    async confirmRechazar() {
-      this.load = true;
-
-      try {
-        // Almacenar la imagen original antes de optimizarla
-        const originalImage = this.uploadedImage;
-
-        // Redimensionar y comprimir la imagen antes de enviarla
-        const optimizedImage = await this.optimizeImage(originalImage);
-
-        // Formatear la fecha actual
-        const formattedDate = this.getFormattedDate();
-
-        // Enviar la solicitud de actualización con la imagen optimizada
-        await this.$api.$put(`devolucion/${this.selectedSolicitudeId}`, {
-          fecha_devolucion: formattedDate,
-          observacion: this.observacion,
-          imagen_devolucion: optimizedImage, // Enviar la imagen optimizada
-        });
-
-        // Recargar los datos
-        await this.GET_DATA(this.apiUrl);
-
-        // Mostrar mensaje de éxito
-        this.showSuccessMessage();
-
-        // Limpiar la entrada de datos después de guardar
-        this.resetForm();
-      } catch (e) {
-        console.error(e);
-        this.showErrorMessage();
-      } finally {
-        this.load = false;
-      }
-    },
-
-    async optimizeImage(imageDataUrl) {
-      const pica = Pica();
-      const img = new Image();
-      img.src = imageDataUrl;
-
-      await new Promise((resolve) => {
-        img.onload = resolve;
-      });
-
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
-      const MAX_WIDTH = 1500;
-      const MAX_HEIGHT = 1500;
-
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
-        }
-      } else {
-        if (height > MAX_HEIGHT) {
-          width *= MAX_HEIGHT / height;
-          height = MAX_HEIGHT;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      ctx.drawImage(img, 0, 0, width, height);
-
-      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.5); // Convertir a WebP con calidad 70%
-      return optimizedImageDataUrl;
-    },
-
-    getFormattedDate() {
-      const now = new Date();
-      const options = { timeZone: 'America/La_Paz' };
-      return now.toLocaleDateString('es-ES', options) + ' ' + now.toLocaleTimeString('es-ES', options);
-    },
-
-    showSuccessMessage() {
-      this.$swal.fire({
-        icon: 'success',
-        title: 'Solicitud ha sido Retornada',
-        text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
-      });
-    },
-
-    showErrorMessage() {
-      this.$swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Hubo un error al devolver la solicitud a destino.',
-      });
-    },
-
-    resetForm() {
-      this.isObservationModalVisible = false;
-      this.observacion = '';
-      this.uploadedImage = '';
-    },
-
     generateThumbnail(base64Image) {
       const img = new Image();
       img.src = base64Image;
@@ -285,8 +183,9 @@ export default {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
 
-      const MAX_WIDTH = 100;
-      const MAX_HEIGHT = 100;
+      // Ajustar la resolución del thumbnail
+      const MAX_WIDTH = 100; // Ajustar según sea necesario
+      const MAX_HEIGHT = 100; // Ajustar según sea necesario
 
       let width = img.width;
       let height = img.height;
@@ -307,18 +206,17 @@ export default {
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
 
-      return canvas.toDataURL('image/jpeg', 0.7);
+      // Aquí no es necesario comprimir el thumbnail en exceso si queremos mostrar una imagen más clara
+      return canvas.toDataURL('image/jpeg', 0.1);
     },
-
     downloadImage(base64Image) {
       const link = document.createElement('a');
-      link.href = base64Image;
+      link.href = base64Image; // Aquí estás usando la imagen original almacenada
       link.download = 'imagen_capturada.jpg';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     },
-
     handleImageUpload(event) {
       const file = event.target.files[0];
       if (file) {
@@ -329,28 +227,64 @@ export default {
         reader.readAsDataURL(file);
       }
     },
+   async confirmRechazar() {
+  this.load = true;
+  try {
+    const now = new Date();
+    const options = {
+      timeZone: 'America/La_Paz',
+    };
+    const formattedDate = now.toLocaleDateString('es-ES', options) + ' ' + now.toLocaleTimeString('es-ES', options);
+
+    await this.$api.$put(`devolucion/${this.selectedSolicitudeId}`, { 
+      fecha_devolucion: formattedDate, // Asigna la fecha de devolución al backend
+      observacion: this.observacion,
+      imagen_devolucion: this.uploadedImage, // Cambiar imagen por imagen_devolucion
+    });
+
+    await this.GET_DATA(this.apiUrl);
+    this.$swal.fire({
+      icon: 'success',
+      title: 'Solicitud ha sido Retornada',
+      text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
+    });
+
+    this.isObservationModalVisible = false;
+    this.observacion = ''; 
+    this.uploadedImage = ''; // Limpiar la imagen después de guardar
+  } catch (e) {
+    console.error(e);
+    this.$swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Hubo un error al devolver la solicitud a destino.',
+    });
+  } finally {
+    this.load = false;
+  }
+}
+,
 
     openObservationModal(id) {
       this.selectedSolicitudeId = id;
       this.isObservationModalVisible = true;
     },
-
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
-
     async markAsEnCamino(solicitudeId) {
       this.load = true;
       try {
         const carteroId = this.user.user.id;
-        await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
+        const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
         await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
           icon: 'success',
           title: 'Cartero asignado',
           text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
         });
+        await this.GET_DATA(this.apiUrl); 
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -362,12 +296,10 @@ export default {
         this.load = false;
       }
     },
-
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
       this.list = Array.isArray(res) ? res : [];
     },
-
     async EliminarItem(id) {
       this.load = true;
       try {
@@ -379,7 +311,6 @@ export default {
         this.load = false;
       }
     },
-
     Eliminar(id) {
       this.$swal.fire({
         title: 'Deseas Eliminar?',
@@ -393,14 +324,14 @@ export default {
         }
       });
     },
-
     async DarDeBaja(id) {
       this.load = true;
       try {
         const carteroId = this.user.user.id;
         const item = this.list.find(m => m.id === id);
         if (item) {
-          await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          Object.assign(item, response); 
           await this.GET_DATA(this.apiUrl);
         }
       } catch (e) {
@@ -409,7 +340,6 @@ export default {
         this.load = false;
       }
     },
-
     openAssignModal() {
       this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => ({
         id: item.id,
@@ -419,14 +349,12 @@ export default {
       }));
       this.isModalVisible = true;
     },
-
     handleSearchEnter() {
       this.selectedItemsData = this.filteredData;
       if (this.selectedItemsData.length > 0) {
         this.isModalVisible = true;
       }
     },
-
     async confirmAssignSelected() {
       this.load = true;
       try {
@@ -438,14 +366,15 @@ export default {
             console.error('Item inválido:', item);
           }
         }
-        await this.GET_DATA(this.apiUrl);
+        await this.GET_DATA(this.apiUrl); 
         this.$swal.fire({
           icon: 'success',
           title: 'Carteros asignados',
           text: 'Todos los carteros seleccionados han sido asignados.',
         });
         this.isModalVisible = false;
-        this.selected = {};
+        this.selected = {}; 
+        await this.GET_DATA(this.apiUrl);
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -457,43 +386,40 @@ export default {
         this.load = false;
       }
     },
-
     selectAll(event, group) {
       const isChecked = event.target.checked;
       group.forEach(item => {
         this.$set(this.selected, item.id, isChecked);
       });
     },
-
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
     },
-
     nextPage() {
       if (this.currentPage < this.totalPages - 1) {
         this.currentPage++;
       }
     },
-
     previousPage() {
       if (this.currentPage > 0) {
         this.currentPage--;
       }
     },
-
     goToPage(page) {
       this.currentPage = page;
     }
   },
-
   mounted() {
     this.$nextTick(async () => {
       let user = localStorage.getItem('userAuth');
       this.user = JSON.parse(user);
       try {
-        await this.GET_DATA(this.apiUrl);
+        const data = await this.GET_DATA(this.apiUrl);
+        if (Array.isArray(data)) {
+          this.list = data;
+        } else {
+        }
       } catch (e) {
-        console.error(e);
       } finally {
         this.load = false;
       }

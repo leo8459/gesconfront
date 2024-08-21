@@ -70,6 +70,8 @@
                     <th class="py-0 px-1">Imagen Capturada</th>
                     <th class="py-0 px-1">Justificacion</th>
                     <th class="py-0 px-1">Imagen Justificacion</th>
+                    <th class="py-0 px-1">Fecha devolucion</th>
+                    <th class="py-0 px-1">Imagen devolucion</th>
                     <th class="py-0 px-1"></th>
 
                   </tr>
@@ -132,6 +134,18 @@
                           alt="Imagen Capturada" width="100" />
                         <span v-else>No Image</span>
                         <button v-if="m.imagen_justificacion" @click="downloadImage(m.imagen_justificacion)"
+                          class="btn btn-sm btn-primary mt-1 align-self-start">
+                          Descargar
+                        </button>
+                      </div>
+                    </td>
+                    <td class="py-0 px-1">{{ m.fecha_devolucion }}</td>
+                    <td class="py-0 px-1">
+                      <div class="d-flex flex-column align-items-center">
+                        <img v-if="m.imagen_devolucion" :src="generateThumbnail(m.imagen_devolucion)"
+                          alt="Imagen Capturada" width="100" />
+                        <span v-else>No Image</span>
+                        <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
                           class="btn btn-sm btn-primary mt-1 align-self-start">
                           Descargar
                         </button>
@@ -210,16 +224,20 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item => {
-        const fechaD = new Date(item.fecha_d);
-        const isWithinDateRange = (!this.startDate || fechaD >= new Date(this.startDate)) && (!this.endDate || fechaD <= new Date(this.endDate));
-        const isMatchingSucursal = !this.selectedSucursal || item.sucursale?.id === this.selectedSucursal;
-        return isWithinDateRange && isMatchingSucursal &&
-          item.estado === 4 &&
-          Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
-      });
-    },
+  const searchTerm = this.searchTerm.toLowerCase();
+  return this.list.filter(item => {
+    const fechaD = new Date(item.fecha_d);
+    const isWithinDateRange = (!this.startDate || fechaD >= new Date(this.startDate)) && (!this.endDate || fechaD <= new Date(this.endDate));
+    const isMatchingSucursal = !this.selectedSucursal || item.sucursale?.id === this.selectedSucursal;
+    
+    // Modifica la condición para incluir tanto el estado 4 como el estado 7
+    const isMatchingState = item.estado === 4 || item.estado === 7;
+
+    return isWithinDateRange && isMatchingSucursal && isMatchingState &&
+      Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
+  });
+},
+
     paginatedData() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;

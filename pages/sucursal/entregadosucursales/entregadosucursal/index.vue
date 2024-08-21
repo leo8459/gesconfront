@@ -99,11 +99,15 @@
                         <td class="py-0 px-1">{{ m.fecha_d }}</td>
 
                         <td class="py-0 px-1">
-                      <img v-if="m.imagen" :src="generateThumbnail(m.imagen)" alt="Imagen Capturada" width="100" />
-                      <span v-else>No Image</span>
-                      <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                        class="btn btn-sm btn-primary mt-1">Descargar</button>
-                    </td>
+                      <div class="d-flex flex-column align-items-center">
+                        <img v-if="m.imagen" :src="generateThumbnail(m.imagen)" alt="Imagen Capturada" width="100" />
+                        <span v-else>No Image</span>
+                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                          class="btn btn-sm btn-primary mt-1 align-self-start">
+                          Descargar
+                        </button>
+                      </div>
+                    </td>               
                       </tr>
                     </tbody>
                   </table>

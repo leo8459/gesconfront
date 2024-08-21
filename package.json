@@ -25,6 +25,7 @@
     "leaflet": "^1.9.4",
     "moment-timezone": "^0.5.45",
     "nuxt": "^2.15.8",
+    "pica": "^9.0.1",
     "popper.js": "^1.16.1",
     "signature_pad": "^5.0.2",
     "sweetalert2": "^11.12.2",
