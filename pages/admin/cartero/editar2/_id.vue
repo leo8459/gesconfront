@@ -165,8 +165,8 @@ export default {
                 const ctx = canvas.getContext('2d');
 
                 // Definir una resolución baja
-                const maxWidth = 2500; // Ancho máximo
-                const maxHeight = 2500; // Alto máximo
+                const maxWidth = 1000; // Ancho máximo
+                const maxHeight = 1000; // Alto máximo
 
                 let width = img.width;
                 let height = img.height;
@@ -189,7 +189,7 @@ export default {
                 ctx.drawImage(img, 0, 0, width, height);
 
                 // Comprimir la imagen_justificacion en formato WebP lo máximo posible
-                let quality = 0.5; // Calidad baja
+                let quality = 0.4; // Calidad baja
                 let dataurl = canvas.toDataURL('image/webp', quality);
 
                 // Intentar reducir el tamaño por debajo de 1 KB
