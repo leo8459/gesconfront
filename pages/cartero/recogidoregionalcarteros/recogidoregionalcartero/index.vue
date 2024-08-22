@@ -113,7 +113,7 @@
                   <td class="py-0 px-1">{{ item.guia }}</td>
                   <td class="py-0 px-1">{{ item.sucursale.nombre }}</td>
                   <td class="py-0 px-1">{{ item.tarifa }}</td>
-                  <td class="py-0 px-1">{{ item.peso_v }}</td>
+                  <td class="py-0 px-1">{{ item.peso_r }}</td>
                 </tr>
               </tbody>
             </table>
@@ -122,25 +122,38 @@
       </div>
     </AdminTemplate>
 
-    <!-- Modal para añadir peso_v -->
+    <!-- Modal para añadir peso_r -->
     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop @shown="focusPesoInput">
-      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+  <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+    <label :for="'peso_r-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
 
-        <!-- Campo de entrada con ref para enfoque directo -->
-        <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
-        <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control"
-          @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" ref="pesoInput" />
+    <!-- Campo de entrada con ref para enfoque directo -->
+    <label :for="'peso_r-' + item.id" class="mt-2">Peso (Kg)</label>
+    <input 
+      type="text" 
+      :id="'peso_r-' + item.id" 
+      v-model="item.peso_r" 
+      class="form-control"
+      @input="updatePrice(item)" 
+      placeholder="000.001" 
+      step="0.001" 
+      min="0.001" 
+      ref="pesoInput" />
 
-        <!-- Campo oculto para nombre_d -->
-        <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
-        <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
-      </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-        <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
-      </div>
-    </b-modal>
+    <!-- Campo oculto para nombre_d -->
+    <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
+    <input 
+      type="text" 
+      :id="'nombre_d-' + item.id" 
+      v-model="item.nombre_d" 
+      class="form-control d-none" 
+      readonly />
+  </div>
+  <div class="d-flex justify-content-end">
+    <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
+    <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
+  </div>
+</b-modal>
 
 
 
@@ -169,7 +182,7 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'solicitudes5',
+      apiUrl: 'solicitudes',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -194,7 +207,7 @@ export default {
     filteredData() {
       const searchTerm = this.searchTerm.toLowerCase();
       return this.list.filter(item =>
-        item.estado === 5 && Object.values(item).some(value =>
+        item.estado === 8 && Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
         )
       );
@@ -213,11 +226,34 @@ export default {
   },
   methods: {
     focusPesoInput() {
-      this.$refs.pesoInput[0].focus(); // Asegúrate de que el campo de entrada esté enfocado
-    },
+    this.$refs.pesoInput[0].focus(); // Asegúrate de que el campo de entrada esté enfocado
+  },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
+    },
+    async markAsEnCamino(solicitudeId) {
+      this.load = true;
+      try {
+        const carteroId = this.user.id;
+        const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
+        await this.GET_DATA(this.apiUrl);
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Cartero asignado',
+          text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
+        });
+        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al asignar el cartero.',
+        });
+      } finally {
+        this.load = false;
+      }
     },
     getTarifaLabel(tarifa_id) {
       if (!this.tarifas) {
@@ -226,12 +262,12 @@ export default {
       const tarifa = this.tarifas.find(t => t.id === tarifa_id);
       return tarifa ? tarifa.departamento : 'Tarifa no encontrada';
     },
-    calculatePrice(tarifa_id, peso_v) {
+    calculatePrice(tarifa_id, peso_r) {
       const tarifa = this.tarifas.find(t => t.id === tarifa_id);
       if (tarifa) {
         const basePrice = tarifa.precio ? parseFloat(tarifa.precio) : 0;
         const extraPrice = tarifa.precio_extra ? parseFloat(tarifa.precio_extra) : 0;
-        const peso = parseFloat(peso_v);
+        const peso = parseFloat(peso_r);
         if (isNaN(peso)) {
           return ''; // No mostrar nada si el peso está vacío
         }
@@ -245,18 +281,18 @@ export default {
       return '';
     },
     updatePrice(item) {
-      const peso = parseFloat(item.peso_v);
-      item.precio = this.calculatePrice(item.tarifa_id, item.peso_v);
+      const peso = parseFloat(item.peso_r);
+      item.precio = this.calculatePrice(item.tarifa_id, item.peso_r);
       item.nombre_d = item.precio; // Actualiza nombre_d con el precio calculado
     },
     async GET_DATA(path) {
-      const res = await this.$encargados.$get(path);
+      const res = await this.$api.$get(path);
       return res;
     },
     async EliminarItem(id) {
       this.load = true;
       try {
-        const res = await this.$encargados.$delete(this.apiUrl + '/' + id);
+        const res = await this.$api.$delete(this.apiUrl + '/' + id);
         await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
           this.list = v[0];
         });
@@ -268,12 +304,12 @@ export default {
     },
     openAssignModal() {
       this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => {
-        const precio = this.calculatePrice(item.tarifa_id, item.peso_v);
+        const precio = this.calculatePrice(item.tarifa_id, item.peso_r);
         return {
           id: item.id,
           guia: item.guia,
           sucursale: item.sucursale,
-          peso_v: item.peso_v !== undefined && item.peso_v !== null && item.peso_v !== 0 ? item.peso_v : '', // Asegúrate de que peso_v esté vacío inicialmente
+          peso_r: item.peso_r !== undefined && item.peso_r !== null && item.peso_r !== 0 ? item.peso_r : '', // Asegúrate de que peso_r esté vacío inicialmente
           tarifa_id: item.tarifa_id,
           tarifa: this.getTarifaLabel(item.tarifa_id),
           nombre_d: precio,
@@ -290,50 +326,50 @@ export default {
           id: item.id,
           guia: item.guia,
           sucursale: item.sucursale,
-          peso_v: item.peso_v || 0,
+          peso_r: item.peso_r || 0,
           tarifa_id: item.tarifa_id,
           tarifa: this.getTarifaLabel(item.tarifa_id), // Añadir la tarifa al objeto
-          precio: this.calculatePrice(item.tarifa_id, item.peso_v) // Calcular el precio inicial
+          precio: this.calculatePrice(item.tarifa_id, item.peso_r) // Calcular el precio inicial
         }];
         this.isModalVisible = true;
       }
     },
     confirmAssignSelected() {
-      this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
-        // Validación final
-        let peso = parseFloat(item.peso_v);
-        if (isNaN(peso) || peso < 0.001) {
-          peso = 0.001;
-        } else if (peso > 25.000) {
-          peso = 25.000;
-        }
-        item.peso_v = peso.toFixed(3); // Ajustar y formatear el valor
-        item.nombre_d = item.precio; // Asegúrate de que nombre_d tenga el mismo valor que precio
-        return item;
-      })];
+  this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
+    // Validación final
+    let peso = parseFloat(item.peso_r);
+    if (isNaN(peso) || peso < 0.001) {
+      peso = 0.001;
+    } else if (peso > 25.000) {
+      peso = 25.000;
+    }
+    item.peso_r = peso.toFixed(3); // Ajustar y formatear el valor
+    item.nombre_d = item.precio; // Asegúrate de que nombre_d tenga el mismo valor que precio
+    return item;
+  })];
+  
+  // Actualizar la lista de paquetes para entregar
+  this.selectedForDelivery = [...this.selectedForAssign];
+  
+  // Remover los elementos seleccionados de la lista original (tabla de arriba)
+  this.list = this.list.filter(item => !this.selectedForAssign.some(selectedItem => selectedItem.id === item.id));
 
-      // Actualizar la lista de paquetes para entregar
-      this.selectedForDelivery = [...this.selectedForAssign];
+  this.isModalVisible = false;
+  this.selected = {}; // Limpiar la selección después de asignar
 
-      // Remover los elementos seleccionados de la lista original (tabla de arriba)
-      this.list = this.list.filter(item => !this.selectedForAssign.some(selectedItem => selectedItem.id === item.id));
+  // Limpiar el campo de búsqueda
+  this.searchTerm = '';
+},
 
-      this.isModalVisible = false;
-      this.selected = {}; // Limpiar la selección después de asignar
-
-      // Limpiar el campo de búsqueda
-      this.searchTerm = '';
-    },
-
-    async confirmAllAssignments() {
+async confirmAllAssignments() {
       this.load = true;
       try {
         const carteroId = this.user.user.id;
         for (let item of this.selectedForAssign) {
-          await this.$encargados.$put(`solicitudesregional5/${item.id}`, {
-            encargado_id: carteroId,
-            peso_v: item.peso_v,
-            fecha_envio_regional: item.fecha_envio_regional,
+          await this.$api.$put(`encaminoregional/${item.id}`, {
+            cartero_entrega_id: carteroId,
+            peso_r: item.peso_r,
+            fecha_d: item.fecha_d,
             precio: item.precio,
             nombre_d: item.nombre_d // Incluir nombre_d en el envío
           });

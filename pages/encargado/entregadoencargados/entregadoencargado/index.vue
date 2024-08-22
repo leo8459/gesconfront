@@ -167,14 +167,15 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item =>
-        item.estado === 3 &&
-        Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        )
-      );
-    },
+  const searchTerm = this.searchTerm.toLowerCase();
+  return this.list.filter(item =>
+    (item.estado === 3 || item.estado === 10) && // Incluir elementos con estado 3 o 10
+    Object.values(item).some(value =>
+      String(value).toLowerCase().includes(searchTerm)
+    )
+  );
+},
+
     paginatedData() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;

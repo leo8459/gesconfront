@@ -21,20 +21,17 @@
                   <tr>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Guía</th>
+                    <th class="py-0 px-1">Guia</th>
                     <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Detalles de Domicilio</th>
-
-                    <!-- Nueva columna para la dirección específica -->
-                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
-                    <th class="py-0 px-1">Dirección maps</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha Solicitud</th>
-                    <th class="py-0 px-1">Observacion</th>
-                    <th class="py-0 px-1">imagen Devolucion</th>
-
-                    
+                    <th class="py-0 px-1">Destinatario</th>
+                    <th class="py-0 px-1">Teléfono Destinatario</th>
+                    <th class="py-0 px-1">Dirección Destinatario Maps</th>
+                    <th class="py-0 px-1">Dirección Destinatario</th>
+                    <th class="py-0 px-1">Ciudad</th>
+                    <th class="py-0 px-1">Zona Destinatario</th>
+                    <th class="py-0 px-1"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -43,31 +40,33 @@
                     <td class="p-1">{{ m.sucursale.nombre }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha_devolucion }}</td>
-                    <td class="py-0 px-1">{{ m.observacion }}</td>
+                    <td class="py-0 px-1">{{ m.destinatario }}</td>
+                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
                     <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                       
-                        <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
+                      <a v-if="isCoordinates(m.direccion_d)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                        class="btn btn-primary btn-sm">
+                        Ver mapa
+                      </a>
+                      <span v-else>{{ m.direccion_d }}</span>
+                    </td>
+                    <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
+                    <td class="py-0 px-1">{{ m.ciudad }}</td>
+                    <td class="py-0 px-1">{{ m.zona_d }}</td>
+                    <td class="py-0 px-1">
+                      <div class="btn-group">
+                        <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
+                          <i class="fas fa-ban"></i> Entregar Correspondencia
+                        </nuxtLink>
                       </div>
-                    </td>                    
-                   
+                    </td>
+                    <td class="py-0 px-1">
+                      <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
+                        <i class="fas fa-undo"></i> Devolver a destino
+                      </button>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -93,7 +92,10 @@
     
     <!-- Modal para añadir observación -->
     <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop>
-      
+      <div class="form-group">
+        <label for="observacion">Observación</label>
+        <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
+      </div>
       <div class="form-group">
         <label for="capturephoto">Subir Foto (Opcional)</label>
         <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
@@ -121,6 +123,7 @@
 
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
+import Pica from 'pica'; // Importa Pica para redimensionar y comprimir imágenes
 
 export default {
   name: "IndexPage",
@@ -133,7 +136,7 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'solicitudes',
+      apiUrl: 'solicitudes5',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -154,14 +157,15 @@ export default {
   },
   computed: {
     filteredData() {
-  const searchTerm = this.searchTerm.toLowerCase();
-  return this.list.filter(item =>
-    item.estado === 7 && 
-    Object.values(item).some(value =>
-      String(value).toLowerCase().includes(searchTerm)
-    )
-  );
-},
+      const searchTerm = this.searchTerm.toLowerCase();
+      return this.list.filter(item =>
+        item.estado === 9 && 
+        item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
+        Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        )
+      );
+    },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -175,47 +179,6 @@ export default {
     }
   },
   methods: {
-    generateThumbnail(base64Image) {
-      const img = new Image();
-      img.src = base64Image;
-
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
-      // Ajustar la resolución del thumbnail
-      const MAX_WIDTH = 100; // Ajustar según sea necesario
-      const MAX_HEIGHT = 100; // Ajustar según sea necesario
-
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
-        }
-      } else {
-        if (height > MAX_HEIGHT) {
-          width *= MAX_HEIGHT / height;
-          height = MAX_HEIGHT;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      ctx.drawImage(img, 0, 0, width, height);
-
-      // Aquí no es necesario comprimir el thumbnail en exceso si queremos mostrar una imagen más clara
-      return canvas.toDataURL('image/jpeg', 0.1);
-    },
-    downloadImage(base64Image) {
-      const link = document.createElement('a');
-      link.href = base64Image; // Aquí estás usando la imagen original almacenada
-      link.download = 'imagen_capturada.jpg';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    },
     handleImageUpload(event) {
       const file = event.target.files[0];
       if (file) {
@@ -226,44 +189,89 @@ export default {
         reader.readAsDataURL(file);
       }
     },
-   async confirmRechazar() {
+    async confirmRechazar() {
   this.load = true;
+
   try {
-    const now = new Date();
-    const options = {
-      timeZone: 'America/La_Paz',
-    };
-    const formattedDate = now.toLocaleDateString('es-ES', options) + ' ' + now.toLocaleTimeString('es-ES', options);
+    // Almacenar la imagen original antes de optimizarla
+    const originalImage = this.uploadedImage;
 
-    await this.$api.$put(`devolucion/${this.selectedSolicitudeId}`, { 
-      fecha_devolucion: formattedDate, // Asigna la fecha de devolución al backend
+    // Redimensionar y comprimir la imagen antes de enviarla
+    const optimizedImage = await this.optimizeImage(originalImage);
+
+    // Formatear la fecha actual
+    const formattedDate = this.getFormattedDate();
+
+    // Enviar la solicitud de actualización con la imagen optimizada
+    await this.$encargados.$put(`rechazado5/${this.selectedSolicitudeId}`, {
       observacion: this.observacion,
-      imagen_devolucion: this.uploadedImage, // Cambiar imagen por imagen_devolucion
+      fecha_d: formattedDate,
+      imagen: optimizedImage, // Enviar la imagen optimizada
+      imagen_original: originalImage, // También enviar la imagen original
     });
 
+    // Recargar los datos
     await this.GET_DATA(this.apiUrl);
-    this.$swal.fire({
-      icon: 'success',
-      title: 'Solicitud ha sido Retornada',
-      text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
-    });
 
-    this.isObservationModalVisible = false;
-    this.observacion = ''; 
-    this.uploadedImage = ''; // Limpiar la imagen después de guardar
+    // Mostrar mensaje de éxito
+    this.showSuccessMessage();
+
+    // Limpiar la entrada de datos después de guardar
+    this.resetForm();
   } catch (e) {
     console.error(e);
-    this.$swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Hubo un error al devolver la solicitud a destino.',
-    });
+    this.showErrorMessage();
   } finally {
     this.load = false;
   }
-}
-,
+},
 
+
+    async optimizeImage(imageDataUrl) {
+      const pica = Pica();
+      const img = new Image();
+      img.src = imageDataUrl;
+
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 750; // Ancho deseado
+      canvas.height = img.height * (750 / img.width); // Mantiene la proporción de aspecto
+
+      await pica.resize(img, canvas);
+      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.3); // Convertir a WebP con calidad 50%
+      return optimizedImageDataUrl;
+    },
+
+    getFormattedDate() {
+      const now = new Date();
+      const options = { timeZone: 'America/La_Paz' };
+      return now.toLocaleDateString('es-ES', options) + ' ' + now.toLocaleTimeString('es-ES', options);
+    },
+
+    showSuccessMessage() {
+      this.$swal.fire({
+        icon: 'success',
+        title: 'Solicitud ha sido Retornada',
+        text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
+      });
+    },
+
+    showErrorMessage() {
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un error al devolver la solicitud a destino.',
+      });
+    },
+
+    resetForm() {
+      this.isObservationModalVisible = false;
+      this.observacion = '';
+      this.uploadedImage = ''; // Limpiar la imagen después de guardar
+    },
     openObservationModal(id) {
       this.selectedSolicitudeId = id;
       this.isObservationModalVisible = true;
@@ -276,7 +284,7 @@ export default {
       this.load = true;
       try {
         const carteroId = this.user.user.id;
-        const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
+        const response = await this.$encargados.$put(`solicitudesrecojo5/${solicitudeId}`, { cartero_recogida_id: carteroId });
         await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
           icon: 'success',
@@ -296,13 +304,13 @@ export default {
       }
     },
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$encargados.$get(path);
       this.list = Array.isArray(res) ? res : [];
     },
     async EliminarItem(id) {
       this.load = true;
       try {
-        await this.$api.$delete(this.apiUrl + '/' + id);
+        await this.$encargados.$delete(this.apiUrl + '/' + id);
         await this.GET_DATA(this.apiUrl);
       } catch (e) {
         console.log(e);
@@ -329,7 +337,7 @@ export default {
         const carteroId = this.user.user.id;
         const item = this.list.find(m => m.id === id);
         if (item) {
-          const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+          const response = await this.$encargados.$put(`solicitudesentrega5/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
           Object.assign(item, response); 
           await this.GET_DATA(this.apiUrl);
         }
@@ -360,7 +368,7 @@ export default {
         const carteroId = this.user.user.id;
         for (let item of this.selectedItemsData) {
           if (item && item.id) {
-            await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
+            await this.$encargados.$put(`solicitudesentrega5/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
           } else {
             console.error('Item inválido:', item);
           }
@@ -417,8 +425,10 @@ export default {
         if (Array.isArray(data)) {
           this.list = data;
         } else {
+          console.error('Los datos recuperados no son un array:', data);
         }
       } catch (e) {
+        console.error('Error al obtener los datos:', e);
       } finally {
         this.load = false;
       }

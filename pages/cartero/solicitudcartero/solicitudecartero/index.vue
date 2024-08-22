@@ -14,13 +14,14 @@
               placeholder="Buscar..." />
           </div>
           <div class="col-3">
-            <select v-model="selectedSucursal" class="form-control" @change="handleSucursalChange">
-              <option value="">Seleccione Sucursal</option>
-              <option v-for="sucursal in filteredSucursales" :key="sucursal.id" :value="sucursal.id">
-                {{ sucursal.nombre }}
-              </option>
-            </select>
-          </div>
+  <select v-model="selectedSucursal" class="form-control" @change="handleSucursalChange">
+    <option value="">Seleccione Sucursal</option>
+    <option v-for="sucursal in filteredSucursales" :key="sucursal.id" :value="sucursal.id">
+      {{ sucursal.nombre }}
+    </option>
+  </select>
+</div>
+
         </div>
         <div class="row">
           <div class="col-12">
@@ -67,8 +68,8 @@
                     <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"target="_blank" 
-                        class="btn btn-primary btn-sm">
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                        target="_blank" class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
                       <span v-else>{{ m.direccion.direccion }}</span>
@@ -115,16 +116,31 @@
 
     <!-- Modal para mostrar seleccionados -->
     <b-modal v-model="isSelectedModalVisible" title="Resultados de la Búsqueda" hide-backdrop>
+      <div v-for="(item, index) in selectedItemsData" :key="item.id"
+        class="form-group d-flex justify-content-between align-items-center">
+        <label>{{ item.sucursale.nombre }} - {{ item.guia }}</label>
+        <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-primary" @click="collectSelected">Recoger</button>
+        <button class="btn btn-secondary ml-2" @click="isSelectedModalVisible = false">Cancelar</button>
+      </div>
+    </b-modal>
+    <!-- Modal para mostrar seleccionados sin el botón de eliminar -->
+   <!-- Modal para mostrar seleccionados con checklist -->
+<b-modal v-model="isSelectedSimpleModalVisible" title="Resultados de los seleccionados" hide-backdrop>
   <div v-for="(item, index) in selectedItemsData" :key="item.id"
     class="form-group d-flex justify-content-between align-items-center">
-    <label>{{ item.sucursale.nombre }} - {{ item.guia }}</label>
+    <input type="checkbox" v-model="selectedForPickup" :value="item.id">
+    <label class="ml-2">{{ item.sucursale.nombre }} - {{ item.guia }}</label>
     <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
   </div>
   <div class="d-flex justify-content-end">
     <button class="btn btn-primary" @click="collectSelected">Recoger</button>
-    <button class="btn btn-secondary ml-2" @click="isSelectedModalVisible = false">Cancelar</button>
+    <button class="btn btn-secondary ml-2" @click="isSelectedSimpleModalVisible = false">Cancelar</button>
   </div>
 </b-modal>
+
   </div>
 </template>
 
@@ -157,6 +173,9 @@ export default {
       currentId: null,
       selected: {},
       selectedItemsData: [],
+      isSelectedSimpleModalVisible: false,
+      selectedForPickup: [], // Aquí se guardarán los IDs seleccionados para recoger
+
       user: {
         cartero: []
       },
@@ -275,36 +294,53 @@ export default {
       }
     },
     openSelectedModal() {
-  this.selectedItemsData = this.filteredData.filter(item => this.selected[item.id]);
-  this.isSelectedModalVisible = true;
+  this.selectedItemsData = this.list.filter(item => this.selected[item.id]);
+  
+  if (this.selectedItemsData.length > 0) {
+    this.isSelectedSimpleModalVisible = true; // Abre el modal sin el botón de eliminar
+  } else {
+    this.$swal.fire({
+      icon: 'info',
+      title: 'No hay elementos seleccionados',
+      text: 'Selecciona al menos un elemento para continuar.',
+    });
+  }
 },
 
-    async collectSelected() {
-      this.load = true;
-      try {
-        const carteroId = this.user.user.id;
-        for (let item of this.selectedItemsData) {
-          await this.$api.$put(`marcarrecogido/${item.id}`, { cartero_recogida_id: carteroId });
-        }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
-        this.$swal.fire({
-          icon: 'success',
-          title: 'Recogido',
-          text: 'Todos los elementos seleccionados han sido recogidos.',
-        });
-        this.isSelectedModalVisible = false;
-        this.selected = {}; // Limpiar la selección después de recoger
-      } catch (e) {
-        console.error(e);
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un error al recoger los elementos seleccionados.',
-        });
-      } finally {
-        this.load = false;
-      }
-    },
+async collectSelected() {
+  this.load = true;
+  try {
+    const carteroId = this.user.user.id;
+
+    // Si no hay ningún elemento seleccionado en el checklist, seleccionar todos los que están en el modal
+    const itemsToCollect = this.selectedForPickup.length > 0 ? this.selectedForPickup : this.selectedItemsData.map(item => item.id);
+
+    for (let itemId of itemsToCollect) {
+      await this.$api.$put(`marcarrecogido/${itemId}`, { cartero_recogida_id: carteroId });
+    }
+    
+    await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+    this.$swal.fire({
+      icon: 'success',
+      title: 'Recogido',
+      text: 'Los elementos seleccionados han sido recogidos.',
+    });
+    this.isSelectedSimpleModalVisible = false;
+    this.selected = {}; // Limpiar la selección después de recoger
+    this.selectedForPickup = []; // Limpiar los elementos seleccionados para recoger
+  } catch (e) {
+    console.error(e);
+    this.$swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Hubo un error al recoger los elementos seleccionados.',
+    });
+  } finally {
+    this.load = false;
+  }
+},
+
+
     handleSearchEnter() {
       if (this.selectedSucursal) {
         this.selectedItemsData = this.list.filter(item => item.estado === 1 && item.sucursale && item.sucursale.id === this.selectedSucursal).map(item => ({
@@ -318,17 +354,26 @@ export default {
       }
     },
     handleSucursalChange() {
-      if (this.selectedSucursal) {
-        this.selectedItemsData = this.list.filter(item => item.estado === 1 && item.sucursale && item.sucursale.id === this.selectedSucursal).map(item => ({
-          id: item.id,
-          guia: item.guia,
-          sucursale: item.sucursale
-        }));
-        if (this.selectedItemsData.length > 0) {
-          this.openSelectedModal();
-        }
+  if (this.selectedSucursal) {
+    this.selectedItemsData = this.list.filter(item => item.sucursale && item.sucursale.id === this.selectedSucursal).map(item => ({
+      id: item.id,
+      guia: item.guia,
+      sucursale: item.sucursale
+    }));
+    
+    // Selecciona todos los elementos que coinciden con la sucursal
+    this.filteredData.forEach(item => {
+      if (item.sucursale && item.sucursale.id === this.selectedSucursal) {
+        this.$set(this.selected, item.id, true);
       }
-    },
+    });
+
+    if (this.selectedItemsData.length > 0) {
+      this.isSelectedSimpleModalVisible = true;
+    }
+  }
+},
+
     filterBySucursal() {
       const selectedSucursalId = this.selectedSucursal;
       this.filteredData = this.list.filter(item =>
@@ -336,14 +381,11 @@ export default {
       );
     },
     selectAll(event) {
-  const isChecked = event.target.checked;
-  this.filteredData.forEach(item => {
-    this.$set(this.selected, item.id, isChecked);
-  });
-
-  this.selectedItemsData = this.filteredData.filter(item => this.selected[item.id]);
-},
-
+      const isChecked = event.target.checked;
+      this.filteredData.forEach(item => {
+        this.$set(this.selected, item.id, isChecked);
+      });
+    },
     removeItem(index) {
       this.selectedItemsData.splice(index, 1);
     },
@@ -351,9 +393,9 @@ export default {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
     },
     isCoordinates(address) {
-  const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
-  return regex.test(address);
-},
+      const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+      return regex.test(address);
+    },
 
     nextPage() {
       if (this.currentPage < this.totalPages - 1) {

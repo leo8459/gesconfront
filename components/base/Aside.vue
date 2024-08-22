@@ -174,6 +174,18 @@
                   <span class="sidenav-normal"> Retornados Cartero</span>
                 </nuxtLink>
               </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/cartero/recogidoregionalcarteros/recogidoregionalcartero">
+                  <span class="sidenav-mini-icon"> En camino a Regional</span>
+                  <span class="sidenav-normal"> En camino a Regional</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/cartero/encaminoregionalcarteros/encaminoregionalcartero">
+                  <span class="sidenav-mini-icon"> Correspondencia en camino</span>
+                  <span class="sidenav-normal"> Correspondencia en camino</span>
+                </nuxtLink>
+              </li>
               
             </ul>
           </div>
@@ -281,6 +293,10 @@
                 <nuxtLink class="nav-link" to="/encargado/devueltoencargados/devueltoencargado">
                   <span class="sidenav-mini-icon"> Correspondencia devuelta </span>
                   <span class="sidenav-normal"> Correspondencia devuelta</span>
+                </nuxtLink>
+                <nuxtLink class="nav-link" to="/encargado/regionalencargados/regionalencargado">
+                  <span class="sidenav-mini-icon">En camino a regional</span>
+                  <span class="sidenav-normal">En camino a regional</span>
                 </nuxtLink>
               </li>
             </ul>

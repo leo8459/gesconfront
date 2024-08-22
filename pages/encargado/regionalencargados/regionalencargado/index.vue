@@ -194,7 +194,7 @@ export default {
     filteredData() {
       const searchTerm = this.searchTerm.toLowerCase();
       return this.list.filter(item =>
-        item.estado === 5 && Object.values(item).some(value =>
+        item.estado === 8 && Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
         )
       );
@@ -330,7 +330,7 @@ export default {
       try {
         const carteroId = this.user.user.id;
         for (let item of this.selectedForAssign) {
-          await this.$encargados.$put(`solicitudesregional5/${item.id}`, {
+          await this.$encargados.$put(`encaminoregional5/${item.id}`, {
             encargado_id: carteroId,
             peso_v: item.peso_v,
             fecha_envio_regional: item.fecha_envio_regional,
