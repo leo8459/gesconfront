@@ -23,7 +23,8 @@
                   <table class="table">
                     <thead>
                       <tr>
-                        <th class="py-0 px-1" :key="'header-' + index" v-for="(header, index) in headers">{{ header }}</th>
+                        <th class="py-0 px-1" :key="'header-' + index" v-for="(header, index) in headers">{{ header }}
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -31,7 +32,7 @@
                         <td class="py-0 px-1">{{ i + 1 }}</td>
                         <td class="py-0 px-1">{{ m.nombre }}</td>
                         <td class="py-0 px-1">{{ m.apellidos }}</td>
-                        <td class="py-0 px-1">{{ m.zona }}</td>
+                        <td class="py-0 px-1">{{ m.departamento_cartero }}</td>
                         <td class="py-0 px-1" :class="m.estado === 1 ? 'activo' : 'inactivo'">
                           {{ m.estado === 1 ? 'Activo' : 'Inactivo' }}
                         </td>
@@ -40,7 +41,7 @@
                             <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
                               <i class="fas fa-pen"></i>
                             </nuxtLink>
-                          
+
                             <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
                               <i class="fas fa-trash trash-icon"></i>
                             </button>
@@ -78,7 +79,7 @@ export default {
       url_editar: "/admin/carteros/cartero/editar/",//VA AL PRIMER ARCHIVO DE LA CARPETA
       busqueda: "", // término de búsqueda
       resultados: [], // datos filtrados
-      headers: ['#', 'Nombre', 'Apellidos','Zona','Estado',' '],
+      headers: ['#', 'Nombre', 'Apellidos', 'Departamento', 'Estado', ' '],
     };
   },
   methods: {
@@ -126,7 +127,7 @@ export default {
       );
     }
   },
-//cntrc+v
+  //cntrc+v
 
 
 

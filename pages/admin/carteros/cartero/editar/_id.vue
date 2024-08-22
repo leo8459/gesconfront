@@ -31,10 +31,20 @@
                       <label for="">Apellidos</label>
                       <input type="text" v-model="model.apellidos" class="form-control" id="">
                     </div>
-                    
+
                     <div class="form-group col-12">
-                      <label for="">Zona</label>
-                      <input type="text" v-model="model.zona" class="form-control" id="">
+                      <label for="">Departamento</label>
+                      <select v-model="model.departamento_cartero" class="form-control" id="origen">
+                        <option value="LPB">La Paz (LPB)</option>
+                        <option value="SCZ">Santa Cruz (SCZ)</option>
+                        <option value="CBB">Cochabamba (CBB)</option>
+                        <option value="ORU">Oruro (ORU)</option>
+                        <option value="PTS">Potosí (PTS)</option>
+                        <option value="TJA">Tarija (TJA)</option>
+                        <option value="CHU">Sucre (CHU)</option>
+                        <option value="BEN">Trinidad (BEN)</option>
+                        <option value="PAN">Cobija (PAN)</option>
+                      </select>
                     </div>
 
                     <div class="form-group col-6">
@@ -96,7 +106,7 @@ export default {
         email: '',
         password: '',
         estado: '',
-
+        departamento_cartero: '',
       },
       apiUrl: 'carteros1',
       page: 'Usuarios',

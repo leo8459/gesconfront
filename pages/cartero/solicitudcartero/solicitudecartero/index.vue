@@ -16,11 +16,12 @@
           <div class="col-3">
   <select v-model="selectedSucursal" class="form-control" @change="handleSucursalChange">
     <option value="">Seleccione Sucursal</option>
-    <option v-for="sucursal in filteredSucursales" :key="sucursal.id" :value="sucursal.id">
+    <option v-for="sucursal in uniqueSucursalesInTable" :key="sucursal.id" :value="sucursal.id">
       {{ sucursal.nombre }}
     </option>
   </select>
 </div>
+
 
         </div>
         <div class="row">
@@ -51,46 +52,51 @@
                     <th class="py-0 px-1">Dirección Destinatario</th>
                     <th class="py-0 px-1">Ciudad</th>
                     <th class="py-0 px-1">Zona Destino</th>
+                    <th class="py-0 px-1">Zona Destino</th>
+                    <th class="py-0 px-1">Zona Destino</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">
-                      <input type="checkbox" v-model="selected[m.id]" />
-                    </td>
-                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.peso_o }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
-                  </tr>
+  <td class="py-0 px-1">
+    <input type="checkbox" v-model="selected[m.id]" />
+  </td>
+  <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
+  <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
+  <td class="py-0 px-1">{{ m.guia }}</td>
+  <td class="py-0 px-1">{{ m.peso_o }}</td>
+  <td class="py-0 px-1">{{ m.remitente }}</td>
+  <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+  <td class="py-0 px-1">{{ m.direccion.zona }}</td>
+  <td class="py-0 px-1">
+    <a v-if="isCoordinates(m.direccion.direccion)"
+      :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+      target="_blank" class="btn btn-primary btn-sm">
+      Ver mapa
+    </a>
+    <span v-else>{{ m.direccion.direccion }}</span>
+  </td>
+  <td class="py-0 px-1">{{ m.telefono }}</td>
+  <td class="py-0 px-1">{{ m.contenido }}</td>
+  <td class="py-0 px-1">{{ m.fecha }}</td>
+  <td class="py-0 px-1">{{ m.destinatario }}</td>
+  <td class="py-0 px-1">{{ m.telefono_d }}</td>
+  <td class="py-0 px-1">
+    <a v-if="isCoordinates(m.direccion_d)"
+      :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+      class="btn btn-primary btn-sm">
+      Ver mapa
+    </a>
+    <span v-else>{{ m.direccion_d }}</span>
+  </td>
+  <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
+  <td class="py-0 px-1">{{ m.ciudad }}</td>
+  <td class="py-0 px-1">{{ m.zona_d }}</td>
+  <td class="py-0 px-1">{{ m.sucursale.origen }}</td>
+  <td class="py-0 px-1">{{ m.tarifa.departamento }}</td>
+</tr>
+
+
                 </tbody>
               </table>
             </div>
@@ -184,31 +190,64 @@ export default {
     };
   },
   computed: {
-    filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item =>
-        item.estado === 1 && (
-          Object.values(item).some(value =>
-            String(value).toLowerCase().includes(searchTerm)
-          ) ||
-          (item.sucursale && item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)) ||
-          (this.selectedSucursal && item.sucursale && item.sucursale.id === this.selectedSucursal)
-        )
-      ).sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordenar del más nuevo al más antiguo
-    },
-    paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
-    },
-    totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
-    },
+    uniqueSucursalesInTable() {
+    const sucursalIds = new Set();
+    const uniqueSucursales = [];
+    
+    this.filteredData.forEach(item => {
+      if (item.sucursale && !sucursalIds.has(item.sucursale.id)) {
+        sucursalIds.add(item.sucursale.id);
+        uniqueSucursales.push(item.sucursale);
+      }
+    });
+    
+    return uniqueSucursales;
+  },
     hasSelectedItems() {
-      return Object.keys(this.selected).some(key => this.selected[key]);
+    return Object.keys(this.selected).some(key => this.selected[key]);
+  },
+  filteredData() {
+    const searchTerm = this.searchTerm.toLowerCase();
+    const departamentoCartero = this.user.departamento_cartero;
+    return this.list.filter(item =>
+      item.estado === 1 &&
+      item.sucursale &&
+      item.sucursale.origen === departamentoCartero &&
+      (
+        (this.selectedSucursal ? item.sucursale.id === this.selectedSucursal : true) && // Filtra por sucursal seleccionada
+        (Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        ) ||
+        (item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)))
+      )
+    ).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  },
+  
+  paginatedData() {
+    const start = this.currentPage * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    return this.filteredData.slice(start, end);
+  },
+  
+  totalPages() {
+    return Math.ceil(this.filteredData.length / this.itemsPerPage);
+  }
+},
+  methods: {
+    handleSucursalChange() {
+    this.selectedItemsData = this.filteredData; // Actualiza los datos filtrados al cambiar de sucursal
+    this.currentPage = 0; // Reinicia a la primera página
+
+    if (this.selectedItemsData.length > 0) {
+      this.isSelectedSimpleModalVisible = true; // Abre el modal si hay resultados
+    } else {
+      this.$swal.fire({
+        icon: 'info',
+        title: 'Sin resultados',
+        text: 'No se encontraron elementos en la sucursal seleccionada.',
+      });
     }
   },
-  methods: {
     async markAsEnCamino(solicitudeId) {
       this.load = true;
       try {
@@ -222,7 +261,6 @@ export default {
         });
         await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
       } catch (e) {
-        console.error(e);
         this.$swal.fire({
           icon: 'error',
           title: 'Error',
@@ -233,10 +271,19 @@ export default {
       }
     },
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
-      this.list = res;
-      this.filteredSucursales = this.getUniqueSucursales(this.list.filter(item => item.estado === 1));
-    },
+    this.load = true;  // Comienza la carga
+    try {
+        const res = await this.$api.$get(path);
+        this.list = res;
+        this.filteredSucursales = this.getUniqueSucursales(this.list.filter(item => item.estado === 1));
+    } catch (error) {
+    } finally {
+        this.load = false;  // Termina la carga
+    }
+},
+
+
+
     getUniqueSucursales(data) {
       const uniqueSucursales = [];
       const sucursalIds = new Set();
@@ -256,7 +303,6 @@ export default {
           this.list = v[0];
         });
       } catch (e) {
-        console.log(e);
       } finally {
         this.load = false;
       }
@@ -288,7 +334,6 @@ export default {
         }
         await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
       } catch (e) {
-        console.log(e);
       } finally {
         this.load = false;
       }
@@ -310,7 +355,19 @@ export default {
 async collectSelected() {
   this.load = true;
   try {
-    const carteroId = this.user.user.id;
+    // Convertir this.user en un objeto plano
+    const plainUser = JSON.parse(JSON.stringify(this.user));
+
+    console.log('Verificando plainUser:', plainUser); // Log para verificar el estado de plainUser
+    
+    if (!plainUser || !plainUser.id) {
+      console.error('Estado de plainUser en error:', plainUser); // Otro log si hay un error
+      throw new Error('El ID del cartero no está disponible.');
+    }
+
+    const carteroId = plainUser.id;
+
+    console.log('ID del cartero:', carteroId); // Log para verificar que el ID está disponible
 
     // Si no hay ningún elemento seleccionado en el checklist, seleccionar todos los que están en el modal
     const itemsToCollect = this.selectedForPickup.length > 0 ? this.selectedForPickup : this.selectedItemsData.map(item => item.id);
@@ -329,16 +386,18 @@ async collectSelected() {
     this.selected = {}; // Limpiar la selección después de recoger
     this.selectedForPickup = []; // Limpiar los elementos seleccionados para recoger
   } catch (e) {
-    console.error(e);
+    console.error(e); // Esto mostrará el error detallado en la consola del navegador
     this.$swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'Hubo un error al recoger los elementos seleccionados.',
+      text: `Hubo un error al recoger los elementos seleccionados. Detalles: ${e.message}`,
     });
   } finally {
     this.load = false;
   }
 },
+
+
 
 
     handleSearchEnter() {
@@ -353,26 +412,7 @@ async collectSelected() {
         }
       }
     },
-    handleSucursalChange() {
-  if (this.selectedSucursal) {
-    this.selectedItemsData = this.list.filter(item => item.sucursale && item.sucursale.id === this.selectedSucursal).map(item => ({
-      id: item.id,
-      guia: item.guia,
-      sucursale: item.sucursale
-    }));
     
-    // Selecciona todos los elementos que coinciden con la sucursal
-    this.filteredData.forEach(item => {
-      if (item.sucursale && item.sucursale.id === this.selectedSucursal) {
-        this.$set(this.selected, item.id, true);
-      }
-    });
-
-    if (this.selectedItemsData.length > 0) {
-      this.isSelectedSimpleModalVisible = true;
-    }
-  }
-},
 
     filterBySucursal() {
       const selectedSucursalId = this.selectedSucursal;
@@ -381,11 +421,11 @@ async collectSelected() {
       );
     },
     selectAll(event) {
-      const isChecked = event.target.checked;
-      this.filteredData.forEach(item => {
-        this.$set(this.selected, item.id, isChecked);
-      });
-    },
+    const isChecked = event.target.checked;
+    this.paginatedData.forEach(item => {
+      this.$set(this.selected, item.id, isChecked);
+    });
+  },
     removeItem(index) {
       this.selectedItemsData.splice(index, 1);
     },
@@ -413,23 +453,20 @@ async collectSelected() {
   },
   mounted() {
     this.$nextTick(async () => {
-      let user = localStorage.getItem('userAuth');
-      this.user = JSON.parse(user);
-      try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
-        const sucursales = await this.$api.$get('sucursales');
-        this.sucursales = sucursales;
-      } catch (e) {
-        console.error('Error al obtener los datos:', e);
-      } finally {
-        this.load = false;
+    let userAuth = localStorage.getItem('userAuth');
+    if (userAuth) {
+      let parsedUser = JSON.parse(userAuth);
+
+      if (parsedUser.user && parsedUser.user.departamento_cartero) {
+        this.user = parsedUser.user;
+        await this.GET_DATA(this.apiUrl);
+      } else {
+        console.error("El usuario o departamento del cartero no está definido.");
       }
-    });
+    } else {
+      console.error("No se pudo encontrar la información del usuario en localStorage.");
+    }
+  });
   },
 };
 </script>

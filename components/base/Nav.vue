@@ -1,6 +1,6 @@
 <template>
   <nav
-  class="navbar navbar-main navbar-expand-lg position-sticky mt-4 top-1 px-0 mx-4 shadow-none border-radius-xl z-index-sticky blur shadow-blur"
+    class="navbar navbar-main navbar-expand-lg position-sticky mt-4 top-1 px-0 mx-4 shadow-none border-radius-xl z-index-sticky blur shadow-blur"
     id="navbarBlur" data-scroll="true">
     <div class="container-fluid py-1 px-3">
       <nav aria-label="breadcrumb">
@@ -45,11 +45,22 @@
           </div>
         </a>
       </div>
-      <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4 collapse-nb" id="navbar">
-        <div class="ms-md-auto pe-md-3 d-flex align-items-center">
+      <div class="d-flex justify-content-center align-items-center w-100">
+  <div class="pe-md-3 d-flex align-items-center">
+    <!-- Mensaje de Bienvenida -->
+    <span class="welcome-message">
+       
+      <template v-if="user.nombre && user.apellidos">
+        {{ user.nombre }}
+      </template>
+      <template v-else>
+        {{ userType }}
+      </template>
+    </span>
+  </div>
+</div>
 
-        </div>
-        
+
 
         <ul class="navbar-nav justify-content-end flex-row">
           <li class="nav-item d-flex align-items-center">
@@ -76,14 +87,12 @@
 
         </ul>
       </div>
-    </div>
   </nav>
 </template>
 
 <script>
 export default {
   props: {
-
     page: {
       type: String,
       default: ''
@@ -96,12 +105,28 @@ export default {
   data() {
     return {
       theme: 'light-version',
-      user: {
-        id: ''
-      }
+      user: {},
+      token: '',
+      userType: ''
     }
   },
   methods: {
+    getUserInfo() {
+      // Recuperar el objeto del usuario desde el localStorage o API
+      let userData = JSON.parse(localStorage.getItem('userAuth'));
+      if (userData) {
+        this.user = userData.user || {}; // Recuperar user o un objeto vacío
+        this.token = userData.token || ''; // Recuperar token o cadena vacía
+        this.userType = userData.userType || ''; // Recuperar userType o cadena vacía
+      } else {
+        this.user = {
+          nombre: '',
+          apellidos: ''
+        };
+        this.token = '';
+        this.userType = '';
+      }
+    },
     SideToggle() {
       let body = document.body
       body.classList.add("g-sidenav-show", "bg-gray-100");
@@ -140,8 +165,9 @@ export default {
     }
   },
   mounted() {
-    this.$nextTick(() => {
+    this.getUserInfo(); // Llamar a la función para obtener la información del usuario cuando el componente se monta
 
+    this.$nextTick(() => {
       let body = document.body;
 
       let sidenavMain = document.getElementById('sidenav-main');
@@ -172,9 +198,10 @@ export default {
       }
     });
   }
-
 }
 </script>
+
+
 <style>
 .side_togle {
   cursor: pointer;
@@ -199,4 +226,12 @@ export default {
 #iconNavbarSidenav {
   cursor: pointer;
 }
+
+.welcome-message {
+  font-weight: bold;
+  margin-right: 20px;
+  font-size: 30px; /* Tamaño de la letra */
+  color: #000000;
+}
+
 </style>
