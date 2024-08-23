@@ -9,7 +9,11 @@
             <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm mr-3">
               <i class=""></i> Crear solicitud de Correspondencia
             </nuxtLink>
-          
+            <a href="https://ips.correos.gob.bo/CDS.Web/Operational/andeclaration.aspx" class="btn btn-dark btn-sm mr-3"
+              target="_blank">
+              <i class=""></i> Crear solicitud de Correspondencia Internacional
+            </a>
+
           </div>
         </div>
 
@@ -118,7 +122,7 @@
                     <div class="col-8">
                       <div class="numbers">
                         <p class="text-sm mb-0 text-capitalize">
-                          <strong> Correspondencias  En Camino</strong>
+                          <strong> Correspondencias En Camino</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
                           {{ dashboard.totalSolicitudesEstado2 }}
@@ -143,7 +147,7 @@
                     <div class="col-8">
                       <div class="numbers">
                         <p class="text-sm mb-0 text-capitalize">
-                          <strong>Correspondencias  Entregadas</strong>
+                          <strong>Correspondencias Entregadas</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
                           {{ dashboard.totalSolicitudesEstado3 }}

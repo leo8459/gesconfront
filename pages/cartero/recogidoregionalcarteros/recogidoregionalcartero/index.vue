@@ -209,7 +209,6 @@ export default {
     filteredData() {
     const departamentoCartero = this.user?.user?.departamento_cartero;
     if (!departamentoCartero) {
-      console.warn('No se puede filtrar, departamento_cartero no está definido');
       return [];
     }
 
@@ -248,7 +247,6 @@ export default {
     iniciarFiltrado() {
       // Aquí puedes iniciar cualquier proceso que dependa de que departamento_cartero esté definido
       const departamentoCartero = this.user.departamento_cartero;
-      console.log('Departamento del usuario logueado en iniciarFiltrado:', departamentoCartero);
     },
     focusPesoInput() {
     this.$refs.pesoInput[0].focus(); // Asegúrate de que el campo de entrada esté enfocado
@@ -270,7 +268,6 @@ export default {
         });
         await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
       } catch (e) {
-        console.error(e);
         this.$swal.fire({
           icon: 'error',
           title: 'Error',
@@ -450,33 +447,25 @@ async confirmAllAssignments() {
         // Verificar si la estructura del usuario es la correcta
         if (this.user && this.user.user && this.user.user.departamento_cartero) {
           const departamentoCartero = this.user.user.departamento_cartero;
-          console.log('Departamento cartero encontrado:', departamentoCartero);
         } else {
-          console.error('La estructura del objeto user no es la esperada o departamento_cartero no está definido:', this.user);
         }
 
         try {
           const data = await this.GET_DATA(this.apiUrl);
           if (Array.isArray(data)) {
             this.list = data;
-            console.log('Solicitudes recuperadas:', this.list);
           } else {
-            console.error('Los datos recuperados no son un array:', data);
           }
           const tarifas = await this.GET_DATA('getTarifas');
           if (Array.isArray(tarifas)) {
             this.tarifas = tarifas;
-            console.log('Tarifas cargadas:', tarifas); // Log para verificar las tarifas
           } else {
-            console.error('Las tarifas recuperadas no son un array:', tarifas);
           }
         } catch (e) {
-          console.error('Error al obtener los datos:', e);
         } finally {
           this.load = false;
         }
       } else {
-        console.error('No se pudo obtener el usuario desde localStorage');
       }
     });
   },
