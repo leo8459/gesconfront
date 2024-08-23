@@ -14,13 +14,13 @@
               placeholder="Buscar..." />
           </div>
           <div class="col-3">
-  <select v-model="selectedSucursal" class="form-control" @change="handleSucursalChange">
-    <option value="">Seleccione Sucursal</option>
-    <option v-for="sucursal in uniqueSucursalesInTable" :key="sucursal.id" :value="sucursal.id">
-      {{ sucursal.nombre }}
-    </option>
-  </select>
-</div>
+            <select v-model="selectedSucursal" class="form-control" @change="handleSucursalChange">
+              <option value="">Seleccione Sucursal</option>
+              <option v-for="sucursal in uniqueSucursalesInTable" :key="sucursal.id" :value="sucursal.id">
+                {{ sucursal.nombre }}
+              </option>
+            </select>
+          </div>
 
 
         </div>
@@ -58,43 +58,43 @@
                 </thead>
                 <tbody>
                   <tr v-for="(m, i) in paginatedData" :key="i">
-  <td class="py-0 px-1">
-    <input type="checkbox" v-model="selected[m.id]" />
-  </td>
-  <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-  <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-  <td class="py-0 px-1">{{ m.guia }}</td>
-  <td class="py-0 px-1">{{ m.peso_o }}</td>
-  <td class="py-0 px-1">{{ m.remitente }}</td>
-  <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-  <td class="py-0 px-1">{{ m.direccion.zona }}</td>
-  <td class="py-0 px-1">
-    <a v-if="isCoordinates(m.direccion.direccion)"
-      :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-      target="_blank" class="btn btn-primary btn-sm">
-      Ver mapa
-    </a>
-    <span v-else>{{ m.direccion.direccion }}</span>
-  </td>
-  <td class="py-0 px-1">{{ m.telefono }}</td>
-  <td class="py-0 px-1">{{ m.contenido }}</td>
-  <td class="py-0 px-1">{{ m.fecha }}</td>
-  <td class="py-0 px-1">{{ m.destinatario }}</td>
-  <td class="py-0 px-1">{{ m.telefono_d }}</td>
-  <td class="py-0 px-1">
-    <a v-if="isCoordinates(m.direccion_d)"
-      :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-      class="btn btn-primary btn-sm">
-      Ver mapa
-    </a>
-    <span v-else>{{ m.direccion_d }}</span>
-  </td>
-  <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
-  <td class="py-0 px-1">{{ m.ciudad }}</td>
-  <td class="py-0 px-1">{{ m.zona_d }}</td>
-  <td class="py-0 px-1">{{ m.sucursale.origen }}</td>
-  <td class="py-0 px-1">{{ m.tarifa.departamento }}</td>
-</tr>
+                    <td class="py-0 px-1">
+                      <input type="checkbox" v-model="selected[m.id]" />
+                    </td>
+                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                    <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
+                    <td class="py-0 px-1">{{ m.guia }}</td>
+                    <td class="py-0 px-1">{{ m.peso_o }}</td>
+                    <td class="py-0 px-1">{{ m.remitente }}</td>
+                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                    <td class="py-0 px-1">{{ m.direccion.zona }}</td>
+                    <td class="py-0 px-1">
+                      <a v-if="isCoordinates(m.direccion.direccion)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                        target="_blank" class="btn btn-primary btn-sm">
+                        Ver mapa
+                      </a>
+                      <span v-else>{{ m.direccion.direccion }}</span>
+                    </td>
+                    <td class="py-0 px-1">{{ m.telefono }}</td>
+                    <td class="py-0 px-1">{{ m.contenido }}</td>
+                    <td class="py-0 px-1">{{ m.fecha }}</td>
+                    <td class="py-0 px-1">{{ m.destinatario }}</td>
+                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
+                    <td class="py-0 px-1">
+                      <a v-if="isCoordinates(m.direccion_d)"
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                        class="btn btn-primary btn-sm">
+                        Ver mapa
+                      </a>
+                      <span v-else>{{ m.direccion_d }}</span>
+                    </td>
+                    <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
+                    <td class="py-0 px-1">{{ m.ciudad }}</td>
+                    <td class="py-0 px-1">{{ m.zona_d }}</td>
+                    <td class="py-0 px-1">{{ m.sucursale.origen }}</td>
+                    <td class="py-0 px-1">{{ m.tarifa.departamento }}</td>
+                  </tr>
 
 
                 </tbody>
@@ -133,19 +133,19 @@
       </div>
     </b-modal>
     <!-- Modal para mostrar seleccionados sin el botón de eliminar -->
-   <!-- Modal para mostrar seleccionados con checklist -->
-<b-modal v-model="isSelectedSimpleModalVisible" title="Resultados de los seleccionados" hide-backdrop>
-  <div v-for="(item, index) in selectedItemsData" :key="item.id"
-    class="form-group d-flex justify-content-between align-items-center">
-    <input type="checkbox" v-model="selectedForPickup" :value="item.id">
-    <label class="ml-2">{{ item.sucursale.nombre }} - {{ item.guia }}</label>
-    <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
-  </div>
-  <div class="d-flex justify-content-end">
-    <button class="btn btn-primary" @click="collectSelected">Recoger</button>
-    <button class="btn btn-secondary ml-2" @click="isSelectedSimpleModalVisible = false">Cancelar</button>
-  </div>
-</b-modal>
+    <!-- Modal para mostrar seleccionados con checklist -->
+    <b-modal v-model="isSelectedSimpleModalVisible" title="Resultados de los seleccionados" hide-backdrop>
+      <div v-for="(item, index) in selectedItemsData" :key="item.id"
+        class="form-group d-flex justify-content-between align-items-center">
+        <input type="checkbox" v-model="selectedForPickup" :value="item.id">
+        <label class="ml-2">{{ item.sucursale.nombre }} - {{ item.guia }}</label>
+        <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-primary" @click="collectSelected">Recoger</button>
+        <button class="btn btn-secondary ml-2" @click="isSelectedSimpleModalVisible = false">Cancelar</button>
+      </div>
+    </b-modal>
 
   </div>
 </template>
@@ -191,63 +191,63 @@ export default {
   },
   computed: {
     uniqueSucursalesInTable() {
-    const sucursalIds = new Set();
-    const uniqueSucursales = [];
-    
-    this.filteredData.forEach(item => {
-      if (item.sucursale && !sucursalIds.has(item.sucursale.id)) {
-        sucursalIds.add(item.sucursale.id);
-        uniqueSucursales.push(item.sucursale);
-      }
-    });
-    
-    return uniqueSucursales;
-  },
-    hasSelectedItems() {
-    return Object.keys(this.selected).some(key => this.selected[key]);
-  },
-  filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    const departamentoCartero = this.user.departamento_cartero;
-    return this.list.filter(item =>
-      item.estado === 1 &&
-      item.sucursale &&
-      item.sucursale.origen === departamentoCartero &&
-      (
-        (this.selectedSucursal ? item.sucursale.id === this.selectedSucursal : true) && // Filtra por sucursal seleccionada
-        (Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        ) ||
-        (item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)))
-      )
-    ).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  },
-  
-  paginatedData() {
-    const start = this.currentPage * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredData.slice(start, end);
-  },
-  
-  totalPages() {
-    return Math.ceil(this.filteredData.length / this.itemsPerPage);
-  }
-},
-  methods: {
-    handleSucursalChange() {
-    this.selectedItemsData = this.filteredData; // Actualiza los datos filtrados al cambiar de sucursal
-    this.currentPage = 0; // Reinicia a la primera página
+      const sucursalIds = new Set();
+      const uniqueSucursales = [];
 
-    if (this.selectedItemsData.length > 0) {
-      this.isSelectedSimpleModalVisible = true; // Abre el modal si hay resultados
-    } else {
-      this.$swal.fire({
-        icon: 'info',
-        title: 'Sin resultados',
-        text: 'No se encontraron elementos en la sucursal seleccionada.',
+      this.filteredData.forEach(item => {
+        if (item.sucursale && !sucursalIds.has(item.sucursale.id)) {
+          sucursalIds.add(item.sucursale.id);
+          uniqueSucursales.push(item.sucursale);
+        }
       });
+
+      return uniqueSucursales;
+    },
+    hasSelectedItems() {
+      return Object.keys(this.selected).some(key => this.selected[key]);
+    },
+    filteredData() {
+      const searchTerm = this.searchTerm.toLowerCase();
+      const departamentoCartero = this.user.departamento_cartero;
+      return this.list.filter(item =>
+        item.estado === 1 &&
+        item.sucursale &&
+        item.sucursale.origen === departamentoCartero &&
+        (
+          (this.selectedSucursal ? item.sucursale.id === this.selectedSucursal : true) && // Filtra por sucursal seleccionada
+          (Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchTerm)
+          ) ||
+            (item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)))
+        )
+      ).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    },
+
+    paginatedData() {
+      const start = this.currentPage * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredData.slice(start, end);
+    },
+
+    totalPages() {
+      return Math.ceil(this.filteredData.length / this.itemsPerPage);
     }
   },
+  methods: {
+    handleSucursalChange() {
+      this.selectedItemsData = this.filteredData; // Actualiza los datos filtrados al cambiar de sucursal
+      this.currentPage = 0; // Reinicia a la primera página
+
+      if (this.selectedItemsData.length > 0) {
+        this.isSelectedSimpleModalVisible = true; // Abre el modal si hay resultados
+      } else {
+        this.$swal.fire({
+          icon: 'info',
+          title: 'Sin resultados',
+          text: 'No se encontraron elementos en la sucursal seleccionada.',
+        });
+      }
+    },
     async markAsEnCamino(solicitudeId) {
       this.load = true;
       try {
@@ -271,16 +271,16 @@ export default {
       }
     },
     async GET_DATA(path) {
-    this.load = true;  // Comienza la carga
-    try {
+      this.load = true;  // Comienza la carga
+      try {
         const res = await this.$api.$get(path);
         this.list = res;
         this.filteredSucursales = this.getUniqueSucursales(this.list.filter(item => item.estado === 1));
-    } catch (error) {
-    } finally {
+      } catch (error) {
+      } finally {
         this.load = false;  // Termina la carga
-    }
-},
+      }
+    },
 
 
 
@@ -339,63 +339,63 @@ export default {
       }
     },
     openSelectedModal() {
-  this.selectedItemsData = this.list.filter(item => this.selected[item.id]);
-  
-  if (this.selectedItemsData.length > 0) {
-    this.isSelectedSimpleModalVisible = true; // Abre el modal sin el botón de eliminar
-  } else {
-    this.$swal.fire({
-      icon: 'info',
-      title: 'No hay elementos seleccionados',
-      text: 'Selecciona al menos un elemento para continuar.',
-    });
-  }
-},
+      this.selectedItemsData = this.list.filter(item => this.selected[item.id]);
 
-async collectSelected() {
-  this.load = true;
-  try {
-    // Convertir this.user en un objeto plano
-    const plainUser = JSON.parse(JSON.stringify(this.user));
+      if (this.selectedItemsData.length > 0) {
+        this.isSelectedSimpleModalVisible = true; // Abre el modal sin el botón de eliminar
+      } else {
+        this.$swal.fire({
+          icon: 'info',
+          title: 'No hay elementos seleccionados',
+          text: 'Selecciona al menos un elemento para continuar.',
+        });
+      }
+    },
 
-    console.log('Verificando plainUser:', plainUser); // Log para verificar el estado de plainUser
-    
-    if (!plainUser || !plainUser.id) {
-      console.error('Estado de plainUser en error:', plainUser); // Otro log si hay un error
-      throw new Error('El ID del cartero no está disponible.');
-    }
+    async collectSelected() {
+      this.load = true;
+      try {
+        // Convertir this.user en un objeto plano
+        const plainUser = JSON.parse(JSON.stringify(this.user));
 
-    const carteroId = plainUser.id;
+        console.log('Verificando plainUser:', plainUser); // Log para verificar el estado de plainUser
 
-    console.log('ID del cartero:', carteroId); // Log para verificar que el ID está disponible
+        if (!plainUser || !plainUser.id) {
+          console.error('Estado de plainUser en error:', plainUser); // Otro log si hay un error
+          throw new Error('El ID del cartero no está disponible.');
+        }
 
-    // Si no hay ningún elemento seleccionado en el checklist, seleccionar todos los que están en el modal
-    const itemsToCollect = this.selectedForPickup.length > 0 ? this.selectedForPickup : this.selectedItemsData.map(item => item.id);
+        const carteroId = plainUser.id;
 
-    for (let itemId of itemsToCollect) {
-      await this.$api.$put(`marcarrecogido/${itemId}`, { cartero_recogida_id: carteroId });
-    }
-    
-    await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
-    this.$swal.fire({
-      icon: 'success',
-      title: 'Recogido',
-      text: 'Los elementos seleccionados han sido recogidos.',
-    });
-    this.isSelectedSimpleModalVisible = false;
-    this.selected = {}; // Limpiar la selección después de recoger
-    this.selectedForPickup = []; // Limpiar los elementos seleccionados para recoger
-  } catch (e) {
-    console.error(e); // Esto mostrará el error detallado en la consola del navegador
-    this.$swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: `Hubo un error al recoger los elementos seleccionados. Detalles: ${e.message}`,
-    });
-  } finally {
-    this.load = false;
-  }
-},
+        console.log('ID del cartero:', carteroId); // Log para verificar que el ID está disponible
+
+        // Si no hay ningún elemento seleccionado en el checklist, seleccionar todos los que están en el modal
+        const itemsToCollect = this.selectedForPickup.length > 0 ? this.selectedForPickup : this.selectedItemsData.map(item => item.id);
+
+        for (let itemId of itemsToCollect) {
+          await this.$api.$put(`marcarrecogido/${itemId}`, { cartero_recogida_id: carteroId });
+        }
+
+        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Recogido',
+          text: 'Los elementos seleccionados han sido recogidos.',
+        });
+        this.isSelectedSimpleModalVisible = false;
+        this.selected = {}; // Limpiar la selección después de recoger
+        this.selectedForPickup = []; // Limpiar los elementos seleccionados para recoger
+      } catch (e) {
+        console.error(e); // Esto mostrará el error detallado en la consola del navegador
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: `Hubo un error al recoger los elementos seleccionados. Detalles: ${e.message}`,
+        });
+      } finally {
+        this.load = false;
+      }
+    },
 
 
 
@@ -412,7 +412,7 @@ async collectSelected() {
         }
       }
     },
-    
+
 
     filterBySucursal() {
       const selectedSucursalId = this.selectedSucursal;
@@ -421,11 +421,11 @@ async collectSelected() {
       );
     },
     selectAll(event) {
-    const isChecked = event.target.checked;
-    this.paginatedData.forEach(item => {
-      this.$set(this.selected, item.id, isChecked);
-    });
-  },
+      const isChecked = event.target.checked;
+      this.paginatedData.forEach(item => {
+        this.$set(this.selected, item.id, isChecked);
+      });
+    },
     removeItem(index) {
       this.selectedItemsData.splice(index, 1);
     },
@@ -453,20 +453,20 @@ async collectSelected() {
   },
   mounted() {
     this.$nextTick(async () => {
-    let userAuth = localStorage.getItem('userAuth');
-    if (userAuth) {
-      let parsedUser = JSON.parse(userAuth);
+      let userAuth = localStorage.getItem('userAuth');
+      if (userAuth) {
+        let parsedUser = JSON.parse(userAuth);
 
-      if (parsedUser.user && parsedUser.user.departamento_cartero) {
-        this.user = parsedUser.user;
-        await this.GET_DATA(this.apiUrl);
+        if (parsedUser.user && parsedUser.user.departamento_cartero) {
+          this.user = parsedUser.user;
+          await this.GET_DATA(this.apiUrl);
+        } else {
+          console.error("El usuario o departamento del cartero no está definido.");
+        }
       } else {
-        console.error("El usuario o departamento del cartero no está definido.");
+        console.error("No se pudo encontrar la información del usuario en localStorage.");
       }
-    } else {
-      console.error("No se pudo encontrar la información del usuario en localStorage.");
-    }
-  });
+    });
   },
 };
 </script>
