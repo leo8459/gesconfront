@@ -97,7 +97,7 @@
                     </td>
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
+                    <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
                     <td class="py-0 px-1">
@@ -208,7 +208,18 @@ export default {
   computed: {
     filteredData() {
     const searchTerm = this.searchTerm.toLowerCase();
+    
+    if (!Array.isArray(this.list)) {
+      // Si `this.list` no es un array, devolver un array vacío
+      return [];
+    }
+
     return this.list.filter(item => {
+      // Excluir registros donde `fecha_recojo_c` esté vacío
+      if (!item.fecha_recojo_c) {
+        return false;
+      }
+
       const servicio = item.tarifa.servicio;
       let fechaLimite;
 
@@ -270,6 +281,8 @@ export default {
   paginatedData() {
     const start = (this.currentPage - 1) * this.itemsPerPage;
     const end = start + this.itemsPerPage;
+
+    // Asegurarse de que filteredData sea siempre un array
     return this.filteredData.slice(start, end);
   },
 

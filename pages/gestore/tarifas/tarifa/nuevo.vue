@@ -62,7 +62,7 @@
                     <input type="text" v-model="model.retencion" class="form-control" id="retencion">
                   </div>
                   <div class="form-group">
-                    <label class="form-label" for="retencion">Dias de entrega</label>
+                    <label class="form-label" for="retencion">Horas de entrega</label>
                     <input type="text" v-model="model.dias_entrega" class="form-control" id="dias_entrega">
                   </div>
                   <div class="form-group form-check">

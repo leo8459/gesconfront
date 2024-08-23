@@ -25,7 +25,6 @@
                     </div>
                   </div>
                   <div class="form-group col-12">
-                    <label for="fecha_d">Fin Fecha</label>
                     <input type="text" v-model="model.fecha_d" class="form-control d-none" id="fecha_d" disabled>
                   </div>
                 </div>

@@ -120,24 +120,27 @@
         </li>
 
         <!-- //CARTERO -->
-
         <li class="nav-item" v-if="isCartero">
+          <!-- Botón Volver a Menú Principal -->
+          <a @click="handleItemClick('menu-principal')" href="/cartero" class="nav-link">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
+              <i class="fas fa-arrow-left blue-icon"></i>
+            </div>
+            <span class="nav-link-text ms-1">Volver a menú principal</span>
+          </a>
+
+          <!-- Sección Cartero -->
           <a @click="handleItemClick('cartero')" data-bs-toggle="collapse" href="#perfil-cartero" class="nav-link"
             aria-controls="configuracion-cajero" role="button" aria-expanded="false">
             <div
               class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
-              <i v-if="role === 'cartero'" class="fas fa-money-bill blue-icon"></i>
+              <i class="fas fa-money-bill blue-icon"></i>
             </div>
             <span class="nav-link-text ms-1">Cartero</span>
           </a>
           <div class="collapse" id="perfil-cartero">
             <ul class="nav ms-4 ps-3">
-              <li class="nav-item">
-                <nuxtLink class="nav-link" to="/cartero">
-                  <span class="sidenav-mini-icon"> Volver a menu principal </span>
-                  <span class="sidenav-normal"> Volver a menu principal</span>
-                </nuxtLink>
-              </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link" to="/cartero/solicitudcartero/solicitudecartero">
                   <span class="sidenav-mini-icon"> Solicitud Cartero </span>
@@ -162,18 +165,20 @@
                   <span class="sidenav-normal"> Entregado Cartero</span>
                 </nuxtLink>
               </li>
-              <li class="nav-item">
-                <nuxtLink class="nav-link" to="/cartero/devolucioncarteros/devolucioncartero">
-                  <span class="sidenav-mini-icon"> Devolucion Cartero </span>
-                  <span class="sidenav-normal"> Devolucion Cartero</span>
-                </nuxtLink>
-              </li>
-              <li class="nav-item">
-                <nuxtLink class="nav-link" to="/cartero/devueltoscarteros/devueltoscartero">
-                  <span class="sidenav-mini-icon"> Retornados Cartero </span>
-                  <span class="sidenav-normal"> Retornados Cartero</span>
-                </nuxtLink>
-              </li>
+            </ul>
+          </div>
+
+          <!-- Sección Regional -->
+          <a @click="handleItemClick('cartero-regional')" data-bs-toggle="collapse" href="#perfil-cartero-regional"
+            class="nav-link" aria-controls="configuracion-cajero" role="button" aria-expanded="false">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
+              <i class="fas fa-truck blue-icon"></i>
+            </div>
+            <span class="nav-link-text ms-1">Cartero Regional</span>
+          </a>
+          <div class="collapse" id="perfil-cartero-regional">
+            <ul class="nav ms-4 ps-3">
               <li class="nav-item">
                 <nuxtLink class="nav-link" to="/cartero/recogidoregionalcarteros/recogidoregionalcartero">
                   <span class="sidenav-mini-icon"> En camino a Regional</span>
@@ -186,10 +191,39 @@
                   <span class="sidenav-normal"> Correspondencia en camino</span>
                 </nuxtLink>
               </li>
-              
+            </ul>
+          </div>
+
+          <!-- Sección Return -->
+          <a @click="handleItemClick('return')" data-bs-toggle="collapse" href="#perfil-return" class="nav-link"
+            aria-controls="configuracion-cajero" role="button" aria-expanded="false">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
+              <i class="fas fa-undo-alt blue-icon"></i>
+            </div>
+            <span class="nav-link-text ms-1">Return</span>
+          </a>
+          <div class="collapse" id="perfil-return">
+            <ul class="nav ms-4 ps-3">
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/cartero/devolucioncarteros/devolucioncartero">
+                  <span class="sidenav-mini-icon"> Devolución Cartero </span>
+                  <span class="sidenav-normal"> Devolución Cartero</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/cartero/devueltoscarteros/devueltoscartero">
+                  <span class="sidenav-mini-icon"> Retornados Cartero </span>
+                  <span class="sidenav-normal"> Retornados Cartero</span>
+                </nuxtLink>
+              </li>
             </ul>
           </div>
         </li>
+
+
+
+
 
 
         <!-- //EMPRESA -->
@@ -236,7 +270,7 @@
                   <span class="sidenav-normal">Entregados Empresa </span>
                 </nuxtLink>
               </li>
-              
+
               <li class="nav-item" v-if="isSucursale">
                 <nuxtLink class="nav-link" to="/sucursal/devueltosucursales/devueltosucursale">
                   <span class="sidenav-mini-icon"> Devueltos Empresa</span>
@@ -391,17 +425,17 @@
                   <span class="sidenav-normal"> Correspondencia Entregada</span>
                 </nuxtLink> -->
                 <nuxtLink class="nav-link" to="/contrato/paquetessinentregar/paquetesinentregar">
-                  <span class="sidenav-mini-icon"> Paquetes con  multa </span>
-                  <span class="sidenav-normal"> Paquetes con  multa </span>
+                  <span class="sidenav-mini-icon"> Paquetes con multa </span>
+                  <span class="sidenav-normal"> Paquetes con multa </span>
                 </nuxtLink>
                 <nuxtLink class="nav-link" to="/contrato/verificadoencargados/verificadoencargado">
                   <span class="sidenav-mini-icon"> Correspondencia Verificada </span>
                   <span class="sidenav-normal"> Correspondencia Verificada</span>
                 </nuxtLink>
-                <nuxtLink class="nav-link" to="/contrato/rechazadoencargados/rechazadoencargado">
+                <!-- <nuxtLink class="nav-link" to="/contrato/rechazadoencargados/rechazadoencargado">
                   <span class="sidenav-mini-icon"> Correspondencia Rechazada </span>
                   <span class="sidenav-normal"> Correspondencia Rechazada</span>
-                </nuxtLink>
+                </nuxtLink> -->
               </li>
             </ul>
           </div>
@@ -439,7 +473,7 @@ export default {
       return this.userType === 'administrador'; // Verifica si el tipo de usuario es sucursale
     },
     isGestor() {
-      return this.userType === 'gestor'; // Verifica si el tipo de usuario es sucursale
+      return this.userType === 'Gestor'; // Verifica si el tipo de usuario es sucursale
     },
     isEncargado() {
       return this.userType === 'encargado'; // Verifica si el tipo de usuario es sucursale

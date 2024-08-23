@@ -40,7 +40,7 @@
       <!-- Mensaje de Bienvenida -->
       <div class="d-flex justify-content-center align-items-center">
         <span class="welcome-message">
-          <template v-if="user.nombre && user.apellidos">
+          <template v-if="user.nombre">
             {{ user.nombre }}
           </template>
           <template v-else>
@@ -53,7 +53,7 @@
         <li class="nav-item d-flex align-items-center">
           <a href="javascript:void(0)" class="nav-link text-body font-weight-bold px-0" @click="Logout()">
             <i class="fa fa-user me-sm-1"></i>
-            <span class="d-sm-inline d-none">Cerrar sesion</span>
+            <span class="d-sm-inline d-none">Cerrar session</span>
           </a>
         </li>
         <li class="nav-item d-xl-none ps-3 d-flex align-items-center">

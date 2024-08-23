@@ -34,7 +34,7 @@
                       <input type="text" v-model="model.nombre" class="form-control" id="nombre">
                     </div>
                     <div class="form-group col-12">
-                      <label for="direccion_lat_lng">Dirección Maps</label>
+                      <label for="direccion_lat_lng">Dirección maps</label>
                       <input type="text" id="direccion_lat_lng" class="form-control" @click="openModal('direccion')"
                         :value="currentLat && currentLng ? currentLat + ', ' + currentLng : ''" readonly>
                       <input type="hidden" v-model="model.direccion_lat">
@@ -42,7 +42,7 @@
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="direccion_especifica">Dirección Específica</label>
+                      <label for="direccion_especifica">Dirección especifica</label>
                       <input type="text" v-model="model.direccion_especifica" class="form-control"
                         id="direccion_especifica">
                     </div>

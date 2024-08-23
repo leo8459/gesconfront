@@ -26,7 +26,7 @@
                           <option value="cartero">Cartero</option>
                           <option value="sucursale">Sucursal</option>
                           <option value="administrador">Administrador</option>
-                          <option value="gestor">Gestor</option>
+                          <option value="Gestor">Gestor</option>
                           <option value="encargado">Encargado</option>
                           <option value="contrato">Contratos</option>
 
@@ -137,7 +137,7 @@ export default {
   } else if (this.model.userType === 'administrador') {
     apiClient = this.$administrador;
     loginUrl = 'login';
-  } else if (this.model.userType === 'gestor') {
+  } else if (this.model.userType === 'Gestor') {
     apiClient = this.$gestores;
     loginUrl = 'login4';
   } else if (this.model.userType === 'encargado') {
@@ -180,7 +180,7 @@ export default {
       redirectPath = '/sucursal';
     } else if (userType === 'cartero') {
       redirectPath = '/cartero';
-    } else if (userType === 'gestor') {
+    } else if (userType === 'Gestor') {
       redirectPath = '/gestore';
     } else if (userType === 'encargado') {
       redirectPath = '/encargado';

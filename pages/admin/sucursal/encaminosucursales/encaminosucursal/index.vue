@@ -33,7 +33,7 @@
                         <th class="py-0 px-1">Destinatario</th>
                         <th class="py-0 px-1">Teléfono Destinatario</th>
                         <th class="py-0 px-1">Dirección Destinatario</th>
-                        <th class="py-0 px-1">Ciudad</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
                         <th class="py-0 px-1">Fecha de Entrega</th>
                       </tr>
                     </thead>

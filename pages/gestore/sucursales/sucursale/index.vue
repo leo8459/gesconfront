@@ -3,8 +3,7 @@
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
-        <div class="row justify-content-end">
-
+        <div class="row">
           <!-- Campo de selección de sucursal -->
           <div class="col-md-2">
             <label for="sucursal" class="form-label">Sucursal</label>
@@ -15,8 +14,6 @@
               </option>
             </select>
           </div>
-
-          <!-- Campos para seleccionar fechas y botón para generar reporte -->
           <div class="col-md-2">
             <label for="startDate" class="form-label">Fecha Inicial</label>
             <input type="date" v-model="startDate" id="startDate" class="form-control">
@@ -25,16 +22,27 @@
             <label for="endDate" class="form-label">Fecha Final</label>
             <input type="date" v-model="endDate" id="endDate" class="form-control">
           </div>
-          <div class="col-md-2 d-flex align-items-end">
+
+
+          <!-- Campos para seleccionar fechas, botón para generar reporte y botón para crear sucursal -->
+
+          <div class="col-md-2">
+            <label for="startDate" class="form-label"> {{ }} </label>
+
             <button @click="exportToExcel" class="btn btn-success btn-sm w-100">
               <i class="fas fa-file-excel"></i> Generar Reporte
             </button>
           </div>
           <div class="col-md-2">
+            <label for="startDate" class="form-label"> {{ }} </label>
+
             <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class=""></i> Crear sucursal
+              <i class=""></i> Crear Sucursal
             </nuxtLink>
           </div>
+
+
+
 
           <!-- Tabla de datos -->
           <div class="col-12">
@@ -90,7 +98,7 @@
                     </tbody>
                   </table>
                 </div> <!-- Cierre del contenedor table-responsive -->
-                
+
                 <!-- Paginación -->
                 <nav aria-label="Page navigation">
                   <ul class="pagination justify-content-between">
@@ -440,12 +448,21 @@ export default {
   align-items: center;
 }
 
+.row .col-md-2 {
+  margin-right: 3rem;
+}
+
+.btn {
+  white-space: 0rem;
+}
+
 .table-responsive {
   overflow-x: auto;
 }
 
 .table {
   width: 100%;
-  min-width: 800px; /* Ajusta este valor según tus necesidades */
+  min-width: 800px;
+  /* Ajusta este valor según tus necesidades */
 }
 </style>

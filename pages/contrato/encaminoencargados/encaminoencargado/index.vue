@@ -37,7 +37,7 @@
                     <th class="py-0 px-1">Teléfono D</th>
                     <th class="py-0 px-1">Dirección Destinatario maps</th>
                     <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Ciudad</th>
+                    <th class="py-0 px-1">Municipio/Provincia</th>
                     <th class="py-0 px-1">Firma Destinatario</th>
                     <th class="py-0 px-1">Precio (Bs)</th>
                     <th class="py-0 px-1">CI Destinatario</th>

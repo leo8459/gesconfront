@@ -48,7 +48,7 @@
                           <th class="py-0 px-1">Destinatario</th>
                           <th class="py-0 px-1">Teléfono D</th>
                           <th class="py-0 px-1">Dirección Destinatario</th>
-                          <th class="py-0 px-1">Ciudad</th>
+                          <th class="py-0 px-1">Municipio/Provincia</th>
                           <th class="py-0 px-1">Firma Destinatario</th>
                           <th class="py-0 px-1">Nombre Destinatario</th>
                           <th class="py-0 px-1">CI Destinatario</th>
@@ -218,7 +218,7 @@ export default {
                 <th>Destinatario</th>
                 <th>Teléfono D</th>
                 <th>Dirección Destinatario</th>
-                <th>Ciudad</th>
+                <th>Municipio/Provincia</th>
                 <th>Firma D</th>
                 <th>Nombre D</th>
                 <th>CI D</th>

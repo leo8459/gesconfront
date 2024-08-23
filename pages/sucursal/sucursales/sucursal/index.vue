@@ -5,15 +5,16 @@
       <div slot="body">
         <div class="row justify-content-end mb-3">
           <div class="d-flex justify-content-between">
-            <a href="https://ips.correos.gob.bo/CDS.Web/Operational/andeclaration.aspx" class="btn btn-dark btn-sm ml-2" target="_blank">
-    <i class=""></i> Crear solicitud de Correspondencia Internacional
-  </a>
-  <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm">
-    <i class=""></i> Crear solicitud de Correspondencia Local/Nacional
-  </nuxtLink>
- 
-</div>
-</div>
+            <a href="https://ips.correos.gob.bo/CDS.Web/Operational/andeclaration.aspx" class="btn btn-dark btn-sm ml-2"
+              target="_blank">
+              <i class=""></i> Crear solicitud de Correspondencia Internacional
+            </a>
+            <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm">
+              <i class=""></i> Crear solicitud de Correspondencia Local/Nacional
+            </nuxtLink>
+
+          </div>
+        </div>
 
 
         <!-- Campo para buscar por código de barras -->

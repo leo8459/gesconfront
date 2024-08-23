@@ -23,7 +23,7 @@
                               <th class="py-0 px-1">Guia</th>
                               <th class="py-0 px-1">Sucursal</th>
                               <th class="py-0 px-1">Dirección Destinatario</th>
-                              <th class="py-0 px-1">Ciudad</th>
+                              <th class="py-0 px-1">Municipio/Provincia</th>
                               <th class="py-0 px-1">Peso(Kg)</th>
                               <th class="py-0 px-1">Asignar</th>
                             </tr>

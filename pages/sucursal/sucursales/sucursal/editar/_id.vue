@@ -30,12 +30,7 @@
                       <label for="remitente">Remitente</label>
                       <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente">
                     </div>
-                    <div class="form-group col-12">
-                      <label for="direccion">Dirección</label>
-                      <input type="text" id="direccion" class="form-control" @click="openModal" :value="currentLat && currentLng ? currentLat + ', ' + currentLng : ''" readonly>
-                      <input type="hidden" v-model="model.direccion_lat">
-                      <input type="hidden" v-model="model.direccion_lng">
-                    </div>
+                    
                     <div class="form-group col-12">
                       <label for="telefono">Teléfono</label>
                       <input type="text" v-model.trim="model.telefono" class="form-control" id="telefono">
@@ -52,22 +47,13 @@
                       <label for="telefono_d">Teléfono Destinatario</label>
                       <input type="text" v-model.trim="model.telefono_d" class="form-control" id="telefono_d">
                     </div>
+                  
                     <div class="form-group col-12">
-                      <label for="direccion_d">Dirección Destino</label>
-                      <input type="text" v-model.trim="model.direccion_d" class="form-control" id="direccion_d">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="ciudad">Ciudad</label>
+                      <label for="ciudad">Municipio/Provincia</label>
                       <input type="text" v-model.trim="model.ciudad" class="form-control" id="ciudad">
                     </div>
-                    <div class="form-group col-12">
-                      <label for="nombre_d">Nombre Destinatario</label>
-                      <input type="text" v-model.trim="model.nombre_d" class="form-control" id="nombre_d">
-                    </div>
-                    <div class="form-group col-12">
-                      <label for="ci_d">CI Destinatario</label>
-                      <input type="text" v-model.trim="model.ci_d" class="form-control" id="ci_d">
-                    </div>
+                   
+                   
                     <div class="form-group col-12">
                       <label for="fecha">Envio Fecha</label>
                       <input type="text" v-model="model.fecha" class="form-control" id="fecha" disabled>
@@ -260,7 +246,7 @@ export default {
       try {
         await Promise.all([
           this.GET_DATA(this.apiUrl + '/' + this.$route.params.id),
-          this.GET_DATA('sucursales')
+          this.GET_DATA('sucursales2')
         ]).then((v) => {
           this.model = v[0];
           this.sucursales = v[1];

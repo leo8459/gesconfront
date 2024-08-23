@@ -21,6 +21,10 @@
                       <input type="text" id="sucursal" class="form-control" v-model="model.sucursale_nombre" disabled>
                     </div>
                     <div class="form-group col-12">
+                      <label for="sucursal">Numero de Guia</label>
+                      <input type="text" id="sucursal" class="form-control" v-model="model.guia">
+                    </div>
+                    <div class="form-group col-12">
                       <label for="remitente">Remitente</label>
                       <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente">
                     </div>
@@ -33,7 +37,7 @@
                       <label for="contenido">Contenido</label>
                       <input type="text" v-model.trim="model.contenido" class="form-control" id="contenido">
                     </div>
-                  
+
 
                     <div class="form-group col-12">
                       <label for="tarifas">Destino y servicio</label>
@@ -84,9 +88,9 @@
                       <label for="precios">Precio Estimado</label>
                       <input type="text" id="precios" class="form-control" :value="precioSeleccionado" disabled>
                     </div>
-                   
 
-                  
+
+
 
                     <div class="form-group col-12">
                       <h4>Destinatario</h4>

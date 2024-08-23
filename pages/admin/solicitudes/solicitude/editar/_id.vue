@@ -71,7 +71,7 @@
                       <input type="text" v-model="model.direccion_d" class="form-control" id="">
                     </div>
                     <div class="form-group col-12">
-                      <label for="">ciudad</label>
+                      <label for="">Municipio/Provincia</label>
                       <input type="text" v-model="model.ciudad" class="form-control" id="">
                     </div>
                     <div class="form-group col-12">

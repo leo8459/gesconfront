@@ -75,7 +75,7 @@
                       <input type="text" v-model.trim="model.direccion_d" class="form-control" id="direccion_d">
                     </div>
                     <div class="form-group col-12">
-                      <label for="ciudad">Ciudad</label>
+                      <label for="ciudad">Municipio/Provincia</label>
                       <input type="text" v-model.trim="model.ciudad" class="form-control" id="ciudad">
                     </div>
                     <div class="form-group col-12">

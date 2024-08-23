@@ -58,7 +58,7 @@
                   <th class="p-1">1 Kilogramo (Bs)</th>
                   <th class="p-1">Kilogramo Extra (Bs)</th>
                   <th class="p-1">Retencion</th>
-                  <th class="p-1">Dias de entrega</th>
+                  <th class="p-1">Horas de entrega</th>
 
                   <th class="p-1"></th>
                 </tr>

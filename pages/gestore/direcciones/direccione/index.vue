@@ -6,7 +6,7 @@
         <div class="row justify-content-end">
           <div class="col-md-2">
             <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class="fas fa-plus"></i> Agregar Dirección
+              <i class=""></i> Crear direccion para sucursal
             </nuxtLink>
           </div>
           <div class="col-12">

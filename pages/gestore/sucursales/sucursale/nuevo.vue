@@ -37,14 +37,14 @@
 
 
                     <div class="form-group col-12">
-                      <label for="">Numero de Contrato</label>
+                      <label for="">Numero de contrato</label>
                       <input type="text" v-model="model.n_contrato" class="form-control" id="">
                     </div>
 
 
 
                     <div class="form-group col-12">
-                      <label for="origen">Departamento origen</label>
+                      <label for="origen">Departamento de la sucursal</label>
                       <select v-model="model.origen" class="form-control" id="origen">
                         <option value="LPB">La Paz (LPB)</option>
                         <option value="SCZ">Santa Cruz (SCZ)</option>
@@ -70,7 +70,7 @@
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="tipo_contrato">Tipo de Contrato</label>
+                      <label for="tipo_contrato">Tipo de contrato</label>
                       <select v-model="model.tipo_contrato" class="form-control" id="tipo_contrato">
                         <option value="EMS">EMS</option>
                         <option value="ECA">ECA</option>
@@ -105,14 +105,14 @@
 
 
                     <div class="form-group col-12">
-                      <label for="">Acuerdo Recojo</label>
+                      <label for="">Acuerdo recojo</label>
                       <input type="text" v-model="model.acuerdos" class="form-control" id="">
                     </div>
-
+<!-- 
                     <div class="form-group col-12">
                       <label for="">Direccion</label>
                       <input type="text" v-model="model.direccion" class="form-control" id="">
-                    </div>
+                    </div> -->
 
                     <div class="form-group col-12">
                       <label for="">Contacto Administrativo</label>
@@ -167,7 +167,7 @@ export default {
 
       },
       apiUrl: 'sucursales3',
-      page: 'sucursales',
+      page: 'Sucursal',
       modulo: 'AGBC',
       load: true,
       empresas: [],
