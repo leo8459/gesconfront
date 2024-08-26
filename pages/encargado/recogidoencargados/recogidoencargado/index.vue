@@ -192,13 +192,24 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item =>
-        item.estado === 5 && Object.values(item).some(value =>
+    const searchTerm = this.searchTerm.toLowerCase();
+    
+    // Verificar si `this.user` y `this.user.user` están definidos antes de acceder a `departamento`
+    const departamentoCartero = this.user && this.user.user ? this.user.user.departamento : null;
+
+    return this.list.filter(item =>
+      item.estado === 5 &&
+      item.sucursale && // Asegurarse de que la sucursal exista
+      departamentoCartero && item.sucursale.origen === departamentoCartero && // Filtrar por el origen de la sucursal y el departamento del usuario
+      (
+        (this.selectedSucursal ? item.sucursale.id === this.selectedSucursal : true) && // Filtrar por sucursal seleccionada
+        (Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
-        )
-      );
-    },
+        ) ||
+          (item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)))
+      )
+    ).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;

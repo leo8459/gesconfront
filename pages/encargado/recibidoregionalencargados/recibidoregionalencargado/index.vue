@@ -194,27 +194,18 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    const departamento = this.user?.user?.departamento; // Usamos 'departamento'
-
-    if (!departamento) {
-      // Si el departamento no está definido, no hay datos que mostrar
-      return [];
-    }
-
-    return this.list.filter(item =>
-      item.estado === 8 &&
-      item.tarifa?.departamento === departamento && // Filtrar por el departamento del encargado
-      Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm)
-      )
-    );
-  },
-  paginatedData() {
-    const start = this.currentPage * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredData.slice(start, end);
-  },
+      const searchTerm = this.searchTerm.toLowerCase();
+      return this.list.filter(item =>
+        item.estado === 10 && Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        )
+      );
+    },
+    paginatedData() {
+      const start = this.currentPage * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredData.slice(start, end);
+    },
     totalPages() {
       return Math.ceil(this.filteredData.length / this.itemsPerPage);
     },

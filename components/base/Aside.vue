@@ -332,6 +332,10 @@
                   <span class="sidenav-mini-icon">En camino a regional</span>
                   <span class="sidenav-normal">En camino a regional</span>
                 </nuxtLink>
+                <nuxtLink class="nav-link" to="/encargado/recibidoregionalencargados/recibidoregionalencargado">
+                  <span class="sidenav-mini-icon">Recibidos</span>
+                  <span class="sidenav-normal">Recibidos</span>
+                </nuxtLink>
               </li>
             </ul>
           </div>

@@ -31,6 +31,7 @@
                         <td class="py-0 px-1">{{ i + 1 }}</td>
                         <td class="py-0 px-1">{{ m.nombre }}</td>
                         <td class="py-0 px-1">{{ m.apellidos }}</td>
+                        <td class="py-0 px-1">{{ m.departamento }}</td>
                         <td class="py-0 px-1" :class="m.estado === 1 ? 'activo' : 'inactivo'">
                           {{ m.estado === 1 ? 'Activo' : 'Inactivo' }}
                         </td>

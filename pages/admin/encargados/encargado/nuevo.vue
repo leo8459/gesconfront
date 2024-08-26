@@ -27,7 +27,20 @@
                       <input type="text" v-model="model.apellidos" class="form-control" id="">
                     </div>
 
-
+                    <div class="form-group col-12">
+                      <label for="">Departamento</label>
+                      <select v-model="model.departamento" class="form-control" id="origen">
+                        <option value="LPB">La Paz (LPB)</option>
+                        <option value="SCZ">Santa Cruz (SCZ)</option>
+                        <option value="CBB">Cochabamba (CBB)</option>
+                        <option value="ORU">Oruro (ORU)</option>
+                        <option value="PTS">Potosí (PTS)</option>
+                        <option value="TJA">Tarija (TJA)</option>
+                        <option value="CHU">Sucre (CHU)</option>
+                        <option value="BEN">Trinidad (BEN)</option>
+                        <option value="PAN">Cobija (PAN)</option>
+                      </select>
+                    </div>
 
                     <div class="form-group col-12">
                       <label for="">Email</label>
@@ -62,6 +75,7 @@ export default {
       model: {
         nombre: '',
         apellidos: '',
+        departamento: '',
         email: '',
         password: ''
 

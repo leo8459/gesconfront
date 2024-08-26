@@ -215,7 +215,7 @@ export default {
     const searchTerm = this.searchTerm.toLowerCase();
 
     return this.list.filter(item =>
-      item.estado === 8 &&
+      item.estado === 10 &&
       item.tarifa &&
       item.tarifa.departamento === departamentoCartero &&
       Object.values(item).some(value =>
