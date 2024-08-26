@@ -21,7 +21,7 @@
                   <div ref="formBody" class="card-body">
                     <div role="form" class="text-start">
                       <label>Tipo de Usuario</label>
-                      <div class="mb-3">
+                      <!-- <div class="mb-3">
                         <select v-model="model.userType" class="form-control rounded shadow-sm">
                           <option value="cartero">Cartero</option>
                           <option value="sucursale">Sucursal</option>
@@ -31,7 +31,7 @@
                           <option value="contrato">Contratos</option>
 
                         </select>
-                      </div>
+                      </div> -->
                       <label>Email</label>
                       <div class="mb-3">
                         <input type="text" v-model="model.email" class="form-control rounded shadow-sm"
@@ -112,7 +112,15 @@ export default {
         });
       }
     },
-  async Login() {
+
+
+
+
+
+
+
+
+    async Login() {
   const recaptchaResponse = window.grecaptcha.getResponse();
 
   if (!recaptchaResponse) {
@@ -125,28 +133,8 @@ export default {
     return;
   }
 
-  let apiClient;
-  let loginUrl;
-
-  if (this.model.userType === 'cartero') {
-    apiClient = this.$api;
-    loginUrl = 'login3';
-  } else if (this.model.userType === 'sucursale') {
-    apiClient = this.$sucursales;
-    loginUrl = 'login2';
-  } else if (this.model.userType === 'administrador') {
-    apiClient = this.$administrador;
-    loginUrl = 'login';
-  } else if (this.model.userType === 'Gestor') {
-    apiClient = this.$gestores;
-    loginUrl = 'login4';
-  } else if (this.model.userType === 'encargado') {
-    apiClient = this.$encargados;
-    loginUrl = 'login5';
-  }else if (this.model.userType === 'contrato') {
-    apiClient = this.$contratos;
-    loginUrl = 'login6';
-  }
+  let apiClient = this.$administrador;
+  let loginUrl = 'login';
 
   try {
     const res = await apiClient.post(loginUrl, {
@@ -154,6 +142,7 @@ export default {
       password: this.model.password,
       recaptcha: recaptchaResponse
     });
+
     console.log('API Response:', res);
 
     if (res.status !== 200 || !res.data.token) {
@@ -166,10 +155,9 @@ export default {
       return;
     }
 
-    const userType = this.model.userType === 'sucursale' ? 'sucursal' : this.model.userType;
-    const user = res.data[userType];
+    const userType = res.data.userType;
+    const user = res.data.user;
 
-    
     localStorage.setItem('userAuth', JSON.stringify({ token: res.data.token, user, userType }));
     this.$store.dispatch('auth/login', { token: res.data.token, user, userType });
 
@@ -180,11 +168,11 @@ export default {
       redirectPath = '/sucursal';
     } else if (userType === 'cartero') {
       redirectPath = '/cartero';
-    } else if (userType === 'Gestor') {
+    } else if (userType === 'Gestore') {
       redirectPath = '/gestore';
     } else if (userType === 'encargado') {
       redirectPath = '/encargado';
-    }else if (userType === 'contrato') {
+    }else if (userType === 'contratos') {
       redirectPath = '/contrato';
     }
 
@@ -200,6 +188,14 @@ export default {
     });
   }
 },
+
+
+
+
+
+
+
+
 
 
     animateImage() {

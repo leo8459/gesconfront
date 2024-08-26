@@ -473,13 +473,13 @@ export default {
       return this.userType === 'administrador'; // Verifica si el tipo de usuario es sucursale
     },
     isGestor() {
-      return this.userType === 'Gestor'; // Verifica si el tipo de usuario es sucursale
+      return this.userType === 'Gestore'; // Verifica si el tipo de usuario es sucursale
     },
     isEncargado() {
       return this.userType === 'encargado'; // Verifica si el tipo de usuario es sucursale
     },
     isContrato() {
-      return this.userType === 'contrato'; // Verifica si el tipo de usuario es sucursale
+      return this.userType === 'contratos'; // Verifica si el tipo de usuario es sucursale
     },
   },
   methods: {
