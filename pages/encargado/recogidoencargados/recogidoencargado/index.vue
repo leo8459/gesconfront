@@ -352,8 +352,8 @@ export default {
         await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
         this.$swal.fire({
           icon: 'success',
-          title: 'Carteros asignados',
-          text: 'Todos los carteros seleccionados han sido asignados.',
+          title: 'Paquetes Enviados',
+          text: 'Todos los paquetes seleccionados.',
         });
         this.selectedForAssign = []; // Limpiar la selección después de asignar
         this.selectedForDelivery = []; // Limpiar la lista de paquetes para entregar después de asignar

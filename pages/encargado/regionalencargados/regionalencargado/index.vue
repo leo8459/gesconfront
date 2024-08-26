@@ -360,31 +360,36 @@ export default {
       }
     },
     async recibirPaquetes() {
-      this.load = true;
-      try {
-        for (let itemId in this.selected) {
-          if (this.selected[itemId]) {
-            await this.$encargados.$put(`recibirpaquetes5/${itemId}`);
-          }
-        }
-        await this.GET_DATA(this.apiUrl);
-        this.$swal.fire({
-          icon: 'success',
-          title: 'Paquetes recibidos',
-          text: 'Todos los paquetes seleccionados han sido marcados como recibidos.',
+  this.load = true;
+  try {
+    const carteroId = this.user.user.id; // Obtener el ID del cartero logueado
+    for (let itemId in this.selected) {
+      if (this.selected[itemId]) {
+        await this.$encargados.$put(`recibirpaquetes5/${itemId}`, {
+          encargado_regional_id: carteroId, // Registrar el encargado_id
+          // Puedes agregar otros campos aquí si es necesario
         });
-        this.selected = {};
-      } catch (e) {
-        console.error(e);
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un error al recibir los paquetes.',
-        });
-      } finally {
-        this.load = false;
       }
-    },
+    }
+    await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+    this.$swal.fire({
+      icon: 'success',
+      title: 'Paquetes recibidos',
+      text: 'Todos los paquetes seleccionados han sido marcados como recibidos.',
+    });
+    this.selected = {}; // Limpiar la selección después de recibir
+  } catch (e) {
+    console.error(e);
+    this.$swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Hubo un error al recibir los paquetes.',
+    });
+  } finally {
+    this.load = false;
+  }
+}
+,
     selectAll(event, group) {
       const isChecked = event.target.checked;
       group.forEach(item => {

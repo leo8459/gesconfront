@@ -21,6 +21,7 @@
 
           <!-- //ADMIN -->
 
+
           <div class="collapse" id="perfil-admin">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
@@ -120,6 +121,8 @@
         </li>
 
         <!-- //CARTERO -->
+
+
         <li class="nav-item" v-if="isCartero">
           <!-- Botón Volver a Menú Principal -->
           <a @click="handleItemClick('menu-principal')" href="/cartero" class="nav-link">
@@ -228,6 +231,7 @@
 
         <!-- //EMPRESA -->
 
+
         <li class="nav-item" v-if="isSucursale">
           <a @click="handleItemClick('empresa')" data-bs-toggle="collapse" href="#perfil-empresa" class="nav-link"
             aria-controls="configuracion-cajero" role="button" aria-expanded="false">
@@ -280,66 +284,120 @@
             </ul>
           </div>
         </li>
+
+
+
         <!-- //ENCARGADO -->
 
+
         <li class="nav-item" v-if="isEncargado">
-          <a @click="handleItemClick('encargado')" data-bs-toggle="collapse" href="#perfil-encargado" class="nav-link"
-            aria-controls="configuracion-cajero" role="button" aria-expanded="false">
+          <!-- Botón Volver a Menú Principal -->
+          <a @click="handleItemClick('menu-principal')" href="/encargado" class="nav-link">
             <div
               class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
-              <i v-if="role === 'encargado'" class="fas fa-money-bill blue-icon"></i>
+              <i class="fas fa-arrow-left blue-icon"></i>
             </div>
-            <span class="nav-link-text ms-1">Encargado </span>
+            <span class="nav-link-text ms-1">Volver a menú principal</span>
+          </a>
+
+          <!-- Sección Encargado -->
+          <a @click="handleItemClick('encargado')" data-bs-toggle="collapse" href="#perfil-encargado" class="nav-link"
+            aria-controls="configuracion-encargado" role="button" aria-expanded="false">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
+              <i class="fas fa-money-bill blue-icon"></i>
+            </div>
+            <span class="nav-link-text ms-1">Encargado</span>
           </a>
           <div class="collapse" id="perfil-encargado">
             <ul class="nav ms-4 ps-3">
-              <li class="nav-item">
-                <nuxtLink class="nav-link" to="/encargado">
-                  <span class="sidenav-mini-icon"> Dashboard </span>
-                  <span class="sidenav-normal"> Dashboard </span>
-                </nuxtLink>
-              </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link" to="/encargado/solicitudencargados/solicitudencargado">
                   <span class="sidenav-mini-icon"> Solicitud de recojo </span>
                   <span class="sidenav-normal"> Solicitud de recojo </span>
                 </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link" to="/encargado/recogidoencargados/recogidoencargado">
-                  <span class="sidenav-mini-icon"> Correspondencia recogida </span>
-                  <span class="sidenav-normal"> Correspondencia recogida </span>
+                  <span class="sidenav-mini-icon"> Paquetes recogidos </span>
+                  <span class="sidenav-normal"> Paquetes recogidos</span>
                 </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link" to="/encargado/encaminoencargados/encaminoencargado">
-                  <span class="sidenav-mini-icon"> Correspondencia en camino </span>
-                  <span class="sidenav-normal"> Correspondencia en camino </span>
+                  <span class="sidenav-mini-icon"> Paquetes en camino </span>
+                  <span class="sidenav-normal"> Paquetes en camino</span>
                 </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link" to="/encargado/entregadoencargados/entregadoencargado">
-                  <span class="sidenav-mini-icon"> Correspondencia Entregada</span>
-                  <span class="sidenav-normal"> Correspondencia Entregada</span>
+                  <span class="sidenav-mini-icon"> Paquetes Entregada</span>
+                  <span class="sidenav-normal"> Paquetes Entregada</span>
                 </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link" to="/encargado/verificadoencargados/verificadoencargado">
-                  <span class="sidenav-mini-icon"> Correspondencia Verificada </span>
-                  <span class="sidenav-normal"> Correspondencia Verificada</span>
+                  <span class="sidenav-mini-icon"> Paquetes Verificada </span>
+                  <span class="sidenav-normal"> Paquetes Verificada</span>
                 </nuxtLink>
-                <nuxtLink class="nav-link" to="/encargado/rechazadoencargados/rechazadoencargado">
-                  <span class="sidenav-mini-icon"> Correspondencia Rechazada </span>
-                  <span class="sidenav-normal"> Correspondencia Rechazada</span>
-                </nuxtLink>
-                <nuxtLink class="nav-link" to="/encargado/devueltoencargados/devueltoencargado">
-                  <span class="sidenav-mini-icon"> Correspondencia devuelta </span>
-                  <span class="sidenav-normal"> Correspondencia devuelta</span>
-                </nuxtLink>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Sección Regional -->
+          <a @click="handleItemClick('encargado-regional')" data-bs-toggle="collapse" href="#perfil-encargado-regional"
+            class="nav-link" aria-controls="configuracion-encargado" role="button" aria-expanded="false">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
+              <i class="fas fa-truck blue-icon"></i>
+            </div>
+            <span class="nav-link-text ms-1">Encargado Regional</span>
+          </a>
+          <div class="collapse" id="perfil-encargado-regional">
+            <ul class="nav ms-4 ps-3">
+              <li class="nav-item">
                 <nuxtLink class="nav-link" to="/encargado/regionalencargados/regionalencargado">
-                  <span class="sidenav-mini-icon">En camino a regional</span>
-                  <span class="sidenav-normal">En camino a regional</span>
+                  <span class="sidenav-mini-icon"> En camino a regional </span>
+                  <span class="sidenav-normal"> En camino a regional</span>
                 </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link" to="/encargado/recibidoregionalencargados/recibidoregionalencargado">
-                  <span class="sidenav-mini-icon">Recibidos</span>
-                  <span class="sidenav-normal">Recibidos</span>
+                  <span class="sidenav-mini-icon"> Recibidos </span>
+                  <span class="sidenav-normal"> Recibidos</span>
+                </nuxtLink>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Sección Return -->
+          <a @click="handleItemClick('return')" data-bs-toggle="collapse" href="#perfil-return" class="nav-link"
+            aria-controls="configuracion-encargado" role="button" aria-expanded="false">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
+              <i class="fas fa-undo-alt blue-icon"></i>
+            </div>
+            <span class="nav-link-text ms-1">Return</span>
+          </a>
+          <div class="collapse" id="perfil-return">
+            <ul class="nav ms-4 ps-3">
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/encargado/devolucionencargados/devolucionencargado">
+                  <span class="sidenav-mini-icon"> Devolución Encargado </span>
+                  <span class="sidenav-normal"> Devolución Encargado</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/encargado/devueltosencargados/devueltosencargado">
+                  <span class="sidenav-mini-icon"> Retornados Encargado </span>
+                  <span class="sidenav-normal"> Retornados Encargado</span>
                 </nuxtLink>
               </li>
             </ul>
           </div>
         </li>
+
+
 
 
         <!-- //COMERCIAL -->
@@ -444,6 +502,11 @@
             </ul>
           </div>
         </li>
+
+
+
+
+
       </ul>
     </div>
 
@@ -453,6 +516,54 @@
 .blue-icon {
   color: blue;
   /* Set the desired color */
+}
+
+.nav-item {
+  margin-bottom: 10px;
+  /* Espacio entre elementos de la lista */
+  padding-left: 0;
+  /* Elimina el padding izquierdo */
+}
+
+.nav-link {
+  padding: 10px 15px 10px 0px;
+  /* Elimina el padding izquierdo */
+  display: flex;
+  align-items: center;
+  text-align: left;
+  font-size: 14px;
+  /* Tamaño de fuente consistente */
+}
+
+.nav-link .icon {
+  margin-right: 8px;
+  /* Espacio entre el ícono y el texto */
+}
+
+.nav-link-text {
+  flex: 1;
+  /* Asegura que el texto ocupe el espacio restante */
+  padding-left: 5px;
+  /* Ajuste adicional para que el texto quede alineado */
+}
+
+.sidenav-mini-icon {
+  display: none;
+  /* Oculta los mini íconos si no los necesitas */
+}
+
+.sidenav-normal {
+  font-weight: 500;
+}
+
+.collapse ul.nav {
+  padding-left: 20px;
+  /* Ajuste del padding para las sub-listas */
+}
+
+.collapse ul.nav .nav-item {
+  padding-left: 15px;
+  /* Asegura que las sub-listas estén alineadas */
 }
 </style>
 
