@@ -271,14 +271,14 @@ export default {
 
       worksheet.columns = [
         { header: '#', key: 'index', width: 5 },
-        { header: 'Servicio', key: 'servicio', width: 20 },
+        { header: 'Servicio', key: 'servicio', width: 40 },
         { header: 'Guia', key: 'guia', width: 20 },
-        { header: 'Fecha', key: 'fecha', width: 15 },
-        { header: 'Ciudad', key: 'ciudad', width: 25 },
+        { header: 'Fecha de recojo', key: 'fecha', width: 25 },
+        { header: 'Municipio', key: 'ciudad', width: 25 },
         { header: 'Zona Destinatario', key: 'zona_destinatario', width: 30 },
         { header: 'Cartero', key: 'cartero', width: 20 },
         { header: 'Peso', key: 'peso_correos', width: 10 },
-        { header: 'Fecha Destinatario', key: 'fecha_destinatario', width: 25 },
+        { header: 'Fecha de Entrega', key: 'fecha_destinatario', width: 25 },
         { header: 'Estado', key: 'estado', width: 20 },
         { header: 'Observación', key: 'observacion', width: 25 },
       ];
@@ -304,7 +304,7 @@ export default {
           index: i + 1,
           servicio: m.tarifa.servicio,
           guia: m.guia,
-          fecha: m.fecha,
+          fecha: m.fecha_recojo_c,
           ciudad: m.ciudad,
           zona_destinatario: m.zona_d,
           cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',

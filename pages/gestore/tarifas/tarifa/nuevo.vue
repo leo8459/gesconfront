@@ -22,14 +22,14 @@
                     <label for="origen">Departamento de envio</label>
                     <select v-model="model.departamento" class="form-control" id="departamento">
                       <option value="LPB">La Paz (LPB)</option>
-                      <option value="SCZ">Santa Cruz (SCZ)</option>
-                      <option value="CBB">Cochabamba (CBB)</option>
-                      <option value="ORU">Oruro (ORU)</option>
-                      <option value="PTS">Potosí (PTS)</option>
-                      <option value="TJA">Tarija (TJA)</option>
-                      <option value="CHU">Sucre (CHU)</option>
-                      <option value="BEN">Trinidad (BEN)</option>
-                      <option value="PAN">Cobija (PAN)</option>
+                        <option value="SRZ">Santa Cruz (SRZ)</option>
+                        <option value="CBB">Cochabamba (CBB)</option>
+                        <option value="ORU">Oruro (ORU)</option>
+                        <option value="PTI">Potosí (PTI)</option>
+                        <option value="TJA">Tarija (TJA)</option>
+                        <option value="SRE">Sucre (SRE)</option>
+                        <option value="BEN">Trinidad (TDD)</option>
+                        <option value="CIJ">Cobija (CIJ)</option>
                     </select>
                   </div>
 
@@ -83,14 +83,14 @@
                     <label for="origen">Departamento de envio</label>
                     <select v-model="clonado.departamento" class="form-control" id="departamento">
                       <option value="LPB">La Paz (LPB)</option>
-                      <option value="SCZ">Santa Cruz (SCZ)</option>
-                      <option value="CBB">Cochabamba (CBB)</option>
-                      <option value="ORU">Oruro (ORU)</option>
-                      <option value="PTS">Potosí (PTS)</option>
-                      <option value="TJA">Tarija (TJA)</option>
-                      <option value="CHU">Sucre (CHU)</option>
-                      <option value="BEN">Trinidad (BEN)</option>
-                      <option value="PAN">Cobija (PAN)</option>
+                        <option value="SRZ">Santa Cruz (SRZ)</option>
+                        <option value="CBB">Cochabamba (CBB)</option>
+                        <option value="ORU">Oruro (ORU)</option>
+                        <option value="PTI">Potosí (PTI)</option>
+                        <option value="TJA">Tarija (TJA)</option>
+                        <option value="SRE">Sucre (SRE)</option>
+                        <option value="BEN">Trinidad (TDD)</option>
+                        <option value="CIJ">Cobija (CIJ)</option>
                     </select>
                   </div>
                   <div class="form-group">

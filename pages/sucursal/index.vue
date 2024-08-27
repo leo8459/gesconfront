@@ -6,9 +6,12 @@
         <!-- Barra superior con botón de Agregar y Cerrar Sesión -->
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div class="d-flex align-items-center">
-            <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm mr-3">
-              <i class=""></i> Crear solicitud de Correspondencia
-            </nuxtLink>
+            <select @change="handleSelectChange" class="btn btn-dark btn-sm mr-3">
+              <option value="" disabled selected>Crear solicitud de Correspondencia</option>
+              <option value="url_nuevo2">Crear solicitud de Correspondencia sin numero de guia</option>
+              <option value="url_nuevo">Crear solicitud de Correspondencia con numero de guia</option>
+            </select>
+
             <a href="https://ips.correos.gob.bo/CDS.Web/Operational/andeclaration.aspx" class="btn btn-dark btn-sm mr-3"
               target="_blank">
               <i class=""></i> Crear solicitud de Correspondencia Internacional
@@ -218,10 +221,20 @@ export default {
         totalSolicitudes: 0,
         totalGastado: 0
       },
-      url_nuevo: '/sucursal/sucursales/sucursal/nuevo' // Aquí defines la URL del nuevo botón
+      url_nuevo: '/sucursal/sucursales/sucursal/nuevo', // Aquí defines la URL del nuevo botón
+      url_nuevo2: '/sucursal/sucursales/sucursal/nuevo2' // Aquí defines la URL del nuevo botón
+
     };
   },
   methods: {
+    handleSelectChange(event) {
+      const selectedValue = event.target.value;
+      if (this[selectedValue]) {
+        this.$router.push(this[selectedValue]);
+      } else {
+        console.error('URL no definida para la opción seleccionada.');
+      }
+    },
     async GET_DATA(path, params = {}) {
       const res = await this.$sucursales.$get(path, { params });
       return res;
