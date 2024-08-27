@@ -470,22 +470,6 @@
                 </nuxtLink>
               </li>
               <li class="nav-item">
-                <!-- <nuxtLink class="nav-link" to="/contrato/solicitudencargados/solicitudencargado">
-                  <span class="sidenav-mini-icon"> Solicitud de recojo </span>
-                  <span class="sidenav-normal"> Solicitud de recojo </span>
-                </nuxtLink>
-                <nuxtLink class="nav-link" to="/contrato/recogidoencargados/recogidoencargado">
-                  <span class="sidenav-mini-icon"> Correspondencia recogida  </span>
-                  <span class="sidenav-normal"> Correspondencia recogida </span>
-                </nuxtLink>
-                <nuxtLink class="nav-link" to="/contrato/encaminoencargados/encaminoencargado">
-                  <span class="sidenav-mini-icon"> Correspondencia en camino  </span>
-                  <span class="sidenav-normal"> Correspondencia en camino </span>
-                </nuxtLink>
-                <nuxtLink class="nav-link" to="/contrato/entregadoencargados/entregadoencargado">
-                  <span class="sidenav-mini-icon"> Correspondencia Entregada</span>
-                  <span class="sidenav-normal"> Correspondencia Entregada</span>
-                </nuxtLink> -->
                 <nuxtLink class="nav-link" to="/contrato/paquetessinentregar/paquetesinentregar">
                   <span class="sidenav-mini-icon"> Paquetes con multa </span>
                   <span class="sidenav-normal"> Paquetes con multa </span>
@@ -493,11 +477,7 @@
                 <nuxtLink class="nav-link" to="/contrato/verificadoencargados/verificadoencargado">
                   <span class="sidenav-mini-icon"> Correspondencia Verificada </span>
                   <span class="sidenav-normal"> Correspondencia Verificada</span>
-                </nuxtLink>
-                <!-- <nuxtLink class="nav-link" to="/contrato/rechazadoencargados/rechazadoencargado">
-                  <span class="sidenav-mini-icon"> Correspondencia Rechazada </span>
-                  <span class="sidenav-normal"> Correspondencia Rechazada</span>
-                </nuxtLink> -->
+                </nuxtLink>              
               </li>
             </ul>
           </div>

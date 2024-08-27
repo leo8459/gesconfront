@@ -83,14 +83,10 @@
                         @input="limitDecimals">
                     </div>
 
-
                     <div class="form-group col-12">
                       <label for="precios">Precio Estimado</label>
                       <input type="text" id="precios" class="form-control" :value="precioSeleccionado" disabled>
                     </div>
-
-
-
 
                     <div class="form-group col-12">
                       <h4>Destinatario</h4>
@@ -107,12 +103,6 @@
                       </ul>
                     </div>
 
-
-
-
-
-
-
                     <div class="form-group col-12">
                       <label for="telefono_d">Teléfono Destinatario</label>
                       <input type="text" v-model.trim="model.telefono_d" class="form-control" id="telefono_d">
@@ -122,7 +112,6 @@
                       <input type="text" id="direccion_d" class="form-control" @click="openModal('direccion_d')"
                         v-model="model.direccion_d" readonly :disabled="isDireccionDFieldDisabled">
                     </div>
-
 
                     <div class="form-group col-12">
                       <label for="direccion_d">Dirección</label>
@@ -141,9 +130,10 @@
                       <label for="fecha">Inicio Fecha</label>
                       <input type="text" v-model="model.fecha" class="form-control" id="fecha" disabled>
                     </div>
-                    <button type="button" class="btn btn-primary" @click="saveFrequentAddress(); createRequest()">Crear
-                      Envio
-                      Frecuente</button>
+                    
+                    <!-- Botón para guardar dirección como frecuente -->
+                    <button type="button" class="btn btn-primary" @click="saveFrequentAddress()">Guardar como Dirección Frecuente</button>
+                    
                   </div>
                 </CrudCreate2>
               </div>
@@ -152,52 +142,9 @@
         </div>
       </div>
     </AdminTemplate>
-    <!-- Modal for Leaflet Map -->
-    <b-modal ref="mapsModal" title="Seleccionar Dirección" @ok="handleOk" size="lg">
-      <div>
-        <div class="input-group mb-2">
-          <input type="text" v-model="searchQuery" @keyup.enter="searchLocation" placeholder="Buscar dirección"
-            class="form-control" />
-          <div class="input-group-append">
-            <button class="btn btn-primary" type="button" @click="searchLocation">Buscar</button>
-          </div>
-        </div>
-        <div v-if="searching" class="overlay">
-          <div class="alert alert-info" role="alert">
-            Buscando ubicación...
-          </div>
-        </div>
-        <div id="map" style="height: 500px; width: 100%;"></div>
-      </div>
-      <div class="coordinates mt-2">
-        <p>Latitud: {{ currentLat }}</p>
-        <p>Longitud: {{ currentLng }}</p>
-      </div>
-    </b-modal>
-
-    <b-modal ref="mapsModalD" title="Seleccionar Dirección Destino" @ok="handleOkD" size="lg">
-      <div>
-        <div class="input-group mb-2">
-          <input type="text" v-model="searchQuery_d" @keyup.enter="searchLocationD" placeholder="Buscar dirección"
-            class="form-control" />
-          <div class="input-group-append">
-            <button class="btn btn-primary" type="button" @click="searchLocationD">Buscar</button>
-          </div>
-        </div>
-        <div v-if="searching_d" class="overlay">
-          <div class="alert alert-info" role="alert">
-            Buscando ubicación...
-          </div>
-        </div>
-        <div id="map_d" style="height: 500px; width: 100%;"></div>
-      </div>
-      <div class="coordinates mt-2">
-        <p>Latitud: {{ currentLat_d }}</p>
-        <p>Longitud: {{ currentLng_d }}</p>
-      </div>
-    </b-modal>
   </div>
 </template>
+
 
 <script>
 import moment from 'moment-timezone';
@@ -207,6 +154,7 @@ import 'leaflet/dist/leaflet.css';
 import 'vue-select/dist/vue-select.css';
 import vSelect from 'vue-select';
 import Swal from 'sweetalert2';
+import jsPDF from 'jspdf';
 
 export default {
   components: {
@@ -311,6 +259,27 @@ export default {
     }
   },
   methods: {
+
+
+    generatePDF() {
+      const doc = new jsPDF();
+
+      // Agrega contenido al PDF
+      doc.text(`Número de Guía: ${this.model.guia}`, 10, 10);
+      doc.text(`Remitente: ${this.model.remitente}`, 10, 20);
+      doc.text(`Teléfono Remitente: ${this.model.telefono}`, 10, 30);
+      doc.text(`Contenido: ${this.model.contenido}`, 10, 40);
+      doc.text(`Destinatario: ${this.model.destinatario}`, 10, 50);
+      doc.text(`Teléfono Destinatario: ${this.model.telefono_d}`, 10, 60);
+      doc.text(`Dirección Destino: ${this.model.direccion_d}`, 10, 70);
+      doc.text(`Provincia: ${this.model.ciudad}`, 10, 80);
+      doc.text(`Fecha: ${this.model.fecha}`, 10, 90);
+
+      // Puedes agregar más campos según sea necesario
+
+      // Generar y descargar el PDF
+      doc.save(`Solicitud-${this.model.guia}.pdf`);
+    },
     redirectToAddNewAddress() {
       this.$router.push(this.url_nuevo);
     },
@@ -323,21 +292,41 @@ export default {
       }
     },
 
-    generateGuideNumber() {
-      const timestamp = Date.now();
-      return `GUID-${timestamp}`;
+    async generateGuideNumber() {
+      try {
+        // Asumiendo que tienes acceso a los IDs de la sucursal y la tarifa en tu modelo
+        const sucursaleId = this.model.sucursale_id;
+        const tarifaId = this.model.tarifa_id;
+
+        // Realizar la petición al backend para generar la guía
+        const response = await this.$sucursales.$post('/generar-guia', {
+          sucursale_id: sucursaleId,
+          tarifa_id: tarifaId
+        });
+
+        // Retornar la guía generada desde el backend
+        return response.data.guia;
+      } catch (error) {
+        console.error('Error al generar la guía:', error);
+        throw new Error('No se pudo generar el número de guía');
+      }
     },
 
+
     async createRequest() {
-      this.model.guia = this.generateGuideNumber();
-
-      // Verificar si los datos están correctamente asignados
-      console.log('Datos del destinatario:', this.model);
-
       try {
+        // Generar la guía utilizando la función del backend
+        this.model.guia = await this.generateGuideNumber();
+
+        // Enviar los datos de la solicitud al servidor
         const response = await this.$sucursales.$post(this.apiUrl, this.model);
-        console.log('Respuesta de la API:', response); // Verificar la respuesta de la API
+        console.log('Respuesta de la API:', response);
+
+        // Mostrar alerta de éxito
         this.onSuccess(response);
+
+        // Generar el PDF solo después de que la solicitud se haya creado con éxito
+        this.generatePDF();
       } catch (error) {
         console.error('Error al crear la solicitud:', error);
         this.showSuccessAlert();
