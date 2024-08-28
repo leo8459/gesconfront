@@ -207,76 +207,90 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    
-    if (!Array.isArray(this.list)) {
-      // Si `this.list` no es un array, devolver un array vacío
-      return [];
+  const searchTerm = this.searchTerm.toLowerCase();
+
+  // Verificar si `this.list` es un array, de lo contrario, devolver un array vacío.
+  if (!Array.isArray(this.list)) {
+    return [];
+  }
+
+  return this.list.filter(item => {
+    // Excluir registros donde `fecha_recojo_c` esté vacío.
+    if (!item.fecha_recojo_c) {
+      return false;
     }
 
-    return this.list.filter(item => {
-      // Excluir registros donde `fecha_recojo_c` esté vacío
-      if (!item.fecha_recojo_c) {
-        return false;
-      }
+    const servicio = item.tarifa.servicio;
+    let fechaLimite;
 
-      const servicio = item.tarifa.servicio;
-      let fechaLimite;
+    // Definir los servicios que se calculan por días.
+    const serviciosPorDias = [
+      "SERVICIO COURIER NACIONAL (Normal)",
+      "SERVICIO COURIER LOCAL (Normal)",
+      "SERVICIO DE PROVINCIAS A NIVEL NACIONAL"
+    ];
 
-      // Servicios que se calculan por días
-      const serviciosPorDias = [
-        "SERVICIO COURIER NACIONAL (Normal)",
-        "SERVICIO COURIER LOCAL (Normal)",
-        "SERVICIO DE PROVINCIAS A NIVEL NACIONAL"
-      ];
+    // Definir los servicios que se calculan por horas.
+    const serviciosPorHoras = [
+      "SERVICIO COURIER NACIONAL (Expreso)",
+      "SERVICIO COURIER LOCAL (Expreso)"
+    ];
 
-      // Servicios que se calculan por horas
-      const serviciosPorHoras = [
-        "SERVICIO COURIER NACIONAL (Expreso)",
-        "SERVICIO COURIER LOCAL (Expreso)"
-      ];
+    const recojoDate = new Date(item.fecha_recojo_c);
 
-      const recojoDate = new Date(item.fecha_recojo_c);
+    // Verificar si la fecha de recogida es válida.
+    if (isNaN(recojoDate.getTime())) {
+      return false;
+    }
 
-      if (isNaN(recojoDate.getTime())) {
-        return false;
-      }
+    // Calcular la fecha límite para los servicios que se calculan por días.
+    if (serviciosPorDias.includes(servicio)) {
+      const diasEntrega = item.tarifa.dias_entrega / 24; // Convertir el tiempo de entrega a días.
+      fechaLimite = this.addBusinessDays(recojoDate, diasEntrega); // Añadir días hábiles.
+      fechaLimite.setHours(20, 0, 0, 0); // Establecer la hora límite a las 8 PM.
+    } else if (serviciosPorHoras.includes(servicio)) {
+      // Calcular la fecha límite para los servicios que se calculan por horas.
+      fechaLimite = new Date(recojoDate);
 
-      if (serviciosPorDias.includes(servicio)) {
-        const diasEntrega = item.tarifa.dias_entrega / 24;
-        fechaLimite = this.addBusinessDays(recojoDate, diasEntrega);
+      if (recojoDate.getDay() === 5 && recojoDate.getHours() >= 17) {
+        // Si es viernes después de las 5 PM, mover la fecha límite al siguiente lunes a las 10 AM.
+        fechaLimite = this.addBusinessDays(recojoDate, 1);
+        fechaLimite.setHours(10, 0, 0, 0);
+      } else if (recojoDate.getHours() >= 8 && recojoDate.getHours() < 10) {
+        // Si es entre las 8 AM y las 10 AM, la fecha límite es el mismo día a las 8 PM.
         fechaLimite.setHours(20, 0, 0, 0);
-      } else if (serviciosPorHoras.includes(servicio)) {
-        fechaLimite = new Date(recojoDate);
-
-        if (recojoDate.getDay() === 5 && recojoDate.getHours() >= 17) {
-          fechaLimite = this.addBusinessDays(recojoDate, 1);
-          fechaLimite.setHours(10, 0, 0, 0);
-        } else if (recojoDate.getHours() >= 8 && recojoDate.getHours() < 10) {
-          fechaLimite.setHours(20, 0, 0, 0);
-        } else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 19) {
-          fechaLimite = this.addBusinessDays(recojoDate, 1);
-          fechaLimite.setHours(10, 0, 0, 0);
-        } else {
-          fechaLimite = new Date(recojoDate.getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000);
-          if (fechaLimite.getDay() === 6) {
-            fechaLimite = this.addBusinessDays(fechaLimite, 2);
-            fechaLimite.setHours(10, 0, 0, 0);
-          } else if (fechaLimite.getDay() === 0) {
-            fechaLimite = this.addBusinessDays(fechaLimite, 1);
-            fechaLimite.setHours(10, 0, 0, 0);
-          }
-        }
+      } else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 19) {
+        // Si es entre las 5 PM y las 7 PM, la fecha límite es el día siguiente a las 10 AM.
+        fechaLimite = this.addBusinessDays(recojoDate, 1);
+        fechaLimite.setHours(10, 30, 0, 0);
       } else {
-        return false;
+        // Para otros horarios, añadir el tiempo de entrega en horas a la fecha de recogida.
+        fechaLimite = new Date(recojoDate.getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000);
+        if (fechaLimite.getDay() === 6) {
+          // Si la fecha límite cae en sábado, moverla al lunes a las 10 AM.
+          fechaLimite = this.addBusinessDays(fechaLimite, 2);
+          fechaLimite.setHours(10, 0, 0, 0);
+        } else if (fechaLimite.getDay() === 0) {
+          // Si la fecha límite cae en domingo, moverla al lunes a las 10 AM.
+          fechaLimite = this.addBusinessDays(fechaLimite, 1);
+          fechaLimite.setHours(10, 0, 0, 0);
+        }
       }
+    } else {
+      // Si el servicio no está en ninguna de las categorías, excluir el registro.
+      return false;
+    }
 
-      const isLate = new Date() > fechaLimite;
-      const isValidState = [1, 2, 5].includes(item.estado);
+    // Verificar si la fecha límite ha sido superada.
+    const isLate = new Date() > fechaLimite;
+    // Verificar si el estado es válido (1, 2, o 5).
+    const isValidState = [1, 2, 5].includes(item.estado);
 
-      return isLate && isValidState && Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
-    });
-  },
+    // Retornar true si el registro es tardío, está en un estado válido, y coincide con el término de búsqueda.
+    return isLate && isValidState && Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
+  });
+},
+
 
   paginatedData() {
     const start = (this.currentPage - 1) * this.itemsPerPage;

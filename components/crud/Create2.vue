@@ -126,8 +126,8 @@ export default {
 
         const barcodeX = startX + col1Width + col2Width + 5;
         const barcodeY = startY + 10;
-        const barcodeWidth = 60;
-        const barcodeHeight = 7.5;
+        const barcodeWidth = 70;
+        const barcodeHeight = 8;
 
         if (EMSImage) {
           doc.addImage(EMSImage, 'PNG', startX + 2, startY + 2, 30, 10);
