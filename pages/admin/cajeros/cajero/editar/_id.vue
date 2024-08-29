@@ -27,7 +27,7 @@
 
                     <div class="form-group col-12">
                       <label for="">password</label>
-                      <input type="text" name="" v-model="model.password" class="form-control" id="" />
+                      <input type="password" name="" v-model="model.password" class="form-control" id="" />
                     </div>
 
                     <div class="form-group col-12">

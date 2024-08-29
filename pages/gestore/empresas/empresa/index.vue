@@ -87,8 +87,8 @@ export default {
       apiUrl: "empresas3",
       page: "Empresas",
       modulo: "AGBC",
-      url_nuevo: "/admin/gestore/empresas/empresa/nuevo",
-      url_editar: "/admin/gestore/empresas/empresa/editar/",
+      url_nuevo: "/gestore/empresas/empresa/nuevo",
+      url_editar: "/gestore/empresas/empresa/editar/",
       busqueda: "", // término de búsqueda
       resultados: [], // datos filtrados
       headers: ['#', 'Nombre Empresa', 'NIT', 'Estado', ' '],

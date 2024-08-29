@@ -48,7 +48,7 @@
                     </div>
                     <div class="form-group col-12">
                       <label for="">telefono</label>
-                      <input type="text" v-model="model.telefono" class="form-control" id="">
+                      <input type="number" v-model="model.telefono" class="form-control" id="">
                     </div>
                     <div class="form-group col-12">
                       <label for="">contenido</label>
@@ -64,7 +64,7 @@
                     </div>
                     <div class="form-group col-12">
                       <label for="">telefono Destinatario</label>
-                      <input type="text" v-model="model.telefono_d" class="form-control" id="">
+                      <input type="number" v-model="model.telefono_d" class="form-control" id="">
                     </div>
                     <div class="form-group col-12">
                       <label for="">Direccion Destino</label>

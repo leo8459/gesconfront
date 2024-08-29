@@ -49,7 +49,7 @@
 
                     <div class="form-group col-12">
                       <label for="">Password</label>
-                      <input type="text" v-model="model.password" class="form-control" id="">
+                      <input type="password" v-model="model.password" class="form-control" id="">
                     </div>
 
 

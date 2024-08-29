@@ -66,7 +66,7 @@
                     </div>
                     <div class="form-group col-12">
                       <label for="">Contacto Administrativo</label>
-                      <input type="text" v-model="model.contacto_administrativo" class="form-control" id="">
+                      <input type="number" v-model="model.contacto_administrativo" class="form-control" id="">
                     </div>
                   </div>
                 </CrudUpdate4>

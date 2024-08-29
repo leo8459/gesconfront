@@ -6,20 +6,20 @@
         <div class="row justify-content-end mb-3">
           <div class="row justify-content-end mb-3">
             <div class="col-3">
-            <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
-          </div>
-          
+              <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
+            </div>
+
           </div>
           <div class="row justify-content-end mb-3">
-  <div class="col-md-3">
-    <label for="startDate" class="form-label">Fecha Inicio</label>
-    <input v-model="startDate" type="date" id="startDate" class="form-control" />
-  </div>
-  <div class="col-md-3">
-    <label for="endDate" class="form-label">Fecha Fin</label>
-    <input v-model="endDate" type="date" id="endDate" class="form-control" />
-  </div>
-  <div class="col-md-2">
+            <div class="col-md-3">
+              <label for="startDate" class="form-label">Fecha Inicio</label>
+              <input v-model="startDate" type="date" id="startDate" class="form-control" />
+            </div>
+            <div class="col-md-3">
+              <label for="endDate" class="form-label">Fecha Fin</label>
+              <input v-model="endDate" type="date" id="endDate" class="form-control" />
+            </div>
+            <div class="col-md-2">
               <label for="sucursal" class="form-label">Sucursal</label>
               <select v-model="selectedSucursal" id="sucursal" class="form-control">
                 <option value="">Todas</option>
@@ -29,13 +29,17 @@
               </select>
             </div>
             <div class="col-md-2 d-flex align-items-end">
+              <button @click="exportToPDF" class="btn btn-danger btn-sm w-100">
+  <i class="fas fa-file-pdf"></i> Generar Reporte PDF
+</button>
+
               <button @click="exportToExcel" class="btn btn-success btn-sm w-100">
                 <i class="fas fa-file-excel"></i> Generar Reporte
               </button>
             </div>
-</div>
+          </div>
 
-          
+
         </div>
         <div class="row">
           <div class="col-12">
@@ -87,8 +91,8 @@
                     <td class="py-0 px-1">{{ m.direccion.zona }}</td>
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion.direccion)"
-                         :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                         target="_blank" class="btn btn-primary btn-sm">
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                        target="_blank" class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
                       <span v-else>{{ m.direccion.direccion }}</span>
@@ -100,8 +104,8 @@
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion_d)"
-                         :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                         class="btn btn-primary btn-sm">
+                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                        class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
                       <span v-else>{{ m.direccion_d }}</span>
@@ -116,7 +120,7 @@
                     <td class="py-0 px-1">
                       <div class="d-flex flex-column align-items-center">
                         <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                                class="btn btn-sm btn-primary mt-1 align-self-start">
+                          class="btn btn-sm btn-primary mt-1 align-self-start">
                           Descargar
                         </button>
                       </div>
@@ -125,7 +129,7 @@
                     <td class="py-0 px-1">
                       <div class="d-flex flex-column align-items-center">
                         <button v-if="m.imagen_justificacion" @click="downloadImage(m.imagen_justificacion)"
-                                class="btn btn-sm btn-primary mt-1 align-self-start">
+                          class="btn btn-sm btn-primary mt-1 align-self-start">
                           Descargar
                         </button>
                       </div>
@@ -134,7 +138,7 @@
                     <td class="py-0 px-1">
                       <div class="d-flex flex-column align-items-center">
                         <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
-                                class="btn btn-sm btn-primary mt-1 align-self-start">
+                          class="btn btn-sm btn-primary mt-1 align-self-start">
                           Descargar
                         </button>
                       </div>
@@ -154,12 +158,12 @@
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
               <span>Página {{ currentPage }} de {{ totalPages }}</span>
               <button class="btn btn-secondary" :disabled="currentPage === totalPages"
-                      @click="nextPage">Siguiente</button>
+                @click="nextPage">Siguiente</button>
             </div>
             <div class="pagination-controls">
               <ul class="pagination">
                 <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray"
-                    :key="pageNumber">
+                  :key="pageNumber">
                   <button class="page-link" @click="goToPage(pageNumber)">{{ pageNumber }}</button>
                 </li>
               </ul>
@@ -175,6 +179,9 @@
 import { BCollapse, BModal } from 'bootstrap-vue';
 import ExcelJS from 'exceljs';
 import Swal from 'sweetalert2';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
 
 export default {
   name: "IndexPage",
@@ -211,54 +218,119 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    const startDate = this.startDate ? new Date(this.startDate) : null;
-    const endDate = this.endDate ? new Date(this.endDate) : null;
+      const searchTerm = this.searchTerm.toLowerCase();
+      const startDate = this.startDate ? new Date(this.startDate) : null;
+      const endDate = this.endDate ? new Date(this.endDate) : null;
 
-    if (endDate) {
-      // Añadir un día a la fecha de fin para incluir todo ese día
-      endDate.setDate(endDate.getDate() + 1);
-    }
-
-    const filtered = this.list.filter(item => {
-      const isMatchingSucursal = !this.selectedSucursal || item.sucursale?.id === this.selectedSucursal;
-      const isMatchingState = item.estado === 4 || item.estado === 7;
-
-      if (!item.fecha_d) {
-        return false; // Si no tiene fecha, lo ignoramos
+      if (endDate) {
+        // Añadir un día a la fecha de fin para incluir todo ese día
+        endDate.setDate(endDate.getDate() + 1);
       }
 
-      // Convertir 'fecha_d' a un objeto Date
-      const [day, month, year, hour, minute] = item.fecha_d.split(/[\s/:]+/);
-      const itemDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00`);
+      const filtered = this.list.filter(item => {
+        const isMatchingSucursal = !this.selectedSucursal || item.sucursale?.id === this.selectedSucursal;
+        const isMatchingState = item.estado === 4 || item.estado === 7;
 
-      const isWithinDateRange =
-        (!startDate || (itemDate && itemDate >= startDate)) &&
-        (!endDate || (itemDate && itemDate <= endDate));
+        if (!item.fecha_d) {
+          return false; // Si no tiene fecha, lo ignoramos
+        }
 
-      return isMatchingSucursal && isMatchingState &&
-        isWithinDateRange &&
-        Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
-    });
+        // Convertir 'fecha_d' a un objeto Date
+        const [day, month, year, hour, minute] = item.fecha_d.split(/[\s/:]+/);
+        const itemDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00`);
 
-    console.log('Datos filtrados:', filtered); // Verifica aquí si el filtrado es correcto
-    return filtered;
+        const isWithinDateRange =
+          (!startDate || (itemDate && itemDate >= startDate)) &&
+          (!endDate || (itemDate && itemDate <= endDate));
+
+        return isMatchingSucursal && isMatchingState &&
+          isWithinDateRange &&
+          Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
+      });
+
+      console.log('Datos filtrados:', filtered); // Verifica aquí si el filtrado es correcto
+      return filtered;
+    },
+
+
+    paginatedData() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredData.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+    },
+    totalPagesArray() {
+      return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    }
   },
-
-  
-  paginatedData() {
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredData.slice(start, end);
-  },
-  totalPages() {
-    return Math.ceil(this.filteredData.length / this.itemsPerPage);
-  },
-  totalPagesArray() {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
-  }
-},
   methods: {
+
+
+
+    async exportToPDF() {
+      const filteredData = this.list.filter(m => (m.estado === 4 || m.estado === 7) && (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal));
+
+      if (filteredData.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Sin datos',
+          text: 'No hay datos disponibles para los criterios seleccionados.',
+        });
+        return;
+      }
+
+      const doc = new jsPDF('portrait', 'mm', 'a4');
+
+      filteredData.forEach((m, index) => {
+        // Título del documento
+        doc.setFontSize(14);
+        doc.text(`Solicitud ${index + 1}`, 105, 15, null, null, 'center');
+
+        // Datos de la solicitud
+        const rows = [
+          ['Fecha de Solicitud', m.fecha_recojo_c || 'N/A'],
+          ['Guía', m.guia || 'N/A'],
+          ['Sucursal', m.sucursale?.nombre || 'N/A'],
+          ['Dirección', m.direccion_especifica || 'N/A'],
+          ['Departamento/Servicio', m.tarifa?.departamento || 'N/A'],
+          ['Ciudad', m.ciudad || 'N/A'],
+          ['Zona', m.zona_d || 'N/A'],
+          ['Contenido', m.contenido || 'N/A'],
+          ['Peso (Kg)', (m.peso_v && !isNaN(m.peso_v)) ? parseFloat(m.peso_v).toFixed(2) : 'N/A'],
+          ['Precio (Bs)', (m.nombre_d && !isNaN(m.nombre_d)) ? parseFloat(m.nombre_d).toFixed(2) : 'N/A'],
+          ['Fecha de Entrega', m.fecha_d || 'N/A'],
+          ['Destinatario', m.destinatario || 'N/A'],
+          ['Nombre del Cartero', m.cartero_entrega?.nombre || 'Por asignar'],
+          ['Observaciones', m.observacion || 'N/A'],
+        ];
+
+        // Dibujar la tabla
+        doc.autoTable({
+          body: rows,
+          startY: 25,
+          margin: { left: 10, right: 10 },
+          styles: {
+            fontSize: 10,
+            cellPadding: 3,
+            overflow: 'linebreak',
+          },
+          theme: 'striped',
+        });
+
+        // Agregar nueva página si no es la última solicitud
+        if (index < filteredData.length - 1) {
+          doc.addPage();
+        }
+      });
+
+      doc.save('Solicitudes_Entregadas.pdf');
+    },
+
+
+
+    
     generateThumbnail(base64Image) {
       const img = new Image();
       img.src = base64Image;
@@ -325,215 +397,215 @@ export default {
       return regex.test(address);
     },
     async GET_DATA(path) {
-  try {
-    const res = await this.$contratos.$get(path);
-    if (Array.isArray(res)) {
-      this.list = res;
-      console.log('Datos cargados:', this.list); // Verifica aquí si los datos se están recuperando correctamente
-    } else {
-      console.error('Los datos recuperados no son un array:', res);
-    }
-  } catch (e) {
-    console.error('Error al obtener los datos:', e);
-  }
-},
+      try {
+        const res = await this.$contratos.$get(path);
+        if (Array.isArray(res)) {
+          this.list = res;
+          console.log('Datos cargados:', this.list); // Verifica aquí si los datos se están recuperando correctamente
+        } else {
+          console.error('Los datos recuperados no son un array:', res);
+        }
+      } catch (e) {
+        console.error('Error al obtener los datos:', e);
+      }
+    },
 
 
 
-async exportToExcel() {
-  const filteredData = this.list.filter(m => (m.estado === 4 || m.estado === 7) && (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal));
+    async exportToExcel() {
+      const filteredData = this.list.filter(m => (m.estado === 4 || m.estado === 7) && (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal));
 
-  if (filteredData.length === 0) {
-    Swal.fire({
-      icon: 'info',
-      title: 'Sin datos',
-      text: 'No hay datos disponibles para los criterios seleccionados.',
-    });
-    return;
-  }
+      if (filteredData.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Sin datos',
+          text: 'No hay datos disponibles para los criterios seleccionados.',
+        });
+        return;
+      }
 
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
 
-  worksheet.columns = [
-    { header: '#', key: 'index', width: 5 },
-    { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
-    { header: 'Guía', key: 'guia', width: 20 },
-    { header: 'Sucursal Origen', key: 'sucursal_origen', width: 20 },
-    { header: 'Dirección', key: 'direccion', width: 30 },
-    { header: 'Sucursal', key: 'sucursal', width: 20 },
-    { header: 'Departamento/Servicio', key: 'servicio', width: 20 },
-    { header: 'Ciudad', key: 'ciudad', width: 15 },
-    { header: 'Zona', key: 'zona', width: 15 },
-    { header: 'Contenido', key: 'contenido', width: 20 },
-    { header: 'Peso (Kg)', key: 'peso', width: 10 },
-    { header: 'Precio (Bs)', key: 'precio', width: 10 },
-    { header: 'Descuento (Bs)', key: 'descuento', width: 10 },
-    { header: 'Precio con Descuento (Bs)', key: 'precio_descuento', width: 20 },
-    { header: 'Retención (Bs)', key: 'retencion', width: 10 },
-    { header: 'Precio con Retención (Bs)', key: 'precio_retencion', width: 20 },
-    { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
-    { header: 'Destinatario', key: 'destinatario', width: 20 },
-    { header: 'Nombre del Cartero', key: 'cartero', width: 20 },
-    { header: 'Observaciones', key: 'observacion', width: 25 },
-  ];
+      worksheet.columns = [
+        { header: '#', key: 'index', width: 5 },
+        { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
+        { header: 'Guía', key: 'guia', width: 20 },
+        { header: 'Sucursal Origen', key: 'sucursal_origen', width: 20 },
+        { header: 'Dirección', key: 'direccion', width: 30 },
+        { header: 'Sucursal', key: 'sucursal', width: 20 },
+        { header: 'Departamento/Servicio', key: 'servicio', width: 20 },
+        { header: 'Ciudad', key: 'ciudad', width: 15 },
+        { header: 'Zona', key: 'zona', width: 15 },
+        { header: 'Contenido', key: 'contenido', width: 20 },
+        { header: 'Peso (Kg)', key: 'peso', width: 10 },
+        { header: 'Precio (Bs)', key: 'precio', width: 10 },
+        { header: 'Descuento (Bs)', key: 'descuento', width: 10 },
+        { header: 'Precio con Descuento (Bs)', key: 'precio_descuento', width: 20 },
+        { header: 'Retención (Bs)', key: 'retencion', width: 10 },
+        { header: 'Precio con Retención (Bs)', key: 'precio_retencion', width: 20 },
+        { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
+        { header: 'Destinatario', key: 'destinatario', width: 20 },
+        { header: 'Nombre del Cartero', key: 'cartero', width: 20 },
+        { header: 'Observaciones', key: 'observacion', width: 25 },
+      ];
 
-  worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
-  worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
-  worksheet.getRow(1).border = {
-    top: { style: 'thick' },
-    left: { style: 'thick' },
-    bottom: { style: 'thick' },
-    right: { style: 'thick' }
-  };
-  worksheet.getRow(1).fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FF000080' }
-  };
-
-  let totalPrice = 0;
-  let totalPriceWithDiscount = 0;
-  let totalPriceWithRetention = 0;
-  let totalWeight = 0;
-  let totalDiscount = 0;
-  let totalRetention = 0;
-
-  for (let i = 0; i < filteredData.length; i++) {
-    const m = filteredData[i];
-
-    const precioOriginal = parseFloat(m.nombre_d) || 0;
-
-    // Cálculo de descuento basado en días de diferencia
-    const descuento = parseInt(m.tarifa.descuento) || 0;
-    let diasDiferencia = 0;
-    const fechaEntrega = m.fecha_d ? new Date(m.fecha_d.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3')) : null;
-
-    if (fechaEntrega) {
-      const fechaLimiteEntrega = new Date(m.fecha_recojo_c.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3'));
-      diasDiferencia = Math.floor((fechaEntrega - fechaLimiteEntrega) / (1000 * 60 * 60 * 24));
-    }
-
-    let descuentoTotal = 0;
-    if (diasDiferencia > 0) {
-      descuentoTotal = (precioOriginal * (descuento / 100)) * diasDiferencia;
-    }
-    const precioConDescuento = precioOriginal - descuentoTotal;
-
-    // Cálculo de retención
-    const retencion = parseFloat(m.tarifa.retencion) || 0;
-    const descuentoRetencion = (precioOriginal * retencion) / 100;
-    const precioConRetencion = precioOriginal - descuentoRetencion;
-
-    const row = worksheet.addRow({
-      index: i + 1,
-      fecha: m.fecha_recojo_c,
-      guia: m.guia,
-      sucursal_origen: m.sucursale.origen,
-      direccion: m.direccion_especifica,
-      sucursal: m.sucursale.nombre,
-      servicio: m.tarifa.departamento,
-      ciudad: m.ciudad,
-      zona: m.zona_d,
-      contenido: m.contenido,
-      peso: m.peso_v,
-      precio: precioOriginal.toFixed(2),
-      descuento: descuentoTotal.toFixed(2),
-      precio_descuento: precioConDescuento.toFixed(2),
-      retencion: descuentoRetencion.toFixed(2),
-      precio_retencion: precioConRetencion.toFixed(2),
-      fecha_entrega: m.fecha_d,
-      destinatario: m.destinatario,
-      cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
-      observacion: m.observacion,
-    });
-
-    totalPrice += precioOriginal;
-    totalDiscount += descuentoTotal;
-    totalPriceWithDiscount += precioConDescuento;
-    totalRetention += descuentoRetencion;
-    totalPriceWithRetention += precioConRetencion;
-    totalWeight += parseFloat(m.peso_v) || 0;
-
-    const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
-    row.eachCell({ includeEmpty: true }, function (cell) {
-      cell.fill = {
+      worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+      worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+      worksheet.getRow(1).border = {
+        top: { style: 'thick' },
+        left: { style: 'thick' },
+        bottom: { style: 'thick' },
+        right: { style: 'thick' }
+      };
+      worksheet.getRow(1).fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: fillColor }
+        fgColor: { argb: 'FF000080' }
       };
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      };
-    });
-  }
 
-  // Añadir fila de total de precio
-  const totalRow = worksheet.addRow({
-    zona: 'Total', // Etiqueta
-    peso: totalWeight.toFixed(3) + ' Kg', // Total de peso
-    precio: totalPrice.toFixed(2) + ' Bs', // Total de precio original
-  });
+      let totalPrice = 0;
+      let totalPriceWithDiscount = 0;
+      let totalPriceWithRetention = 0;
+      let totalWeight = 0;
+      let totalDiscount = 0;
+      let totalRetention = 0;
 
-  // Añadir fila de total de descuento justo debajo del total de precio
-  const totalDiscountRow = worksheet.addRow({
-    zona: 'Total Descuento: ', // Etiqueta vacía para mantener la alineación
-    precio: '' + totalDiscount.toFixed(2) + ' Bs', // Total de descuento
-  });
+      for (let i = 0; i < filteredData.length; i++) {
+        const m = filteredData[i];
 
-  // Añadir fila de total de retención justo debajo del total de descuento
-  const totalRetentionRow = worksheet.addRow({
-    zona: 'Total Retención: ', // Etiqueta vacía para mantener la alineación
-    precio: '' + totalRetention.toFixed(2) + ' Bs', // Total de retención
-  });
+        const precioOriginal = parseFloat(m.nombre_d) || 0;
 
-  // Estilizar las filas de totales
-  [totalRow, totalDiscountRow, totalRetentionRow].forEach(row => {
-    row.eachCell({ includeEmpty: true }, function (cell, colNumber) {
-      if (colNumber === 1) {
-        cell.font = { bold: true };
-        cell.alignment = { horizontal: 'right' };
+        // Cálculo de descuento basado en días de diferencia
+        const descuento = parseInt(m.tarifa.descuento) || 0;
+        let diasDiferencia = 0;
+        const fechaEntrega = m.fecha_d ? new Date(m.fecha_d.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3')) : null;
+
+        if (fechaEntrega) {
+          const fechaLimiteEntrega = new Date(m.fecha_recojo_c.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3'));
+          diasDiferencia = Math.floor((fechaEntrega - fechaLimiteEntrega) / (1000 * 60 * 60 * 24));
+        }
+
+        let descuentoTotal = 0;
+        if (diasDiferencia > 0) {
+          descuentoTotal = (precioOriginal * (descuento / 100)) * diasDiferencia;
+        }
+        const precioConDescuento = precioOriginal - descuentoTotal;
+
+        // Cálculo de retención
+        const retencion = parseFloat(m.tarifa.retencion) || 0;
+        const descuentoRetencion = (precioOriginal * retencion) / 100;
+        const precioConRetencion = precioOriginal - descuentoRetencion;
+
+        const row = worksheet.addRow({
+          index: i + 1,
+          fecha: m.fecha_recojo_c,
+          guia: m.guia,
+          sucursal_origen: m.sucursale.origen,
+          direccion: m.direccion_especifica,
+          sucursal: m.sucursale.nombre,
+          servicio: m.tarifa.departamento,
+          ciudad: m.ciudad,
+          zona: m.zona_d,
+          contenido: m.contenido,
+          peso: m.peso_v,
+          precio: precioOriginal.toFixed(2),
+          descuento: descuentoTotal.toFixed(2),
+          precio_descuento: precioConDescuento.toFixed(2),
+          retencion: descuentoRetencion.toFixed(2),
+          precio_retencion: precioConRetencion.toFixed(2),
+          fecha_entrega: m.fecha_d,
+          destinatario: m.destinatario,
+          cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
+          observacion: m.observacion,
+        });
+
+        totalPrice += precioOriginal;
+        totalDiscount += descuentoTotal;
+        totalPriceWithDiscount += precioConDescuento;
+        totalRetention += descuentoRetencion;
+        totalPriceWithRetention += precioConRetencion;
+        totalWeight += parseFloat(m.peso_v) || 0;
+
+        const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
+        row.eachCell({ includeEmpty: true }, function (cell) {
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: fillColor }
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
       }
-      if ([11, 12, 13, 14, 15].includes(colNumber)) { // Resaltar los totales de precio, descuento, y retención
-        cell.font = { bold: true };
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFFFD700' }
-        };
-        cell.border = {
-          top: { style: 'thick' },
-          left: { style: 'thick' },
-          bottom: { style: 'thick' },
-          right: { style: 'thick' }
-        };
-      }
-    });
-  });
 
-  worksheet.eachRow({ includeEmpty: true }, function (row) {
-    row.height = 25;
-  });
+      // Añadir fila de total de precio
+      const totalRow = worksheet.addRow({
+        zona: 'Total', // Etiqueta
+        peso: totalWeight.toFixed(3) + ' Kg', // Total de peso
+        precio: totalPrice.toFixed(2) + ' Bs', // Total de precio original
+      });
 
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'Solicitudes_Entregadas.xlsx';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+      // Añadir fila de total de descuento justo debajo del total de precio
+      const totalDiscountRow = worksheet.addRow({
+        zona: 'Total Descuento: ', // Etiqueta vacía para mantener la alineación
+        precio: '' + totalDiscount.toFixed(2) + ' Bs', // Total de descuento
+      });
 
-}
+      // Añadir fila de total de retención justo debajo del total de descuento
+      const totalRetentionRow = worksheet.addRow({
+        zona: 'Total Retención: ', // Etiqueta vacía para mantener la alineación
+        precio: '' + totalRetention.toFixed(2) + ' Bs', // Total de retención
+      });
+
+      // Estilizar las filas de totales
+      [totalRow, totalDiscountRow, totalRetentionRow].forEach(row => {
+        row.eachCell({ includeEmpty: true }, function (cell, colNumber) {
+          if (colNumber === 1) {
+            cell.font = { bold: true };
+            cell.alignment = { horizontal: 'right' };
+          }
+          if ([11, 12, 13, 14, 15].includes(colNumber)) { // Resaltar los totales de precio, descuento, y retención
+            cell.font = { bold: true };
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFFD700' }
+            };
+            cell.border = {
+              top: { style: 'thick' },
+              left: { style: 'thick' },
+              bottom: { style: 'thick' },
+              right: { style: 'thick' }
+            };
+          }
+        });
+      });
+
+      worksheet.eachRow({ includeEmpty: true }, function (row) {
+        row.height = 25;
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'Solicitudes_Entregadas.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    }
 
 
 
 
 
-,
+    ,
 
 
 
@@ -553,16 +625,16 @@ async exportToExcel() {
 
   mounted() {
     this.$nextTick(async () => {
-    await this.fetchSucursales();
-    await this.GET_DATA(this.apiUrl);
-    this.load = false;
+      await this.fetchSucursales();
+      await this.GET_DATA(this.apiUrl);
+      this.load = false;
 
-    console.log('Usuario cargado:', this.user);
-    console.log('Datos cargados después de montaje:', this.list);
+      console.log('Usuario cargado:', this.user);
+      console.log('Datos cargados después de montaje:', this.list);
 
-    this.list = this.list.filter(item => item.estado === 4 || item.estado === 7);
-    console.log('Datos después del filtrado inicial:', this.list);
-  });
+      this.list = this.list.filter(item => item.estado === 4 || item.estado === 7);
+      console.log('Datos después del filtrado inicial:', this.list);
+    });
   },
 };
 </script>

@@ -32,7 +32,7 @@
 
                     <div class="form-group col-12">
                       <label for="">Password</label>
-                      <input type="text" v-model="model.password" class="form-control" id="">
+                      <input type="password" v-model="model.password" class="form-control" id="">
                     </div>
 
                     <div class="form-group col-12">
@@ -71,7 +71,7 @@
 
                     <div class="form-group col-12">
                       <label for="">Contacto Administrativo</label>
-                      <input type="text" v-model="model.contacto_administrativo" class="form-control" id="">
+                      <input type="number" v-model="model.contacto_administrativo" class="form-control" id="">
                     </div>
 
                     
