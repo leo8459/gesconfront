@@ -435,7 +435,6 @@ export default {
     { header: 'Ciudad', key: 'sucursal_origen', width: 20 },
     { header: 'Rural', key: 'municipio', width: 30 },
     { header: 'Local', key: 'local', width: 30 },
-    // { header: 'Ciudad', key: 'sucursal', width: 20 },
     { header: 'Departamento/Servicio', key: 'servicio', width: 20 },
     { header: 'Ciudad', key: 'ciudad', width: 15 },
     { header: 'Zona', key: 'zona', width: 20 },
@@ -450,33 +449,22 @@ export default {
   ];
 
   // Merging cells to create the "Envío" header spanning multiple columns
-  worksheet.mergeCells('A1:N1'); // Combina las celdas de las columnas B a M en la primera fila
-  worksheet.getCell('B1').value = 'Envío'; // Coloca el título "Envío" en la celda combinada
-  worksheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle' }; // Centra el texto
-  worksheet.getCell('B1').font = { bold: true, size: 14 }; // Aplica un estilo de fuente
+  worksheet.mergeCells('A1:N1'); 
+  worksheet.getCell('B1').value = 'Envío'; 
+  worksheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle' }; 
+  worksheet.getCell('B1').font = { bold: true, size: 14 }; 
   worksheet.getCell('B1').fill = { 
       type: 'pattern',
       pattern: 'solid',
       fgColor: { argb: '32FF0E' } // Color verde para toda la celda
   };
-  
-  // Aplica el color de fondo verde al encabezado `#`
-  worksheet.getCell('A2').fill = { 
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFFFFF' } // Color verde
-  };
-  worksheet.getCell('A2').font = { bold: true, size: 12 }; // Aplica un estilo de fuente para el encabezado `#`
-  worksheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' }; // Centra el texto
 
-  // Aplica los subtítulos debajo del título "Envío"
   worksheet.getRow(2).getCell(1).value = '#';
   worksheet.getRow(2).getCell(2).value = 'Fecha de Envio';
   worksheet.getRow(2).getCell(3).value = 'Numero de envio';
   worksheet.getRow(2).getCell(4).value = 'Ciudad';
   worksheet.getRow(2).getCell(5).value = 'Rural';
   worksheet.getRow(2).getCell(6).value = 'Local';
-  // worksheet.getRow(2).getCell(7).value = 'Cliente';
   worksheet.getRow(2).getCell(7).value = 'Ciudad';
   worksheet.getRow(2).getCell(8).value = 'Rural';
   worksheet.getRow(2).getCell(9).value = 'Local';
@@ -485,18 +473,16 @@ export default {
   worksheet.getRow(2).getCell(12).value = 'Precio (Bs)';
   worksheet.getRow(2).getCell(13).value = 'Servicio';
 
-  // Merging cells to create the "Entrega" header spanning multiple columns
-  worksheet.mergeCells('O1:R1'); // Combina las celdas de las columnas O a R en la primera fila
-  worksheet.getCell('O1').value = 'Entrega'; // Coloca el título "Entrega" en la celda combinada
-  worksheet.getCell('O1').alignment = { horizontal: 'center', vertical: 'middle' }; // Centra el texto
-  worksheet.getCell('O1').font = { bold: true, size: 14 }; // Aplica un estilo de fuente
+  worksheet.mergeCells('O1:R1'); 
+  worksheet.getCell('O1').value = 'Entrega'; 
+  worksheet.getCell('O1').alignment = { horizontal: 'center', vertical: 'middle' }; 
+  worksheet.getCell('O1').font = { bold: true, size: 14 }; 
   worksheet.getCell('O1').fill = { 
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: '891113' } // Color verde para toda la celda
+      fgColor: { argb: '891113' }
   };
 
-  // Aplica los subtítulos debajo del título "Entrega"
   worksheet.getRow(2).getCell(14).value = 'Fecha y hora';
   worksheet.getRow(2).getCell(15).value = 'Entregado';
   worksheet.getRow(2).getCell(16).value = 'Cartero';
@@ -509,109 +495,102 @@ export default {
         bottom: { style: 'thin' },
         right: { style: 'thin' }
     };
-});
+  });
 
-worksheet.getRow(2).eachCell({ includeEmpty: true }, function(cell) {
+  worksheet.getRow(2).eachCell({ includeEmpty: true }, function(cell) {
     cell.border = {
         top: { style: 'thin' },
         left: { style: 'thin' },
         bottom: { style: 'thin' },
         right: { style: 'thin' }
     };
-});
+  });
 
-      let totalPrice = 0;
-      let totalPriceWithDiscount = 0;
-      let totalPriceWithRetention = 0;
-      let totalWeight = 0;
-      let totalDiscount = 0;
-      let totalRetention = 0;
+  let totalPrice = 0;
+  let totalPriceWithDiscount = 0;
+  let totalPriceWithRetention = 0;
+  let totalWeight = 0;
+  let totalDiscount = 0;
+  let totalRetention = 0;
 
-      for (let i = 0; i < filteredData.length; i++) {
-        const m = filteredData[i];
+  for (let i = 0; i < filteredData.length; i++) {
+    const m = filteredData[i];
+    const precioOriginal = parseFloat(m.nombre_d) || 0;
 
-        const precioOriginal = parseFloat(m.nombre_d) || 0;
+    const descuento = parseInt(m.tarifa.descuento) || 0;
+    let diasDiferencia = 0;
+    const fechaEntrega = m.fecha_d ? new Date(m.fecha_d.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3')) : null;
 
-        // Cálculo de descuento basado en días de diferencia
-        const descuento = parseInt(m.tarifa.descuento) || 0;
-        let diasDiferencia = 0;
-        const fechaEntrega = m.fecha_d ? new Date(m.fecha_d.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3')) : null;
+    if (fechaEntrega) {
+      const fechaLimiteEntrega = new Date(m.fecha_recojo_c.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3'));
+      diasDiferencia = Math.floor((fechaEntrega - fechaLimiteEntrega) / (1000 * 60 * 60 * 24));
+    }
 
-        if (fechaEntrega) {
-          const fechaLimiteEntrega = new Date(m.fecha_recojo_c.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3'));
-          diasDiferencia = Math.floor((fechaEntrega - fechaLimiteEntrega) / (1000 * 60 * 60 * 24));
-        }
+    let descuentoTotal = 0;
+    if (diasDiferencia > 0) {
+      descuentoTotal = (precioOriginal * (descuento / 100)) * diasDiferencia;
+    }
+    const precioConDescuento = precioOriginal - descuentoTotal;
 
-        let descuentoTotal = 0;
-        if (diasDiferencia > 0) {
-          descuentoTotal = (precioOriginal * (descuento / 100)) * diasDiferencia;
-        }
-        const precioConDescuento = precioOriginal - descuentoTotal;
+    const retencion = parseFloat(m.tarifa.retencion) || 0;
+    const descuentoRetencion = (precioOriginal * retencion) / 100;
+    const precioConRetencion = precioOriginal - descuentoRetencion;
 
-        // Cálculo de retención
-        const retencion = parseFloat(m.tarifa.retencion) || 0;
-        const descuentoRetencion = (precioOriginal * retencion) / 100;
-        const precioConRetencion = precioOriginal - descuentoRetencion;
+    const row = worksheet.addRow({
+      index: i + 1,
+      fecha: m.fecha_recojo_c,
+      guia: m.guia,
+      sucursal_origen: m.sucursale.origen,
+      direccion: m.direccion_especifica ? 'X' : '',
+      local: m.direccion && m.direccion.zona ? 'X' : '',
+      servicio: m.tarifa.departamento,
+      ciudad: m.ciudad ? 'X' : '',
+      zona: m.zona_d ? 'X' : '',
+      contenido: m.contenido,
+      peso: m.peso_r ? m.peso_r : m.peso_v,
+      precio: precioOriginal.toFixed(2),
+      servicioT: m.tarifa.servicio,
+      fecha_entrega: m.fecha_d,
+      destinatario: m.destinatario,
+      cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
+      observacion: m.observacion,
+    });
 
-        //////////////////////
-        const row = worksheet.addRow({
-          index: i + 1,
-          fecha: m.fecha_recojo_c,
-          guia: m.guia,
-          sucursal_origen: m.sucursale.origen,
-          direccion: m.direccion_especifica ? 'X' : '', // Si tiene contenido, muestra 'X', de lo contrario 'N/A'
-          local: m.direccion && m.direccion.zona ? 'X' : '', // Si tiene contenido, muestra 'X', de lo contrario 'N/A'
-          servicio: m.tarifa.departamento,
-          ciudad: m.ciudad ? 'X' : '', // Si tiene contenido, muestra 'X', de lo contrario 'N/A'
-          zona: m.zona_d ? 'X' : '', // Si tiene contenido, muestra 'X', de lo contrario 'N/A'
-          contenido: m.contenido,
-          peso: m.peso_r ? m.peso_r : m.peso_v, // Si peso_r existe, lo muestra; si no, muestra peso_v
-          precio: precioOriginal.toFixed(2),
-          servicioT: m.tarifa.servicio,
-          fecha_entrega: m.fecha_d,
-          destinatario: m.destinatario,
-          cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
-          observacion: m.observacion,
-                    // sucursal: m.sucursale.nombre,
+    totalPrice += precioOriginal;
+    totalDiscount += descuentoTotal;
+    totalPriceWithDiscount += precioConDescuento;
+    totalRetention += descuentoRetencion;
+    totalPriceWithRetention += precioConRetencion;
+    totalWeight += parseFloat(m.peso_v) || 0;
 
-        });
+    const fillColor = i % 2 === 0 ? 'FFFFFF' : 'FFFFFF';
+    row.eachCell({ includeEmpty: true }, function (cell) {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: fillColor }
+      };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+  }
 
+  // Añadir fila de total de precio
+  const totalRow = worksheet.addRow({
+    zona: 'Total', 
+    peso: totalWeight.toFixed(3) + ' Kg', 
+    precio: totalPrice.toFixed(2) + ' Bs', 
+  });
 
-        totalPrice += precioOriginal;
-        totalDiscount += descuentoTotal;
-        totalPriceWithDiscount += precioConDescuento;
-        totalRetention += descuentoRetencion;
-        totalPriceWithRetention += precioConRetencion;
-        totalWeight += parseFloat(m.peso_v) || 0;
-
-        const fillColor = i % 2 === 0 ? 'FFFFFF' : 'FFFFFF';
-        row.eachCell({ includeEmpty: true }, function (cell) {
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: fillColor }
-          };
-          cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-          };
-        });
-      }
-
-      // Añadir fila de total de precio
-      const totalRow = worksheet.addRow({
-        zona: 'Total', // Etiqueta
-        peso: totalWeight.toFixed(3) + ' Kg', // Total de peso
-        precio: totalPrice.toFixed(2) + ' Bs', // Total de precio original
-      });
-
-      // Añadir fila de total de descuento justo debajo del total de precio
-      const totalDiscountRow = worksheet.addRow({
-        zona: 'Total Descuento: ', // Etiqueta vacía para mantener la alineación
-        precio: '' + totalDiscount.toFixed(2) + ' Bs', // Total de descuento
-      });
+  // Añadir fila de total de descuento justo debajo del total de precio
+  const totalDiscountRow = worksheet.addRow({
+    zona: 'Total Descuento: ', 
+    precio: '' + totalDiscount.toFixed(2) + ' Bs', 
+  });
 
       // Añadir fila de total de retención justo debajo del total de descuento
       const totalRetentionRow = worksheet.addRow({
@@ -644,18 +623,52 @@ worksheet.getRow(2).eachCell({ includeEmpty: true }, function(cell) {
       });
 
       worksheet.eachRow({ includeEmpty: true }, function (row) {
-        row.height = 25;
+        row.height = 15;
       });
+// Después de las filas de total
+const rowCount = worksheet.rowCount;
 
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'Solicitudes_Entregadas.xlsx';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+// Añadir 4 filas en blanco antes de la nueva información
+for (let i = 0; i < 4; i++) {
+  worksheet.addRow([]);
+}
 
+// Añadir la información de la imagen centrada
+const finalRow = rowCount + 5;
+
+worksheet.mergeCells(`A${finalRow}:Q${finalRow}`);
+worksheet.getCell(`A${finalRow}`).value = 'Rodrigo L. Alquez Chavez                                                               Willians David Chavez Ticona';
+worksheet.getCell(`A${finalRow}`).alignment = { horizontal: 'center', vertical: 'middle' };
+worksheet.getCell(`A${finalRow}`).font = { bold: true };
+
+worksheet.mergeCells(`A${finalRow + 1}:Q${finalRow + 1}`);
+worksheet.getCell(`A${finalRow + 1}`).value = 'AUX. DE CONTRATOS                                                                     ENCARGADO DE CONTRATOS';
+worksheet.getCell(`A${finalRow + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
+worksheet.getCell(`A${finalRow + 1}`).font = { bold: true };
+
+worksheet.mergeCells(`A${finalRow + 2}:Q${finalRow + 2}`);
+worksheet.getCell(`A${finalRow + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS                                                        AGENCIA BOLIVIANA DE CORREOS';
+worksheet.getCell(`A${finalRow + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
+worksheet.getCell(`A${finalRow + 2}`).font = { bold: true };
+
+// Ajustar el ancho de las filas si es necesario
+worksheet.getRow(finalRow).height = 20;
+worksheet.getRow(finalRow + 1).height = 20;
+worksheet.getRow(finalRow + 2).height = 20;
+
+// Resto del código
+worksheet.eachRow({ includeEmpty: true }, function (row) {
+  row.height = 15;
+});
+
+const buffer = await workbook.xlsx.writeBuffer();
+const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+const link = document.createElement('a');
+link.href = URL.createObjectURL(blob);
+link.download = 'Solicitudes_Entregadas.xlsx';
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
     }
 
 
