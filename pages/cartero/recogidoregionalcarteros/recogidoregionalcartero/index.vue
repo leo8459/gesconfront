@@ -125,14 +125,14 @@
      <!-- Modal para añadir peso_v -->
      <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-footer hide-backdrop @shown="focusPesoInput">
   <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-    <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+    <label :for="'peso_r-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
 
     <!-- Campo de entrada con ref para enfoque directo -->
-    <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
+    <label :for="'peso_r-' + item.id" class="mt-2">Peso (Kg)</label>
     <input 
       type="text" 
-      :id="'peso_v-' + item.id" 
-      v-model="item.peso_v" 
+      :id="'peso_r-' + item.id" 
+      v-model="item.peso_r" 
       class="form-control"
       @input="updatePrice(item)" 
       placeholder="000.001" 
