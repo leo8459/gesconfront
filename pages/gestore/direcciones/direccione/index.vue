@@ -29,13 +29,14 @@
                   <tbody>
                     <tr v-for="(m, i) in paginatedList" :key="i">
                       <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                      <td class="py-0 px-1">{{ m.sucursale.nombre }}</td> <!-- Muestra el nombre de la sucursal -->
-                      <td class="py-0 px-1">{{ m.nombre }}</td> <!-- Muestra el nombre de la sucursal -->
+                      <td class="py-0 px-1">{{ m.sucursale?.nombre || 'N/A' }}</td>
+                      <td class="py-0 px-1">{{ m.nombre || 'N/A' }}</td>
+
                       <td class="py-0 px-1">
                         <a v-if="isCoordinates(m.direccion)"
-                           :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
-                           class="btn btn-primary btn-sm">
-                           Ver mapa
+                          :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
+                          class="btn btn-primary btn-sm">
+                          Ver mapa
                         </a>
                         <span v-else>{{ m.direccion }}</span>
                       </td>
