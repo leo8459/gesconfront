@@ -97,7 +97,7 @@
         <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
       </div>
       <div class="form-group">
-        <label for="capturephoto">Subir Foto (Opcional)</label>
+        <label for="capturephoto">Subir Foto</label>
         <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
         <img v-if="uploadedImage" :src="uploadedImage" class="img-fluid mt-2" />
       </div>

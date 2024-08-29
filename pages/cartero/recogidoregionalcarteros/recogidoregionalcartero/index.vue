@@ -4,11 +4,7 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-          <div class="col-3" v-if="selectedForAssign.length > 0">
-            <button @click="confirmAllAssignments" class="btn btn-primary btn-sm w-100">
-              <i class="fas fa-truck"></i> Asignar todos los seleccionados
-            </button>
-          </div>
+        
           <div class="col-3">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
               placeholder="Buscar..." />
@@ -92,7 +88,11 @@
             </nav>
           </div>
         </div>
-
+        <div class="col-3" v-if="selectedForAssign.length > 0">
+            <button @click="confirmAllAssignments" class="btn btn-primary btn-sm w-100">
+              <i class="fas fa-truck"></i> Asignar todos los seleccionados
+            </button>
+          </div>
         <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
         <div v-if="selectedForDelivery.length > 0" class="mt-4">
           <h5>Paquetes para entregar</h5>
@@ -122,17 +122,17 @@
       </div>
     </AdminTemplate>
 
-    <!-- Modal para añadir peso_r -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop @shown="focusPesoInput">
+     <!-- Modal para añadir peso_v -->
+     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-footer hide-backdrop @shown="focusPesoInput">
   <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-    <label :for="'peso_r-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+    <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
 
     <!-- Campo de entrada con ref para enfoque directo -->
-    <label :for="'peso_r-' + item.id" class="mt-2">Peso (Kg)</label>
+    <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
     <input 
       type="text" 
-      :id="'peso_r-' + item.id" 
-      v-model="item.peso_r" 
+      :id="'peso_v-' + item.id" 
+      v-model="item.peso_v" 
       class="form-control"
       @input="updatePrice(item)" 
       placeholder="000.001" 
@@ -151,10 +151,10 @@
   </div>
   <div class="d-flex justify-content-end">
     <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-    <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
+
+    <button class="btn btn-primary" @click="confirmAssignSelected">Asignar</button>
   </div>
 </b-modal>
-
 
 
 

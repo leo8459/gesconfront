@@ -9,9 +9,13 @@
               target="_blank">
               <i class=""></i> Crear solicitud de Correspondencia Internacional
             </a>
-            <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm">
-              <i class=""></i> Crear solicitud de Correspondencia Local/Nacional
-            </nuxtLink>
+            <div class="d-flex align-items-center">
+            <select @change="handleSelectChange" class="btn btn-dark btn-sm mr-3">
+              <option value="" disabled selected>Crear solicitud de Correspondencia</option>
+              <option value="url_nuevo2">Crear solicitud de Correspondencia sin numero de guia</option>
+              <option value="url_nuevo">Crear solicitud de Correspondencia con numero de guia</option>
+            </select>
+          </div>
 
           </div>
         </div>
@@ -39,7 +43,6 @@
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Número de Guía</th>
-                        <th class="py-0 px-1">Código de Barras</th>
                         <th class="py-0 px-1">Nombre</th> <!-- Nueva columna para el nombre -->
                         <th class="py-0 px-1">Dirección Específica</th>
 
@@ -67,10 +70,7 @@
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">
-                          <img v-if="m.codigo_barras" :src="'data:image/png;base64,' + m.codigo_barras"
-                            alt="Código de Barras" width="200" height="100" />
-                        </td>
+                        
                         <td class="py-0 px-1">{{ m.direccion.nombre }}</td> <!-- Mostrar el nombre -->
                         <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
                         <!-- Mostrar la dirección específica -->
@@ -170,6 +170,7 @@ export default {
       tarifas: [], // Inicializamos tarifas como un array vacío
       codigoBarras: '', // Para almacenar el código de barras ingresado
       url_nuevo: '/sucursal/sucursales/sucursal/nuevo',
+      url_nuevo2: '/sucursal/sucursales/sucursal/nuevo2',
       url_editar: '/sucursal/sucursales/sucursal/editar/',
       user: {
         sucursale: []
@@ -197,6 +198,14 @@ export default {
     }
   },
   methods: {
+    handleSelectChange(event) {
+      const selectedValue = event.target.value;
+      if (this[selectedValue]) {
+        this.$router.push(this[selectedValue]);
+      } else {
+        console.error('URL no definida para la opción seleccionada.');
+      }
+    },
     getDireccionLabel(direccion_id) {
       if (!this.direcciones) {
         return 'Direcciones no cargadas';

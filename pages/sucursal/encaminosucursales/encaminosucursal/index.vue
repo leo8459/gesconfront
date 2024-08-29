@@ -29,14 +29,12 @@
                         <th class="py-0 px-1">Dirección maps</th>
                         <th class="py-0 px-1">Teléfono</th>
                         <th class="py-0 px-1">Contenido</th>
-                        <th class="py-0 px-1">Fecha de Solicitud</th>
+                        <th class="py-0 px-1">Fecha de recojo paquete</th>
                         <th class="py-0 px-1">Destinatario</th>
                         <th class="py-0 px-1">Teléfono Destinatario</th>
                         <th class="py-0 px-1">Dirección Destinatario maps</th>
                         <th class="py-0 px-1">Dirección Destinatario</th>
                         <th class="py-0 px-1">Municipio/Provincia</th>
-                        <th class="py-0 px-1">Precio (Bs)</th>
-                        <th class="py-0 px-1">Fecha de Entrega</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -58,7 +56,7 @@
                         <td class="py-0 px-1">{{ m.contenido }}</td>
 
 
-                        <td class="py-0 px-1">{{ m.fecha }}</td>
+                        <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
                         <td class="py-0 px-1">{{ m.destinatario }}</td>
                         <td class="py-0 px-1">{{ m.telefono_d }}</td>
                         <td class="py-0 px-1">
@@ -71,8 +69,6 @@
                         </td>
                         <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
                         <td class="py-0 px-1">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                        <td class="py-0 px-1">{{ m.fecha_d }}</td>
 
                       </tr>
                     </tbody>
@@ -129,7 +125,7 @@ export default {
   },
   computed: {
     filteredList() {
-      return this.list.filter(item => item.sucursale.id === this.user.user.id && (item.estado === 2 || item.estado === 5));
+      return this.list.filter(item => item.sucursale.id === this.user.user.id && (item.estado === 2 || item.estado === 5 || item.estado === 8 || item.estado === 10 || item.estado === 9));
     },
     sortedList() {
       return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));

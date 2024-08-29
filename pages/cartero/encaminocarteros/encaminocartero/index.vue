@@ -90,25 +90,25 @@
       </div>
     </AdminTemplate>
     
-    <!-- Modal para añadir observación -->
-    <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop>
-      <div class="form-group">
-        <label for="observacion">Observación</label>
-        <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
-      </div>
-      <div class="form-group">
-        <label for="capturephoto">Subir Foto (Opcional)</label>
-        <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
-        <img v-if="uploadedImage" :src="uploadedImage" class="img-fluid mt-2" />
-      </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-secondary" @click="isObservationModalVisible = false">Cancelar</button>
-        <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
-      </div>
-    </b-modal>
+   <!-- Modal para añadir observación -->
+<b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop hide-footer>
+  <div class="form-group">
+    <label for="observacion">Observación</label>
+    <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
+  </div>
+  <div class="form-group">
+    <label for="capturephoto">Subir Foto </label>
+    <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
+    <img v-if="uploadedImage" :src="uploadedImage" class="img-fluid mt-2" />
+  </div>
+  <div class="d-flex justify-content-end">
+    <button class="btn btn-secondary" @click="isObservationModalVisible = false">Cancelar</button>
+    <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
+  </div>
+</b-modal>
 
     <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
+    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer>
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
         <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }}</label>
         <input type="number" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" />

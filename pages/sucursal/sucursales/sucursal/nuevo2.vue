@@ -20,6 +20,10 @@
                       <label for="sucursal">Sucursal</label>
                       <input type="text" id="sucursal" class="form-control" v-model="model.sucursale_nombre" disabled>
                     </div>
+                    <!-- <div class="form-group col-12">
+                      <label for="sucursal">Número de Guía</label>
+                      <input type="text" id="sucursal" class="form-control" v-model="model.guia">
+                    </div> -->
                     <div class="form-group col-12">
                       <label for="remitente">Remitente</label>
                       <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente">
@@ -33,7 +37,6 @@
                       <label for="contenido">Contenido</label>
                       <input type="text" v-model.trim="model.contenido" class="form-control" id="contenido">
                     </div>
-
 
                     <div class="form-group col-12">
                       <label for="tarifas">Destino y servicio</label>
@@ -52,7 +55,7 @@
                       </v-select>
                     </div>
                     <div class="form-group col-12">
-                      <label for="direccion">Dirección de recojo</label>
+                      <label for="direccion">Dirección de Recojo</label>
                       <v-select :options="direcciones" v-model="model.direccion_id" label="direccion"
                         :reduce="direccion => direccion.id" placeholder="Seleccionar dirección...">
                         <template #option="option">
@@ -104,13 +107,16 @@
                       <input type="text" v-model.trim="model.telefono_d" class="form-control" id="telefono_d">
                     </div>
                     <div class="form-group col-12">
-                      <label for="direccion_d">Dirección Destino Maps</label>
+                      <label for="direccion_d">Dirección Destino (Latitud, Longitud)</label>
                       <input type="text" id="direccion_d" class="form-control" @click="openModal('direccion_d')"
-                        v-model="model.direccion_d" readonly :disabled="isDireccionDFieldDisabled">
+                        :value="direccionDisplay" readonly>
+                      <!-- Campos ocultos para almacenar la latitud y longitud -->
+                      <input type="hidden" v-model="model.direccion_d_lat">
+                      <input type="hidden" v-model="model.direccion_d_lng">
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="direccion_d">Dirección</label>
+                      <label for="direccion_especifica_d">Dirección</label>
                       <input type="text" v-model.trim="model.direccion_especifica_d" class="form-control"
                         id="direccion_especifica_d">
                     </div>
@@ -126,10 +132,11 @@
                       <label for="fecha">Inicio Fecha</label>
                       <input type="text" v-model="model.fecha" class="form-control" id="fecha" disabled>
                     </div>
-                    
+
                     <!-- Botón para guardar dirección como frecuente -->
-                    <button type="button" class="btn btn-primary" @click="saveFrequentAddress()">Guardar como Dirección Frecuente</button>
-                    
+                    <button type="button" class="btn btn-primary" @click="saveFrequentAddress()">Guardar como Dirección
+                      Frecuente</button>
+
                   </div>
                 </CrudCreate2>
               </div>
@@ -138,9 +145,32 @@
         </div>
       </div>
     </AdminTemplate>
+    
+    <!-- Modal para el mapa -->
+    <b-modal ref="mapsModalD" title="Seleccionar Dirección en el Mapa">
+      <div>
+        <div class="input-group mb-2">
+          <input type="text" v-model="searchQuery_d" @keyup.enter="searchLocationD" placeholder="Buscar dirección"
+            class="form-control" />
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="button" @click="searchLocationD">Buscar</button>
+          </div>
+        </div>
+        <div v-if="searching_d" class="overlay">
+          <div class="alert alert-info" role="alert">
+            Buscando ubicación...
+          </div>
+        </div>
+        <div id="map_d" style="height: 500px; width: 100%;"></div>
+      </div>
+      <div class="coordinates mt-2">
+        <p>Latitud: {{ currentLat_d }}</p>
+        <p>Longitud: {{ currentLng_d }}</p>
+        <button class="btn btn-primary mt-2" @click="handleOkD">Confirmar Dirección</button>
+      </div>
+    </b-modal>
   </div>
 </template>
-
 
 <script>
 import moment from 'moment-timezone';
@@ -160,7 +190,6 @@ export default {
   data() {
     return {
       url_nuevo: '/sucursal/direcciones/direccione/nuevo',
-
       model: {
         direccion_id: null,
         tipo_servicio: 'servicio',
@@ -191,8 +220,7 @@ export default {
         nombre_d: '',
         ci_d: '',
         fecha_d: '',
-        direccion_d_lat_lng: '',  // Nuevo campo para mostrar latitud y longitud concatenadas
-        estado: '',
+        estado: ''
       },
       apiUrl: 'solicitudes2',
       page: 'solicitudes',
@@ -203,13 +231,6 @@ export default {
       sucursale_id_logueada: '',
       ini_vigencia: '',
       fin_vigencia: '',
-      map: null,
-      marker: null,
-      selectedAddress: '',
-      currentLat: null,
-      currentLng: null,
-      searchQuery: '',
-      searching: false,
       map_d: null,
       marker_d: null,
       selectedAddress_d: '',
@@ -218,21 +239,18 @@ export default {
       searchQuery_d: '',
       searching_d: false,
       direcciones: [],
-      suggestions: []  // Almacena las sugerencias para autocompletar
-    }
+      suggestions: []
+    };
   },
   computed: {
-    isDireccionFieldDisabled() {
-      return !!this.model.direccion;
-    },
-    isLatLngFieldDisabled() {
-      return !!this.currentLat && !!this.currentLng;
-    },
-    isDireccionDFieldDisabled() {
-      return !!this.model.direccion_d;
-    },
-    isLatLngDFieldDisabled() {
-      return !!this.currentLat_d && !!this.currentLng_d;
+    direccionDisplay() {
+      if (this.model.direccion_d) {
+        return this.model.direccion_d;
+      } else if (this.currentLat_d && this.currentLng_d) {
+        return `${this.currentLat_d}, ${this.currentLng_d}`;
+      } else {
+        return '';  // Mostrar vacío si no hay datos
+      }
     },
     precioSeleccionado() {
       const tarifa = this.tarifas.find(t => t.id === this.model.tarifa_id);
@@ -255,8 +273,6 @@ export default {
     }
   },
   methods: {
-
-
     generatePDF() {
       const doc = new jsPDF();
 
@@ -270,8 +286,6 @@ export default {
       doc.text(`Dirección Destino: ${this.model.direccion_d}`, 10, 70);
       doc.text(`Provincia: ${this.model.ciudad}`, 10, 80);
       doc.text(`Fecha: ${this.model.fecha}`, 10, 90);
-
-      // Puedes agregar más campos según sea necesario
 
       // Generar y descargar el PDF
       doc.save(`Solicitud-${this.model.guia}.pdf`);
@@ -287,53 +301,34 @@ export default {
         console.error('Error al obtener las direcciones:', e);
       }
     },
-
     async generateGuideNumber() {
       try {
-        // Asumiendo que tienes acceso a los IDs de la sucursal y la tarifa en tu modelo
         const sucursaleId = this.model.sucursale_id;
         const tarifaId = this.model.tarifa_id;
-
-        // Realizar la petición al backend para generar la guía
         const response = await this.$sucursales.$post('/generar-guia', {
           sucursale_id: sucursaleId,
           tarifa_id: tarifaId
         });
-
-        // Retornar la guía generada desde el backend
         return response.data.guia;
       } catch (error) {
         console.error('Error al generar la guía:', error);
         throw new Error('No se pudo generar el número de guía');
       }
     },
-
-
     async createRequest() {
       try {
-        // Generar la guía utilizando la función del backend
         this.model.guia = await this.generateGuideNumber();
-
-        // Enviar los datos de la solicitud al servidor
         const response = await this.$sucursales.$post(this.apiUrl, this.model);
-        console.log('Respuesta de la API:', response);
-
-        // Mostrar alerta de éxito
         this.onSuccess(response);
-
-        // Generar el PDF solo después de que la solicitud se haya creado con éxito
         this.generatePDF();
       } catch (error) {
         console.error('Error al crear la solicitud:', error);
         this.showSuccessAlert();
       }
     },
-
-
     onSuccess(response) {
       this.showSuccessAlert();
     },
-
     showSuccessAlert() {
       Swal.fire({
         icon: 'success',
@@ -344,10 +339,8 @@ export default {
         this.$router.go(-1);
       });
     },
-
     limitDecimals(event) {
       let value = parseFloat(event.target.value);
-
       if (isNaN(value)) {
         this.model.peso_o = '';
       } else if (value > 25.000) {
@@ -356,182 +349,80 @@ export default {
         this.model.peso_o = value.toFixed(3);
       }
     },
-
     async GET_DATA(path, params = {}) {
       const res = await this.$sucursales.$get(path, { params });
       return res;
     },
-
     openModal(type) {
-      if (process.client) {
-        if (type === 'direccion') {
-          this.$refs.mapsModal.show();
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-              const { latitude, longitude } = position.coords;
-              this.currentLat = latitude;
-              this.currentLng = longitude;
-              this.$nextTick(() => {
-                this.initializeMap(latitude, longitude);
-              });
-            }, () => {
-              this.currentLat = -16.290154;
-              this.currentLng = -63.588653;
-              this.$nextTick(() => {
-                this.initializeMap(-16.290154, -63.588653);
-              });
-            });
-          } else {
-            this.currentLat = -16.290154;
-            this.currentLng = -63.588653;
+      if (process.client && type === 'direccion_d') {
+        this.$refs.mapsModalD.show();
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((position) => {
+            const { latitude, longitude } = position.coords;
+            this.currentLat_d = latitude;
+            this.currentLng_d = longitude;
             this.$nextTick(() => {
-              this.initializeMap(-16.290154, -63.588653);
+              this.initializeMapD(latitude, longitude);
             });
-          }
-        } else if (type === 'direccion_d') {
-          this.$refs.mapsModalD.show();
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-              const { latitude, longitude } = position.coords;
-              this.currentLat_d = latitude;
-              this.currentLng_d = longitude;
-              this.$nextTick(() => {
-                this.initializeMapD(latitude, longitude);
-              });
-            }, () => {
-              this.currentLat_d = -16.290154;
-              this.currentLng_d = -63.588653;
-              this.$nextTick(() => {
-                this.initializeMapD(-16.290154, -63.588653);
-              });
-            });
-          } else {
+          }, () => {
             this.currentLat_d = -16.290154;
             this.currentLng_d = -63.588653;
             this.$nextTick(() => {
               this.initializeMapD(-16.290154, -63.588653);
             });
-          }
+          });
+        } else {
+          this.currentLat_d = -16.290154;
+          this.currentLng_d = -63.588653;
+          this.$nextTick(() => {
+            this.initializeMapD(-16.290154, -63.588653);
+          });
         }
       }
     },
-
-    initializeMap(lat, lng) {
-      if (this.map) {
-        this.map.remove();
-      }
-
-      if (process.client) {
-        import('leaflet').then(L => {
-          this.map = L.map('map').setView([lat, lng], 14);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          }).addTo(this.map);
-
-          this.marker = L.marker([lat, lng], {
-            draggable: true
-          }).addTo(this.map);
-
-          this.map.on('click', (e) => {
-            this.marker.setLatLng(e.latlng);
-            this.geocodePosition(e.latlng);
-          });
-
-          this.marker.on('dragend', (e) => {
-            this.geocodePosition(e.target.getLatLng());
-          });
-        });
-      }
-    },
-
     initializeMapD(lat, lng) {
       if (this.map_d) {
         this.map_d.remove();
       }
-
       if (process.client) {
         import('leaflet').then(L => {
           this.map_d = L.map('map_d').setView([lat, lng], 14);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }).addTo(this.map_d);
-
           this.marker_d = L.marker([lat, lng], {
             draggable: true
           }).addTo(this.map_d);
-
           this.map_d.on('click', (e) => {
             this.marker_d.setLatLng(e.latlng);
             this.geocodePositionD(e.latlng);
           });
-
           this.marker_d.on('dragend', (e) => {
             this.geocodePositionD(e.target.getLatLng());
           });
         });
       }
     },
-
-    async geocodePosition(latlng) {
-      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latlng.lat}&lon=${latlng.lng}`);
-      const data = await response.json();
-      if (data && data.display_name) {
-        this.selectedAddress = data.display_name;
-      } else {
-        this.selectedAddress = 'No se pudo determinar la dirección';
-      }
-      this.currentLat = latlng.lat;
-      this.currentLng = latlng.lng;
-      this.searching = false;
-    },
-
     async geocodePositionD(latlng) {
       const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latlng.lat}&lon=${latlng.lng}`);
       const data = await response.json();
       if (data && data.display_name) {
-        this.selectedAddress_d = data.display_name;
+        this.model.direccion_d = data.display_name;
       } else {
-        this.selectedAddress_d = 'No se pudo determinar la dirección';
+        this.model.direccion_d = `${latlng.lat}, ${latlng.lng}`;
       }
       this.currentLat_d = latlng.lat;
       this.currentLng_d = latlng.lng;
+      this.model.direccion_d_lat = this.currentLat_d;
+      this.model.direccion_d_lng = this.currentLng_d;
       this.searching_d = false;
     },
-
-    handleOk() {
-      this.model.direccion_lat = this.currentLat;
-      this.model.direccion_lng = this.currentLng;
-      this.model.direccion = this.currentLat + ', ' + this.currentLng;
-    },
-
     handleOkD() {
       this.model.direccion_d_lat = this.currentLat_d;
       this.model.direccion_d_lng = this.currentLng_d;
-
-      // Asigna el valor concatenado directamente a direccion_d
       this.model.direccion_d = `${this.currentLat_d}, ${this.currentLng_d}`;
-
-      // No necesitas el campo direccion_d_lat_lng
-      // this.model.direccion_d_lat_lng = `${this.currentLat_d}, ${this.currentLng_d}`;
+      this.$refs.mapsModalD.hide();
     },
-
-
-    async searchLocation() {
-      if (this.searchQuery && this.currentLat && this.currentLng) {
-        this.searching = true;
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${this.searchQuery}&limit=5&viewbox=${this.currentLng - 0.1},${this.currentLat + 0.1},${this.currentLng + 0.1},${this.currentLat - 0.1}`);
-        const data = await response.json();
-        if (data.length > 0) {
-          const closestMatch = data[0];
-          const { lat, lon } = closestMatch;
-          this.map.setView([lat, lon], 14);
-          this.marker.setLatLng([lat, lon]);
-          this.geocodePosition({ lat, lng: lon });
-        }
-        this.searching = false;
-      }
-    },
-
     async searchLocationD() {
       if (this.searchQuery_d && this.currentLat_d && this.currentLng_d) {
         this.searching_d = true;
@@ -547,7 +438,6 @@ export default {
         this.searching_d = false;
       }
     },
-
     async fetchUser() {
       let user = JSON.parse(localStorage.getItem('userAuth'));
       if (user && user.user) {
@@ -556,13 +446,9 @@ export default {
         this.sucursale_id_logueada = user.user.id;
       }
     },
-
     saveFrequentAddress() {
       let frequentAddresses = JSON.parse(localStorage.getItem('frequentAddresses')) || [];
-
-      // Verifica si ya existe una dirección con el mismo nombre
       const exists = frequentAddresses.some(address => address.destinatario.toLowerCase() === this.model.destinatario.toLowerCase());
-
       if (!exists) {
         const newAddress = {
           destinatario: this.model.destinatario,
@@ -573,10 +459,8 @@ export default {
           zona_d: this.model.zona_d,
           ciudad: this.model.ciudad,
         };
-
         frequentAddresses.push(newAddress);
         localStorage.setItem('frequentAddresses', JSON.stringify(frequentAddresses));
-
         Swal.fire({
           icon: 'success',
           title: 'Dirección guardada como frecuente',
@@ -592,12 +476,10 @@ export default {
         });
       }
     },
-
     loadFrequentAddresses(query) {
       const frequentAddresses = JSON.parse(localStorage.getItem('frequentAddresses')) || [];
       return frequentAddresses.filter(address => address.destinatario.toLowerCase().includes(query.toLowerCase()));
     },
-
     applyFrequentAddress(address) {
       this.model.destinatario = address.destinatario;
       this.model.telefono_d = address.telefono_d;
@@ -606,11 +488,8 @@ export default {
       this.model.direccion_d_lng = address.direccion_d_lng;
       this.model.zona_d = address.zona_d;
       this.model.ciudad = address.ciudad;
-
-      // Asegúrate de que el campo Dirección Destino Maps se llene correctamente en direccion_d
       this.model.direccion_d = `${address.direccion_d_lat}, ${address.direccion_d_lng}`;
     },
-
     showSuggestions() {
       if (this.model.destinatario) {
         this.suggestions = this.loadFrequentAddresses(this.model.destinatario);
@@ -621,19 +500,16 @@ export default {
     hideSuggestions() {
       setTimeout(() => {
         this.suggestions = [];
-      }, 200); // Añade un pequeño retraso para permitir el clic en las sugerencias
+      }, 200);
     }
   },
-
   mounted() {
     this.$nextTick(async () => {
       await this.fetchUser();
       await this.fetchDirecciones();
-
       try {
         const sucursales = await this.GET_DATA('sucursales2');
         this.sucursales = sucursales;
-
         const tarifas = await this.GET_DATA('getTarifas2', { sucursale_id: this.sucursale_id_logueada });
         this.tarifas = tarifas;
       } catch (e) {
@@ -641,10 +517,8 @@ export default {
       } finally {
         this.load = false;
       }
-
       const now = moment().tz("America/La_Paz");
       this.model.fecha = now.format('YYYY-MM-DD HH:mm:ss');
-
       var canvas = document.getElementById('canvas');
       var signaturePad = new SignaturePad(canvas);
       var clearButton = document.getElementById('limpiar');
@@ -653,12 +527,10 @@ export default {
         signaturePad.clear();
         this.model.firma_o = "";
       });
-
       generateButton.addEventListener('click', () => {
         var firma = signaturePad.toDataURL();
         this.model.firma_o = firma;
       });
-
       var canvas2 = document.getElementById('canvas2');
       var signaturePad2 = new SignaturePad(canvas2);
       var clearButton2 = document.getElementById('limpiar2');
@@ -667,13 +539,12 @@ export default {
         signaturePad2.clear();
         this.model.firma_d = "";
       });
-
       generateButton2.addEventListener('click', () => {
         var firma2 = signaturePad2.toDataURL();
         this.model.firma_d = firma2;
       });
     });
-  },
+  }
 }
 </script>
 

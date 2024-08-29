@@ -95,7 +95,7 @@
     <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop>
       
       <div class="form-group">
-        <label for="capturephoto">Subir Foto (Opcional)</label>
+        <label for="capturephoto">Subir Foto</label>
         <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
         <img v-if="uploadedImage" :src="uploadedImage" class="img-fluid mt-2" />
       </div>

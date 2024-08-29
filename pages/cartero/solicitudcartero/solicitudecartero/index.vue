@@ -121,7 +121,7 @@
     </AdminTemplate>
 
     <!-- Modal para mostrar seleccionados -->
-    <b-modal v-model="isSelectedModalVisible" title="Resultados de la Búsqueda" hide-backdrop>
+    <b-modal v-model="isSelectedModalVisible" title="Resultados de la Búsqueda" hide-backdrop hide-footer>
       <div v-for="(item, index) in selectedItemsData" :key="item.id"
         class="form-group d-flex justify-content-between align-items-center">
         <label>{{ item.sucursale.nombre }} - {{ item.guia }}</label>
@@ -134,7 +134,7 @@
     </b-modal>
     <!-- Modal para mostrar seleccionados sin el botón de eliminar -->
     <!-- Modal para mostrar seleccionados con checklist -->
-    <b-modal v-model="isSelectedSimpleModalVisible" title="Resultados de los seleccionados" hide-backdrop>
+    <b-modal v-model="isSelectedSimpleModalVisible" title="Resultados de los seleccionados" hide-backdrop hide-footer>
       <div v-for="(item, index) in selectedItemsData" :key="item.id"
         class="form-group d-flex justify-content-between align-items-center">
         <input type="checkbox" v-model="selectedForPickup" :value="item.id">

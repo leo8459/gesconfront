@@ -382,13 +382,19 @@
           <div class="collapse" id="perfil-return">
             <ul class="nav ms-4 ps-3">
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/encargado/devolucionencargados/devolucionencargado">
+                <nuxtLink class="nav-link" to="/encargado/verificardevueltoencargados/verificardevueltoencargado">
+                  <span class="sidenav-mini-icon"> Verificar Return </span>
+                  <span class="sidenav-normal"> Verificar Return</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/encargado/rechazadoencargados/rechazadoencargado">
                   <span class="sidenav-mini-icon"> Devolución Encargado </span>
                   <span class="sidenav-normal"> Devolución Encargado</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
-                <nuxtLink class="nav-link" to="/encargado/devueltosencargados/devueltosencargado">
+                <nuxtLink class="nav-link" to="/encargado/devueltoencargados/devueltoencargado">
                   <span class="sidenav-mini-icon"> Retornados Encargado </span>
                   <span class="sidenav-normal"> Retornados Encargado</span>
                 </nuxtLink>
