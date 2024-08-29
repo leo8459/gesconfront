@@ -4,7 +4,7 @@
       <div class="page-header min-vh-100 d-flex">
         <!-- Imagen en la mitad izquierda -->
         <div class="col-6 d-flex align-items-center justify-content-center p-0">
-          <img ref="image" src="@/pages/admin/auth/img/mediana.jpg" alt="Logo" class="img-fluid w-100 h-100 rounded shadow-lg">
+          <img ref="image" src="@/pages/admin/auth/img/contratos.webp" alt="Logo" class="img-fluid w-100 h-100 rounded shadow-lg">
         </div>
         <!-- Formulario de inicio de sesión en la mitad derecha -->
         <div class="col-6 d-flex align-items-center justify-content-center">

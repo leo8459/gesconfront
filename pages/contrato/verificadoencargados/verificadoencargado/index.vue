@@ -29,9 +29,9 @@
               </select>
             </div>
             <div class="col-md-2 d-flex align-items-end">
-              <button @click="exportToPDF" class="btn btn-danger btn-sm w-100">
-  <i class="fas fa-file-pdf"></i> Generar Reporte PDF
-</button>
+              <!-- <button @click="exportToPDF" class="btn btn-danger btn-sm w-100">
+                <i class="fas fa-file-pdf"></i> Generar Reporte PDF
+              </button> -->
 
               <button @click="exportToExcel" class="btn btn-success btn-sm w-100">
                 <i class="fas fa-file-excel"></i> Generar Reporte
@@ -330,7 +330,7 @@ export default {
 
 
 
-    
+
     generateThumbnail(base64Image) {
       const img = new Image();
       img.src = base64Image;
@@ -413,56 +413,112 @@ export default {
 
 
     async exportToExcel() {
-      const filteredData = this.list.filter(m => (m.estado === 4 || m.estado === 7) && (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal));
+  const filteredData = this.list.filter(m => (m.estado === 4 || m.estado === 7) && (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal));
 
-      if (filteredData.length === 0) {
-        Swal.fire({
-          icon: 'info',
-          title: 'Sin datos',
-          text: 'No hay datos disponibles para los criterios seleccionados.',
-        });
-        return;
-      }
+  if (filteredData.length === 0) {
+    Swal.fire({
+      icon: 'info',
+      title: 'Sin datos',
+      text: 'No hay datos disponibles para los criterios seleccionados.',
+    });
+    return;
+  }
 
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
 
-      worksheet.columns = [
-        { header: '#', key: 'index', width: 5 },
-        { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
-        { header: 'Guía', key: 'guia', width: 20 },
-        { header: 'Sucursal Origen', key: 'sucursal_origen', width: 20 },
-        { header: 'Dirección', key: 'direccion', width: 30 },
-        { header: 'Sucursal', key: 'sucursal', width: 20 },
-        { header: 'Departamento/Servicio', key: 'servicio', width: 20 },
-        { header: 'Ciudad', key: 'ciudad', width: 15 },
-        { header: 'Zona', key: 'zona', width: 15 },
-        { header: 'Contenido', key: 'contenido', width: 20 },
-        { header: 'Peso (Kg)', key: 'peso', width: 10 },
-        { header: 'Precio (Bs)', key: 'precio', width: 10 },
-        { header: 'Descuento (Bs)', key: 'descuento', width: 10 },
-        { header: 'Precio con Descuento (Bs)', key: 'precio_descuento', width: 20 },
-        { header: 'Retención (Bs)', key: 'retencion', width: 10 },
-        { header: 'Precio con Retención (Bs)', key: 'precio_retencion', width: 20 },
-        { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
-        { header: 'Destinatario', key: 'destinatario', width: 20 },
-        { header: 'Nombre del Cartero', key: 'cartero', width: 20 },
-        { header: 'Observaciones', key: 'observacion', width: 25 },
-      ];
+  // Define las columnas
+  worksheet.columns = [
+    { header: '#', key: 'index', width: 5 },
+    { header: 'Fecha de Envio', key: 'fecha', width: 20 },
+    { header: 'Numero de envio', key: 'guia', width: 20 },
+    { header: 'Ciudad', key: 'sucursal_origen', width: 20 },
+    { header: 'Rural', key: 'municipio', width: 30 },
+    { header: 'Local', key: 'local', width: 30 },
+    // { header: 'Ciudad', key: 'sucursal', width: 20 },
+    { header: 'Departamento/Servicio', key: 'servicio', width: 20 },
+    { header: 'Ciudad', key: 'ciudad', width: 15 },
+    { header: 'Zona', key: 'zona', width: 20 },
+    { header: 'Contenido', key: 'contenido', width: 20 },
+    { header: 'Peso (Kg)', key: 'peso', width: 10 },
+    { header: 'Precio (Bs)', key: 'precio', width: 10 },
+    { header: 'Servicio', key: 'servicioT', width: 10 },
+    { header: 'Fecha y hora', key: 'fecha_entrega', width: 20 },
+    { header: 'Entregado', key: 'destinatario', width: 20 },
+    { header: 'Cartero', key: 'cartero', width: 20 },
+    { header: 'Observaciones', key: 'observacion', width: 25 },
+  ];
 
-      worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
-      worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
-      worksheet.getRow(1).border = {
-        top: { style: 'thick' },
-        left: { style: 'thick' },
-        bottom: { style: 'thick' },
-        right: { style: 'thick' }
-      };
-      worksheet.getRow(1).fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FF000080' }
-      };
+  // Merging cells to create the "Envío" header spanning multiple columns
+  worksheet.mergeCells('A1:N1'); // Combina las celdas de las columnas B a M en la primera fila
+  worksheet.getCell('B1').value = 'Envío'; // Coloca el título "Envío" en la celda combinada
+  worksheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle' }; // Centra el texto
+  worksheet.getCell('B1').font = { bold: true, size: 14 }; // Aplica un estilo de fuente
+  worksheet.getCell('B1').fill = { 
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '32FF0E' } // Color verde para toda la celda
+  };
+  
+  // Aplica el color de fondo verde al encabezado `#`
+  worksheet.getCell('A2').fill = { 
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFFFFF' } // Color verde
+  };
+  worksheet.getCell('A2').font = { bold: true, size: 12 }; // Aplica un estilo de fuente para el encabezado `#`
+  worksheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' }; // Centra el texto
+
+  // Aplica los subtítulos debajo del título "Envío"
+  worksheet.getRow(2).getCell(1).value = '#';
+  worksheet.getRow(2).getCell(2).value = 'Fecha de Envio';
+  worksheet.getRow(2).getCell(3).value = 'Numero de envio';
+  worksheet.getRow(2).getCell(4).value = 'Ciudad';
+  worksheet.getRow(2).getCell(5).value = 'Rural';
+  worksheet.getRow(2).getCell(6).value = 'Local';
+  // worksheet.getRow(2).getCell(7).value = 'Cliente';
+  worksheet.getRow(2).getCell(7).value = 'Ciudad';
+  worksheet.getRow(2).getCell(8).value = 'Rural';
+  worksheet.getRow(2).getCell(9).value = 'Local';
+  worksheet.getRow(2).getCell(10).value = 'Contenido';
+  worksheet.getRow(2).getCell(11).value = 'Peso (Kg)';
+  worksheet.getRow(2).getCell(12).value = 'Precio (Bs)';
+  worksheet.getRow(2).getCell(13).value = 'Servicio';
+
+  // Merging cells to create the "Entrega" header spanning multiple columns
+  worksheet.mergeCells('O1:R1'); // Combina las celdas de las columnas O a R en la primera fila
+  worksheet.getCell('O1').value = 'Entrega'; // Coloca el título "Entrega" en la celda combinada
+  worksheet.getCell('O1').alignment = { horizontal: 'center', vertical: 'middle' }; // Centra el texto
+  worksheet.getCell('O1').font = { bold: true, size: 14 }; // Aplica un estilo de fuente
+  worksheet.getCell('O1').fill = { 
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '891113' } // Color verde para toda la celda
+  };
+
+  // Aplica los subtítulos debajo del título "Entrega"
+  worksheet.getRow(2).getCell(14).value = 'Fecha y hora';
+  worksheet.getRow(2).getCell(15).value = 'Entregado';
+  worksheet.getRow(2).getCell(16).value = 'Cartero';
+  worksheet.getRow(2).getCell(17).value = 'Observaciones';
+
+  worksheet.getRow(1).eachCell({ includeEmpty: true }, function(cell) {
+    cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+    };
+});
+
+worksheet.getRow(2).eachCell({ includeEmpty: true }, function(cell) {
+    cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+    };
+});
 
       let totalPrice = 0;
       let totalPriceWithDiscount = 0;
@@ -497,28 +553,29 @@ export default {
         const descuentoRetencion = (precioOriginal * retencion) / 100;
         const precioConRetencion = precioOriginal - descuentoRetencion;
 
+        //////////////////////
         const row = worksheet.addRow({
           index: i + 1,
           fecha: m.fecha_recojo_c,
           guia: m.guia,
           sucursal_origen: m.sucursale.origen,
-          direccion: m.direccion_especifica,
-          sucursal: m.sucursale.nombre,
+          direccion: m.direccion_especifica ? 'X' : '', // Si tiene contenido, muestra 'X', de lo contrario 'N/A'
+          local: m.direccion && m.direccion.zona ? 'X' : '', // Si tiene contenido, muestra 'X', de lo contrario 'N/A'
           servicio: m.tarifa.departamento,
-          ciudad: m.ciudad,
-          zona: m.zona_d,
+          ciudad: m.ciudad ? 'X' : '', // Si tiene contenido, muestra 'X', de lo contrario 'N/A'
+          zona: m.zona_d ? 'X' : '', // Si tiene contenido, muestra 'X', de lo contrario 'N/A'
           contenido: m.contenido,
-          peso: m.peso_v,
+          peso: m.peso_r ? m.peso_r : m.peso_v, // Si peso_r existe, lo muestra; si no, muestra peso_v
           precio: precioOriginal.toFixed(2),
-          descuento: descuentoTotal.toFixed(2),
-          precio_descuento: precioConDescuento.toFixed(2),
-          retencion: descuentoRetencion.toFixed(2),
-          precio_retencion: precioConRetencion.toFixed(2),
+          servicioT: m.tarifa.servicio,
           fecha_entrega: m.fecha_d,
           destinatario: m.destinatario,
           cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
           observacion: m.observacion,
+                    // sucursal: m.sucursale.nombre,
+
         });
+
 
         totalPrice += precioOriginal;
         totalDiscount += descuentoTotal;
@@ -527,7 +584,7 @@ export default {
         totalPriceWithRetention += precioConRetencion;
         totalWeight += parseFloat(m.peso_v) || 0;
 
-        const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
+        const fillColor = i % 2 === 0 ? 'FFFFFF' : 'FFFFFF';
         row.eachCell({ includeEmpty: true }, function (cell) {
           cell.fill = {
             type: 'pattern',
@@ -574,7 +631,7 @@ export default {
             cell.fill = {
               type: 'pattern',
               pattern: 'solid',
-              fgColor: { argb: 'FFFFD700' }
+              fgColor: { argb: 'FFFFFF' }
             };
             cell.border = {
               top: { style: 'thick' },
