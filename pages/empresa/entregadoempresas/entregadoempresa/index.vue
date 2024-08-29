@@ -215,8 +215,7 @@ paginatedData() {
     const start = this.startDate ? new Date(this.startDate + 'T00:00:00') : null;
     const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
 
-    console.log('Fecha inicio:', start);
-    console.log('Fecha fin:', end);
+  
 
     // Filtrando y organizando los datos
     const dataForPDF = this.paginatedData.filter(m => {
@@ -232,16 +231,13 @@ paginatedData() {
             if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
                 const recordDateD = new Date(year, month, day, 0, 0, 0);
 
-                console.log('Fecha de registro convertida:', recordDateD);
 
                 // Filtrar según el rango de fechas
                 return (!start || recordDateD >= start) && (!end || recordDateD <= end);
             } else {
-                console.log('Error en la conversión de fecha:', m.fecha_d);
                 return false;
             }
         } else {
-            console.log('Formato de fecha inválido:', m.fecha_d);
             return false;
         }
     }).map(m => ({
@@ -253,7 +249,6 @@ paginatedData() {
         costo: parseFloat(m.nombre_d) || 0
     }));
 
-    console.log('Datos filtrados para el PDF:', dataForPDF);
 
     // Suma total del costo (nombre_d)
     const totalCosto = dataForPDF.reduce((sum, item) => sum + item.costo, 0);
@@ -359,7 +354,7 @@ paginatedData() {
     };
 
     // Genera el PDF y abre la descarga
-    pdfMake.createPdf(docDefinition).download('reporte_solicitudes_elegante.pdf');
+    pdfMake.createPdf(docDefinition).download('reporte_sucursales.pdf');
 }
 
 
