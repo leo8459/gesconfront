@@ -4,11 +4,7 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-          <div class="col-3" v-if="selectedForAssign.length > 0">
-            <button @click="confirmAllAssignments" class="btn btn-primary btn-sm w-100">
-              <i class="fas fa-truck"></i> Asignar todos los seleccionados
-            </button>
-          </div>
+         
           <div class="col-3">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
               placeholder="Buscar..." />
@@ -92,7 +88,11 @@
             </nav>
           </div>
         </div>
-
+        <div class="col-3" v-if="selectedForAssign.length > 0">
+            <button @click="confirmAllAssignments" class="btn btn-primary btn-sm w-100">
+              <i class="fas fa-truck"></i> Asignar todos los seleccionados
+            </button>
+          </div>
         <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
         <div v-if="selectedForDelivery.length > 0" class="mt-4">
           <h5>Paquetes para entregar</h5>
@@ -123,7 +123,7 @@
     </AdminTemplate>
 
     <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop @shown="focusPesoInput">
+    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer @shown="focusPesoInput">
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
         <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
 
