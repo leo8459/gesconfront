@@ -10,7 +10,7 @@
                 <h3>Crear Nueva Dirección</h3>
               </div>
               <div class="card-body">
-                <CrudCreate2 :model="model" :apiUrl="apiUrl">
+                <CrudCreate10 :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
 
                     <div class="form-group col-12">
@@ -52,7 +52,7 @@
                     </div>
 
                   </div>
-                </CrudCreate2>
+                </CrudCreate10>
               </div>
             </div>
           </div>
