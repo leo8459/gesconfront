@@ -491,7 +491,36 @@
 
 
 
+   <!-- //EMPRESAMATRIZ -->
 
+
+   <li class="nav-item" v-if="isEmpresa">
+          <a @click="handleItemClick('contratos')" data-bs-toggle="collapse" href="#perfil-contratos" class="nav-link"
+            aria-controls="configuracion-cajero" role="button" aria-expanded="false">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
+              <i v-if="role === 'contratos'" class="fas fa-money-bill blue-icon"></i>
+            </div>
+            <span class="nav-link-text ms-1">EMPRESAMATRIZ</span>
+          </a>
+          <div class="collapse" id="perfil-contratos">
+            <ul class="nav ms-4 ps-3">
+              <li class="nav-item">
+                <nuxtLink class="nav-link" to="/contrato">
+                  <span class="sidenav-mini-icon"> Dashboard </span>
+                  <span class="sidenav-normal"> Dashboard </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                
+                <nuxtLink class="nav-link" to="/empresa/entregadoempresas/entregadoempresa">
+                  <span class="sidenav-mini-icon"> Correspondencia Verificada </span>
+                  <span class="sidenav-normal"> Correspondencia Verificada</span>
+                </nuxtLink>              
+              </li>
+            </ul>
+          </div>
+        </li>
 
       </ul>
     </div>
@@ -581,6 +610,9 @@ export default {
     },
     isContrato() {
       return this.userType === 'contratos'; // Verifica si el tipo de usuario es sucursale
+    },
+    isEmpresa() {
+      return this.userType === 'empresas'; // Verifica si el tipo de usuario es sucursale
     },
   },
   methods: {

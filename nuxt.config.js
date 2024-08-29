@@ -51,8 +51,9 @@ export default {
     '~/plugins/gestores.js',
     '~/plugins/encargados.js',
     '~/plugins/contratos.js',
+    '~/plugins/empresas.js',
 
-
+    
 
   ],
 

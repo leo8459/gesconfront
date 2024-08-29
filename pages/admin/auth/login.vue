@@ -174,6 +174,8 @@ export default {
       redirectPath = '/encargado';
     }else if (userType === 'contratos') {
       redirectPath = '/contrato';
+    }else if (userType === 'empresas') {
+      redirectPath = '/empresa';
     }
 
     this.$router.push(redirectPath);

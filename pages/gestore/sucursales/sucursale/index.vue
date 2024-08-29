@@ -136,7 +136,7 @@ export default {
       list: [],
       sucursales: [], // Almacenar las sucursales para el dropdown
       selectedSucursal: '', // Sucursal seleccionada
-      apiUrls: ['sucursales3', 'solicitudes3'],
+      apiUrls: ['sucursales3', 'solicitudes3'], // Asegúrate de que 'sucursales3' es la ruta correcta
       page: 'Sucursales',
       modulo: 'AGBC',
       url_nuevo: '/gestore/sucursales/sucursale/nuevo',
@@ -151,37 +151,56 @@ export default {
   },
   computed: {
     paginatedList() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.resultados.slice(start, end);
+        const start = this.currentPage * this.itemsPerPage;
+        const end = start + this.itemsPerPage;
+        console.log('Lista paginada:', this.resultados.slice(start, end)); // Revisa los datos paginados
+        return this.resultados.slice(start, end);
     },
     totalPages() {
-      return Math.ceil(this.resultados.length / this.itemsPerPage);
+        return Math.ceil(this.resultados.length / this.itemsPerPage);
     }
   },
   methods: {
     async GET_DATA(path) {
-      const res = await this.$gestores.$get(path);
-      return res;
-    },
+    try {
+        const res = await this.$gestores.$get(path);
+        console.log('Datos recuperados del endpoint:', res); // Verifica aquí los datos devueltos por el backend
+        return res;
+    } catch (error) {
+        console.error('Error al recuperar los datos:', error);
+        return [];
+    }
+},
+
     async fetchAllData() {
-      try {
+    try {
         const [sucursalesData, solicitudesData] = await Promise.all(
-          this.apiUrls.map((url) => this.GET_DATA(url))
+            this.apiUrls.map((url) => this.GET_DATA(url))
         );
 
         // Almacenar sucursales para el dropdown
         this.sucursales = sucursalesData;
 
-        // Combina los datos
+        // Aquí agregamos el console.log para ver qué sucursales se han recuperado
+        console.log('Sucursales recuperadas:', this.sucursales);
+
+        // Combina los datos (si es necesario)
         this.list = [...sucursalesData, ...solicitudesData];
+
+        // Agrega otro console.log para ver la lista combinada
+        console.log('Datos combinados (sucursales + solicitudes):', this.list);
+
         this.buscar(); // Actualizar la búsqueda con la lista combinada
-      } catch (e) {
+    } catch (e) {
         console.error('Error al obtener los datos:', e);
-      } finally {
+    } finally {
         this.load = false;
-      }
-    },
+    }
+},
+
+
+
+
     async EliminarItem(id) {
       this.load = true;
       try {
