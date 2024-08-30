@@ -67,7 +67,7 @@
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
-                    <td class="py-0 px-1">{{ m.peso_v }}</td>
+                    <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
                     <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
                     <!-- Mostrar la dirección específica -->

@@ -514,8 +514,8 @@
               <li class="nav-item">
                 
                 <nuxtLink class="nav-link" to="/empresa/entregadoempresas/entregadoempresa">
-                  <span class="sidenav-mini-icon"> Correspondencia Verificada </span>
-                  <span class="sidenav-normal"> Correspondencia Verificada</span>
+                  <span class="sidenav-mini-icon"> Entregados </span>
+                  <span class="sidenav-normal"> Entregados </span>
                 </nuxtLink>              
               </li>
             </ul>

@@ -42,7 +42,7 @@
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.peso_o }}</td>
+                        <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
                         <td class="py-0 px-1">{{ m.remitente }}</td>
                         <td class="py-0 px-1">
                           <a v-if="isCoordinates(m.direccion.direccion)"

@@ -50,8 +50,6 @@
                         <th class="py-0 px-1">Remitente</th>
                         <th class="py-0 px-1">Teléfono</th>
                         <th class="py-0 px-1">Contenido</th>
-                        <th class="py-0 px-1">Firma Destinatario</th>
-                        <th class="py-0 px-1">Codigo</th>
                         <th class="py-0 px-1">Fecha de Solicitud</th>
                         <th class="py-0 px-1">Destinatario</th>
                         <th class="py-0 px-1">Teléfono Destinatario</th>
@@ -59,8 +57,10 @@
                         <th class="py-0 px-1">Dirección Destinatario</th>
                         <th class="py-0 px-1">Municipio/Provincia</th>
                         <th class="py-0 px-1">Zona</th>
-                        <th class="py-0 px-1">Precio (Bs)</th>
                         <th class="py-0 px-1">Fecha de Entrega</th>
+                        <th class="py-0 px-1">Precio (Bs)</th>
+                        <th class="py-0 px-1">Firma Destinatario</th>
+
                         <th class="py-0 px-1">Imagen</th>
                       </tr>
                     </thead>
@@ -69,19 +69,13 @@
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.peso_v }}</td>
+                        <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
                         <td class="py-0 px-1">{{ m.remitente }}</td>
               
                         <td class="py-0 px-1">{{ m.telefono }}</td>
                         <td class="py-0 px-1">{{ m.contenido }}</td>
-                        <td class="py-0 px-1">
-                          <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Origen" width="100" />
-                        </td>
-                        <td class="py-0 px-1">
-                          <img v-if="m.codigo_barras" :src="'data:image/png;base64,' + m.codigo_barras"
-                            alt="Código de Barras" width="200" height="100" />
-                        </td>
-                        <td class="py-0 px-1">{{ m.fecha }}</td>
+                       
+                        <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
                         <td class="py-0 px-1">{{ m.destinatario }}</td>
                         <td class="py-0 px-1">{{ m.telefono_d }}</td>
                         <td class="py-0 px-1">
@@ -95,9 +89,13 @@
                         <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
                         <td class="py-0 px-1">{{ m.ciudad }}</td>
                         <td class="py-0 px-1">{{ m.zona_d }}</td>
-                        <td class="py-0 px-1">{{ m.nombre_d }}</td>
                         <td class="py-0 px-1">{{ m.fecha_d }}</td>
+                        <td class="py-0 px-1">{{ m.nombre_d }}</td>
 
+                        <td class="py-0 px-1">
+                          <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Origen" width="100" />
+                        </td>
+                      
                         <td class="py-0 px-1">
                       <div class="d-flex flex-column align-items-center">
                        
@@ -196,39 +194,7 @@ export default {
     }
   },
   methods: {
-    generateThumbnail(base64Image) {
-      const img = new Image();
-      img.src = base64Image;
-
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
-      // Ajustar la resolución del thumbnail
-      const MAX_WIDTH = 100; // Ajustar según sea necesario
-      const MAX_HEIGHT = 100; // Ajustar según sea necesario
-
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
-        }
-      } else {
-        if (height > MAX_HEIGHT) {
-          width *= MAX_HEIGHT / height;
-          height = MAX_HEIGHT;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      ctx.drawImage(img, 0, 0, width, height);
-
-      // Aquí no es necesario comprimir el thumbnail en exceso si queremos mostrar una imagen más clara
-      return canvas.toDataURL('image/jpeg', 0.1);
-    },
+  
 
 
     downloadImage(base64Image) {
@@ -310,21 +276,17 @@ const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
       { header: '#', key: 'index', width: 5 },
       { header: 'Sucursal', key: 'sucursal', width: 25 },
       { header: 'Guía', key: 'guia', width: 25 },
-      { header: 'Código de Barras', key: 'codigo_barras', width: 30 },
-      { header: 'Peso (Kg)', key: 'peso', width: 15 },
-      { header: 'Remitente', key: 'remitente', width: 25 },
-      { header: 'Dirección', key: 'direccion', width: 35 },
-      { header: 'Teléfono', key: 'telefono', width: 20 },
+    
       { header: 'Contenido', key: 'contenido', width: 25 },
       { header: 'Firma Destinatario', key: 'firma_destinatario', width: 30 },
-      { header: 'Fecha de Solicitud', key: 'fecha', width: 20 },
-      { header: 'Destinatario', key: 'destinatario', width: 25 },
-      { header: 'Teléfono Destinatario', key: 'telefono_destinatario', width: 20 },
-      { header: 'Dirección Destinatario', key: 'direccion_destinatario', width: 35 },
-      { header: 'Ciudad', key: 'ciudad', width: 20 },
-      { header: 'Zona', key: 'zona', width: 20 },
-      { header: 'Precio (Bs)', key: 'precio', width: 15 },
+      { header: 'Fecha de Envio', key: 'fecha', width: 20 },
+    
+      { header: 'Peso (Kg)', key: 'peso', width: 15 },
       { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
+      { header: 'Precio (Bs)', key: 'precio', width: 15 },
+      { header: 'Firma (Bs)', key: '', width: 20 },
+
+
     ];
 
     worksheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
@@ -350,33 +312,13 @@ const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
         index: i + 1,
         sucursal: m.sucursale.nombre,
         guia: m.guia,
-        peso: m.peso_o,
-        remitente: m.remitente,
-        direccion: m.direccion_especifica,
-        telefono: m.telefono,
+        peso: m.peso_r ? m.peso_r : m.peso_v,  // Aquí aplicas la misma lógica
+      
         contenido: m.contenido,
-        fecha: m.fecha,
-        destinatario: m.destinatario,
-        telefono_destinatario: m.telefono_d,
-        direccion_destinatario: m.direccion_especifica_d,
-        ciudad: m.ciudad,
-        zona: m.zona_d,
+        fecha: m.fecha_recojo_c,
         precio: m.nombre_d,
         fecha_entrega: m.fecha_d,
       });
-
-      // Agregar la imagen del código de barras si está presente
-      if (m.codigo_barras) {
-        const barcodeId = workbook.addImage({
-          base64: m.codigo_barras,
-          extension: 'png',
-        });
-
-        worksheet.addImage(barcodeId, {
-          tl: { col: 3, row: row.number - 1 },
-          ext: { width: 125, height: 30 }
-        });
-      }
 
       // Sumar el precio al total
       totalPrice += parseFloat(m.nombre_d) || 0;
@@ -390,7 +332,7 @@ const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
 
         worksheet.addImage(signatureId, {
           tl: { col: 9, row: row.number - 1 },
-          ext: { width: 150, height: 40 }
+          ext: { width: 120, height: 30 }
         });
       }
 

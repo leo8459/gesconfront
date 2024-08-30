@@ -85,7 +85,7 @@
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
-                    <td class="py-0 px-1">{{ m.peso_v }}</td>
+                    <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
                     <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
                     <td class="py-0 px-1">{{ m.direccion.zona }}</td>
@@ -449,7 +449,7 @@ export default {
   ];
 
   // Merging cells to create the "Envío" header spanning multiple columns
-  worksheet.mergeCells('A1:N1'); 
+  worksheet.mergeCells('A1:M1'); 
   worksheet.getCell('B1').value = 'Envío'; 
   worksheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle' }; 
   worksheet.getCell('B1').font = { bold: true, size: 14 }; 
@@ -473,7 +473,7 @@ export default {
   worksheet.getRow(2).getCell(12).value = 'Precio (Bs)';
   worksheet.getRow(2).getCell(13).value = 'Servicio';
 
-  worksheet.mergeCells('O1:R1'); 
+  worksheet.mergeCells('N1:R1'); 
   worksheet.getCell('O1').value = 'Entrega'; 
   worksheet.getCell('O1').alignment = { horizontal: 'center', vertical: 'middle' }; 
   worksheet.getCell('O1').font = { bold: true, size: 14 }; 
@@ -483,8 +483,8 @@ export default {
       fgColor: { argb: '891113' }
   };
 
-  worksheet.getRow(2).getCell(14).value = 'Fecha y hora';
-  worksheet.getRow(2).getCell(15).value = 'Entregado';
+  worksheet.getRow(2).getCell(14).value = 'Fecha y hora Entrega';
+  worksheet.getRow(2).getCell(15).value = 'Entregado a';
   worksheet.getRow(2).getCell(16).value = 'Cartero';
   worksheet.getRow(2).getCell(17).value = 'Observaciones';
 
