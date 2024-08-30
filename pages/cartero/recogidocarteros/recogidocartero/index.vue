@@ -125,39 +125,25 @@
       </div>
     </AdminTemplate>
 
-    <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-footer hide-backdrop @shown="focusPesoInput">
-  <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-    <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+     <!-- Modal para añadir peso_v -->
+     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer @shown="focusPesoInput">
+      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
 
-    <!-- Campo de entrada con ref para enfoque directo -->
-    <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
-    <input 
-      type="text" 
-      :id="'peso_v-' + item.id" 
-      v-model="item.peso_v" 
-      class="form-control"
-      @input="updatePrice(item)" 
-      placeholder="000.001" 
-      step="0.001" 
-      min="0.001" 
-      ref="pesoInput" />
+        <!-- Campo de entrada con ref para enfoque directo -->
+        <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
+        <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control"
+          @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" ref="pesoInput" />
 
-    <!-- Campo oculto para nombre_d -->
-    <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
-    <input 
-      type="text" 
-      :id="'nombre_d-' + item.id" 
-      v-model="item.nombre_d" 
-      class="form-control d-none" 
-      readonly />
-  </div>
-  <div class="d-flex justify-content-end">
-    <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-
-    <button class="btn btn-primary" @click="confirmAssignSelected">Asignar</button>
-  </div>
-</b-modal>
+        <!-- Campo oculto para nombre_d -->
+        <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
+        <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
+        <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
+      </div>
+    </b-modal>
 
 
 
@@ -261,12 +247,16 @@ export default {
       }
     },
     getTarifaLabel(tarifa_id) {
-      if (!this.tarifas) {
-        return 'Tarifas no cargadas';
-      }
-      const tarifa = this.tarifas.find(t => t.id === tarifa_id);
-      return tarifa ? tarifa.departamento : 'Tarifa no encontrada';
-    },
+  if (!this.tarifas || this.tarifas.length === 0) {
+    return 'Tarifas no cargadas';
+  }
+  const tarifa = this.tarifas.find(t => t.id === tarifa_id);
+  if (!tarifa) {
+    console.error(`Tarifa con ID ${tarifa_id} no encontrada.`);
+    return 'Tarifa no encontrada';
+  }
+  return tarifa.departamento;
+},
     calculatePrice(tarifa_id, peso_v) {
       const tarifa = this.tarifas.find(t => t.id === tarifa_id);
       if (tarifa) {
