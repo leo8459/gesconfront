@@ -427,68 +427,111 @@ export default {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
 
+  // Cargar la imagen usando la ruta correcta
+  const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
+  
+  // Añadir la imagen en la parte superior
+  const imageId = workbook.addImage({
+    base64: base64Image,
+    extension: 'png',
+  });
+
+  worksheet.addImage(imageId, {
+    tl: { col: 0, row: 0 }, // Posición superior izquierda
+    ext: { width: 1000, height: 150 } // Ajusta el ancho y la altura según sea necesario
+  });
+
+  // Insertar filas en blanco debajo de la imagen
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+  worksheet.addRow([]);
+
+  // Añadir la información en la parte superior del Excel
+  worksheet.mergeCells('A11:B11');
+  worksheet.getCell('A11').value = 'ORIGEN:';
+  worksheet.getCell('C11').value = filteredData[0]?.sucursale?.origen || 'N/A';
+
+  worksheet.mergeCells('A12:B12');
+  worksheet.getCell('A12').value = 'SERVICIO:';
+  worksheet.getCell('C12').value = filteredData[0]?.tarifa?.servicio || 'N/A';
+
+  worksheet.mergeCells('A13:B13');
+  worksheet.getCell('A13').value = 'CLIENTE:';
+  worksheet.getCell('C13').value = filteredData[0]?.sucursale?.nombre || 'N/A';
+
+  worksheet.mergeCells('A14:B14');
+  worksheet.getCell('A14').value = 'PERIODO:';
+  worksheet.getCell('C14').value = `${filteredData[0]?.fecha_recojo_c || 'N/A'} - ${filteredData[0]?.fecha_d || 'N/A'}`;
+
   // Define las columnas
   worksheet.columns = [
-    { header: '#', key: 'index', width: 5 },
-    { header: 'Fecha de Envio', key: 'fecha', width: 20 },
-    { header: 'Numero de envio', key: 'guia', width: 20 },
-    { header: 'Ciudad', key: 'sucursal_origen', width: 20 },
-    { header: 'Rural', key: 'municipio', width: 30 },
-    { header: 'Local', key: 'local', width: 30 },
-    { header: 'Departamento/Servicio', key: 'servicio', width: 20 },
-    { header: 'Ciudad', key: 'ciudad', width: 15 },
-    { header: 'Zona', key: 'zona', width: 20 },
-    { header: 'Contenido', key: 'contenido', width: 20 },
-    { header: 'Peso (Kg)', key: 'peso', width: 10 },
-    { header: 'Precio (Bs)', key: 'precio', width: 10 },
-    { header: 'Servicio', key: 'servicioT', width: 10 },
-    { header: 'Fecha y hora', key: 'fecha_entrega', width: 20 },
-    { header: 'Entregado', key: 'destinatario', width: 20 },
-    { header: 'Cartero', key: 'cartero', width: 20 },
-    { header: 'Observaciones', key: 'observacion', width: 25 },
+    { header: '', key: 'index', width: 5 },
+    { header: '', key: 'fecha', width: 20 },
+    { header: '', key: 'guia', width: 20 },
+    { header: '', key: 'sucursal_origen', width: 20 },
+    { header: '', key: 'municipio', width: 30 },
+    { header: '', key: 'local', width: 30 },
+    { header: '', key: 'servicio', width: 20 },
+    { header: '', key: 'ciudad', width: 15 },
+    { header: '', key: 'zona', width: 20 },
+    { header: '', key: 'contenido', width: 20 },
+    { header: '', key: 'peso', width: 10 },
+    { header: '', key: 'precio', width: 10 },
+    { header: '', key: 'servicioT', width: 10 },
+    { header: '', key: 'fecha_entrega', width: 20 },
+    { header: '', key: 'destinatario', width: 20 },
+    { header: '', key: 'cartero', width: 20 },
+    { header: '', key: 'observacion', width: 25 },
   ];
 
   // Merging cells to create the "Envío" header spanning multiple columns
-  worksheet.mergeCells('A1:M1'); 
-  worksheet.getCell('B1').value = 'Envío'; 
-  worksheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle' }; 
-  worksheet.getCell('B1').font = { bold: true, size: 14 }; 
-  worksheet.getCell('B1').fill = { 
+  worksheet.mergeCells('A16:M16'); 
+  worksheet.getCell('B16').value = 'Envío'; 
+  worksheet.getCell('B16').alignment = { horizontal: 'center', vertical: 'middle' }; 
+  worksheet.getCell('B16').font = { bold: true, size: 14 }; 
+  worksheet.getCell('B16').fill = { 
       type: 'pattern',
       pattern: 'solid',
       fgColor: { argb: '32FF0E' } // Color verde para toda la celda
   };
 
-  worksheet.getRow(2).getCell(1).value = '#';
-  worksheet.getRow(2).getCell(2).value = 'Fecha de Envio';
-  worksheet.getRow(2).getCell(3).value = 'Numero de envio';
-  worksheet.getRow(2).getCell(4).value = 'Ciudad';
-  worksheet.getRow(2).getCell(5).value = 'Rural';
-  worksheet.getRow(2).getCell(6).value = 'Local';
-  worksheet.getRow(2).getCell(7).value = 'Ciudad';
-  worksheet.getRow(2).getCell(8).value = 'Rural';
-  worksheet.getRow(2).getCell(9).value = 'Local';
-  worksheet.getRow(2).getCell(10).value = 'Contenido';
-  worksheet.getRow(2).getCell(11).value = 'Peso (Kg)';
-  worksheet.getRow(2).getCell(12).value = 'Precio (Bs)';
-  worksheet.getRow(2).getCell(13).value = 'Servicio';
+  worksheet.getRow(17).getCell(1).value = '#';
+  worksheet.getRow(17).getCell(2).value = 'Fecha de Envio';
+  worksheet.getRow(17).getCell(3).value = 'Numero de envio';
+  worksheet.getRow(17).getCell(4).value = 'Ciudad';
+  worksheet.getRow(17).getCell(5).value = 'Rural';
+  worksheet.getRow(17).getCell(6).value = 'Local';
+  worksheet.getRow(17).getCell(7).value = 'Ciudad';
+  worksheet.getRow(17).getCell(8).value = 'Rural';
+  worksheet.getRow(17).getCell(9).value = 'Local';
+  worksheet.getRow(17).getCell(10).value = 'Contenido';
+  worksheet.getRow(17).getCell(11).value = 'Peso (Kg)';
+  worksheet.getRow(17).getCell(12).value = 'Precio (Bs)';
+  worksheet.getRow(17).getCell(13).value = 'Servicio';
 
-  worksheet.mergeCells('N1:R1'); 
-  worksheet.getCell('O1').value = 'Entrega'; 
-  worksheet.getCell('O1').alignment = { horizontal: 'center', vertical: 'middle' }; 
-  worksheet.getCell('O1').font = { bold: true, size: 14 }; 
-  worksheet.getCell('O1').fill = { 
+  worksheet.mergeCells('N16:R16'); 
+  worksheet.getCell('O16').value = 'Entrega'; 
+  worksheet.getCell('O16').alignment = { horizontal: 'center', vertical: 'middle' }; 
+  worksheet.getCell('O16').font = { bold: true, size: 14 }; 
+  worksheet.getCell('O16').fill = { 
       type: 'pattern',
       pattern: 'solid',
       fgColor: { argb: '891113' }
   };
 
-  worksheet.getRow(2).getCell(14).value = 'Fecha y hora Entrega';
-  worksheet.getRow(2).getCell(15).value = 'Entregado a';
-  worksheet.getRow(2).getCell(16).value = 'Cartero';
-  worksheet.getRow(2).getCell(17).value = 'Observaciones';
+  worksheet.getRow(17).getCell(14).value = 'Fecha y hora Entrega';
+  worksheet.getRow(17).getCell(15).value = 'Entregado a';
+  worksheet.getRow(17).getCell(16).value = 'Cartero';
+  worksheet.getRow(17).getCell(17).value = 'Observaciones';
 
-  worksheet.getRow(1).eachCell({ includeEmpty: true }, function(cell) {
+  worksheet.getRow(16).eachCell({ includeEmpty: true }, function(cell) {
     cell.border = {
         top: { style: 'thin' },
         left: { style: 'thin' },
@@ -497,7 +540,7 @@ export default {
     };
   });
 
-  worksheet.getRow(2).eachCell({ includeEmpty: true }, function(cell) {
+  worksheet.getRow(17).eachCell({ includeEmpty: true }, function(cell) {
     cell.border = {
         top: { style: 'thin' },
         left: { style: 'thin' },
@@ -592,93 +635,67 @@ export default {
     precio: '' + totalDiscount.toFixed(2) + ' Bs', 
   });
 
-      // Añadir fila de total de retención justo debajo del total de descuento
-      const totalRetentionRow = worksheet.addRow({
-        zona: 'Total Retención: ', // Etiqueta vacía para mantener la alineación
-        precio: '' + totalRetention.toFixed(2) + ' Bs', // Total de retención
-      });
+  // Añadir fila de total de retención justo debajo del total de descuento
+  const totalRetentionRow = worksheet.addRow({
+    zona: 'Total Retención: ', // Etiqueta vacía para mantener la alineación
+    precio: '' + totalRetention.toFixed(2) + ' Bs', // Total de retención
+  });
 
-      // Estilizar las filas de totales
-      [totalRow, totalDiscountRow, totalRetentionRow].forEach(row => {
-        row.eachCell({ includeEmpty: true }, function (cell, colNumber) {
-          if (colNumber === 1) {
-            cell.font = { bold: true };
-            cell.alignment = { horizontal: 'right' };
-          }
-          if ([11, 12, 13, 14, 15].includes(colNumber)) { // Resaltar los totales de precio, descuento, y retención
-            cell.font = { bold: true };
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: 'FFFFFF' }
-            };
-            cell.border = {
-              top: { style: 'thick' },
-              left: { style: 'thick' },
-              bottom: { style: 'thick' },
-              right: { style: 'thick' }
-            };
-          }
-        });
-      });
+  // Estilizar las filas de totales
+  [totalRow, totalDiscountRow, totalRetentionRow].forEach(row => {
+    row.eachCell({ includeEmpty: true }, function (cell, colNumber) {
+      if (colNumber === 1) {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: 'right' };
+      }
+      if ([11, 12, 13, 14, 15].includes(colNumber)) { // Resaltar los totales de precio, descuento, y retención
+        cell.font = { bold: true };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFFF' }
+        };
+        cell.border = {
+          top: { style: 'thick' },
+          left: { style: 'thick' },
+          bottom: { style: 'thick' },
+          right: { style: 'thick' }
+        };
+      }
+    });
+  });
 
-      worksheet.eachRow({ includeEmpty: true }, function (row) {
-        row.height = 15;
-      });
-// Después de las filas de total
-const rowCount = worksheet.rowCount;
+  worksheet.eachRow({ includeEmpty: true }, function (row) {
+    row.height = 15;
+  });
 
-// Añadir 4 filas en blanco antes de la nueva información
-for (let i = 0; i < 4; i++) {
-  worksheet.addRow([]);
-}
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'Solicitudes_Entregadas.xlsx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+},
 
-// Añadir la información de la imagen centrada
-const finalRow = rowCount + 5;
-
-worksheet.mergeCells(`A${finalRow}:Q${finalRow}`);
-worksheet.getCell(`A${finalRow}`).value = 'Rodrigo L. Alquez Chavez                                                               Willians David Chavez Ticona';
-worksheet.getCell(`A${finalRow}`).alignment = { horizontal: 'center', vertical: 'middle' };
-worksheet.getCell(`A${finalRow}`).font = { bold: true };
-
-worksheet.mergeCells(`A${finalRow + 1}:Q${finalRow + 1}`);
-worksheet.getCell(`A${finalRow + 1}`).value = 'AUX. DE CONTRATOS                                                                     ENCARGADO DE CONTRATOS';
-worksheet.getCell(`A${finalRow + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
-worksheet.getCell(`A${finalRow + 1}`).font = { bold: true };
-
-worksheet.mergeCells(`A${finalRow + 2}:Q${finalRow + 2}`);
-worksheet.getCell(`A${finalRow + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS                                                        AGENCIA BOLIVIANA DE CORREOS';
-worksheet.getCell(`A${finalRow + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
-worksheet.getCell(`A${finalRow + 2}`).font = { bold: true };
-
-// Ajustar el ancho de las filas si es necesario
-worksheet.getRow(finalRow).height = 20;
-worksheet.getRow(finalRow + 1).height = 20;
-worksheet.getRow(finalRow + 2).height = 20;
-
-// Resto del código
-worksheet.eachRow({ includeEmpty: true }, function (row) {
-  row.height = 15;
-});
-
-const buffer = await workbook.xlsx.writeBuffer();
-const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-const link = document.createElement('a');
-link.href = URL.createObjectURL(blob);
-link.download = 'Solicitudes_Entregadas.xlsx';
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-    }
-
-
-
-
-
-    ,
-
-
-
+async loadImageAsBase64(path) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.crossOrigin = 'Anonymous'; // Permite cargar imágenes incluso si están en un servidor diferente
+      image.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0);
+        const dataURL = canvas.toDataURL('image/png');
+        resolve(dataURL.replace(/^data:image\/(png|jpg);base64,/, ""));
+      };
+      image.onerror = reject;
+      image.src = path; // Aquí es donde usas la ruta de la imagen
+    });
+  }
 
 
 

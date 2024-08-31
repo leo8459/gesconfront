@@ -4,6 +4,9 @@ php artisan make:model Seccion -rm --api
 php artisan migrate --path=/database/migrations/2024_06_07_135921_create_solicitudes_table.php
 
 
+'/pages/admin/img/logo.png'
+
+
 
 <div class="form-group col-12">
                       <label for="firma_o">Firma Origen</label>
