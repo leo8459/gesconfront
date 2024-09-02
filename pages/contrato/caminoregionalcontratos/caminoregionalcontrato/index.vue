@@ -3,6 +3,11 @@
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
+        <div class="row justify-content-end mb-3">
+          <div class="col-3">
+            <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
+          </div>
+        </div>
         <!-- Filtros en una sola línea -->
         <div class="row mb-3">
           <!-- Filtro Sucursal -->
@@ -71,11 +76,7 @@
         </div>
 
         <!-- Filtro de Búsqueda -->
-        <div class="row justify-content-end mb-3">
-          <div class="col-3">
-            <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
-          </div>
-        </div>
+       
 
         <!-- Tabla de Resultados -->
         <div class="row">
@@ -87,107 +88,32 @@
                   <tr>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Cartero Recogida</th>
-                    <th class="py-0 px-1">Cartero Entrega</th>
+                   
                     <th class="py-0 px-1">Guia</th>
-                    <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Detalles de Domicilio</th>
-                    <th class="py-0 px-1">Zona</th>
-                    <th class="py-0 px-1">Dirección Maps</th>
-                    <th class="py-0 px-1">Teléfono</th>
+                  
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha</th>
                     <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono D</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Zona</th>
-                    <th class="py-0 px-1">Ciudad/Provincia</th>
-                    <th class="py-0 px-1">Firma Destinatario</th>
+                   
                     <th class="py-0 px-1">Precio (Bs)</th>
-                    <th class="py-0 px-1">Fecha de Entrega</th>
-                    <th class="py-0 px-1">Imagen Capturada</th>
-                    <th class="py-0 px-1">Justificación</th>
-                    <th class="py-0 px-1">Imagen Justificación</th>
-                    <th class="py-0 px-1">Fecha Devolución</th>
-                    <th class="py-0 px-1">Imagen Devolución</th>
-                    <th class="py-0 px-1"></th>
+
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(m, i) in paginatedData" :key="m.id">
                     <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
                     <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-                    <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
-                    <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
+                   
                     <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
+                    
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
-                    </td>
+                   
                     <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                    <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>
-                    <td class="py-0 px-1">{{ m.justificacion }}</td>
-                    <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                        <button v-if="m.imagen_justificacion" @click="downloadImage(m.imagen_justificacion)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>
-                    <td class="py-0 px-1">{{ m.fecha_devolucion }}</td>
-                    <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                        <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>
-                    <td class="py-0 px-1">
-                      <div class="btn-group">
-                        <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
-                          <i class="fas fa-ban"></i> Justificar Correspondencia
-                        </nuxtLink>
-                      </div>
-                    </td>
+                    
                   </tr>
                 </tbody>
               </table>
