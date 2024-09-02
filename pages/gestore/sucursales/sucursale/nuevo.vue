@@ -30,11 +30,16 @@
                       </v-select>
                     </div>
 
-                    <div class="form-group col-12">
-                      <label for="">Nombre de sucursal</label>
+                   <div class="form-group col-12">
+                      <label for="">Nombre de sucursal *</label>
                       <input type="text" v-model="model.nombre" class="form-control" id="">
+                      <span v-if="!model.nombre && showErrors" class="text-danger">Inserte el nombre de sucursal por favor</span>
                     </div>
-
+                    <div class="form-group col-12">
+                      <label for="">Sigla *</label>
+                      <input type="text" v-model="model.sigla" class="form-control" id="">
+                      <span v-if="!model.sigla && showErrors" class="text-danger">Inserte la sigla por favor</span>
+                    </div>
 
                     <div class="form-group col-12">
                       <label for="">Numero de contrato</label>

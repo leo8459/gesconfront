@@ -181,7 +181,9 @@ import ExcelJS from 'exceljs';
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 export default {
   name: "IndexPage",
@@ -267,7 +269,84 @@ export default {
   },
   methods: {
 
+    async obtenerSaldoRestanteTodasSucursales() {
+      try {
+        const response = await this.$contratos.$get('/restantessaldo4');
+        console.log('Respuesta de la API:', response);
 
+        if (response && response.length > 0) {
+          const sucursalesConSaldoBajo = response;
+          const cantidadSucursales = sucursalesConSaldoBajo.length;
+
+          // Mostrar la alerta con la cantidad de sucursales
+          const result = await this.$swal.fire({
+            icon: 'warning',
+            title: 'Sucursales con Saldo Bajo',
+            text: `Hay ${cantidadSucursales} sucursales con saldo bajo.`,
+            confirmButtonText: 'Aceptar',
+            showCancelButton: true,
+            cancelButtonText: 'Ver más detalles',
+            customClass: {
+              content: 'text-left'
+            }
+          });
+
+          // Verifica la acción del usuario
+          if (result.dismiss === this.$swal.DismissReason.cancel) {
+            // Si el usuario hizo clic en "Ver más detalles"
+            this.generarPDF(sucursalesConSaldoBajo);
+          }
+        } else {
+          throw new Error('La respuesta de la API no contiene sucursales.');
+        }
+      } catch (e) {
+        console.error('Error al obtener los saldos restantes:', e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo obtener el saldo restante de las sucursales.',
+          confirmButtonText: 'Aceptar'
+        });
+      }
+    },
+
+    generarPDF(sucursales) {
+  const docDefinition = {
+    content: [
+      { text: 'Listado de Sucursales con Saldo Bajo', style: 'header' },
+      {
+        table: {
+          headerRows: 1,
+          widths: ['*', '*', '*', '*', '*'], // Aumentamos el número de columnas
+          body: [
+            ['Sucursal', 'Contacto Administrativo', 'Saldo Restante (Bs)', 'Límite Total (Bs)', 'Porcentaje Restante (%)'],
+            ...sucursales.map(sucursal => [
+              sucursal.sucursal || 'N/A',
+              sucursal.contacto_administrativo || 'N/A', // Proporciona un valor predeterminado si está indefinido
+              sucursal.saldo_restante || 'N/A',
+              sucursal.limite_total || 'N/A',
+              sucursal.saldo_restante && sucursal.limite_total
+                ? ((sucursal.saldo_restante / sucursal.limite_total) * 100).toFixed(2) + '%'
+                : 'N/A'
+            ])
+          ]
+        }
+      }
+    ],
+    styles: {
+      header: {
+        fontSize: 18,
+        bold: true,
+        margin: [0, 0, 0, 10]
+      }
+    }
+  };
+
+  pdfMake.createPdf(docDefinition).download('sucursales_saldo_bajo.pdf');
+}
+
+
+,
 
     async exportToPDF() {
       const filteredData = this.list.filter(m => (m.estado === 4 || m.estado === 7) && (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal));
@@ -712,6 +791,7 @@ async loadImageAsBase64(path) {
 
   mounted() {
     this.$nextTick(async () => {
+      await this.obtenerSaldoRestanteTodasSucursales();
       await this.fetchSucursales();
       await this.GET_DATA(this.apiUrl);
       this.load = false;

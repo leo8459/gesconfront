@@ -27,6 +27,9 @@
               <i class="fas fa-file-excel"></i> Exportar a Excel
             </button>
           </div>
+          <div>
+  <p>Saldo restante: {{ saldoRestante }} Bs</p>
+</div>
 
           <div class="col-md-6">
             <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar...">
@@ -160,6 +163,8 @@ export default {
       },
       currentPage: 0,
       itemsPerPage: 10,
+      saldoRestante: null // Nueva variable para almacenar el saldo restante
+
     };
   },
   computed: {
@@ -195,7 +200,38 @@ export default {
   },
   methods: {
   
+    async obtenerSaldoRestante() {
+    try {
+      const sucursaleId = this.user.user.id;
+      const response = await this.$sucursales.$get(`restante2/${sucursaleId}`);
+      this.saldoRestante = response.saldo_restante;
+      
+      // Obtén el límite de la sucursal desde la respuesta
+      const limiteTotal = response.limite_total; // Asegúrate de que este valor se obtenga en la API
 
+      // Calcula el 10% del límite total
+      const diezPorCiento = limiteTotal * 0.1;
+
+      // Mostrar la alerta solo si el saldo restante es menor al 10% del límite total
+      if (this.saldoRestante < diezPorCiento) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Saldo Bajo',
+          text: `El saldo restante para la sucursal es: ${this.saldoRestante} Bs. Esto es menos del 10% de su límite total (${limiteTotal} Bs). ¡Recarga pronto!`,
+          confirmButtonText: 'Aceptar'
+        });
+      }
+
+    } catch (e) {
+      console.error('Error al obtener el saldo restante:', e);
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo obtener el saldo restante.',
+        confirmButtonText: 'Aceptar'
+      });
+    }
+  },
 
     downloadImage(base64Image) {
       const link = document.createElement('a');
@@ -388,14 +424,7 @@ const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }
-
-
-
-
-
-
-,
+  },
 
 
 
@@ -486,6 +515,8 @@ const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
     this.$nextTick(async () => {
       let user = localStorage.getItem('userAuth');
       this.user = JSON.parse(user);
+      await this.obtenerSaldoRestante(); // Llamar a la función al montar el componente
+
       try {
         const data = await this.GET_DATA(this.apiUrl);
         if (Array.isArray(data)) {
