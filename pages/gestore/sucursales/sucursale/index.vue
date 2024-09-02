@@ -167,45 +167,57 @@ export default {
   },
   methods: {
     async obtenerSaldoRestanteTodasSucursales() {
-      try {
-        const response = await this.$gestores.$get('/restantessaldo3');
-        console.log('Respuesta de la API:', response);
+    try {
+      // Obtener la fecha de la última vez que se mostró la alerta desde el localStorage
+      const lastAlertDate = localStorage.getItem('lastAlertDate');
+      const today = new Date().toLocaleDateString();
 
-        if (response && response.length > 0) {
-          const sucursalesConSaldoBajo = response;
-          const cantidadSucursales = sucursalesConSaldoBajo.length;
-
-          // Mostrar la alerta con la cantidad de sucursales
-          const result = await this.$swal.fire({
-            icon: 'warning',
-            title: 'Sucursales con Saldo Bajo',
-            text: `Hay ${cantidadSucursales} sucursales con saldo bajo.`,
-            confirmButtonText: 'Aceptar',
-            showCancelButton: true,
-            cancelButtonText: 'Ver más detalles',
-            customClass: {
-              content: 'text-left'
-            }
-          });
-
-          // Verifica la acción del usuario
-          if (result.dismiss === this.$swal.DismissReason.cancel) {
-            // Si el usuario hizo clic en "Ver más detalles"
-            this.generarPDF(sucursalesConSaldoBajo);
-          }
-        } else {
-          throw new Error('La respuesta de la API no contiene sucursales.');
-        }
-      } catch (e) {
-        console.error('Error al obtener los saldos restantes:', e);
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo obtener el saldo restante de las sucursales.',
-          confirmButtonText: 'Aceptar'
-        });
+      // Si la alerta ya fue mostrada hoy, no hacer nada
+      if (lastAlertDate === today) {
+        return;
       }
-    },
+
+      const response = await this.$gestores.$get('/restantessaldo3');
+      console.log('Respuesta de la API:', response);
+
+      if (response && response.length > 0) {
+        const sucursalesConSaldoBajo = response;
+        const cantidadSucursales = sucursalesConSaldoBajo.length;
+
+        // Mostrar la alerta con la cantidad de sucursales
+        const result = await this.$swal.fire({
+          icon: 'warning',
+          title: 'Sucursales con Saldo Bajo',
+          text: `Hay ${cantidadSucursales} sucursales con saldo bajo.`,
+          confirmButtonText: 'Aceptar',
+          showCancelButton: true,
+          cancelButtonText: 'Ver más detalles',
+          customClass: {
+            content: 'text-left'
+          }
+        });
+
+        // Verifica la acción del usuario
+        if (result.dismiss === this.$swal.DismissReason.cancel) {
+          // Si el usuario hizo clic en "Ver más detalles"
+          this.generarPDF(sucursalesConSaldoBajo);
+        }
+
+        // Guardar la fecha de hoy en el localStorage para evitar que la alerta se muestre nuevamente hoy
+        localStorage.setItem('lastAlertDate', today);
+      } else {
+        throw new Error('La respuesta de la API no contiene sucursales.');
+      }
+    } catch (e) {
+      console.error('Error al obtener los saldos restantes:', e);
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo obtener el saldo restante de las sucursales.',
+        confirmButtonText: 'Aceptar'
+      });
+    }
+  },
 
     generarPDF(sucursales) {
   const docDefinition = {

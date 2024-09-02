@@ -202,24 +202,32 @@ export default {
   
     async obtenerSaldoRestante() {
     try {
+      const lastAlertDate = localStorage.getItem('lastAlertDate');
+      const today = new Date().toLocaleDateString();
+
+      // Si la alerta ya fue mostrada hoy, no hacer nada
+      if (lastAlertDate === today) {
+        return;
+      }
+
       const sucursaleId = this.user.user.id;
       const response = await this.$sucursales.$get(`restante2/${sucursaleId}`);
       this.saldoRestante = response.saldo_restante;
-      
-      // Obtén el límite de la sucursal desde la respuesta
-      const limiteTotal = response.limite_total; // Asegúrate de que este valor se obtenga en la API
 
-      // Calcula el 10% del límite total
+      const limiteTotal = response.limite_total;
+
       const diezPorCiento = limiteTotal * 0.1;
 
-      // Mostrar la alerta solo si el saldo restante es menor al 10% del límite total
       if (this.saldoRestante < diezPorCiento) {
         this.$swal.fire({
           icon: 'warning',
           title: 'Saldo Bajo',
-          text: `El saldo restante para la sucursal es: ${this.saldoRestante} Bs. Esto es menos del 10% de su límite total (${limiteTotal} Bs). ¡Recarga pronto!`,
+          text: `El saldo restante para la sucursal es: ${this.saldoRestante} Bs. Esto es menos del 10% de su límite total (${limiteTotal} Bs). Comunicate con la AGBC pronto!`,
           confirmButtonText: 'Aceptar'
         });
+
+        // Guardar la fecha actual en localStorage para evitar mostrar la alerta más de una vez al día
+        localStorage.setItem('lastAlertDate', today);
       }
 
     } catch (e) {
