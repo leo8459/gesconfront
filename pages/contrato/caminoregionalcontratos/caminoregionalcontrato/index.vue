@@ -3,23 +3,8 @@
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
-        <!-- Filtros -->
-        <div class="row justify-content-end mb-3">
-          <div class="col-3">
-            <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
-          </div>
-        </div>
-        <div class="row justify-content-end mb-3">
-          <!-- Filtro Fecha Inicio -->
-          <div class="col-md-3">
-            <label for="startDate" class="form-label">Fecha Inicio</label>
-            <input v-model="startDate" type="date" id="startDate" class="form-control" />
-          </div>
-          <!-- Filtro Fecha Fin -->
-          <div class="col-md-3">
-            <label for="endDate" class="form-label">Fecha Fin</label>
-            <input v-model="endDate" type="date" id="endDate" class="form-control" />
-          </div>
+        <!-- Filtros en una sola línea -->
+        <div class="row mb-3">
           <!-- Filtro Sucursal -->
           <div class="col-md-2">
             <label for="sucursal" class="form-label">Sucursal</label>
@@ -30,43 +15,65 @@
               </option>
             </select>
           </div>
-          <div class="form-group col-12">
-  <label for="origen">Departamento de la sucursal</label>
-  <select v-model="selectedOrigen" class="form-control" id="origen">
-    <option value="">Todos</option>
-    <option value="LPB">La Paz (LPB)</option>
-    <option value="SRZ">Santa Cruz (SRZ)</option>
-    <option value="CBB">Cochabamba (CBB)</option>
-    <option value="ORU">Oruro (ORU)</option>
-    <option value="PTI">Potosí (PTI)</option>
-    <option value="TJA">Tarija (TJA)</option>
-    <option value="SRE">Sucre (SRE)</option>
-    <option value="BEN">Trinidad (TDD)</option>
-    <option value="CIJ">Cobija (CIJ)</option>
-  </select>
-</div>
 
-<div class="form-group col-12">
-  <label for="departamento">Departamento de envío</label>
-  <select v-model="selectedDepartamento" class="form-control" id="departamento">
-    <option value="">Todos</option>
-    <option value="LPB">La Paz (LPB)</option>
-    <option value="SRZ">Santa Cruz (SRZ)</option>
-    <option value="CBB">Cochabamba (CBB)</option>
-    <option value="ORU">Oruro (ORU)</option>
-    <option value="PTI">Potosí (PTI)</option>
-    <option value="TJA">Tarija (TJA)</option>
-    <option value="SRE">Sucre (SRE)</option>
-    <option value="BEN">Trinidad (TDD)</option>
-    <option value="CIJ">Cobija (CIJ)</option>
-  </select>
-</div>
+          <!-- Filtro Departamento de la Sucursal -->
+          <div class="col-md-2">
+            <label for="origen" class="form-label">Departamento de la sucursal</label>
+            <select v-model="selectedOrigen" class="form-control" id="origen">
+              <option value="">Todos</option>
+              <option value="LPB">La Paz (LPB)</option>
+              <option value="SRZ">Santa Cruz (SRZ)</option>
+              <option value="CBB">Cochabamba (CBB)</option>
+              <option value="ORU">Oruro (ORU)</option>
+              <option value="PTI">Potosí (PTI)</option>
+              <option value="TJA">Tarija (TJA)</option>
+              <option value="SRE">Sucre (SRE)</option>
+              <option value="BEN">Trinidad (TDD)</option>
+              <option value="CIJ">Cobija (CIJ)</option>
+            </select>
+          </div>
 
-          <!-- Botón Generar Reporte -->
+          <!-- Filtro Departamento de Envío -->
+          <div class="col-md-2">
+            <label for="departamento" class="form-label">Departamento de envío</label>
+            <select v-model="selectedDepartamento" class="form-control" id="departamento">
+              <option value="">Todos</option>
+              <option value="LPB">La Paz (LPB)</option>
+              <option value="SRZ">Santa Cruz (SRZ)</option>
+              <option value="CBB">Cochabamba (CBB)</option>
+              <option value="ORU">Oruro (ORU)</option>
+              <option value="PTI">Potosí (PTI)</option>
+              <option value="TJA">Tarija (TJA)</option>
+              <option value="SRE">Sucre (SRE)</option>
+              <option value="BEN">Trinidad (TDD)</option>
+              <option value="CIJ">Cobija (CIJ)</option>
+            </select>
+          </div>
+
+          <!-- Filtro Fecha Inicio -->
+          <div class="col-md-2">
+            <label for="startDate" class="form-label">Fecha Inicio</label>
+            <input v-model="startDate" type="date" id="startDate" class="form-control" />
+          </div>
+
+          <!-- Filtro Fecha Fin -->
+          <div class="col-md-2">
+            <label for="endDate" class="form-label">Fecha Fin</label>
+            <input v-model="endDate" type="date" id="endDate" class="form-control" />
+          </div>
+
+          <!-- Botón Generar Reporte en PDF -->
           <div class="col-md-2 d-flex align-items-end">
-            <button @click="exportToExcel" class="btn btn-success btn-sm w-100">
-              <i class="fas fa-file-excel"></i> Generar Reporte
+            <button @click="exportToPDF" class="btn btn-danger btn-sm w-100">
+              <i class="fas fa-file-pdf"></i> Generar Reporte en PDF
             </button>
+          </div>
+        </div>
+
+        <!-- Filtro de Búsqueda -->
+        <div class="row justify-content-end mb-3">
+          <div class="col-3">
+            <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
           </div>
         </div>
 
@@ -75,6 +82,7 @@
           <div class="col-12">
             <div class="table-responsive">
               <table class="table table-sm table-bordered">
+                <!-- Aquí va la estructura de tu tabla con los resultados -->
                 <thead>
                   <tr>
                     <th class="py-0 px-1">#</th>
@@ -87,7 +95,7 @@
                     <th class="py-0 px-1">Remitente</th>
                     <th class="py-0 px-1">Detalles de Domicilio</th>
                     <th class="py-0 px-1">Zona</th>
-                    <th class="py-0 px-1">Dirección maps</th>
+                    <th class="py-0 px-1">Dirección Maps</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
                     <th class="py-0 px-1">Fecha</th>
@@ -100,10 +108,10 @@
                     <th class="py-0 px-1">Precio (Bs)</th>
                     <th class="py-0 px-1">Fecha de Entrega</th>
                     <th class="py-0 px-1">Imagen Capturada</th>
-                    <th class="py-0 px-1">Justificacion</th>
-                    <th class="py-0 px-1">Imagen Justificacion</th>
-                    <th class="py-0 px-1">Fecha devolucion</th>
-                    <th class="py-0 px-1">Imagen devolucion</th>
+                    <th class="py-0 px-1">Justificación</th>
+                    <th class="py-0 px-1">Imagen Justificación</th>
+                    <th class="py-0 px-1">Fecha Devolución</th>
+                    <th class="py-0 px-1">Imagen Devolución</th>
                     <th class="py-0 px-1"></th>
                   </tr>
                 </thead>
@@ -398,64 +406,7 @@ export default {
 
 ,
 
-    async exportToPDF() {
-      const filteredData = this.list.filter(m => (m.estado === 8 || m.estado === 9) && (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal));
-
-      if (filteredData.length === 0) {
-        Swal.fire({
-          icon: 'info',
-          title: 'Sin datos',
-          text: 'No hay datos disponibles para los criterios seleccionados.',
-        });
-        return;
-      }
-
-      const doc = new jsPDF('portrait', 'mm', 'a4');
-
-      filteredData.forEach((m, index) => {
-        // Título del documento
-        doc.setFontSize(14);
-        doc.text(`Solicitud ${index + 1}`, 105, 15, null, null, 'center');
-
-        // Datos de la solicitud
-        const rows = [
-          ['Fecha de Solicitud', m.fecha_recojo_c || 'N/A'],
-          ['Guía', m.guia || 'N/A'],
-          ['Sucursal', m.sucursale?.nombre || 'N/A'],
-          ['Dirección', m.direccion_especifica || 'N/A'],
-          ['Departamento/Servicio', m.tarifa?.departamento || 'N/A'],
-          ['Ciudad', m.ciudad || 'N/A'],
-          ['Zona', m.zona_d || 'N/A'],
-          ['Contenido', m.contenido || 'N/A'],
-          ['Peso (Kg)', (m.peso_v && !isNaN(m.peso_v)) ? parseFloat(m.peso_v).toFixed(2) : 'N/A'],
-          ['Precio (Bs)', (m.nombre_d && !isNaN(m.nombre_d)) ? parseFloat(m.nombre_d).toFixed(2) : 'N/A'],
-          ['Fecha de Entrega', m.fecha_d || 'N/A'],
-          ['Destinatario', m.destinatario || 'N/A'],
-          ['Nombre del Cartero', m.cartero_entrega?.nombre || 'Por asignar'],
-          ['Observaciones', m.observacion || 'N/A'],
-        ];
-
-        // Dibujar la tabla
-        doc.autoTable({
-          body: rows,
-          startY: 25,
-          margin: { left: 10, right: 10 },
-          styles: {
-            fontSize: 10,
-            cellPadding: 3,
-            overflow: 'linebreak',
-          },
-          theme: 'striped',
-        });
-
-        // Agregar nueva página si no es la última solicitud
-        if (index < filteredData.length - 1) {
-          doc.addPage();
-        }
-      });
-
-      doc.save('Solicitudes_Entregadas.pdf');
-    },
+   
 
 
 
@@ -541,7 +492,7 @@ export default {
 
 
 
-    async exportToExcel() {
+   async exportToExcel() {
   const filteredData = this.filteredData; // Asegúrate de que solo se usen los datos filtrados
 
   if (filteredData.length === 0) {
@@ -654,12 +605,63 @@ export default {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-}
+},
+async exportToPDF() {
+  const filteredData = this.filteredData; // Asegúrate de que solo se usen los datos filtrados
 
+  if (filteredData.length === 0) {
+    Swal.fire({
+      icon: 'info',
+      title: 'Sin datos',
+      text: 'No hay datos disponibles para los criterios seleccionados.',
+    });
+    return;
+  }
 
+  const doc = new jsPDF('portrait', 'mm', 'a4');
+  const logo = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
 
+  // Añadir el logo en la parte superior
+  doc.addImage(logo, 'PNG', 10, 10, 190, 30);
 
-,
+  // Añadir información adicional
+  doc.setFontSize(10);
+  doc.text(`ORIGEN: ${filteredData[0]?.sucursale?.origen || 'N/A'}`, 10, 50);
+  doc.text(`SERVICIO: ${filteredData[0]?.tarifa?.servicio || 'N/A'}`, 10, 55);
+  doc.text(`CLIENTE: ${filteredData[0]?.sucursale?.nombre || 'N/A'}`, 10, 60);
+
+  // Añadir la tabla de datos
+  const columns = [
+    { header: 'Fecha Envio Regional', dataKey: 'fecha_envio_regional' },
+    { header: 'Guía', dataKey: 'guia' },
+    { header: 'Origen', dataKey: 'sucursal_origen' },
+    { header: 'Destino', dataKey: 'departamento' },
+    { header: 'Peso (Kg)', dataKey: 'peso' },
+    { header: 'Cliente', dataKey: 'nombre_sucursal' },
+  ];
+
+  const rows = filteredData.map(m => ({
+    fecha_envio_regional: m.fecha_envio_regional || 'N/A',
+    guia: m.guia || 'N/A',
+    sucursal_origen: m.sucursale?.origen || 'N/A',
+    departamento: m.tarifa?.departamento || 'N/A',
+    peso: m.peso_r || m.peso_v || 'N/A',
+    nombre_sucursal: m.sucursale?.nombre || 'N/A',
+  }));
+
+  doc.autoTable({
+    startY: 70,
+    head: [columns.map(col => col.header)],
+    body: rows.map(row => columns.map(col => row[col.dataKey])),
+    theme: 'grid',
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [0, 0, 139] }, // Color azul para los títulos
+    alternateRowStyles: { fillColor: [240, 240, 240] }, // Color gris claro para filas alternadas
+  });
+
+  // Guardar el PDF
+  doc.save('Solicitudes_Entregadas.pdf');
+},
 
 
 async loadImageAsBase64(path) {

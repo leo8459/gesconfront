@@ -5,6 +5,11 @@
       <div slot="body">
         <!-- Filtros -->
         <div class="row justify-content-end mb-3">
+          <div class="col-md-2 d-flex align-items-end">
+            <button @click="exportToExcel" class="btn btn-success btn-sm w-100">
+              <i class="fas fa-file-excel"></i> Generar Reporte en Excel
+            </button>
+          </div>
           <div class="col-3">
             <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
           </div>
@@ -30,44 +35,40 @@
               </option>
             </select>
           </div>
-          <div class="form-group col-12">
-  <label for="origen">Departamento de la sucursal</label>
-  <select v-model="selectedOrigen" class="form-control" id="origen">
-    <option value="">Todos</option>
-    <option value="LPB">La Paz (LPB)</option>
-    <option value="SRZ">Santa Cruz (SRZ)</option>
-    <option value="CBB">Cochabamba (CBB)</option>
-    <option value="ORU">Oruro (ORU)</option>
-    <option value="PTI">Potosí (PTI)</option>
-    <option value="TJA">Tarija (TJA)</option>
-    <option value="SRE">Sucre (SRE)</option>
-    <option value="BEN">Trinidad (TDD)</option>
-    <option value="CIJ">Cobija (CIJ)</option>
-  </select>
-</div>
-
-<div class="form-group col-12">
-  <label for="departamento">Departamento de envío</label>
-  <select v-model="selectedDepartamento" class="form-control" id="departamento">
-    <option value="">Todos</option>
-    <option value="LPB">La Paz (LPB)</option>
-    <option value="SRZ">Santa Cruz (SRZ)</option>
-    <option value="CBB">Cochabamba (CBB)</option>
-    <option value="ORU">Oruro (ORU)</option>
-    <option value="PTI">Potosí (PTI)</option>
-    <option value="TJA">Tarija (TJA)</option>
-    <option value="SRE">Sucre (SRE)</option>
-    <option value="BEN">Trinidad (TDD)</option>
-    <option value="CIJ">Cobija (CIJ)</option>
-  </select>
-</div>
-
-          <!-- Botón Generar Reporte -->
-          <div class="col-md-2 d-flex align-items-end">
-            <button @click="exportToExcel" class="btn btn-success btn-sm w-100">
-              <i class="fas fa-file-excel"></i> Generar Reporte
-            </button>
+          <!-- Filtro Departamento de la Sucursal -->
+          <div class="col-md-2">
+            <label for="origen" class="form-label">Departamento de la sucursal</label>
+            <select v-model="selectedOrigen" class="form-control" id="origen">
+              <option value="">Todos</option>
+              <option value="LPB">La Paz (LPB)</option>
+              <option value="SRZ">Santa Cruz (SRZ)</option>
+              <option value="CBB">Cochabamba (CBB)</option>
+              <option value="ORU">Oruro (ORU)</option>
+              <option value="PTI">Potosí (PTI)</option>
+              <option value="TJA">Tarija (TJA)</option>
+              <option value="SRE">Sucre (SRE)</option>
+              <option value="BEN">Trinidad (TDD)</option>
+              <option value="CIJ">Cobija (CIJ)</option>
+            </select>
           </div>
+          <!-- Filtro Departamento de Envío -->
+          <div class="col-md-2">
+            <label for="departamento" class="form-label">Departamento de envío</label>
+            <select v-model="selectedDepartamento" class="form-control" id="departamento">
+              <option value="">Todos</option>
+              <option value="LPB">La Paz (LPB)</option>
+              <option value="SRZ">Santa Cruz (SRZ)</option>
+              <option value="CBB">Cochabamba (CBB)</option>
+              <option value="ORU">Oruro (ORU)</option>
+              <option value="PTI">Potosí (PTI)</option>
+              <option value="TJA">Tarija (TJA)</option>
+              <option value="SRE">Sucre (SRE)</option>
+              <option value="BEN">Trinidad (TDD)</option>
+              <option value="CIJ">Cobija (CIJ)</option>
+            </select>
+          </div>
+          <!-- Botón Generar Reporte en Excel -->
+        
         </div>
 
         <!-- Tabla de Resultados -->
@@ -81,7 +82,7 @@
                     <th class="py-0 px-1">Sucursal</th>
                     <th class="py-0 px-1">Cartero Recogida</th>
                     <th class="py-0 px-1">Cartero Entrega</th>
-                    <th class="py-0 px-1">Guia</th>
+                    <th class="py-0 px-1">Guía</th>
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
                     <th class="py-0 px-1">Remitente</th>
@@ -100,10 +101,10 @@
                     <th class="py-0 px-1">Precio (Bs)</th>
                     <th class="py-0 px-1">Fecha de Entrega</th>
                     <th class="py-0 px-1">Imagen Capturada</th>
-                    <th class="py-0 px-1">Justificacion</th>
-                    <th class="py-0 px-1">Imagen Justificacion</th>
-                    <th class="py-0 px-1">Fecha devolucion</th>
-                    <th class="py-0 px-1">Imagen devolucion</th>
+                    <th class="py-0 px-1">Justificación</th>
+                    <th class="py-0 px-1">Imagen Justificación</th>
+                    <th class="py-0 px-1">Fecha devolución</th>
+                    <th class="py-0 px-1">Imagen devolución</th>
                     <th class="py-0 px-1"></th>
                   </tr>
                 </thead>
