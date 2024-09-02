@@ -483,7 +483,11 @@
                 <nuxtLink class="nav-link" to="/contrato/verificadoencargados/verificadoencargado">
                   <span class="sidenav-mini-icon"> Correspondencia Verificada </span>
                   <span class="sidenav-normal"> Correspondencia Verificada</span>
-                </nuxtLink>              
+                </nuxtLink>
+                <nuxtLink class="nav-link" to="/contrato/caminoregionalcontratos/caminoregionalcontrato">
+                  <span class="sidenav-mini-icon"> Despachada </span>
+                  <span class="sidenav-normal"> Despachada </span>
+                </nuxtLink>               
               </li>
             </ul>
           </div>

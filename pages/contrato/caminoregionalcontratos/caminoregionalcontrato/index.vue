@@ -255,36 +255,41 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    const startDate = this.startDate ? new Date(this.startDate) : null;
-    const endDate = this.endDate ? new Date(this.endDate) : null;
+  const searchTerm = this.searchTerm.toLowerCase();
+  const startDate = this.startDate ? new Date(this.startDate) : null;
+  const endDate = this.endDate ? new Date(this.endDate) : null;
 
-    if (endDate) {
-      endDate.setDate(endDate.getDate() + 1);
+  if (endDate) {
+    endDate.setDate(endDate.getDate() + 1);
+  }
+
+  const filtered = this.list.filter(item => {
+    console.log('Verificando item:', item); // Para depurar cada item
+
+    const isMatchingSucursal = !this.selectedSucursal || item.sucursale?.id === this.selectedSucursal;
+    const isMatchingOrigen = !this.selectedOrigen || item.sucursale?.origen === this.selectedOrigen;
+    const isMatchingDepartamento = !this.selectedDepartamento || item.tarifa?.departamento === this.selectedDepartamento;
+    const isMatchingState = item.estado === 8 || item.estado === 9; // Verifica que el estado sea 8 o 9
+
+    // Elimina la validación de fecha_d para que no excluya items sin fecha_d
+    const isWithinDateRange = true;
+
+    const result = isMatchingSucursal && isMatchingOrigen && isMatchingDepartamento && isMatchingState && isWithinDateRange &&
+      Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
+
+    if (result) {
+      console.log('Item pasó el filtro:', item);
+    } else {
+      console.log('Item no pasó el filtro:', item);
     }
 
-    return this.list.filter(item => {
-      const isMatchingSucursal = !this.selectedSucursal || item.sucursale?.id === this.selectedSucursal;
-      const isMatchingOrigen = !this.selectedOrigen || item.sucursale?.origen === this.selectedOrigen;
-      const isMatchingDepartamento = !this.selectedDepartamento || item.tarifa?.departamento === this.selectedDepartamento;
-      const isMatchingState = item.estado === 4 || item.estado === 7;
+    return result;
+  });
 
-      if (!item.fecha_d) {
-        return false; // Si fecha_d es null o undefined, omitir este item
-      }
+  console.log('Filtered Data:', filtered); // Verifica los datos filtrados
+  return filtered;
+},
 
-      const [day, month, year, hour, minute] = item.fecha_d.split(/[\s/:]+/);
-      const itemDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00`);
-
-      const isWithinDateRange =
-        (!startDate || (itemDate && itemDate >= startDate)) &&
-        (!endDate || (itemDate && itemDate <= endDate));
-
-      return isMatchingSucursal && isMatchingOrigen && isMatchingDepartamento && isMatchingState &&
-        isWithinDateRange &&
-        Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
-    });
-  },
 
 
     paginatedData() {
@@ -394,7 +399,7 @@ export default {
 ,
 
     async exportToPDF() {
-      const filteredData = this.list.filter(m => (m.estado === 4 || m.estado === 7) && (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal));
+      const filteredData = this.list.filter(m => (m.estado === 8 || m.estado === 9) && (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal));
 
       if (filteredData.length === 0) {
         Swal.fire({
@@ -590,164 +595,37 @@ export default {
   worksheet.getCell('A13').value = 'CLIENTE:';
   worksheet.getCell('C13').value = filteredData[0]?.sucursale?.nombre || 'N/A';
 
- // Convertir la fecha a formato "DD/MM/YYYY"
-const formatDate = (date) => {
-    if (!date) return 'N/A';
-    const d = new Date(date);
-    return d.toLocaleDateString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
+  // Añadir los títulos justo encima de los datos
+  worksheet.addRow([
+    'Fecha Envio Regional',
+    'Guía',
+    'Origen',
+    'Destino',
+    'Peso (Kg)',
+    'Cliente'
+  ]);
 
-// Ajustar la fecha final añadiendo un día para el rango
-const startDate = this.startDate ? new Date(this.startDate) : new Date();
-startDate.setDate(startDate.getDate() + 1);
-const endDateAdjusted = this.endDate ? new Date(this.endDate) : new Date();
-endDateAdjusted.setDate(endDateAdjusted.getDate() + 1);
+  // Configurar el ancho de las columnas manualmente
+  worksheet.getColumn(1).width = 25; // Fecha Envio Regional
+  worksheet.getColumn(2).width = 20; // Guía
+  worksheet.getColumn(3).width = 20; // Origen
+  worksheet.getColumn(4).width = 20; // Destino
+  worksheet.getColumn(5).width = 15; // Peso (Kg)
+  worksheet.getColumn(6).width = 25; // Cliente
 
-// Asegúrate de que la fecha de inicio no tenga ajustes de hora no deseados
-const formattedStartDate = formatDate(new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()));
-const formattedEndDateAdjusted = formatDate(endDateAdjusted);
-
-worksheet.mergeCells('A14:B14');
-worksheet.getCell('A14').value = 'PERIODO:';
-worksheet.getCell('C14').value = `${formattedStartDate} - ${formattedEndDateAdjusted}`;
-
-
-  // Define las columnas
-  worksheet.columns = [
-    { header: '', key: 'index', width: 5 },
-    { header: '', key: 'fecha', width: 20 },
-    { header: '', key: 'guia', width: 20 },
-    { header: '', key: 'sucursal_origen', width: 20 },
-    { header: '', key: 'municipio', width: 30 },
-    { header: '', key: 'local', width: 30 },
-    { header: '', key: 'servicio', width: 20 },
-    { header: '', key: 'ciudad', width: 15 },
-    { header: '', key: 'zona', width: 20 },
-    { header: '', key: 'contenido', width: 20 },
-    { header: '', key: 'peso', width: 10 },
-    { header: '', key: 'precio', width: 10 },
-    { header: '', key: 'servicioT', width: 10 },
-    { header: '', key: 'fecha_entrega', width: 20 },
-    { header: '', key: 'destinatario', width: 20 },
-    { header: '', key: 'cartero', width: 20 },
-    { header: '', key: 'observacion', width: 25 },
-  ];
-
-  // Merging cells to create the "Envío" header spanning multiple columns
-  worksheet.mergeCells('A16:M16'); 
-  worksheet.getCell('B16').value = 'Envío'; 
-  worksheet.getCell('B16').alignment = { horizontal: 'center', vertical: 'middle' }; 
-  worksheet.getCell('B16').font = { bold: true, size: 14 }; 
-  worksheet.getCell('B16').fill = { 
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: '32FF0E' } // Color verde para toda la celda
-  };
-
-  worksheet.getRow(17).getCell(1).value = '#';
-  worksheet.getRow(17).getCell(2).value = 'Fecha de Envio';
-  worksheet.getRow(17).getCell(3).value = 'Numero de envio';
-  worksheet.getRow(17).getCell(4).value = 'Ciudad';
-  worksheet.getRow(17).getCell(5).value = 'Rural';
-  worksheet.getRow(17).getCell(6).value = 'Local';
-  worksheet.getRow(17).getCell(7).value = 'Ciudad';
-  worksheet.getRow(17).getCell(8).value = 'Rural';
-  worksheet.getRow(17).getCell(9).value = 'Local';
-  worksheet.getRow(17).getCell(10).value = 'Contenido';
-  worksheet.getRow(17).getCell(11).value = 'Peso (Kg)';
-  worksheet.getRow(17).getCell(12).value = 'Precio (Bs)';
-  worksheet.getRow(17).getCell(13).value = 'Servicio';
-
-  worksheet.mergeCells('N16:R16'); 
-  worksheet.getCell('O16').value = 'Entrega'; 
-  worksheet.getCell('O16').alignment = { horizontal: 'center', vertical: 'middle' }; 
-  worksheet.getCell('O16').font = { bold: true, size: 14 }; 
-  worksheet.getCell('O16').fill = { 
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: '891113' }
-  };
-
-  worksheet.getRow(17).getCell(14).value = 'Fecha y hora Entrega';
-  worksheet.getRow(17).getCell(15).value = 'Entregado a';
-  worksheet.getRow(17).getCell(16).value = 'Cartero';
-  worksheet.getRow(17).getCell(17).value = 'Observaciones';
-
-  worksheet.getRow(16).eachCell({ includeEmpty: true }, function(cell) {
-    cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-    };
-  });
-
-  worksheet.getRow(17).eachCell({ includeEmpty: true }, function(cell) {
-    cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-    };
-  });
-
-  let totalPrice = 0;
-  let totalPriceWithDiscount = 0;
-  let totalPriceWithRetention = 0;
-  let totalWeight = 0;
-  let totalDiscount = 0;
-  let totalRetention = 0;
-
+  // Agrega los datos filtrados justo debajo de los títulos
   filteredData.forEach((m, index) => {
-    const precioOriginal = parseFloat(m.nombre_d) || 0;
+    const row = worksheet.addRow([
+      m.fecha_envio_regional || 'N/A',
+      m.guia || 'N/A',
+      m.sucursale?.origen || 'N/A',
+      m.tarifa?.departamento || 'N/A',
+      m.peso_r || m.peso_v || 'N/A',
+      m.sucursale?.nombre || 'N/A',
+    ]);
 
-    const descuento = parseInt(m.tarifa.descuento) || 0;
-    let diasDiferencia = 0;
-    const fechaEntrega = m.fecha_d ? new Date(m.fecha_d.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3')) : null;
-
-    if (fechaEntrega) {
-      const fechaLimiteEntrega = new Date(m.fecha_recojo_c.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$2/$1/$3'));
-      diasDiferencia = Math.floor((fechaEntrega - fechaLimiteEntrega) / (1000 * 60 * 60 * 24));
-    }
-
-    let descuentoTotal = 0;
-    if (diasDiferencia > 0) {
-      descuentoTotal = (precioOriginal * (descuento / 100)) * diasDiferencia;
-    }
-    const precioConDescuento = precioOriginal - descuentoTotal;
-
-    const retencion = parseFloat(m.tarifa.retencion) || 0;
-    const descuentoRetencion = (precioOriginal * retencion) / 100;
-    const precioConRetencion = precioOriginal - descuentoRetencion;
-
-    const row = worksheet.addRow({
-      index: index + 1,
-      fecha: m.fecha_envio_regional,
-      guia: m.guia,
-      sucursal_origen: m.sucursale.origen,
-      direccion: m.direccion_especifica ? 'X' : '',
-      local: m.direccion && m.direccion.zona ? 'X' : '',
-      servicio: m.tarifa.departamento,
-      ciudad: m.ciudad ? 'X' : '',
-      zona: m.zona_d ? 'X' : '',
-      contenido: m.contenido,
-      peso: m.peso_r ? m.peso_r : m.peso_v,
-      precio: precioOriginal.toFixed(2),
-      servicioT: m.tarifa.servicio,
-      fecha_entrega: m.fecha_d,
-      destinatario: m.destinatario,
-      cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
-      observacion: m.observacion,
-    });
-
-    totalPrice += precioOriginal;
-    totalDiscount += descuentoTotal;
-    totalPriceWithDiscount += precioConDescuento;
-    totalRetention += descuentoRetencion;
-    totalPriceWithRetention += precioConRetencion;
-    totalWeight += parseFloat(m.peso_v) || 0;
-
-    const fillColor = index % 2 === 0 ? 'FFFFFF' : 'FFFFFF';
+    // Estilizar las filas alternadas
+    const fillColor = index % 2 === 0 ? 'FFFFFF' : 'F0F0F0';
     row.eachCell({ includeEmpty: true }, function (cell) {
       cell.fill = {
         type: 'pattern',
@@ -763,53 +641,11 @@ worksheet.getCell('C14').value = `${formattedStartDate} - ${formattedEndDateAdju
     });
   });
 
-  // Añadir fila de total de precio
-  const totalRow = worksheet.addRow({
-    zona: 'Total', 
-    peso: totalWeight.toFixed(3) + ' Kg', 
-    precio: totalPrice.toFixed(2) + ' Bs', 
-  });
-
-  // Añadir fila de total de descuento justo debajo del total de precio
-  const totalDiscountRow = worksheet.addRow({
-    zona: 'Total Descuento: ', 
-    precio: '' + totalDiscount.toFixed(2) + ' Bs', 
-  });
-
-  // Añadir fila de total de retención justo debajo del total de descuento
-  const totalRetentionRow = worksheet.addRow({
-    zona: 'Total Retención: ', 
-    precio: '' + totalRetention.toFixed(2) + ' Bs', 
-  });
-
-  // Estilizar las filas de totales
-  [totalRow, totalDiscountRow, totalRetentionRow].forEach(row => {
-    row.eachCell({ includeEmpty: true }, function (cell, colNumber) {
-      if (colNumber === 1) {
-        cell.font = { bold: true };
-        cell.alignment = { horizontal: 'right' };
-      }
-      if ([11, 12, 13, 14, 15].includes(colNumber)) { 
-        cell.font = { bold: true };
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFFFFF' }
-        };
-        cell.border = {
-          top: { style: 'thick' },
-          left: { style: 'thick' },
-          bottom: { style: 'thick' },
-          right: { style: 'thick' }
-        };
-      }
-    });
-  });
-
   worksheet.eachRow({ includeEmpty: true }, function (row) {
     row.height = 15;
   });
 
+  // Generar y descargar el archivo Excel
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const link = document.createElement('a');
@@ -818,7 +654,13 @@ worksheet.getCell('C14').value = `${formattedStartDate} - ${formattedEndDateAdju
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-},
+}
+
+
+
+
+,
+
 
 async loadImageAsBase64(path) {
     return new Promise((resolve, reject) => {
@@ -853,17 +695,17 @@ async loadImageAsBase64(path) {
 
   mounted() {
     this.$nextTick(async () => {
-      await this.obtenerSaldoRestanteTodasSucursales();
-      await this.fetchSucursales();
-      await this.GET_DATA(this.apiUrl);
-      this.load = false;
+    await this.obtenerSaldoRestanteTodasSucursales();
+    await this.fetchSucursales();
+    await this.GET_DATA(this.apiUrl);
+    this.load = false;
 
-      console.log('Usuario cargado:', this.user);
-      console.log('Datos cargados después de montaje:', this.list);
+    console.log('Usuario cargado:', this.user);
+    console.log('Datos cargados después de montaje:', this.list);
 
-      this.list = this.list.filter(item => item.estado === 4 || item.estado === 7);
-      console.log('Datos después del filtrado inicial:', this.list);
-    });
+    this.list = this.list.filter(item => item.estado === 8 || item.estado === 9); // Cambia aquí los estados a 8 y 9
+    console.log('Datos después del filtrado inicial:', this.list);
+  });
   },
 };
 </script>
