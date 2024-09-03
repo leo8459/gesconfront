@@ -33,6 +33,8 @@
                           <th class="py-0 px-1">Sucursal</th>
                           <th class="py-0 px-1">Cartero</th>
                           <th class="py-0 px-1">Guia</th>
+                          <th class="py-0 px-1">Acuerdo de Recojo</th>
+
                           <th class="py-0 px-1">Peso Empresa (Kg)</th>
                           <th class="py-0 px-1">Peso Correos (Kg)</th>
                           <th class="py-0 px-1">Remitente</th>
@@ -60,6 +62,8 @@
                           <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                           <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
                           <td class="py-0 px-1">{{ m.guia }}</td>
+                          <td class="py-0 px-1">{{ m.sucursale.acuerdos }}</td>
+
                           <td class="py-0 px-1">{{ m.peso_o }}</td>
                           <td class="py-0 px-1">{{ m.peso_v }}</td>
                           <td class="py-0 px-1">{{ m.remitente }}</td>

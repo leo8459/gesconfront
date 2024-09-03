@@ -4,7 +4,6 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-        
           <div class="col-3">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
               placeholder="Buscar..." />
@@ -16,14 +15,15 @@
               <table class="table table-sm table-bordered">
                 <thead>
                   <tr>
+                    <th class="py-0 px-1">
+                      <input type="checkbox" @change="selectAll($event, paginatedData)">
+                    </th>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
                     <th class="py-0 px-1">Guía</th>
                     <th class="py-0 px-1">Remitente</th>
                     <th class="py-0 px-1">Detalles de Domicilio</th>
-
-                    <!-- Nueva columna para la dirección específica -->
-                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
+                    <th class="py-0 px-1">Zona</th>
                     <th class="py-0 px-1">Dirección maps</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
@@ -37,13 +37,15 @@
                 </thead>
                 <tbody>
                   <tr v-for="(m, i) in paginatedData" :key="i">
+                    <td class="py-0 px-1">
+                      <input type="checkbox" :checked="selected[m.id]" @change="toggleSelect(m.id)">
+                    </td>
                     <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                     <td class="p-1">{{ m.sucursale.nombre }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
                     <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
+                    <td class="py-0 px-1">{{ m.direccion.zona }}</td>
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion.direccion)"
                         :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
@@ -71,6 +73,7 @@
                 </tbody>
               </table>
             </div>
+
             <!-- Paginación -->
             <nav aria-label="Page navigation">
               <ul class="pagination justify-content-between">
@@ -88,14 +91,13 @@
             </nav>
           </div>
         </div>
-        <div class="col-3" v-if="selectedForAssign.length > 0">
-            <button @click="confirmAllAssignments" class="btn btn-primary btn-sm w-100">
-              <i class="fas fa-truck"></i> Asignar todos los seleccionados
-            </button>
-          </div>
+
+
         <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
         <div v-if="selectedForDelivery.length > 0" class="mt-4">
-          <h5>Paquetes para entregar</h5>
+          <button @click="startDelivery" class="btn btn-primary btn-sm mb-3">
+            <i class="fas fa-truck"></i> Empezar Entrega
+          </button>
           <div class="table-responsive">
             <table class="table table-sm table-bordered">
               <thead>
@@ -103,7 +105,7 @@
                   <th class="py-0 px-1">#</th>
                   <th class="py-0 px-1">Guía</th>
                   <th class="py-0 px-1">Sucursal</th>
-                  <th class="py-0 px-1">Tarifa</th>
+                  <th class="py-0 px-1">Departamento de Destino</th>
                   <th class="py-0 px-1">Peso Correos (Kg)</th>
                 </tr>
               </thead>
@@ -112,7 +114,7 @@
                   <td class="py-0 px-1">{{ index + 1 }}</td>
                   <td class="py-0 px-1">{{ item.guia }}</td>
                   <td class="py-0 px-1">{{ item.sucursale.nombre }}</td>
-                  <td class="py-0 px-1">{{ item.tarifa }}</td>
+                  <td class="py-0 px-1">{{ item.tarifa.departamento }}</td>
                   <td class="py-0 px-1">{{ item.peso_r }}</td>
                 </tr>
               </tbody>
@@ -121,41 +123,6 @@
         </div>
       </div>
     </AdminTemplate>
-
-     <!-- Modal para añadir peso_v -->
-     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-footer hide-backdrop @shown="focusPesoInput">
-  <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-    <label :for="'peso_r-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
-
-    <!-- Campo de entrada con ref para enfoque directo -->
-    <label :for="'peso_r-' + item.id" class="mt-2">Peso (Kg)</label>
-    <input 
-      type="text" 
-      :id="'peso_r-' + item.id" 
-      v-model="item.peso_r" 
-      class="form-control"
-      @input="updatePrice(item)" 
-      placeholder="000.001" 
-      step="0.001" 
-      min="0.001" 
-      ref="pesoInput" />
-
-    <!-- Campo oculto para nombre_d -->
-    <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
-    <input 
-      type="text" 
-      :id="'nombre_d-' + item.id" 
-      v-model="item.nombre_d" 
-      class="form-control d-none" 
-      readonly />
-  </div>
-  <div class="d-flex justify-content-end">
-    <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-
-    <button class="btn btn-primary" @click="confirmAssignSelected">Asignar</button>
-  </div>
-</b-modal>
-
 
 
   </div>
@@ -188,49 +155,41 @@ export default {
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
       url_editar: '/admin/solicitudescartero/solicitudecartero/editar/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',
-      tarifas: [], // Inicializamos tarifas como un array vacío
+      tarifas: [],
       collapseState: {},
       isModalVisible: false,
       currentId: null,
       selected: {},
       selectedItemsData: [],
       selectedForAssign: [],
-      selectedForDelivery: [], // Nueva propiedad para almacenar los paquetes seleccionados para entregar
+      selectedForDelivery: [],
       user: {
-      user: {
-        departamento_cartero: '', // Inicialización para evitar undefined
-      }
-    },
+        user: {
+          departamento_cartero: '',
+        }
+      },
       currentPage: 0,
       itemsPerPage: 10,
     };
   },
   computed: {
     filteredData() {
-    const departamentoCartero = this.user?.user?.departamento_cartero;
-    if (!departamentoCartero) {
-      return [];
-    }
+      const departamentoCartero = this.user?.user?.departamento_cartero;
+      if (!departamentoCartero) {
+        return [];
+      }
 
-    const searchTerm = this.searchTerm.toLowerCase();
+      const searchTerm = this.searchTerm.toLowerCase();
 
-    return this.list.filter(item =>
-      item.estado === 10 &&
-      item.tarifa &&
-      item.tarifa.departamento === departamentoCartero &&
-      Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm)
-      )
-    );
-  },
-  paginatedData() {
-    const start = this.currentPage * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredData.slice(start, end);
-  },
-  totalPages() {
-    return Math.ceil(this.filteredData.length / this.itemsPerPage);
-  },
+      return this.list.filter(item =>
+        item.estado === 10 &&
+        item.tarifa &&
+        item.tarifa.departamento === departamentoCartero &&
+        Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        )
+      );
+    },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -238,19 +197,27 @@ export default {
     },
     totalPages() {
       return Math.ceil(this.filteredData.length / this.itemsPerPage);
-    },
-    hasSelectedItems() {
-      return Object.keys(this.selected).some(key => this.selected[key]);
     }
   },
   methods: {
+    handleSearchEnter() {
+    // Encuentra el primer elemento que coincida con el término de búsqueda
+    const filteredItems = this.filteredData;
+    if (filteredItems.length > 0) {
+      const item = filteredItems[0]; // Selecciona el primer elemento filtrado
+      this.selected[item.id] = true; // Marca el elemento como seleccionado
+      this.updateSelectedItems(); // Actualiza la lista de elementos seleccionados
+
+      // Limpia el término de búsqueda después de mover el elemento
+      this.searchTerm = '';
+    }
+  },
     iniciarFiltrado() {
-      // Aquí puedes iniciar cualquier proceso que dependa de que departamento_cartero esté definido
       const departamentoCartero = this.user.departamento_cartero;
     },
     focusPesoInput() {
-    this.$refs.pesoInput[0].focus(); // Asegúrate de que el campo de entrada esté enfocado
-  },
+      this.$refs.pesoInput[0].focus();
+    },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
@@ -266,7 +233,7 @@ export default {
           title: 'Cartero asignado',
           text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
         });
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.GET_DATA(this.apiUrl);
       } catch (e) {
         this.$swal.fire({
           icon: 'error',
@@ -291,10 +258,10 @@ export default {
         const extraPrice = tarifa.precio_extra ? parseFloat(tarifa.precio_extra) : 0;
         const peso = parseFloat(peso_r);
         if (isNaN(peso)) {
-          return ''; // No mostrar nada si el peso está vacío
+          return '';
         }
         if (peso > 1) {
-          const pesoAdicional = Math.ceil(peso - 1); // Redondea hacia arriba para cada 1.01, 2.01, etc.
+          const pesoAdicional = Math.ceil(peso - 1);
           return basePrice + pesoAdicional * extraPrice;
         } else {
           return basePrice;
@@ -305,7 +272,7 @@ export default {
     updatePrice(item) {
       const peso = parseFloat(item.peso_r);
       item.precio = this.calculatePrice(item.tarifa_id, item.peso_r);
-      item.nombre_d = item.precio; // Actualiza nombre_d con el precio calculado
+      item.nombre_d = item.precio;
     },
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
@@ -324,86 +291,48 @@ export default {
         this.load = false;
       }
     },
-    openAssignModal() {
-      this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => {
-        const precio = this.calculatePrice(item.tarifa_id, item.peso_r);
-        return {
-          id: item.id,
-          guia: item.guia,
-          sucursale: item.sucursale,
-          peso_r: item.peso_r !== undefined && item.peso_r !== null && item.peso_r !== 0 ? item.peso_r : '', // Asegúrate de que peso_r esté vacío inicialmente
-          tarifa_id: item.tarifa_id,
-          tarifa: this.getTarifaLabel(item.tarifa_id),
-          nombre_d: precio,
-          precio: precio
-        };
+    updateSelectedItems() {
+      // Mover los elementos seleccionados a la tabla inferior
+      this.selectedForAssign = this.paginatedData.filter(item => this.selected[item.id]);
+
+      // Actualizar la lista de paquetes para entregar
+      this.selectedForDelivery = [...this.selectedForAssign];
+    },
+
+    toggleSelect(itemId) {
+      // Este método se llamará cuando se seleccione o deseleccione un elemento individual
+      this.selected[itemId] = !this.selected[itemId];
+      this.updateSelectedItems();
+    },
+
+    selectAll(event, group) {
+      const isChecked = event.target.checked;
+      group.forEach(item => {
+        this.$set(this.selected, item.id, isChecked);
       });
-      this.isModalVisible = true;
+      this.updateSelectedItems(); // Llamar a la función después de seleccionar todos
     },
-    handleSearchEnter() {
-      const filteredItems = this.filteredData;
-      if (filteredItems.length > 0) {
-        const item = filteredItems[0]; // Seleccionar el primer elemento filtrado
-        this.selectedItemsData = [{
-          id: item.id,
-          guia: item.guia,
-          sucursale: item.sucursale,
-          peso_r: item.peso_r || 0,
-          tarifa_id: item.tarifa_id,
-          tarifa: this.getTarifaLabel(item.tarifa_id), // Añadir la tarifa al objeto
-          precio: this.calculatePrice(item.tarifa_id, item.peso_r) // Calcular el precio inicial
-        }];
-        this.isModalVisible = true;
-      }
-    },
-    confirmAssignSelected() {
-  this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
-    // Validación final
-    let peso = parseFloat(item.peso_r);
-    if (isNaN(peso) || peso < 0.001) {
-      peso = 0.001;
-    } else if (peso > 25.000) {
-      peso = 25.000;
-    }
-    item.peso_r = peso.toFixed(3); // Ajustar y formatear el valor
-    item.nombre_d = item.precio; // Asegúrate de que nombre_d tenga el mismo valor que precio
-    return item;
-  })];
-  
-  // Actualizar la lista de paquetes para entregar
-  this.selectedForDelivery = [...this.selectedForAssign];
-  
-  // Remover los elementos seleccionados de la lista original (tabla de arriba)
-  this.list = this.list.filter(item => !this.selectedForAssign.some(selectedItem => selectedItem.id === item.id));
-
-  this.isModalVisible = false;
-  this.selected = {}; // Limpiar la selección después de asignar
-
-  // Limpiar el campo de búsqueda
-  this.searchTerm = '';
-},
-
-async confirmAllAssignments() {
+    async startDelivery() {
       this.load = true;
       try {
         const carteroId = this.user.user.id;
-        for (let item of this.selectedForAssign) {
+        for (let item of this.selectedForDelivery) {
           await this.$api.$put(`encaminoregional/${item.id}`, {
             cartero_entrega_id: carteroId,
             peso_r: item.peso_r,
             fecha_d: item.fecha_d,
             precio: item.precio,
-            nombre_d: item.nombre_d // Incluir nombre_d en el envío
+            nombre_d: item.nombre_d
           });
         }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+
+        this.selectedForDelivery = [];
+
         this.$swal.fire({
           icon: 'success',
-          title: 'Carteros asignados',
-          text: 'Todos los carteros seleccionados han sido asignados.',
+          title: 'Entrega Iniciada',
+          text: 'Todos los carteros seleccionados han sido marcados como en camino.',
         });
-        this.selectedForAssign = []; // Limpiar la selección después de asignar
-        this.selectedForDelivery = []; // Limpiar la lista de paquetes para entregar después de asignar
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -421,9 +350,6 @@ async confirmAllAssignments() {
         this.$set(this.selected, item.id, isChecked);
       });
     },
-    toggleCollapse(estado) {
-      this.$set(this.collapseState, estado, !this.collapseState[estado]);
-    },
     nextPage() {
       if (this.currentPage < this.totalPages - 1) {
         this.currentPage++;
@@ -438,39 +364,44 @@ async confirmAllAssignments() {
       this.currentPage = page;
     }
   },
+  watch: {
+    selected: {
+      handler() {
+        // Aquí estamos asegurándonos de que solo estamos moviendo los elementos seleccionados sin modificar `selected`
+        this.updateSelectedItems();
+      },
+      deep: true
+    }
+  },
   mounted() {
     this.$nextTick(async () => {
       let user = localStorage.getItem('userAuth');
       if (user) {
         this.user = JSON.parse(user);
 
-        // Verificar si la estructura del usuario es la correcta
         if (this.user && this.user.user && this.user.user.departamento_cartero) {
           const departamentoCartero = this.user.user.departamento_cartero;
-        } else {
         }
 
         try {
           const data = await this.GET_DATA(this.apiUrl);
           if (Array.isArray(data)) {
             this.list = data;
-          } else {
           }
           const tarifas = await this.GET_DATA('getTarifas');
           if (Array.isArray(tarifas)) {
             this.tarifas = tarifas;
-          } else {
           }
         } catch (e) {
         } finally {
           this.load = false;
         }
-      } else {
       }
     });
   },
 };
 </script>
+
 
 <style scoped>
 .card.border-rounded {

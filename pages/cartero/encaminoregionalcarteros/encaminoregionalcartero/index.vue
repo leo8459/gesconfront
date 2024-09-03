@@ -10,7 +10,7 @@
             </button>
           </div>
           <div class="col-3">
-            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control" placeholder="Buscar..." />
+            <input v-model="searchTerm"  type="text" class="form-control" placeholder="Buscar..." />
           </div>
         </div>
         <div class="row">
@@ -356,12 +356,7 @@ export default {
       }));
       this.isModalVisible = true;
     },
-    handleSearchEnter() {
-      this.selectedItemsData = this.filteredData;
-      if (this.selectedItemsData.length > 0) {
-        this.isModalVisible = true;
-      }
-    },
+   
     async confirmAssignSelected() {
       this.load = true;
       try {

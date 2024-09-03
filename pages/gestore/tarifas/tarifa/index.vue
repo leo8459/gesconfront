@@ -75,7 +75,7 @@
                   <td class="p-1">{{ m.retencion }}</td>
                   <td class="p-1">{{ m.dias_entrega }}</td>
 
-                  <td class="p-1">
+                  <!-- <td class="p-1">
                     <div class="btn-group">
                       <button type="button" class="btn btn-info btn-sm p-1" @click="editarTarifa(m.id)">
                         <i class="fas fa-pen"></i>
@@ -84,7 +84,7 @@
                         <i class="fas fa-trash"></i>
                       </button>
                     </div>
-                  </td>
+                  </td> -->
                 </tr>
               </tbody>
             </table>

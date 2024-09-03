@@ -123,7 +123,7 @@
                   <td class="py-0 px-1">{{ item.guia }}</td>
                   <td class="py-0 px-1">{{ item.sucursale.nombre }}</td>
                   <td class="py-0 px-1">{{ item.tarifa }}</td>
-                  <td class="py-0 px-1">{{ item.peso_v }}</td>
+                  <td class="py-0 px-1">{{ item.peso_r }}</td>
                 </tr>
               </tbody>
             </table>
@@ -132,21 +132,39 @@
       </div>
     </AdminTemplate>
 
-    <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop @shown="focusPesoInput">
-      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
-        <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
-        <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control"
-          @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" ref="pesoInput" />
-        <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
-        <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
-      </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-        <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
-      </div>
-    </b-modal>
+  <!-- Modal para añadir peso_r -->
+<b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop @shown="focusPesoInput">
+  <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+    <label :for="'peso_r-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+    <div class="mt-3"></div>
+
+    <label :for="'peso_o-' + item.id" class="mt-2">Peso origen (Kg)</label>
+    <input type="text" :id="'peso_o-' + item.id" v-model="item.peso_o" class="form-control" disabled />
+
+    <!-- Separación entre los labels -->
+    <div class="mt-3"></div>
+
+    <label :for="'peso_v-' + item.id" class="mt-2">Peso verificado regional (Kg)</label>
+    <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" disabled />
+
+    <!-- Separación entre los labels -->
+    <div class="mt-3"></div>
+
+   <!-- Campo editable para ingresar peso_r -->
+<label :for="'peso_r-' + item.id" class="mt-2">Peso oficina destino (Kg)</label>
+<input type="text" :id="'peso_r-' + item.id" v-model="item.peso_r" class="form-control"
+  @keypress.enter="formatPesoR(item)" @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" ref="pesoInput" />
+
+    
+    <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
+    <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
+  </div>
+  <div class="d-flex justify-content-end">
+    <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
+    <button class="btn btn-primary ml-2" @click="recibirPaquetes">Asignar</button>
+  </div>
+</b-modal>
+x
   </div>
 </template>
 
@@ -223,6 +241,15 @@ export default {
     }
   },
   methods: {
+    formatPesoR(item) {
+    // Si el valor es un número entero, agrega ",000" al final
+    if (!item.peso_r.includes('.')) {
+      item.peso_r = `${item.peso_r},000`;
+    }
+    // Actualizar el precio después de formatear el peso
+    this.updatePrice(item);
+  },
+
     focusPesoInput() {
       this.$refs.pesoInput[0].focus();
     },
@@ -237,12 +264,12 @@ export default {
       const tarifa = this.tarifas.find(t => t.id === tarifa_id);
       return tarifa ? tarifa.departamento : 'Tarifa no encontrada';
     },
-    calculatePrice(tarifa_id, peso_v) {
+    calculatePrice(tarifa_id, peso_r) {
       const tarifa = this.tarifas.find(t => t.id === tarifa_id);
       if (tarifa) {
         const basePrice = tarifa.precio ? parseFloat(tarifa.precio) : 0;
         const extraPrice = tarifa.precio_extra ? parseFloat(tarifa.precio_extra) : 0;
-        const peso = parseFloat(peso_v);
+        const peso = parseFloat(peso_r);
         if (isNaN(peso)) {
           return '';
         }
@@ -256,8 +283,8 @@ export default {
       return '';
     },
     updatePrice(item) {
-      const peso = parseFloat(item.peso_v);
-      item.precio = this.calculatePrice(item.tarifa_id, item.peso_v);
+      const peso = parseFloat(item.peso_r.replace(',', '.')); // Reemplazar la coma por un punto para la conversión
+      item.precio = this.calculatePrice(item.tarifa_id, peso);
       item.nombre_d = item.precio;
     },
     async GET_DATA(path) {
@@ -278,21 +305,24 @@ export default {
       }
     },
     openAssignModal() {
-      this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => {
-        const precio = this.calculatePrice(item.tarifa_id, item.peso_v);
-        return {
-          id: item.id,
-          guia: item.guia,
-          sucursale: item.sucursale,
-          peso_v: item.peso_v !== undefined && item.peso_v !== null && item.peso_v !== 0 ? item.peso_v : '',
-          tarifa_id: item.tarifa_id,
-          tarifa: this.getTarifaLabel(item.tarifa_id),
-          nombre_d: precio,
-          precio: precio
-        };
-      });
-      this.isModalVisible = true;
-    },
+  this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => {
+    const precio = this.calculatePrice(item.tarifa_id, item.peso_r);
+    return {
+      id: item.id,
+      guia: item.guia,
+      sucursale: item.sucursale,
+      peso_r: item.peso_r !== undefined && item.peso_r !== null && item.peso_r !== 0 ? item.peso_r : '',
+      tarifa_id: item.tarifa_id,
+      tarifa: this.getTarifaLabel(item.tarifa_id),
+      nombre_d: precio,
+      precio: precio,
+      peso_v: item.peso_v, // Incluye peso_v aquí
+      peso_o: item.peso_o // Incluye peso aquí
+    };
+  });
+  this.isModalVisible = true;
+},
+
     handleSearchEnter() {
       const filteredItems = this.filteredData;
       if (filteredItems.length > 0) {
@@ -301,23 +331,26 @@ export default {
           id: item.id,
           guia: item.guia,
           sucursale: item.sucursale,
+          peso_r: item.peso_r || 0,
           peso_v: item.peso_v || 0,
+          peso_o: item.peso_o, // Incluye peso aquí
+
           tarifa_id: item.tarifa_id,
           tarifa: this.getTarifaLabel(item.tarifa_id),
-          precio: this.calculatePrice(item.tarifa_id, item.peso_v)
+          precio: this.calculatePrice(item.tarifa_id, item.peso_r)
         }];
         this.isModalVisible = true;
       }
     },
     confirmAssignSelected() {
       this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
-        let peso = parseFloat(item.peso_v);
+        let peso = parseFloat(item.peso_r);
         if (isNaN(peso) || peso < 0.001) {
           peso = 0.001;
         } else if (peso > 25.000) {
           peso = 25.000;
         }
-        item.peso_v = peso.toFixed(3);
+        item.peso_r = peso.toFixed(3);
         item.nombre_d = item.precio;
         return item;
       })];
@@ -334,7 +367,7 @@ export default {
         for (let item of this.selectedForAssign) {
           await this.$encargados.$put(`encaminoregional5/${item.id}`, {
             encargado_id: carteroId,
-            peso_v: item.peso_v,
+            peso_r: item.peso_r,
             fecha_envio_regional: item.fecha_envio_regional,
             precio: item.precio,
             nombre_d: item.nombre_d
@@ -362,33 +395,50 @@ export default {
     async recibirPaquetes() {
   this.load = true;
   try {
+    // Tomar el primer elemento seleccionado desde el modal
+    const item = this.selectedItemsData[0]; 
     const carteroId = this.user.user.id; // Obtener el ID del cartero logueado
-    for (let itemId in this.selected) {
-      if (this.selected[itemId]) {
-        await this.$encargados.$put(`recibirpaquetes5/${itemId}`, {
-          encargado_regional_id: carteroId, // Registrar el encargado_id
-          // Puedes agregar otros campos aquí si es necesario
-        });
-      }
+    
+    if (item) {
+      // Enviar la solicitud PUT al backend
+      await this.$encargados.$put(`recibirpaquetes5/${item.id}`, {
+        encargado_regional_id: carteroId, // Registrar el encargado_id
+        peso_r: item.peso_r,              // Actualizar el peso_r
+        nombre_d: item.nombre_d           // Actualizar el nombre_d
+      });
     }
-    await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+
+    // Recargar los datos de la tabla
+
+    // Cerrar el modal
+    this.isModalVisible = false;
+
+    // Mostrar mensaje de éxito
     this.$swal.fire({
       icon: 'success',
-      title: 'Paquetes recibidos',
-      text: 'Todos los paquetes seleccionados han sido marcados como recibidos.',
+      title: 'Paquete recibido',
+      text: 'El paquete seleccionado ha sido marcado como recibido.',
     });
-    this.selected = {}; // Limpiar la selección después de recibir
+
+    // Limpiar la selección después de recibir
+    this.selected = {};
+
   } catch (e) {
     console.error(e);
     this.$swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'Hubo un error al recibir los paquetes.',
+      text: 'Hubo un error al recibir el paquete.',
     });
   } finally {
     this.load = false;
   }
+  await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista de paquetes
+
 }
+
+
+
 ,
     selectAll(event, group) {
       const isChecked = event.target.checked;

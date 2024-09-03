@@ -44,9 +44,9 @@
                   <tr>
 
                     <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
+                    <th class="py-0 px-1">Cliente</th>
                     <th class="py-0 px-1">Cartero Recogida</th>
-                    <th class="py-0 px-1">Cartero Entrega</th>
+                    <th class="py-0 px-1">Acuerdo de Recojo</th>
                     <th class="py-0 px-1">Guia</th>
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
@@ -58,13 +58,12 @@
                     <th class="py-0 px-1">Dirección maps</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha</th>
+                    <th class="py-0 px-1">Fecha Recojo</th>
                     <th class="py-0 px-1">Destinatario</th>
                     <th class="py-0 px-1">Teléfono D</th>
                     <th class="py-0 px-1">Dirección Destinatario</th>
                     <th class="py-0 px-1">Zona</th>
                     <th class="py-0 px-1">Ciudad/Provincia</th>
-                    <th class="py-0 px-1">Firma Destinatario</th>
                     <th class="py-0 px-1">Precio (Bs)</th>
                     <th class="py-0 px-1">Fecha de Entrega</th>
                     <th class="py-0 px-1">Imagen Capturada</th>
@@ -79,7 +78,7 @@
                     <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
                     <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
                     <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
-                    <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
+                    <td class="py-0 px-1">{{ m.sucursale.acuerdos }}</td>
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.peso_v }}</td>
@@ -110,9 +109,7 @@
                     </td>
                     <td class="py-0 px-1">{{ m.zona_d }}</td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
-                    </td>
+                   
                     <td class="py-0 px-1">{{ m.nombre_d }}</td>
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
                     <td class="py-0 px-1">
@@ -284,7 +281,7 @@ export default {
     // Verificar si la fecha límite ha sido superada.
     const isLate = new Date() > fechaLimite;
     // Verificar si el estado es válido (1, 2, o 5).
-    const isValidState = [1, 2, 5].includes(item.estado);
+    const isValidState = [1, 2, 5, 8, 9].includes(item.estado);
 
     // Retornar true si el registro es tardío, está en un estado válido, y coincide con el término de búsqueda.
     return isLate && isValidState && Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
