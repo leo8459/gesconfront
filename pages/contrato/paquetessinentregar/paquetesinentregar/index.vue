@@ -18,7 +18,6 @@
               </select>
             </div>
 
-
             <div class="col-md-2">
               <label for="startDate" class="form-label">Fecha Inicial</label>
               <input type="date" v-model="startDate" id="startDate" class="form-control">
@@ -32,129 +31,127 @@
                 <i class="fas fa-file-excel"></i> Generar Reporte
               </button>
             </div>
-
           </div>
-
         </div>
+
         <div class="row">
           <div class="col-12">
-            <div class="table-responsive">
-              <table class="table table-sm table-bordered">
-                <thead>
-                  <tr>
-
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Cliente</th>
-                    <th class="py-0 px-1">Cartero Recogida</th>
-                    <th class="py-0 px-1">Acuerdo de Recojo</th>
-                    <th class="py-0 px-1">Guia</th>
-                    <th class="py-0 px-1">Peso Empresa (Kg)</th>
-                    <th class="py-0 px-1">Peso Correos (Kg)</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Detalles de Domicilio</th>
-
-                    <!-- Nueva columna para la dirección específica -->
-                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
-                    <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha Recojo</th>
-                    <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono D</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Zona</th>
-                    <th class="py-0 px-1">Ciudad/Provincia</th>
-                    <th class="py-0 px-1">Precio (Bs)</th>
-                    <th class="py-0 px-1">Fecha de Entrega</th>
-                    <th class="py-0 px-1">Imagen Capturada</th>
-                    <th class="py-0 px-1">Justificacion</th>
-                    <th class="py-0 px-1">Imagen Justificacion</th>
-                    <th class="py-0 px-1"></th>
-
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="m.id">
-                    <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
-                    <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-                    <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
-                    <td class="py-0 px-1">{{ m.sucursale.acuerdos }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.peso_o }}</td>
-                    <td class="py-0 px-1">{{ m.peso_v }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                   
-                    <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                    <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                       
-                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>
-                    <td class="py-0 px-1">{{ m.justificacion }}</td>
-                    <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                        
-                        <button v-if="m.imagen_justificacion" @click="downloadImage(m.imagen_justificacion)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>
-                    <td class="py-0 px-1">
-                      <div class="btn-group">
-                        <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
-                          <i class="fas fa-ban"></i> Justificar Correspondencia
-                        </nuxtLink>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-3">
-              <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
-              <span>Página {{ currentPage }} de {{ totalPages }}</span>
-              <button class="btn btn-secondary" :disabled="currentPage === totalPages"
-                @click="nextPage">Siguiente</button>
-            </div>
-            <div class="pagination-controls">
-              <ul class="pagination">
-                <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray"
-                  :key="pageNumber">
-                  <button class="page-link" @click="goToPage(pageNumber)">{{ pageNumber }}</button>
-                </li>
-              </ul>
+            <div class="card border-rounded">
+              <div class="card-header">
+                Solicitudes con Multa
+              </div>
+              <div class="card-body p-2">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Cliente</th>
+                        <th class="py-0 px-1">Cartero Recogida</th>
+                        <th class="py-0 px-1">Acuerdo de Recojo</th>
+                        <th class="py-0 px-1">Guia</th>
+                        <th class="py-0 px-1">Peso Empresa (Kg)</th>
+                        <th class="py-0 px-1">Peso Correos (Kg)</th>
+                        <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Detalles de Domicilio</th>
+                        <th class="py-0 px-1">Zona</th>
+                        <th class="py-0 px-1">Dirección maps</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Fecha Recojo</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Teléfono D</th>
+                        <th class="py-0 px-1">Dirección Destinatario</th>
+                        <th class="py-0 px-1">Zona</th>
+                        <th class="py-0 px-1">Ciudad/Provincia</th>
+                        <th class="py-0 px-1">Precio (Bs)</th>
+                        <th class="py-0 px-1">Fecha de Entrega</th>
+                        <th class="py-0 px-1">Imagen Capturada</th>
+                        <th class="py-0 px-1">Justificación</th>
+                        <th class="py-0 px-1">Imagen Justificación</th>
+                        <th class="py-0 px-1"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="m.id">
+                        <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
+                        <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
+                        <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
+                        <td class="py-0 px-1">{{ m.sucursale.acuerdos }}</td>
+                        <td class="py-0 px-1">{{ m.guia }}</td>
+                        <td class="py-0 px-1">{{ m.peso_o }}</td>
+                        <td class="py-0 px-1">{{ m.peso_v }}</td>
+                        <td class="py-0 px-1">{{ m.remitente }}</td>
+                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                        <td class="py-0 px-1">{{ m.direccion.zona }}</td>
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion.direccion }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.telefono }}</td>
+                        <td class="py-0 px-1">{{ m.contenido }}</td>
+                        <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
+                        <td class="py-0 px-1">{{ m.destinatario }}</td>
+                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion_d)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                            class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion_d }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.zona_d }}</td>
+                        <td class="py-0 px-1">{{ m.ciudad }}</td>
+                        <td class="py-0 px-1">{{ m.nombre_d }}</td>
+                        <td class="py-0 px-1">{{ m.fecha_d }}</td>
+                        <td class="py-0 px-1">
+                          <div class="d-flex flex-column align-items-center">
+                            <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              Descargar
+                            </button>
+                          </div>
+                        </td>
+                        <td class="py-0 px-1">{{ m.justificacion }}</td>
+                        <td class="py-0 px-1">
+                          <div class="d-flex flex-column align-items-center">
+                            <button v-if="m.imagen_justificacion" @click="downloadImage(m.imagen_justificacion)"
+                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              Descargar
+                            </button>
+                          </div>
+                        </td>
+                        <td class="py-0 px-1">
+                          <div class="btn-group">
+                            <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
+                              <i class="fas fa-ban"></i> Justificar Correspondencia
+                            </nuxtLink>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
+                  <span>Página {{ currentPage }} de {{ totalPages }}</span>
+                  <button class="btn btn-secondary" :disabled="currentPage === totalPages"
+                    @click="nextPage">Siguiente</button>
+                </div>
+                <div class="pagination-controls">
+                  <ul class="pagination">
+                    <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray"
+                      :key="pageNumber">
+                      <button class="page-link" @click="goToPage(pageNumber)">{{ pageNumber }}</button>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -714,6 +711,25 @@ mounted() {
 </script>
 
 <style scoped>
+.card.border-rounded {
+  border-radius: 15px;
+  border: 1px solid #dee2e6;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.table-responsive {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .pagination-controls .pagination {
   display: flex;
   list-style: none;
