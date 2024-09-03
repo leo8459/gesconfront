@@ -4,32 +4,28 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-          <div class="row justify-content-end mb-3">
           <div class="col-2">
             <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
               <i class=""></i> Crear solicitud de Correspondencia
             </nuxtLink>
           </div>
         </div>
-
-        </div>
         <div class="row">
           <div class="col-12">
             <div class="card border-rounded">
-              <div class="card-header">
+              <div class="card-header text-white">
                 Cancelados
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
-                  <table class="table table-sm table-bordered">
-                    <thead>
+                  <table class="table table-hover table-bordered">
+                    <thead class="bg-secondary text-white">
                       <tr>
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Guía</th>
                         <th class="py-0 px-1">Observación</th>
                         <th class="py-0 px-1">Foto</th>
-
                       </tr>
                     </thead>
                     <tbody>
@@ -39,10 +35,9 @@
                         <td class="py-0 px-1">{{ m.guia }}</td>
                         <td class="py-0 px-1">{{ m.observacion }}</td>
                         <td class="py-0 px-1">
-                      
-                      <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                        class="btn btn-sm btn-primary mt-1">Descargar</button>
-                    </td>
+                          <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                            class="btn btn-sm btn-primary mt-1">Descargar</button>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -259,13 +254,20 @@ export default {
 };
 </script>
 
+
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #34447C;
   margin-bottom: 1.5rem;
   overflow: hidden;
-  /* Para asegurar que los bordes redondeados se apliquen correctamente */
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .table-responsive {
@@ -278,16 +280,37 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .table th {
-  min-width: 100px;
-  /* Ajusta este valor según sea necesario */
+  background-color: #6c7a89; /* Gris oscuro, similar al que se muestra en la imagen */
+  color: #FFFFFF; /* Blanco para el texto para asegurar la legibilidad */
+  border-bottom: 2px solid #34447C;
 }
 
-.table th:first-child,
-.table td:first-child {
-  min-width: 30px;
-  /* Ajusta este valor según sea necesario */
+.table-hover tbody tr:hover {
+  background-color: #F8F9FA;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #ffffff;
+  border-color: #ffffff ;
+}
+
+.pagination .page-item .page-link {
+  color: #343A40;
+}
+
+.btn-primary {
+  background-color: #34447C;
+  border-color: #34447C;
+}
+
+.btn-primary:hover {
+  background-color: #34447C;
+  border-color: #34447C;
 }
 </style>
+

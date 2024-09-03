@@ -10,22 +10,20 @@
               <i class=""></i> Crear solicitud de Correspondencia Internacional
             </a>
             <div class="d-flex align-items-center">
-            <select @change="handleSelectChange" class="btn btn-dark btn-sm mr-3">
-              <option value="" disabled selected>Crear solicitud de Correspondencia</option>
-              <option value="url_nuevo2">Crear solicitud de Correspondencia sin numero de guia</option>
-              <option value="url_nuevo">Crear solicitud de Correspondencia con numero de guia</option>
-            </select>
-          </div>
-
+              <select @change="handleSelectChange" class="btn btn-dark btn-sm mr-3">
+                <option value="" disabled selected>Crear solicitud de Correspondencia</option>
+                <option value="url_nuevo2">Crear solicitud de Correspondencia sin numero de guia</option>
+                <option value="url_nuevo">Crear solicitud de Correspondencia con numero de guia</option>
+              </select>
+            </div>
           </div>
         </div>
-
 
         <!-- Campo para buscar por código de barras -->
         <div class="row mb-3">
           <div class="col-6">
             <input v-model="codigoBarras" @keyup.enter="buscarPorCodigoBarras" class="form-control"
-              placeholder="Buscar por código de barras">
+              placeholder="Buscar">
           </div>
         </div>
 
@@ -37,21 +35,18 @@
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
-                  <table class="table table-sm table-bordered">
+                  <table class="table table-hover table-bordered">
                     <thead>
                       <tr>
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Número de Guía</th>
-                        <th class="py-0 px-1">Nombre</th> <!-- Nueva columna para el nombre -->
+                        <th class="py-0 px-1">Nombre</th>
                         <th class="py-0 px-1">Dirección Específica</th>
-
-                        <!-- Nueva columna para la dirección específica -->
-                        <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
+                        <th class="py-0 px-1">Zona</th>
                         <th class="py-0 px-1">Dirección maps</th>
                         <th class="py-0 px-1">Peso (Kg)</th>
                         <th class="py-0 px-1">Remitente</th>
-                        <!-- <th class="py-0 px-1">Dirección</th> -->
                         <th class="py-0 px-1">Teléfono</th>
                         <th class="py-0 px-1">Contenido</th>
                         <th class="py-0 px-1">Fecha de Solicitud</th>
@@ -70,11 +65,9 @@
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1">{{ m.guia }}</td>
-                        
-                        <td class="py-0 px-1">{{ m.direccion.nombre }}</td> <!-- Mostrar el nombre -->
+                        <td class="py-0 px-1">{{ m.direccion.nombre }}</td>
                         <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                        <!-- Mostrar la dirección específica -->
-                        <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
+                        <td class="py-0 px-1">{{ m.direccion.zona }}</td>
                         <td class="py-0 px-1">
                           <a v-if="isCoordinates(m.direccion.direccion)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
@@ -83,18 +76,8 @@
                           </a>
                           <span v-else>{{ m.direccion.direccion }}</span>
                         </td>
-
                         <td class="py-0 px-1">{{ m.peso_o }}</td>
                         <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <!-- <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion)"
-                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
-                            class="btn btn-primary btn-sm">
-                            Ver mapa
-                          </a>
-                          <span v-else>{{ m.direccion }}</span>
-                        </td>
-                        <td class="py-0 px-1">{{ m.direccion_especifica }}</td> -->
                         <td class="py-0 px-1">{{ m.telefono }}</td>
                         <td class="py-0 px-1">{{ m.contenido }}</td>
                         <td class="py-0 px-1">{{ m.fecha }}</td>
@@ -108,7 +91,6 @@
                           </a>
                           <span v-else>{{ m.direccion_d }}</span>
                         </td>
-
                         <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
                         <td class="py-0 px-1">{{ m.ciudad }}</td>
                         <td class="py-0 px-1">{{ getTarifaLabel(m.tarifa_id) }}</td>
@@ -124,9 +106,9 @@
                         </td>
                       </tr>
                     </tbody>
-
                   </table>
                 </div>
+
                 <!-- Paginación -->
                 <nav aria-label="Page navigation">
                   <ul class="pagination justify-content-between">
@@ -343,10 +325,16 @@ export default {
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #34447C;
   margin-bottom: 1.5rem;
   overflow: hidden;
-  /* Para asegurar que los bordes redondeados se apliquen correctamente */
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .table-responsive {
@@ -359,22 +347,52 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .table th {
-  min-width: 100px;
-  /* Ajusta este valor según sea necesario */
+  background-color: #6c7a89;
+  color: #FFFFFF;
+  border-bottom: 2px solid #34447C;
 }
 
-.table th:first-child,
-.table td:first-child {
-  min-width: 30px;
-  /* Ajusta este valor según sea necesario */
+.table-hover tbody tr:hover {
+  background-color: #F8F9FA;
 }
 
-td img {
-  max-width: 100px;
-  /* Ajusta el tamaño según tus necesidades */
-  height: auto;
+.pagination .page-item.active .page-link {
+  background-color: #ffffff;
+  border-color: #ffffff;
+}
+
+.pagination .page-item .page-link {
+  color: #343A40;
+}
+
+.btn-warning {
+  background-color: #ffcc00;
+  border-color: #ffcc00;
+  color: #000;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-primary {
+  background-color: #34447C;
+  border-color: #34447C;
+}
+
+.btn-primary:hover {
+  background-color: #34447C;
+  border-color: #34447C;
+}
+
+.btn-dark {
+  background-color: #343a40;
+  border-color: #343a40;
 }
 </style>

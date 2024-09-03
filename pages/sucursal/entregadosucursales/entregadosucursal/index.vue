@@ -3,38 +3,33 @@
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
-        <div class="row justify-content-end mb-3">
-          <div class="col-2">
-            <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class=""></i> Crear solicitud de Correspondencia
-            </nuxtLink>
-          </div>
-        </div>
-
-        <div class="row align-items-end mb-3">
-          <div class="col-md-2">
-            <label for="startDate" class="form-label">Fecha Inicial</label>
-            <input type="date" v-model="startDate" id="startDate" class="form-control" placeholder="Fecha inicio">
-          </div>
-
-          <div class="col-md-2">
-            <label for="endDate" class="form-label">Fecha Final</label>
-            <input type="date" v-model="endDate" id="endDate" class="form-control" placeholder="Fecha fin">
-          </div>
-
-          <div class="col-md-2 d-flex align-items-end">
-            <button @click="exportToExcel" class="btn btn-success btn-sm">
+        <div class="row mb-3">
+          <div class="col-md-9 d-flex align-items-end">
+            <div class="d-flex align-items-center">
+              <label for="startDate" class="form-label me-2">Fecha Inicial</label>
+              <input type="date" v-model="startDate" id="startDate" class="form-control me-2" placeholder="Fecha inicio">
+            </div>
+            <div class="d-flex align-items-center">
+              <label for="endDate" class="form-label me-2">Fecha Final</label>
+              <input type="date" v-model="endDate" id="endDate" class="form-control me-2" placeholder="Fecha fin">
+            </div>
+            <button @click="exportToExcel" class="btn btn-success btn-sm me-2">
               <i class="fas fa-file-excel"></i> Exportar a Excel
             </button>
           </div>
-          <div>
-  <p>Saldo restante: {{ saldoRestante }} Bs</p>
-</div>
-
-          <div class="col-md-6">
-            <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar...">
+          <div class="col-md-3 text-end">
+            <input v-model="searchTerm" type="text" class="form-control mb-2" placeholder="Buscar...">
+            <div class="d-flex justify-content-end">
+              <button @click="mostrarLimiteFaltante" class="btn btn-warning btn-sm me-2">
+                Mostrar límite faltante
+              </button>
+              <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm">
+                Crear solicitud de Correspondencia
+              </nuxtLink>
+            </div>
           </div>
         </div>
+
         <div class="row">
           <div class="col-12">
             <div class="card border-rounded">
@@ -63,7 +58,6 @@
                         <th class="py-0 px-1">Fecha de Entrega</th>
                         <th class="py-0 px-1">Precio (Bs)</th>
                         <th class="py-0 px-1">Firma Destinatario</th>
-
                         <th class="py-0 px-1">Imagen</th>
                       </tr>
                     </thead>
@@ -74,10 +68,8 @@
                         <td class="py-0 px-1">{{ m.guia }}</td>
                         <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
                         <td class="py-0 px-1">{{ m.remitente }}</td>
-              
                         <td class="py-0 px-1">{{ m.telefono }}</td>
                         <td class="py-0 px-1">{{ m.contenido }}</td>
-                       
                         <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
                         <td class="py-0 px-1">{{ m.destinatario }}</td>
                         <td class="py-0 px-1">{{ m.telefono_d }}</td>
@@ -94,20 +86,17 @@
                         <td class="py-0 px-1">{{ m.zona_d }}</td>
                         <td class="py-0 px-1">{{ m.fecha_d }}</td>
                         <td class="py-0 px-1">{{ m.nombre_d }}</td>
-
                         <td class="py-0 px-1">
                           <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Origen" width="100" />
                         </td>
-                      
                         <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                       
-                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>               
+                          <div class="d-flex flex-column align-items-center">
+                            <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              Descargar
+                            </button>
+                          </div>
+                        </td>               
                       </tr>
                     </tbody>
                   </table>
@@ -136,6 +125,9 @@
     </AdminTemplate>
   </div>
 </template>
+
+
+
 
 <script>
 import { BCollapse } from 'bootstrap-vue';
@@ -199,13 +191,14 @@ export default {
     }
   },
   methods: {
-  
+
+
     async obtenerSaldoRestante() {
     try {
       const lastAlertDate = localStorage.getItem('lastAlertDate');
       const today = new Date().toLocaleDateString();
 
-      // Si la alerta ya fue mostrada hoy, no hacer nada
+      // Si la alerta ya fue mostrada hoy, no hacer nada y salir de la función
       if (lastAlertDate === today) {
         return;
       }
@@ -215,14 +208,13 @@ export default {
       this.saldoRestante = response.saldo_restante;
 
       const limiteTotal = response.limite_total;
-
       const diezPorCiento = limiteTotal * 0.1;
 
       if (this.saldoRestante < diezPorCiento) {
         this.$swal.fire({
           icon: 'warning',
           title: 'Saldo Bajo',
-          text: `El saldo restante para la sucursal es: ${this.saldoRestante} Bs. Esto es menos del 10% de su límite total (${limiteTotal} Bs). Comunicate con la AGBC pronto!`,
+          text: `El saldo restante para la sucursal es: ${this.saldoRestante} Bs. Esto es menos del 10% de su límite total (${limiteTotal} Bs). ¡Comunícate con la AGBC pronto!`,
           confirmButtonText: 'Aceptar'
         });
 
@@ -240,6 +232,46 @@ export default {
       });
     }
   },
+
+  async mostrarLimiteFaltante() {
+    try {
+      const sucursaleId = this.user.user.id;
+      const response = await this.$sucursales.$get(`restante2/${sucursaleId}`);
+      this.saldoRestante = response.saldo_restante;
+
+      const limiteTotal = response.limite_total;
+      const diezPorCiento = limiteTotal * 0.1;
+
+      if (this.saldoRestante < diezPorCiento) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Saldo Bajo',
+          text: `El saldo restante para la sucursal es: ${this.saldoRestante} Bs. Esto es menos del 10% de su límite total (${limiteTotal} Bs). ¡Comunícate con la AGBC pronto!`,
+          confirmButtonText: 'Aceptar'
+        });
+      } else {
+        this.$swal.fire({
+          icon: 'info',
+          title: 'Saldo Disponible',
+          text: `El saldo restante es suficiente: ${this.saldoRestante} Bs.`,
+          confirmButtonText: 'Aceptar'
+        });
+      }
+
+    } catch (e) {
+      console.error('Error al mostrar el límite faltante:', e);
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo obtener el saldo restante.',
+        confirmButtonText: 'Aceptar'
+      });
+    }
+  }
+
+
+
+,
 
     downloadImage(base64Image) {
       const link = document.createElement('a');
@@ -542,13 +574,20 @@ const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
 };
 </script>
 
+
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #34447C;
   margin-bottom: 1.5rem;
   overflow: hidden;
-  /* Para asegurar que los bordes redondeados se apliquen correctamente */
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .table-responsive {
@@ -561,22 +600,62 @@ const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .table th {
-  min-width: 100px;
-  /* Ajusta este valor según sea necesario */
+  background-color: #6c7a89;
+  color: #FFFFFF;
+  border-bottom: 2px solid #34447C;
 }
 
-.table th:first-child,
-.table td:first-child {
-  min-width: 30px;
-  /* Ajusta este valor según sea necesario */
+.table-hover tbody tr:hover {
+  background-color: #F8F9FA;
 }
 
-td img {
-  max-width: 100px;
-  /* Ajusta el tamaño según tus necesidades */
-  height: auto;
+.pagination .page-item.active .page-link {
+  background-color: #ffffff;
+  border-color: #ffffff;
+}
+
+.pagination .page-item .page-link {
+  color: #343A40;
+}
+
+.btn-warning {
+  background-color: #ffcc00;
+  border-color: #ffcc00;
+  color: #000;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+  height: calc(2.25rem + 2px);
+  padding: 0.375rem 0.75rem;
+}
+
+.btn-primary {
+  background-color: #34447C;
+  border-color: #34447C;
+}
+
+.btn-primary:hover {
+  background-color: #34447C;
+  border-color: #34447C;
+}
+
+.btn-dark {
+  background-color: #343a40;
+  border-color: #343a40;
+}
+
+.me-2 {
+  margin-right: 10px;
+}
+
+.w-100 {
+  width: 100%;
 }
 </style>

@@ -18,33 +18,33 @@
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
-                  <table class="table table-sm table-bordered">
+                  <table class="table table-hover table-bordered">
                     <thead>
                       <tr>
-                        <th class="py-0 px-1">#</th>
-                        <th class="py-0 px-1">Sucursal</th>
-                        <th class="py-0 px-1">Guía</th>
-                        <th class="py-0 px-1">Peso (Kg)</th>
-                        <th class="py-0 px-1">Remitente</th>
-                        <th class="py-0 px-1">Dirección maps</th>
-                        <th class="py-0 px-1">Teléfono</th>
-                        <th class="py-0 px-1">Contenido</th>
-                        <th class="py-0 px-1">Fecha de recojo paquete</th>
-                        <th class="py-0 px-1">Destinatario</th>
-                        <th class="py-0 px-1">Teléfono Destinatario</th>
-                        <th class="py-0 px-1">Dirección Destinatario maps</th>
-                        <th class="py-0 px-1">Dirección Destinatario</th>
-                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th>#</th>
+                        <th>Sucursal</th>
+                        <th>Guía</th>
+                        <th>Peso (Kg)</th>
+                        <th>Remitente</th>
+                        <th>Dirección maps</th>
+                        <th>Teléfono</th>
+                        <th>Contenido</th>
+                        <th>Fecha de recojo paquete</th>
+                        <th>Destinatario</th>
+                        <th>Teléfono Destinatario</th>
+                        <th>Dirección Destinatario maps</th>
+                        <th>Dirección Destinatario</th>
+                        <th>Municipio/Provincia</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr v-for="(m, i) in paginatedList" :key="i">
-                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="p-1">{{ m.sucursale.nombre }}</td>
-                        <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
-                        <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <td class="py-0 px-1">
+                        <td>{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td>{{ m.sucursale.nombre }}</td>
+                        <td>{{ m.guia }}</td>
+                        <td>{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
+                        <td>{{ m.remitente }}</td>
+                        <td>
                           <a v-if="isCoordinates(m.direccion.direccion)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
                             target="_blank" class="btn btn-primary btn-sm">
@@ -52,14 +52,12 @@
                           </a>
                           <span v-else>{{ m.direccion.direccion }}</span>
                         </td>
-                        <td class="py-0 px-1">{{ m.telefono }}</td>
-                        <td class="py-0 px-1">{{ m.contenido }}</td>
-
-
-                        <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
-                        <td class="py-0 px-1">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                        <td class="py-0 px-1">
+                        <td>{{ m.telefono }}</td>
+                        <td>{{ m.contenido }}</td>
+                        <td>{{ m.fecha_recojo_c }}</td>
+                        <td>{{ m.destinatario }}</td>
+                        <td>{{ m.telefono_d }}</td>
+                        <td>
                           <a v-if="isCoordinates(m.direccion_d)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                             class="btn btn-primary btn-sm">
@@ -67,9 +65,8 @@
                           </a>
                           <span v-else>{{ m.direccion_d }}</span>
                         </td>
-                        <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
-                        <td class="py-0 px-1">{{ m.ciudad }}</td>
-
+                        <td>{{ m.direccion_especifica_d }}</td>
+                        <td>{{ m.ciudad }}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -245,10 +242,16 @@ export default {
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #34447C;
   margin-bottom: 1.5rem;
   overflow: hidden;
-  /* Para asegurar que los bordes redondeados se apliquen correctamente */
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .table-responsive {
@@ -261,16 +264,52 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .table th {
-  min-width: 100px;
-  /* Ajusta este valor según sea necesario */
+  background-color: #6c7a89;
+  color: #FFFFFF;
+  border-bottom: 2px solid #34447C;
 }
 
-.table th:first-child,
-.table td:first-child {
-  min-width: 30px;
-  /* Ajusta este valor según sea necesario */
+.table-hover tbody tr:hover {
+  background-color: #F8F9FA;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #ffffff;
+  border-color: #ffffff;
+}
+
+.pagination .page-item .page-link {
+  color: #343A40;
+}
+
+.btn-warning {
+  background-color: #ffcc00;
+  border-color: #ffcc00;
+  color: #000;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-primary {
+  background-color: #34447C;
+  border-color: #34447C;
+}
+
+.btn-primary:hover {
+  background-color: #34447C;
+  border-color: #34447C;
+}
+
+.btn-dark {
+  background-color: #343a40;
+  border-color: #343a40;
 }
 </style>

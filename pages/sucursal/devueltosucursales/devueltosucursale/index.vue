@@ -4,14 +4,11 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-          <div class="row justify-content-end mb-3">
           <div class="col-2">
             <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
               <i class=""></i> Crear solicitud de Correspondencia
             </nuxtLink>
           </div>
-        </div>
-
         </div>
         <div class="row">
           <div class="col-12">
@@ -21,45 +18,41 @@
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
-                  <table class="table table-sm table-bordered">
+                  <table class="table table-hover table-bordered">
                     <thead>
                       <tr>
-                        <th class="py-0 px-1">#</th>
-                        <th class="py-0 px-1">Sucursal</th>
-                        <th class="py-0 px-1">Guía</th>
-                        <th class="py-0 px-1">Observación</th>
-                        <th class="py-0 px-1">Foto</th>
-                        <th class="py-0 px-1">Fecha devolucion</th>
-                        <th class="py-0 px-1">Foto</th>
-
+                        <th>#</th>
+                        <th>Sucursal</th>
+                        <th>Guía</th>
+                        <th>Observación</th>
+                        <th>Foto</th>
+                        <th>Fecha devolucion</th>
+                        <th>Foto</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr v-for="(m, i) in paginatedList" :key="i">
-                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="p-1">{{ m.sucursale.nombre }}</td>
-                        <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.observacion }}</td>
-                        <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                       
-                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>               
-                    <td class="py-0 px-1">{{ m.fecha_devolucion }}</td>
-
-                    <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                       
-                        <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>                  
+                        <td>{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td>{{ m.sucursale.nombre }}</td>
+                        <td>{{ m.guia }}</td>
+                        <td>{{ m.observacion }}</td>
+                        <td>
+                          <div class="d-flex flex-column align-items-center">
+                            <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              Descargar
+                            </button>
+                          </div>
+                        </td>
+                        <td>{{ m.fecha_devolucion }}</td>
+                        <td>
+                          <div class="d-flex flex-column align-items-center">
+                            <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
+                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              Descargar
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -276,13 +269,20 @@ export default {
 };
 </script>
 
+
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #34447C;
   margin-bottom: 1.5rem;
   overflow: hidden;
-  /* Para asegurar que los bordes redondeados se apliquen correctamente */
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .table-responsive {
@@ -295,16 +295,36 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .table th {
-  min-width: 100px;
-  /* Ajusta este valor según sea necesario */
+  background-color: #6c7a89; /* Gris oscuro */
+  color: #FFFFFF; /* Blanco para el texto para asegurar la legibilidad */
+  border-bottom: 2px solid #34447C;
 }
 
-.table th:first-child,
-.table td:first-child {
-  min-width: 30px;
-  /* Ajusta este valor según sea necesario */
+.table-hover tbody tr:hover {
+  background-color: #F8F9FA;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #ffffff;
+  border-color: #ffffff;
+}
+
+.pagination .page-item .page-link {
+  color: #343A40;
+}
+
+.btn-primary {
+  background-color: #34447C;
+  border-color: #34447C;
+}
+
+.btn-primary:hover {
+  background-color: #34447C;
+  border-color: #34447C;
 }
 </style>
