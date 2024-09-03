@@ -4,129 +4,141 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-         
           <div class="col-3">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
               placeholder="Buscar..." />
           </div>
         </div>
+
         <div class="row">
           <div class="col-12">
-            <div class="table-responsive">
-              <table class="table table-sm table-bordered">
-                <thead>
-                  <tr>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Guía</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Detalles de Domicilio</th>
-
-                    <!-- Nueva columna para la dirección específica -->
-                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
-                    <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha Solicitud</th>
-                    <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono D</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Municipio/Provincia</th>
-                    <th class="py-0 px-1">Zona Destinatario</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="card border-rounded">
+              <div class="card-header">
+                Recogidos
+              </div>
+              <div class="card-body p-2">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Sucursal</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Detalles de Domicilio</th>
+                        <th class="py-0 px-1">Zona</th>
+                        <th class="py-0 px-1">Dirección maps</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Fecha Solicitud</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Teléfono D</th>
+                        <th class="py-0 px-1">Dirección Destinatario</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th class="py-0 px-1">Zona Destinatario</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="i">
+                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td class="p-1">{{ m.sucursale.nombre }}</td>
+                        <td class="py-0 px-1">{{ m.guia }}</td>
+                        <td class="py-0 px-1">{{ m.remitente }}</td>
+                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                        <td class="py-0 px-1">{{ m.direccion.zona }}</td>
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion.direccion }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.telefono }}</td>
+                        <td class="py-0 px-1">{{ m.contenido }}</td>
+                        <td class="py-0 px-1">{{ m.fecha }}</td>
+                        <td class="py-0 px-1">{{ m.destinatario }}</td>
+                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion_d)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                            class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion_d }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.ciudad }}</td>
+                        <td class="py-0 px-1">{{ m.zona_d }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!-- Paginación -->
+                <nav aria-label="Page navigation">
+                  <ul class="pagination justify-content-between">
+                    <li class="page-item" :class="{ disabled: currentPage === 0 }">
+                      <button class="page-link" @click="previousPage" :disabled="currentPage === 0">&lt;</button>
+                    </li>
+                    <li class="page-item" v-for="page in totalPages" :key="page"
+                      :class="{ active: currentPage === page - 1 }">
+                      <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+                    </li>
+                    <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
+                      <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
             </div>
-            <!-- Paginación -->
-            <nav aria-label="Page navigation">
-              <ul class="pagination justify-content-between">
-                <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0">&lt;</button>
-                </li>
-                <li class="page-item" v-for="page in totalPages" :key="page"
-                  :class="{ active: currentPage === page - 1 }">
-                  <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
-                </li>
-                <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
-                  <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
-                </li>
-              </ul>
-            </nav>
           </div>
         </div>
-    <!-- Move the button below the table -->
-    <div class="row justify-content-end mb-3 mt-3">
+
+        <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
+        <div v-if="selectedForDelivery.length > 0" class="mt-4">
+          <div class="card border-rounded">
+            <div class="card-header">
+              Paquetes para entregar
+            </div>
+            <div class="card-body p-2">
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <th class="py-0 px-1">#</th>
+                      <th class="py-0 px-1">Guía</th>
+                      <th class="py-0 px-1">Sucursal</th>
+                      <th class="py-0 px-1">Tarifa</th>
+                      <th class="py-0 px-1">Peso Correos (Kg)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(item, index) in selectedForDelivery" :key="index">
+                      <td class="py-0 px-1">{{ index + 1 }}</td>
+                      <td class="py-0 px-1">{{ item.guia }}</td>
+                      <td class="py-0 px-1">{{ item.sucursale.nombre }}</td>
+                      <td class="py-0 px-1">{{ item.tarifa }}</td>
+                      <td class="py-0 px-1">{{ item.peso_v }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón para asignar todos los seleccionados -->
+        <div class="row justify-content-end mb-3 mt-3">
           <div class="col-3" v-if="selectedForAssign.length > 0">
             <button @click="confirmAllAssignments" class="btn btn-primary btn-sm w-100">
               <i class="fas fa-truck"></i> Asignar todos los seleccionados
             </button>
           </div>
         </div>
-        <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
-        <div v-if="selectedForDelivery.length > 0" class="mt-4">
-          <h5>Paquetes para entregar</h5>
-          <div class="table-responsive">
-            <table class="table table-sm table-bordered">
-              <thead>
-                <tr>
-                  <th class="py-0 px-1">#</th>
-                  <th class="py-0 px-1">Guía</th>
-                  <th class="py-0 px-1">Sucursal</th>
-                  <th class="py-0 px-1">Tarifa</th>
-                  <th class="py-0 px-1">Peso Correos (Kg)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, index) in selectedForDelivery" :key="index">
-                  <td class="py-0 px-1">{{ index + 1 }}</td>
-                  <td class="py-0 px-1">{{ item.guia }}</td>
-                  <td class="py-0 px-1">{{ item.sucursale.nombre }}</td>
-                  <td class="py-0 px-1">{{ item.tarifa }}</td>
-                  <td class="py-0 px-1">{{ item.peso_v }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
     </AdminTemplate>
 
-     <!-- Modal para añadir peso_v -->
-     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer @shown="focusPesoInput">
+    <!-- Modal para añadir peso_v -->
+    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer @shown="focusPesoInput">
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
         <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
 
@@ -144,13 +156,9 @@
         <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
       </div>
     </b-modal>
-
-
-
-
-
   </div>
 </template>
+
 
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
@@ -439,16 +447,72 @@ export default {
 };
 </script>
 
+
+
+
+
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #000000;
   margin-bottom: 1.5rem;
   overflow: hidden;
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .table-responsive {
   max-width: 100%;
   overflow-x: auto;
 }
+
+.table {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.table th {
+  background-color: #6c7a89;
+  color: #FFFFFF;
+  border-bottom: 2px solid #34447C;
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table td {
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #F8F9FA;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #ffffff;
+  border-color: #ffffff;
+}
+
+.pagination .page-item .page-link {
+  color: #343A40;
+}
+
+.btn-primary {
+  background-color: #34447C;
+  border-color: #34447C;
+}
+
+.btn-primary:hover {
+  background-color: #4a5a7a;
+}
 </style>
+

@@ -15,10 +15,15 @@
         </div>
         <div class="row">
           <div class="col-12">
-            <div class="table-responsive">
-              <table class="table table-sm table-bordered">
-                <thead>
-                  <tr>
+            <div class="card border-rounded">
+              <div class="card-header">
+                EN CAMINO
+              </div>
+              <div class="card-body p-2">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered table-hover">
+                    <thead>
+                      <tr>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
                     <th class="py-0 px-1">Guía</th>
@@ -72,6 +77,9 @@
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+
             <!-- Paginación -->
             <nav aria-label="Page navigation">
               <ul class="pagination justify-content-between">
@@ -427,12 +435,22 @@ export default {
 };
 </script>
 
+
+
+
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #000000;
   margin-bottom: 1.5rem;
   overflow: hidden;
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .table-responsive {
@@ -440,8 +458,47 @@ export default {
   overflow-x: auto;
 }
 
-.img-fluid {
-  max-width: 100%;
-  height: auto;
+.table {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.table th {
+  background-color: #6c7a89;
+  color: #FFFFFF;
+  border-bottom: 2px solid #34447C;
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table td {
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #F8F9FA;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #ffffff;
+  border-color: #ffffff;
+}
+
+.pagination .page-item .page-link {
+  color: #343A40;
+}
+
+.btn-primary {
+  background-color: #34447C;
+  border-color: #34447C;
+}
+
+.btn-primary:hover {
+  background-color: #4a5a7a;
 }
 </style>

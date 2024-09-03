@@ -21,85 +21,85 @@
               </option>
             </select>
           </div>
-
-
         </div>
+
         <div class="row">
           <div class="col-12">
-            <div class="table-responsive">
-              <table class="table table-sm table-bordered">
-                <thead>
-                  <tr>
-                    <th class="py-0 px-1">
-                      <input type="checkbox" @change="selectAll($event)" />
-                    </th>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Guía</th>
-                    <th class="py-0 px-1">Acuerdo de Recojo</th>
-                    <th class="py-0 px-1">Peso Empresa (Kg)</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Detalles de Domicilio</th>
-
-                    <!-- Nueva columna para la dirección específica -->
-                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
-                    <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha</th>
-                    
-                    <th class="py-0 px-1">Departamento origen</th>
-                    <th class="py-0 px-1">Departamento destino</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">
-                      <input type="checkbox" v-model="selected[m.id]" />
-                    </td>
-                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.sucursale.acuerdos }}</td>
-                    <td class="py-0 px-1">{{ m.peso_o }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    
-                    <td class="py-0 px-1">{{ m.sucursale.origen }}</td>
-                    <td class="py-0 px-1">{{ m.tarifa.departamento }}</td>
-                  </tr>
-
-
-                </tbody>
-              </table>
+            <div class="card border-rounded">
+              <div class="card-header">
+                Solicitudes Recientes
+              </div>
+              <div class="card-body p-2">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <th class="py-0 px-1">
+                          <input type="checkbox" @change="selectAll($event)" />
+                        </th>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Sucursal</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Acuerdo de Recojo</th>
+                        <th class="py-0 px-1">Peso Empresa (Kg)</th>
+                        <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Detalles de Domicilio</th>
+                        <th class="py-0 px-1">Zona</th>
+                        <th class="py-0 px-1">Dirección maps</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Fecha</th>
+                        <th class="py-0 px-1">Departamento origen</th>
+                        <th class="py-0 px-1">Departamento destino</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="i">
+                        <td class="py-0 px-1">
+                          <input type="checkbox" v-model="selected[m.id]" />
+                        </td>
+                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
+                        <td class="py-0 px-1">{{ m.guia }}</td>
+                        <td class="py-0 px-1">{{ m.sucursale.acuerdos }}</td>
+                        <td class="py-0 px-1">{{ m.peso_o }}</td>
+                        <td class="py-0 px-1">{{ m.remitente }}</td>
+                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                        <td class="py-0 px-1">{{ m.direccion.zona }}</td>
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion.direccion }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.telefono }}</td>
+                        <td class="py-0 px-1">{{ m.contenido }}</td>
+                        <td class="py-0 px-1">{{ m.fecha }}</td>
+                        <td class="py-0 px-1">{{ m.sucursale.origen }}</td>
+                        <td class="py-0 px-1">{{ m.tarifa.departamento }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!-- Paginación -->
+                <nav aria-label="Page navigation">
+                  <ul class="pagination justify-content-between">
+                    <li class="page-item" :class="{ disabled: currentPage === 0 }">
+                      <button class="page-link" @click="previousPage" :disabled="currentPage === 0">&lt;</button>
+                    </li>
+                    <li class="page-item" v-for="page in totalPages" :key="page"
+                      :class="{ active: currentPage === page - 1 }">
+                      <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+                    </li>
+                    <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
+                      <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
             </div>
-            <!-- Paginación -->
-            <nav aria-label="Page navigation">
-              <ul class="pagination justify-content-between">
-                <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0">&lt;</button>
-                </li>
-                <li class="page-item" v-for="page in totalPages" :key="page"
-                  :class="{ active: currentPage === page - 1 }">
-                  <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
-                </li>
-                <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
-                  <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
-                </li>
-              </ul>
-            </nav>
           </div>
         </div>
       </div>
@@ -117,7 +117,6 @@
         <button class="btn btn-secondary ml-2" @click="isSelectedModalVisible = false">Cancelar</button>
       </div>
     </b-modal>
-    <!-- Modal para mostrar seleccionados sin el botón de eliminar -->
     <!-- Modal para mostrar seleccionados con checklist -->
     <b-modal v-model="isSelectedSimpleModalVisible" title="Resultados de los seleccionados" hide-backdrop hide-footer>
       <div v-for="(item, index) in selectedItemsData" :key="item.id"
@@ -131,7 +130,6 @@
         <button class="btn btn-secondary ml-2" @click="isSelectedSimpleModalVisible = false">Cancelar</button>
       </div>
     </b-modal>
-
   </div>
 </template>
 
@@ -464,8 +462,59 @@ export default {
   overflow: hidden;
 }
 
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
 .table-responsive {
   max-width: 100%;
   overflow-x: auto;
+}
+
+.table {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.table th {
+  background-color: #6c7a89;
+  color: #FFFFFF;
+  border-bottom: 2px solid #34447C;
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table td {
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #F8F9FA;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #ffffff;
+  border-color: #ffffff;
+}
+
+.pagination .page-item .page-link {
+  color: #343A40;
+}
+
+.btn-primary {
+  background-color: #34447C;
+  border-color: #34447C;
+}
+
+.btn-primary:hover {
+  background-color: #4a5a7a;
 }
 </style>
