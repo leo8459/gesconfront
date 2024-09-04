@@ -17,7 +17,7 @@
           <div class="col-12">
             <div class="card border-rounded">
               <div class="card-header">
-                ENTREGADOS
+                PAQUETES POR VERIFICAR
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
@@ -165,14 +165,21 @@ export default {
   },
   computed: {
     filteredData() {
-  const searchTerm = this.searchTerm.toLowerCase();
-  return this.list.filter(item =>
-    (item.estado === 3 || item.estado === 10) && // Incluir elementos con estado 3 o 10
-    Object.values(item).some(value =>
-      String(value).toLowerCase().includes(searchTerm)
-    )
-  );
-},
+    const searchTerm = this.searchTerm.toLowerCase();
+    
+    // Obtener el departamento del usuario logueado desde localStorage
+    const user = JSON.parse(localStorage.getItem('userAuth'));
+    const userDepartment = user && user.user ? user.user.departamento : null;
+    
+    return this.list.filter(item =>
+      (item.estado === 3 || item.estado === 10) && // Incluir elementos con estado 3 o 10
+      item.cartero_entrega && // Asegúrate de que exista un cartero_entrega
+      item.cartero_entrega.departamento_cartero === userDepartment && // Filtrar por el departamento
+      Object.values(item).some(value =>
+        String(value).toLowerCase().includes(searchTerm)
+      )
+    );
+  },
 
     paginatedData() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
