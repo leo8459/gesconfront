@@ -10,11 +10,11 @@
           <div class="col-12">
             <div class="card border-rounded">
               <div class="card-header">
-                Devueltos
+                DEVUELTOS
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
-                  <table class="table table-sm table-bordered">
+                  <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
                         <th class="py-0 px-1">#</th>
@@ -274,13 +274,22 @@ export default {
 };
 </script>
 
+
+
+
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
   border: 1px solid #dee2e6;
   margin-bottom: 1.5rem;
   overflow: hidden;
-  /* Para asegurar que los bordes redondeados se apliquen correctamente */
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .table-responsive {
@@ -288,21 +297,24 @@ export default {
   overflow-x: auto;
 }
 
-.table th,
-.table td {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.pagination-controls .pagination {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-.table th {
-  min-width: 100px;
-  /* Ajusta este valor según sea necesario */
+.pagination-controls .page-item {
+  margin: 0 2px;
 }
 
-.table th:first-child,
-.table td:first-child {
-  min-width: 30px;
-  /* Ajusta este valor según sea necesario */
+.pagination-controls .page-item .page-link {
+  cursor: pointer;
+}
+
+.pagination-controls .page-item.active .page-link {
+  font-weight: bold;
+  background-color: #007bff;
+  color: white;
 }
 </style>

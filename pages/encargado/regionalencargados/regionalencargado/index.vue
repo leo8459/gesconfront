@@ -21,67 +21,74 @@
         </div>
         <div class="row">
           <div class="col-12">
-            <div class="table-responsive">
-              <table class="table table-sm table-bordered">
-                <thead>
-                  <tr>
-                    <th class="py-0 px-1">
-                      <input type="checkbox" @click="selectAll($event, paginatedData)" />
-                    </th>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Guía</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Detalles de Domicilio</th>
-                    <th class="py-0 px-1">Zona</th>
-                    <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha Solicitud</th>
-                    <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono D</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Municipio/Provincia</th>
-                    <th class="py-0 px-1">Zona Destinatario</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">
-                      <input type="checkbox" v-model="selected[m.id]" />
-                    </td>
-                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="card border-rounded">
+              <div class="card-header">
+                Verificar Correspondencia
+              </div>
+              <div class="card-body p-2">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <th class="py-0 px-1">
+                          <input type="checkbox" @click="selectAll($event, paginatedData)" />
+                        </th>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Sucursal</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Detalles de Domicilio</th>
+                        <th class="py-0 px-1">Zona</th>
+                        <th class="py-0 px-1">Dirección maps</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Fecha Solicitud</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Teléfono D</th>
+                        <th class="py-0 px-1">Dirección Destinatario</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th class="py-0 px-1">Zona Destinatario</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="i">
+                        <td class="py-0 px-1">
+                          <input type="checkbox" v-model="selected[m.id]" />
+                        </td>
+                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td class="p-1">{{ m.sucursale.nombre }}</td>
+                        <td class="py-0 px-1">{{ m.guia }}</td>
+                        <td class="py-0 px-1">{{ m.remitente }}</td>
+                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                        <td class="py-0 px-1">{{ m.direccion.zona }}</td>
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion.direccion }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.telefono }}</td>
+                        <td class="py-0 px-1">{{ m.contenido }}</td>
+                        <td class="py-0 px-1">{{ m.fecha }}</td>
+                        <td class="py-0 px-1">{{ m.destinatario }}</td>
+                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion_d)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                            class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion_d }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.ciudad }}</td>
+                        <td class="py-0 px-1">{{ m.zona_d }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
 
 
@@ -132,39 +139,40 @@
       </div>
     </AdminTemplate>
 
-  <!-- Modal para añadir peso_r -->
-<b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop @shown="focusPesoInput">
-  <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-    <label :for="'peso_r-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
-    <div class="mt-3"></div>
+    <!-- Modal para añadir peso_r -->
+    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop @shown="focusPesoInput">
+      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+        <label :for="'peso_r-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+        <div class="mt-3"></div>
 
-    <label :for="'peso_o-' + item.id" class="mt-2">Peso origen (Kg)</label>
-    <input type="text" :id="'peso_o-' + item.id" v-model="item.peso_o" class="form-control" disabled />
+        <label :for="'peso_o-' + item.id" class="mt-2">Peso origen (Kg)</label>
+        <input type="text" :id="'peso_o-' + item.id" v-model="item.peso_o" class="form-control" disabled />
 
-    <!-- Separación entre los labels -->
-    <div class="mt-3"></div>
+        <!-- Separación entre los labels -->
+        <div class="mt-3"></div>
 
-    <label :for="'peso_v-' + item.id" class="mt-2">Peso verificado regional (Kg)</label>
-    <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" disabled />
+        <label :for="'peso_v-' + item.id" class="mt-2">Peso verificado regional (Kg)</label>
+        <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" disabled />
 
-    <!-- Separación entre los labels -->
-    <div class="mt-3"></div>
+        <!-- Separación entre los labels -->
+        <div class="mt-3"></div>
 
-   <!-- Campo editable para ingresar peso_r -->
-<label :for="'peso_r-' + item.id" class="mt-2">Peso oficina destino (Kg)</label>
-<input type="text" :id="'peso_r-' + item.id" v-model="item.peso_r" class="form-control"
-  @keypress.enter="formatPesoR(item)" @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" ref="pesoInput" />
+        <!-- Campo editable para ingresar peso_r -->
+        <label :for="'peso_r-' + item.id" class="mt-2">Peso oficina destino (Kg)</label>
+        <input type="text" :id="'peso_r-' + item.id" v-model="item.peso_r" class="form-control"
+          @keypress.enter="formatPesoR(item)" @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001"
+          ref="pesoInput" />
 
-    
-    <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
-    <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
-  </div>
-  <div class="d-flex justify-content-end">
-    <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-    <button class="btn btn-primary ml-2" @click="recibirPaquetes">Asignar</button>
-  </div>
-</b-modal>
-x
+
+        <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
+        <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
+        <button class="btn btn-primary ml-2" @click="recibirPaquetes">Asignar</button>
+      </div>
+    </b-modal>
+    x
   </div>
 </template>
 
@@ -212,27 +220,27 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    const departamento = this.user?.user?.departamento; // Usamos 'departamento'
+      const searchTerm = this.searchTerm.toLowerCase();
+      const departamento = this.user?.user?.departamento; // Usamos 'departamento'
 
-    if (!departamento) {
-      // Si el departamento no está definido, no hay datos que mostrar
-      return [];
-    }
+      if (!departamento) {
+        // Si el departamento no está definido, no hay datos que mostrar
+        return [];
+      }
 
-    return this.list.filter(item =>
-      item.estado === 8 &&
-      item.tarifa?.departamento === departamento && // Filtrar por el departamento del encargado
-      Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm)
-      )
-    );
-  },
-  paginatedData() {
-    const start = this.currentPage * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredData.slice(start, end);
-  },
+      return this.list.filter(item =>
+        item.estado === 8 &&
+        item.tarifa?.departamento === departamento && // Filtrar por el departamento del encargado
+        Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        )
+      );
+    },
+    paginatedData() {
+      const start = this.currentPage * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredData.slice(start, end);
+    },
     totalPages() {
       return Math.ceil(this.filteredData.length / this.itemsPerPage);
     },
@@ -242,13 +250,13 @@ export default {
   },
   methods: {
     formatPesoR(item) {
-    // Si el valor es un número entero, agrega ",000" al final
-    if (!item.peso_r.includes('.')) {
-      item.peso_r = `${item.peso_r},000`;
-    }
-    // Actualizar el precio después de formatear el peso
-    this.updatePrice(item);
-  },
+      // Si el valor es un número entero, agrega ",000" al final
+      if (!item.peso_r.includes('.')) {
+        item.peso_r = `${item.peso_r},000`;
+      }
+      // Actualizar el precio después de formatear el peso
+      this.updatePrice(item);
+    },
 
     focusPesoInput() {
       this.$refs.pesoInput[0].focus();
@@ -305,23 +313,23 @@ export default {
       }
     },
     openAssignModal() {
-  this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => {
-    const precio = this.calculatePrice(item.tarifa_id, item.peso_r);
-    return {
-      id: item.id,
-      guia: item.guia,
-      sucursale: item.sucursale,
-      peso_r: item.peso_r !== undefined && item.peso_r !== null && item.peso_r !== 0 ? item.peso_r : '',
-      tarifa_id: item.tarifa_id,
-      tarifa: this.getTarifaLabel(item.tarifa_id),
-      nombre_d: precio,
-      precio: precio,
-      peso_v: item.peso_v, // Incluye peso_v aquí
-      peso_o: item.peso_o // Incluye peso aquí
-    };
-  });
-  this.isModalVisible = true;
-},
+      this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => {
+        const precio = this.calculatePrice(item.tarifa_id, item.peso_r);
+        return {
+          id: item.id,
+          guia: item.guia,
+          sucursale: item.sucursale,
+          peso_r: item.peso_r !== undefined && item.peso_r !== null && item.peso_r !== 0 ? item.peso_r : '',
+          tarifa_id: item.tarifa_id,
+          tarifa: this.getTarifaLabel(item.tarifa_id),
+          nombre_d: precio,
+          precio: precio,
+          peso_v: item.peso_v, // Incluye peso_v aquí
+          peso_o: item.peso_o // Incluye peso aquí
+        };
+      });
+      this.isModalVisible = true;
+    },
 
     handleSearchEnter() {
       const filteredItems = this.filteredData;
@@ -393,53 +401,53 @@ export default {
       }
     },
     async recibirPaquetes() {
-  this.load = true;
-  try {
-    // Tomar el primer elemento seleccionado desde el modal
-    const item = this.selectedItemsData[0]; 
-    const carteroId = this.user.user.id; // Obtener el ID del cartero logueado
-    
-    if (item) {
-      // Enviar la solicitud PUT al backend
-      await this.$encargados.$put(`recibirpaquetes5/${item.id}`, {
-        encargado_regional_id: carteroId, // Registrar el encargado_id
-        peso_r: item.peso_r,              // Actualizar el peso_r
-        nombre_d: item.nombre_d           // Actualizar el nombre_d
-      });
+      this.load = true;
+      try {
+        // Tomar el primer elemento seleccionado desde el modal
+        const item = this.selectedItemsData[0];
+        const carteroId = this.user.user.id; // Obtener el ID del cartero logueado
+
+        if (item) {
+          // Enviar la solicitud PUT al backend
+          await this.$encargados.$put(`recibirpaquetes5/${item.id}`, {
+            encargado_regional_id: carteroId, // Registrar el encargado_id
+            peso_r: item.peso_r,              // Actualizar el peso_r
+            nombre_d: item.nombre_d           // Actualizar el nombre_d
+          });
+        }
+
+        // Recargar los datos de la tabla
+
+        // Cerrar el modal
+        this.isModalVisible = false;
+
+        // Mostrar mensaje de éxito
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Paquete recibido',
+          text: 'El paquete seleccionado ha sido marcado como recibido.',
+        });
+
+        // Limpiar la selección después de recibir
+        this.selected = {};
+
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al recibir el paquete.',
+        });
+      } finally {
+        this.load = false;
+      }
+      await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista de paquetes
+
     }
 
-    // Recargar los datos de la tabla
-
-    // Cerrar el modal
-    this.isModalVisible = false;
-
-    // Mostrar mensaje de éxito
-    this.$swal.fire({
-      icon: 'success',
-      title: 'Paquete recibido',
-      text: 'El paquete seleccionado ha sido marcado como recibido.',
-    });
-
-    // Limpiar la selección después de recibir
-    this.selected = {};
-
-  } catch (e) {
-    console.error(e);
-    this.$swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Hubo un error al recibir el paquete.',
-    });
-  } finally {
-    this.load = false;
-  }
-  await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista de paquetes
-
-}
 
 
-
-,
+    ,
     selectAll(event, group) {
       const isChecked = event.target.checked;
       group.forEach(item => {
@@ -491,6 +499,9 @@ export default {
 };
 </script>
 
+
+
+
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
@@ -499,8 +510,36 @@ export default {
   overflow: hidden;
 }
 
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
 .table-responsive {
   max-width: 100%;
   overflow-x: auto;
+}
+
+.pagination-controls .pagination {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pagination-controls .page-item {
+  margin: 0 2px;
+}
+
+.pagination-controls .page-item .page-link {
+  cursor: pointer;
+}
+
+.pagination-controls .page-item.active .page-link {
+  font-weight: bold;
+  background-color: #007bff;
+  color: white;
 }
 </style>

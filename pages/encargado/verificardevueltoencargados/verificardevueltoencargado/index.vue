@@ -15,10 +15,15 @@
         </div>
         <div class="row">
           <div class="col-12">
-            <div class="table-responsive">
-              <table class="table table-sm table-bordered">
-                <thead>
-                  <tr>
+            <div class="card border-rounded">
+              <div class="card-header">
+                Verificar return
+              </div>
+              <div class="card-body p-2">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered table-hover">
+                    <thead>
+                      <tr>
                     <th class="py-0 px-1">
                       <input type="checkbox" @change="selectAll($event, paginatedData)" />
                     </th>
@@ -101,6 +106,9 @@
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
               <span>Página {{ currentPage }} de {{ totalPages }}</span>
@@ -119,17 +127,7 @@
         </div>
       </div>
     </AdminTemplate>
-    <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
-      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }}</label>
-        <input type="number" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" />
-      </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-        <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
-      </div>
-    </b-modal>
+   
   </div>
 </template>
 
@@ -291,7 +289,29 @@ export default {
 };
 </script>
 
+
+
+
 <style scoped>
+.card.border-rounded {
+  border-radius: 15px;
+  border: 1px solid #dee2e6;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.table-responsive {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .pagination-controls .pagination {
   display: flex;
   list-style: none;

@@ -15,10 +15,15 @@
         </div>
         <div class="row">
           <div class="col-12">
-            <div class="table-responsive">
-              <table class="table table-sm table-bordered">
-                <thead>
-                  <tr>
+            <div class="card border-rounded">
+              <div class="card-header">
+                ENTREGADOS
+              </div>
+              <div class="card-body p-2">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered table-hover">
+                    <thead>
+                      <tr>
                     <th class="py-0 px-1">
                       <input type="checkbox" @change="selectAll($event, paginatedData)" />
                     </th>
@@ -101,6 +106,9 @@
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
               <span>Página {{ currentPage }} de {{ totalPages }}</span>
@@ -281,7 +289,29 @@ export default {
 };
 </script>
 
+
+
+
 <style scoped>
+.card.border-rounded {
+  border-radius: 15px;
+  border: 1px solid #dee2e6;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.table-responsive {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .pagination-controls .pagination {
   display: flex;
   list-style: none;

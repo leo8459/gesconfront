@@ -4,15 +4,18 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
+          <!-- Botón para mostrar los elementos seleccionados -->
           <div class="col-3" v-if="hasSelectedItems">
             <button @click="openSelectedModal" class="btn btn-primary btn-sm w-100">
               <i class="fas fa-truck"></i> Mostrar Seleccionados
             </button>
           </div>
+          <!-- Input de búsqueda -->
           <div class="col-3">
             <input v-model="searchTerm" @keypress.enter.prevent="handleSearchEnter" type="text" class="form-control"
               placeholder="Buscar..." />
           </div>
+          <!-- Selección de Sucursal -->
           <div class="col-3">
             <select v-model="selectedSucursal" class="form-control" @change="handleSucursalChange">
               <option value="">Seleccione Sucursal</option>
@@ -24,23 +27,26 @@
         </div>
         <div class="row">
           <div class="col-12">
-            <div class="table-responsive">
-              <table class="table table-sm table-bordered">
-                <thead>
-                  <tr>
+            <div class="card border-rounded">
+              <div class="card-header">
+                SOLICITUDES
+              </div>
+              <div class="card-body p-2">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered table-hover">
+                    <thead>
+                      <tr>
                     <th class="py-0 px-1">
                       <input type="checkbox" @change="selectAll($event)" />
                     </th>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Guia</th>
+                    <th class="py-0 px-1">Guía</th>
                     <th class="py-0 px-1">Acuerdo de Recojo</th>
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Remitente</th>
                     <th class="py-0 px-1">Detalles de Domicilio</th>
-
-                    <!-- Nueva columna para la dirección específica -->
-                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
+                    <th class="py-0 px-1">Zona</th>
                     <th class="py-0 px-1">Dirección maps</th>
                     <th class="py-0 px-1">Teléfono</th>
                     <th class="py-0 px-1">Contenido</th>
@@ -50,7 +56,6 @@
                     <th class="py-0 px-1">Dirección Destinatario</th>
                     <th class="py-0 px-1">Ciudad/Provincia</th>
                     <th class="py-0 px-1">Zona Destino</th>
-
                   </tr>
                 </thead>
                 <tbody>
@@ -60,14 +65,12 @@
                     </td>
                     <td class="py-0 px-1">{{ i + 1 }}</td>
                     <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.sucursale.acuerdos }}</td>
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
                     <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
+                    <td class="py-0 px-1">{{ m.direccion.zona }}</td>
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion.direccion)"
                         :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
@@ -79,9 +82,6 @@
                     <td class="py-0 px-1">{{ m.telefono }}</td>
                     <td class="py-0 px-1">{{ m.contenido }}</td>
                     <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
-                    </td>
                     <td class="py-0 px-1">{{ m.destinatario }}</td>
                     <td class="py-0 px-1">{{ m.telefono_d }}</td>
                     <td class="py-0 px-1">
@@ -94,12 +94,13 @@
                     </td>
                     <td class="py-0 px-1">{{ m.ciudad }}</td>
                     <td class="py-0 px-1">{{ m.zona_d }}</td>
-
-
                   </tr>
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="currentPage--">Anterior</button>
               <span>Página {{ currentPage }} de {{ totalPages }}</span>
@@ -125,6 +126,7 @@
     </b-modal>
   </div>
 </template>
+
 
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
@@ -371,16 +373,48 @@ export default {
 };
 </script>
 
+
+
+
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
-  border: 1px solid #000000;
+  border: 1px solid #dee2e6;
   margin-bottom: 1.5rem;
   overflow: hidden;
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .table-responsive {
   max-width: 100%;
   overflow-x: auto;
 }
+
+.pagination-controls .pagination {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pagination-controls .page-item {
+  margin: 0 2px;
+}
+
+.pagination-controls .page-item .page-link {
+  cursor: pointer;
+}
+
+.pagination-controls .page-item.active .page-link {
+  font-weight: bold;
+  background-color: #007bff;
+  color: white;
+}
 </style>
+
