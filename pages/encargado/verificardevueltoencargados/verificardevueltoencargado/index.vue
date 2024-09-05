@@ -121,9 +121,13 @@
           </div>
         </div>
         <b-modal id="reencaminarModal" ref="reencaminarModal" title="Reencaminar" @ok="confirmReencaminar">
-  <div class="form-group">
+  <div v-for="(solicitud, index) in selectedItemsData" :key="solicitud.id" class="form-group">
+    <!-- Mostrar el número de guía -->
+    <p><strong>Solicitud {{ index + 1 }}: </strong>Guía {{ solicitud.guia }}</p>
+    
+    <!-- Seleccionar el destino de reencaminamiento -->
     <label for="reencaminarSelect">Seleccione el destino de reencaminamiento:</label>
-    <select v-model="selectedReencaminar" class="form-control" id="reencaminarSelect">
+    <select v-model="solicitud.reencaminamiento" class="form-control" id="reencaminarSelect">
       <option value="LPB">La Paz (LPB)</option>
       <option value="SRZ">Santa Cruz (SRZ)</option>
       <option value="CBB">Cochabamba (CBB)</option>
@@ -134,12 +138,10 @@
       <option value="BEN">Trinidad (TDD)</option>
       <option value="CIJ">Cobija (CIJ)</option>
     </select>
-  </div>
 
-  <!-- Nuevo campo para ingresar el peso reencaminar -->
-  <div class="form-group mt-3">
+    <!-- Ingresar el peso reencaminado -->
     <label for="pesoReencaminarInput">Ingrese el peso para reencaminar (Kg):</label>
-    <input type="number" v-model="pesoReencaminar" class="form-control" id="pesoReencaminarInput" placeholder="0.000" step="0.001" min="0.001" />
+    <input type="number" v-model="solicitud.peso_reencaminar" class="form-control" id="pesoReencaminarInput" placeholder="0.000" step="0.001" min="0.001" />
   </div>
 </b-modal>
 
@@ -197,7 +199,9 @@ export default {
       currentPage: 1,
     itemsPerPage: 10,
     pesoReencaminar: 0,          // Campo para el peso de reencaminamiento
-    selectedReencaminar: null    // Campo para seleccionar el destino de reencaminamiento
+    selectedReencaminar: null,    // Campo para seleccionar el destino de reencaminamiento
+    selected: {},
+      selectedItemsData: [], // Aquí guardamos los datos de las solicitudes seleccionadas
     };
   },
   computed: {
@@ -305,47 +309,56 @@ export default {
 
 
     openReencaminarModal() {
-    this.$refs.reencaminarModal.show();
-  },
+      // Limpiar la lista de datos seleccionados
+      this.selectedItemsData = [];
 
-  async confirmReencaminar() {
-  this.load = true;
-  try {
-    const selectedIds = Object.keys(this.selected).filter(key => this.selected[key]);
+      // Agregar las solicitudes seleccionadas a selectedItemsData
+      const selectedIds = Object.keys(this.selected).filter(key => this.selected[key]);
+      this.selectedItemsData = this.list.filter(item => selectedIds.includes(item.id.toString()));
 
-    // Verificar que haya ítems seleccionados y que se haya seleccionado un destino
-    if (selectedIds.length > 0 && this.selectedReencaminar) {
-      for (let id of selectedIds) {
-        await this.$encargados.$put(`reencaminar5/${id}`, {
-          reencaminamiento: this.selectedReencaminar,
-          peso_reencaminar: this.pesoReencaminar  // Enviar el valor de peso_reencaminar
+      // Mostrar el modal
+      this.$refs.reencaminarModal.show();
+    },
+
+
+    async confirmReencaminar() {
+      this.load = true;
+      try {
+        // Verificar que haya ítems seleccionados y un destino de reencaminamiento
+        if (this.selectedItemsData.length > 0) {
+          for (let solicitud of this.selectedItemsData) {
+            // Enviar cada solicitud con su nuevo destino y peso
+            await this.$encargados.$put(`reencaminar5/${solicitud.id}`, {
+              reencaminamiento: solicitud.reencaminamiento,
+              peso_reencaminar: solicitud.peso_reencaminar
+            });
+          }
+
+          await this.GET_DATA(this.apiUrl); // Actualiza la lista después de reencaminar
+          this.$swal.fire({
+            icon: 'success',
+            title: 'Solicitudes reencaminadas',
+            text: 'Las solicitudes seleccionadas han sido reencaminadas con éxito.',
+          });
+          this.selected = {}; // Limpiar la selección
+        } else {
+          this.$swal.fire({
+            icon: 'warning',
+            title: 'Selecciona solicitudes',
+            text: 'Por favor selecciona solicitudes para reencaminar.',
+          });
+        }
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al reencaminar las solicitudes.',
         });
+      } finally {
+        this.load = false;
       }
-      await this.GET_DATA(this.apiUrl); // Actualiza la lista después de reencaminar
-      this.$swal.fire({
-        icon: 'success',
-        title: 'Solicitudes reencaminadas',
-        text: 'Las solicitudes seleccionadas han sido reencaminadas con éxito.',
-      });
-      this.selected = {}; // Limpiar selección
-    } else {
-      this.$swal.fire({
-        icon: 'warning',
-        title: 'Selecciona un destino',
-        text: 'Por favor selecciona un destino de reencaminamiento.',
-      });
-    }
-  } catch (e) {
-    console.error(e);
-    this.$swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Hubo un error al reencaminar las solicitudes.',
-    });
-  } finally {
-    this.load = false;
-  }
-},
+    },
 
     async markSelectedAsVerified() {
       this.load = true;
