@@ -4,7 +4,7 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-          <div class="col-3">
+          <div class="col-12 col-md-3 search-input-container">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
               placeholder="Buscar..." />
           </div>
@@ -40,13 +40,13 @@
                     </thead>
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i">
-                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="p-1">{{ m.sucursale.nombre }}</td>
-                        <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                        <td class="py-0 px-1">{{ m.direccion.zona }}</td>
-                        <td class="py-0 px-1">
+                        <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td class="p-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
+                        <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
+                        <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
+                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica }}</td>
+                        <td class="py-0 px-1" data-label="Zona">{{ m.direccion.zona }}</td>
+                        <td class="py-0 px-1" data-label="Dirección maps">
                           <a v-if="isCoordinates(m.direccion.direccion)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
                             target="_blank" class="btn btn-primary btn-sm">
@@ -54,12 +54,12 @@
                           </a>
                           <span v-else>{{ m.direccion.direccion }}</span>
                         </td>
-                        <td class="py-0 px-1">{{ m.telefono }}</td>
-                        <td class="py-0 px-1">{{ m.contenido }}</td>
-                        <td class="py-0 px-1">{{ m.fecha }}</td>
-                        <td class="py-0 px-1">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                        <td class="py-0 px-1">
+                        <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
+                        <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
+                        <td class="py-0 px-1" data-label="Fecha Solicitud">{{ m.fecha }}</td>
+                        <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
+                        <td class="py-0 px-1" data-label="Teléfono D">{{ m.telefono_d }}</td>
+                        <td class="py-0 px-1" data-label="Dirección Destinatario">
                           <a v-if="isCoordinates(m.direccion_d)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                             class="btn btn-primary btn-sm">
@@ -67,8 +67,8 @@
                           </a>
                           <span v-else>{{ m.direccion_d }}</span>
                         </td>
-                        <td class="py-0 px-1">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1">{{ m.zona_d }}</td>
+                        <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
+                        <td class="py-0 px-1" data-label="Zona Destinatario">{{ m.zona_d }}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -113,11 +113,12 @@
                   </thead>
                   <tbody>
                     <tr v-for="(item, index) in selectedForDelivery" :key="index">
-                      <td class="py-0 px-1">{{ index + 1 }}</td>
-                      <td class="py-0 px-1">{{ item.guia }}</td>
-                      <td class="py-0 px-1">{{ item.sucursale.nombre }}</td>
-                      <td class="py-0 px-1">{{ item.tarifa }}</td>
-                      <td class="py-0 px-1">{{ item.peso_v }}</td>
+                      <td class="py-0 px-1" data-label="Nº">{{ index + 1 }}</td>
+<td class="py-0 px-1" data-label="Guía">{{ item.guia }}</td>
+<td class="py-0 px-1" data-label="Sucursal">{{ item.sucursale.nombre }}</td>
+<td class="py-0 px-1" data-label="Tarifa">{{ item.tarifa }}</td>
+<td class="py-0 px-1" data-label="Peso">{{ item.peso_v }}</td>
+
                     </tr>
                   </tbody>
                 </table>
@@ -466,12 +467,16 @@ export default {
   text-transform: uppercase;
 }
 
+/* Estilos generales de la tabla */
 .table-responsive {
   max-width: 100%;
-  overflow-x: auto;
+  overflow-x: auto !important; /* Asegura el scroll horizontal */
+  white-space: nowrap; /* Mantiene el texto en una línea */
 }
 
 .table {
+  width: 100%;
+  table-layout: auto;
   text-align: center;
   vertical-align: middle;
 }
@@ -497,15 +502,7 @@ export default {
   background-color: #F8F9FA;
 }
 
-.pagination .page-item.active .page-link {
-  background-color: #ffffff;
-  border-color: #ffffff;
-}
-
-.pagination .page-item .page-link {
-  color: #343A40;
-}
-
+/* Estilos para los botones */
 .btn-primary {
   background-color: #34447C;
   border-color: #34447C;
@@ -513,6 +510,100 @@ export default {
 
 .btn-primary:hover {
   background-color: #4a5a7a;
+}
+
+.btn {
+  width: 100%;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.btn i {
+  margin-right: 5px;
+}
+
+.search-input-container {
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+}
+
+/* Para pantallas pequeñas (móviles) */
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: unset;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    border: none;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    flex: 1;
+    font-weight: bold;
+    color: #34447C;
+    text-align: left;
+    padding-right: 5px;
+    font-size: 14px;
+  }
+
+  .btn {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .btn i {
+    margin-right: 5px;
+  }
+
+  .search-input-container {
+    width: 100%;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+}
+/* Ajuste para pantallas aún más pequeñas */
+@media (max-width: 360px) {
+  .table td {
+    font-size: 12px;
+    padding: 4px;
+  }
+
+  .table td::before {
+    font-size: 12px;
+  }
+
+  .btn {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  .btn i {
+    margin-right: 4px;
+  }
+
+  .search-input {
+    width: 100%;
+  }
 }
 </style>
 

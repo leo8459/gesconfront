@@ -10,7 +10,8 @@
             </button>
           </div>
           <div class="col-3">
-            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control" placeholder="Buscar..." />
+            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
+              placeholder="Buscar..." />
           </div>
         </div>
         <div class="row">
@@ -24,61 +25,60 @@
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Guía</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Detalles de Domicilio</th>
-                    <th class="py-0 px-1">Zona</th>
-                    <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha Solicitud</th>
-                    <th class="py-0 px-1">Observacion</th>
-                    <th class="py-0 px-1">Imagen</th>
-                    <th class="py-0 px-1"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
-                    <td class="py-0 px-1">{{ m.observacion }}</td>
-                    <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                        
-                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>
-                    <td class="py-0 px-1">
-                      <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
-                        <i class="fas fa-undo"></i> Devolver a destino
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Sucursal</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Detalles de Domicilio</th>
+                        <th class="py-0 px-1">Zona</th>
+                        <th class="py-0 px-1">Dirección maps</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Fecha Solicitud</th>
+                        <th class="py-0 px-1">Observación</th>
+                        <th class="py-0 px-1">Imagen</th>
+                        <th class="py-0 px-1"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="i">
+                        <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td class="p-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
+                        <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
+                        <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
+                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica }}</td>
+                        <td class="py-0 px-1" data-label="Zona">{{ m.direccion.zona }}</td>
+                        <td class="py-0 px-1" data-label="Dirección maps">
+                          <a v-if="isCoordinates(m.direccion.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion.direccion }}</span>
+                        </td>
+                        <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
+                        <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
+                        <td class="py-0 px-1" data-label="Fecha Solicitud">{{ m.fecha_recojo_c }}</td>
+                        <td class="py-0 px-1" data-label="Observación">{{ m.observacion }}</td>
+                        <td class="py-0 px-1" data-label="Imagen">
+                          <div class="d-flex flex-column align-items-center">
+                            <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              Descargar
+                            </button>
+                          </div>
+                        </td>
+                        <td class="py-0 px-1">
+                          <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
+                            <i class="fas fa-undo"></i> Devolver a destino
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
             <!-- Paginación -->
             <nav aria-label="Page navigation">
@@ -98,7 +98,7 @@
         </div>
       </div>
     </AdminTemplate>
-    
+
     <!-- Modal para añadir observación -->
     <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop>
       <div class="form-group">
@@ -125,6 +125,7 @@
     </b-modal>
   </div>
 </template>
+
 
 <script>
 import Pica from 'pica'; // Importa Pica para redimensionar y comprimir imágenes
@@ -557,21 +558,48 @@ export default {
   background-color: #F8F9FA;
 }
 
-.pagination .page-item.active .page-link {
-  background-color: #ffffff;
-  border-color: #ffffff;
+/* Responsive styles */
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    flex: 1;
+    font-weight: bold;
+    color: #34447C;
+    text-align: left;
+    padding-right: 5px;
+  }
 }
 
-.pagination .page-item .page-link {
-  color: #343A40;
-}
+/* Even smaller screens */
+@media (max-width: 360px) {
+  .table td {
+    font-size: 12px;
+    padding: 4px;
+  }
 
-.btn-primary {
-  background-color: #34447C;
-  border-color: #34447C;
-}
-
-.btn-primary:hover {
-  background-color: #4a5a7a;
+  .table td::before {
+    font-size: 12px;
+  }
 }
 </style>

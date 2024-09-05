@@ -9,9 +9,9 @@
               <i class="fas fa-truck"></i> Asignar todos los seleccionados
             </button>
           </div>
-          <div class="col-3">
-            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control" placeholder="Buscar..." />
-          </div>
+          <div class="col-12 col-md-3 search-input-container">
+      <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control search-input" placeholder="Buscar..." />
+    </div>
         </div>
         <div class="row">
           <div class="col-12">
@@ -24,60 +24,58 @@
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Guia</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono Destinatario</th>
-                    <th class="py-0 px-1">Dirección Destinatario Maps</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Municipio/Provincia</th>
-                    <th class="py-0 px-1">Zona Destinatario</th>
-                    <th class="py-0 px-1"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
-                    <td class="py-0 px-1">
-                      <div class="btn-group">
-                        <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
-                          <i class="fas fa-ban"></i> Entregar Correspondencia
-                        </nuxtLink>
-                      </div>
-                    </td>
-                    <td class="py-0 px-1">
-                      <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
-                        <i class="fas fa-undo"></i> Devolver a destino
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Sucursal</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Teléfono Destinatario</th>
+                        <th class="py-0 px-1">Dirección Destinatario Maps</th>
+                        <th class="py-0 px-1">Dirección Destinatario</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th class="py-0 px-1">Zona Destinatario</th>
+                        <th class="py-0 px-1"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="i">
+                        <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td class="py-0 px-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
+                        <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
+                        <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
+                        <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
+                        <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
+                        <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
+                        <td class="py-0 px-1" data-label="Teléfono Destinatario">{{ m.telefono_d }}</td>
+                        <td class="py-0 px-1" data-label="Dirección Destinatario Maps">
+                          <a v-if="isCoordinates(m.direccion_d)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion_d }}</span>
+                        </td>
+                        <td class="py-0 px-1" data-label="Dirección">{{ m.direccion_especifica_d }}</td>
+                        <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
+                        <td class="py-0 px-1" data-label="Zona">{{ m.zona_d }}</td>
+                        <td class="py-0 px-1" data-label="Acción">
+                          <div class="btn-group">
+                            <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2 w-100">
+                              <i class="fas fa-ban"></i> Entregar Correspondencia
+                            </nuxtLink>
+                          </div>
+                        </td>
+                        <td class="py-0 px-1" data-label="Devolver">
+                          <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm w-100">
+                            <i class="fas fa-undo"></i> Devolver a destino
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
             <!-- Paginación -->
             <nav aria-label="Page navigation">
@@ -98,22 +96,22 @@
       </div>
     </AdminTemplate>
     
-   <!-- Modal para añadir observación -->
-<b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop hide-footer>
-  <div class="form-group">
-    <label for="observacion">Observación</label>
-    <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
-  </div>
-  <div class="form-group">
-    <label for="capturephoto">Subir Foto </label>
-    <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
-    <img v-if="uploadedImage" :src="uploadedImage" class="img-fluid mt-2" />
-  </div>
-  <div class="d-flex justify-content-end">
-    <button class="btn btn-secondary" @click="isObservationModalVisible = false">Cancelar</button>
-    <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
-  </div>
-</b-modal>
+    <!-- Modal para añadir observación -->
+    <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop hide-footer>
+      <div class="form-group">
+        <label for="observacion">Observación</label>
+        <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="capturephoto">Subir Foto</label>
+        <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
+        <img v-if="uploadedImage" :src="uploadedImage" class="img-fluid mt-2" />
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isObservationModalVisible = false">Cancelar</button>
+        <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
+      </div>
+    </b-modal>
 
     <!-- Modal para añadir peso_v -->
     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer>
@@ -131,7 +129,7 @@
 
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
-import Pica from 'pica'; // Importa Pica para redimensionar y comprimir imágenes
+import Pica from 'pica';
 
 export default {
   name: "IndexPage",
@@ -160,7 +158,7 @@ export default {
       itemsPerPage: 10,
       isObservationModalVisible: false,
       observacion: '',
-      uploadedImage: '', // Añadido para manejar la imagen subida
+      uploadedImage: '',
     };
   },
   computed: {
@@ -198,42 +196,30 @@ export default {
       }
     },
     async confirmRechazar() {
-  this.load = true;
+      this.load = true;
 
-  try {
-    // Almacenar la imagen original antes de optimizarla
-    const originalImage = this.uploadedImage;
+      try {
+        const originalImage = this.uploadedImage;
+        const optimizedImage = await this.optimizeImage(originalImage);
+        const formattedDate = this.getFormattedDate();
 
-    // Redimensionar y comprimir la imagen antes de enviarla
-    const optimizedImage = await this.optimizeImage(originalImage);
+        await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, {
+          observacion: this.observacion,
+          fecha_d: formattedDate,
+          imagen: optimizedImage,
+          imagen_original: originalImage,
+        });
 
-    // Formatear la fecha actual
-    const formattedDate = this.getFormattedDate();
-
-    // Enviar la solicitud de actualización con la imagen optimizada
-    await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, {
-      observacion: this.observacion,
-      fecha_d: formattedDate,
-      imagen: optimizedImage, // Enviar la imagen optimizada
-      imagen_original: originalImage, // También enviar la imagen original
-    });
-
-    // Recargar los datos
-    await this.GET_DATA(this.apiUrl);
-
-    // Mostrar mensaje de éxito
-    this.showSuccessMessage();
-
-    // Limpiar la entrada de datos después de guardar
-    this.resetForm();
-  } catch (e) {
-    console.error(e);
-    this.showErrorMessage();
-  } finally {
-    this.load = false;
-  }
-},
-
+        await this.GET_DATA(this.apiUrl);
+        this.showSuccessMessage();
+        this.resetForm();
+      } catch (e) {
+        console.error(e);
+        this.showErrorMessage();
+      } finally {
+        this.load = false;
+      }
+    },
 
     async optimizeImage(imageDataUrl) {
       const pica = Pica();
@@ -245,11 +231,11 @@ export default {
       });
 
       const canvas = document.createElement('canvas');
-      canvas.width = 750; // Ancho deseado
-      canvas.height = img.height * (750 / img.width); // Mantiene la proporción de aspecto
+      canvas.width = 750;
+      canvas.height = img.height * (750 / img.width);
 
       await pica.resize(img, canvas);
-      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.3); // Convertir a WebP con calidad 50%
+      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.3);
       return optimizedImageDataUrl;
     },
 
@@ -278,7 +264,7 @@ export default {
     resetForm() {
       this.isObservationModalVisible = false;
       this.observacion = '';
-      this.uploadedImage = ''; // Limpiar la imagen después de guardar
+      this.uploadedImage = '';
     },
     openObservationModal(id) {
       this.selectedSolicitudeId = id;
@@ -292,7 +278,7 @@ export default {
       this.load = true;
       try {
         const carteroId = this.user.user.id;
-        const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
+        await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
         await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
           icon: 'success',
@@ -445,7 +431,6 @@ export default {
 };
 </script>
 
-
 <style scoped>
 .card.border-rounded {
   border-radius: 15px;
@@ -461,12 +446,16 @@ export default {
   text-transform: uppercase;
 }
 
+/* Estilos generales de la tabla */
 .table-responsive {
   max-width: 100%;
-  overflow-x: auto;
+  overflow-x: auto !important; /* Asegura el scroll horizontal */
+  white-space: nowrap; /* Mantiene el texto en una línea */
 }
 
 .table {
+  width: 100%;
+  table-layout: auto;
   text-align: center;
   vertical-align: middle;
 }
@@ -492,15 +481,7 @@ export default {
   background-color: #F8F9FA;
 }
 
-.pagination .page-item.active .page-link {
-  background-color: #ffffff;
-  border-color: #ffffff;
-}
-
-.pagination .page-item .page-link {
-  color: #343A40;
-}
-
+/* Estilos para los botones */
 .btn-primary {
   background-color: #34447C;
   border-color: #34447C;
@@ -509,5 +490,112 @@ export default {
 .btn-primary:hover {
   background-color: #4a5a7a;
 }
-</style>
 
+.btn {
+  width: 100%;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.btn i {
+  margin-right: 5px;
+}
+
+.search-input-container {
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+}
+
+/* Para pantallas pequeñas (móviles) */
+@media (max-width: 768px) {
+  .search-input-container {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .table-responsive {
+    overflow-x: scroll;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    border: none;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    flex: 1;
+    font-weight: bold;
+    color: #34447C;
+    text-align: left;
+    padding-right: 5px;
+    font-size: 14px;
+  }
+
+  .btn {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .btn i {
+    margin-right: 5px;
+  }
+
+  #observacion {
+    width: 100%;
+    resize: none;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Ajustes para pantallas más pequeñas */
+@media (max-width: 360px) {
+  .table td {
+    font-size: 12px;
+    padding: 4px;
+  }
+
+  .table td::before {
+    font-size: 12px;
+  }
+
+  .btn {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  .btn i {
+    margin-right: 4px;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+}
+
+</style>

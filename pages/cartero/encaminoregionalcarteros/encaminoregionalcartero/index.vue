@@ -9,10 +9,12 @@
               <i class="fas fa-truck"></i> Asignar todos los seleccionados
             </button>
           </div>
-          <div class="col-3">
-            <input v-model="searchTerm"  type="text" class="form-control" placeholder="Buscar..." />
+          <!-- Ajuste del campo de búsqueda -->
+          <div class="col-12 col-md-3 search-input-container">
+            <input v-model="searchTerm" type="text" class="form-control search-input" placeholder="Buscar..." />
           </div>
         </div>
+        
         <div class="row">
           <div class="col-12">
             <div class="card border-rounded">
@@ -24,60 +26,61 @@
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Guia</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono Destinatario</th>
-                    <th class="py-0 px-1">Dirección Destinatario Maps</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Municipio/Provincia</th>
-                    <th class="py-0 px-1">Zona Destinatario</th>
-                    <th class="py-0 px-1"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
-                    <td class="py-0 px-1">
-                      <div class="btn-group">
-                        <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
-                          <i class="fas fa-ban"></i> Entregar Correspondencia
-                        </nuxtLink>
-                      </div>
-                    </td>
-                    <td class="py-0 px-1">
-                      <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
-                        <i class="fas fa-undo"></i> Devolver a destino
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Sucursal</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Teléfono Destinatario</th>
+                        <th class="py-0 px-1">Dirección Destinatario Maps</th>
+                        <th class="py-0 px-1">Dirección Destinatario</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th class="py-0 px-1">Zona Destinatario</th>
+                        <th class="py-0 px-1"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="i">
+                        <!-- Agregamos data-label para mostrar los títulos de las columnas en pantallas pequeñas -->
+                        <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td class="py-0 px-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
+                        <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
+                        <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
+                        <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
+                        <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
+                        <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
+                        <td class="py-0 px-1" data-label="Teléfono Destinatario">{{ m.telefono_d }}</td>
+                        <td class="py-0 px-1" data-label="Dirección Destinatario Maps">
+                          <a v-if="isCoordinates(m.direccion_d)" 
+                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                             class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion_d }}</span>
+                        </td>
+                        <td class="py-0 px-1" data-label="Dirección">{{ m.direccion_especifica_d }}</td>
+                        <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
+                        <td class="py-0 px-1" data-label="Zona">{{ m.zona_d }}</td>
+                        <td class="py-0 px-1" data-label="Acción">
+                          <div class="btn-group">
+                            <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2 w-100">
+                              <i class="fas fa-ban"></i> Entregar Correspondencia
+                            </nuxtLink>
+                          </div>
+                        </td>
+                        <td class="py-0 px-1" data-label="Devolver">
+                          <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm w-100">
+                            <i class="fas fa-undo"></i> Devolver a destino
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
             <!-- Paginación -->
             <nav aria-label="Page navigation">
@@ -128,6 +131,7 @@
     </b-modal>
   </div>
 </template>
+
 
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
@@ -502,5 +506,175 @@ export default {
 
 .btn-primary:hover {
   background-color: #4a5a7a;
+}
+.card.border-rounded {
+  border-radius: 15px;
+  border: 1px solid #000000;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* Estilos generales de la tabla */
+.table-responsive {
+  max-width: 100%;
+  overflow-x: auto; /* Permitir scroll horizontal si es necesario */
+}
+
+.table {
+  width: 100%;
+  table-layout: auto; /* Permitir que la tabla se ajuste automáticamente */
+  text-align: center;
+  vertical-align: middle;
+}
+
+.table th {
+  background-color: #6c7a89;
+  color: #FFFFFF;
+  border-bottom: 2px solid #34447C;
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table td {
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #F8F9FA;
+}
+
+/* Estilos para los botones */
+.btn-primary {
+  background-color: #34447C;
+  border-color: #34447C;
+}
+
+.btn-primary:hover {
+  background-color: #4a5a7a;
+}
+
+.btn {
+  width: 100%;
+  margin-bottom: 5px; /* Espacio entre los botones */
+  font-size: 14px; /* Tamaño ajustado para pantallas medianas */
+}
+
+.btn i {
+  margin-right: 5px; /* Espacio entre el icono y el texto */
+}
+
+/* Estilo del input de búsqueda */
+.search-input {
+  width: auto;
+}
+
+
+
+.pagination .page-item.active .page-link {
+  background-color: #ffffff;
+  border-color: #ffffff;
+}
+
+.pagination .page-item .page-link {
+  color: #343A40;
+}
+
+@media (max-width: 768px) {
+  /* Para pantallas móviles */
+  .search-input {
+    width: 100%; /* Asegurar que el campo de búsqueda ocupe todo el ancho */
+    margin-bottom: 10px; /* Añadir espacio debajo */
+  }
+
+  .table-responsive {
+    overflow-x: unset;
+  }
+
+  .table thead {
+    display: none; /* Ocultar el encabezado en pantallas pequeñas */
+  }
+
+  .table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    border: none;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px; /* Tamaño ajustado para pantallas medianas */
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    flex: 1;
+    font-weight: bold;
+    color: #34447C;
+    text-align: left;
+    padding-right: 5px; /* Espacio entre el título de la columna y el contenido */
+    font-size: 14px; /* Tamaño de fuente ajustado */
+  }
+
+  /* Ajustar los botones en pantallas pequeñas */
+  .btn {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .btn i {
+    margin-right: 5px;
+  }
+
+  /* Ajuste para el modal */
+  #observacion {
+    width: 100%;
+    resize: none;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@media (max-width: 360px) {
+  /* Estilos para pantallas muy pequeñas */
+  .table td {
+    font-size: 12px;
+    padding: 4px;
+  }
+
+  .table td::before {
+    font-size: 12px;
+  }
+
+  .btn {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  .btn i {
+    margin-right: 4px;
+  }
+
+  .search-input {
+    width: 100%;
+  }
 }
 </style>

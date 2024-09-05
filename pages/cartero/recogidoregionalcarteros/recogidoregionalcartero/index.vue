@@ -4,7 +4,7 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-          <div class="col-3">
+          <div class="col-12 col-md-3 search-input-container">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
               placeholder="Buscar..." />
           </div>
@@ -20,85 +20,84 @@
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
-                    <th class="py-0 px-1">
-                      <input type="checkbox" @change="selectAll($event, paginatedData)">
-                    </th>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Guía</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Detalles de Domicilio</th>
-                    <th class="py-0 px-1">Zona</th>
-                    <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha Solicitud</th>
-                    <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono D</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Municipio/Provincia</th>
-                    <th class="py-0 px-1">Zona Destinatario</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">
-                      <input type="checkbox" :checked="selected[m.id]" @change="toggleSelect(m.id)">
-                    </td>
-                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
-                  </tr>
-                </tbody>
-              </table>
+                        <th class="py-0 px-1">
+                          <input type="checkbox" @change="selectAll($event, paginatedData)">
+                        </th>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Sucursal</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Detalles de Domicilio</th>
+                        <th class="py-0 px-1">Zona</th>
+                        <th class="py-0 px-1">Dirección maps</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Fecha Solicitud</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Teléfono D</th>
+                        <th class="py-0 px-1">Dirección Destinatario</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th class="py-0 px-1">Zona Destinatario</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="i">
+                        <td class="py-0 px-1" data-label="Seleccionar">
+                          <input type="checkbox" :checked="selected[m.id]" @change="toggleSelect(m.id)">
+                        </td>
+                        <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td class="p-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
+                        <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
+                        <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
+                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica }}
+                        </td>
+                        <td class="py-0 px-1" data-label="Zona">{{ m.direccion.zona }}</td>
+                        <td class="py-0 px-1" data-label="Dirección maps">
+                          <a v-if="isCoordinates(m.direccion.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion.direccion }}</span>
+                        </td>
+                        <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
+                        <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
+                        <td class="py-0 px-1" data-label="Fecha Solicitud">{{ m.fecha }}</td>
+                        <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
+                        <td class="py-0 px-1" data-label="Teléfono D">{{ m.telefono_d }}</td>
+                        <td class="py-0 px-1" data-label="Dirección Destinatario">
+                          <a v-if="isCoordinates(m.direccion_d)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                            class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion_d }}</span>
+                        </td>
+                        <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
+                        <td class="py-0 px-1" data-label="Zona Destinatario">{{ m.zona_d }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-            <!-- Paginación -->
-            <nav aria-label="Page navigation">
-              <ul class="pagination justify-content-between">
-                <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0">&lt;</button>
-                </li>
-                <li class="page-item" v-for="page in totalPages" :key="page"
-                  :class="{ active: currentPage === page - 1 }">
-                  <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
-                </li>
-                <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
-                  <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-
+        <!-- Paginación -->
+        <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-between">
+            <li class="page-item" :class="{ disabled: currentPage === 0 }">
+              <button class="page-link" @click="previousPage" :disabled="currentPage === 0">&lt;</button>
+            </li>
+            <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page - 1 }">
+              <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+            </li>
+            <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
+              <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
+            </li>
+          </ul>
+        </nav>
 
         <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
         <div v-if="selectedForDelivery.length > 0" class="mt-4">
@@ -118,11 +117,12 @@
               </thead>
               <tbody>
                 <tr v-for="(item, index) in selectedForDelivery" :key="index">
-                  <td class="py-0 px-1">{{ index + 1 }}</td>
-                  <td class="py-0 px-1">{{ item.guia }}</td>
-                  <td class="py-0 px-1">{{ item.sucursale.nombre }}</td>
-                  <td class="py-0 px-1">{{ item.tarifa.departamento }}</td>
-                  <td class="py-0 px-1">{{ item.peso_r }}</td>
+                  <td class="py-0 px-1" data-label="Nº">{{ index + 1 }}</td>
+                  <td class="py-0 px-1" data-label="Guía">{{ item.guia }}</td>
+                  <td class="py-0 px-1" data-label="Sucursal">{{ item.sucursale.nombre }}</td>
+                  <td class="py-0 px-1" data-label="Departamento">{{ item.tarifa.departamento }}</td>
+                  <td class="py-0 px-1" data-label="Peso Correos (Kg)">{{ item.peso_r }}</td>
+
                 </tr>
               </tbody>
             </table>
@@ -130,8 +130,6 @@
         </div>
       </div>
     </AdminTemplate>
-
-
   </div>
 </template>
 
@@ -208,17 +206,17 @@ export default {
   },
   methods: {
     handleSearchEnter() {
-    // Encuentra el primer elemento que coincida con el término de búsqueda
-    const filteredItems = this.filteredData;
-    if (filteredItems.length > 0) {
-      const item = filteredItems[0]; // Selecciona el primer elemento filtrado
-      this.selected[item.id] = true; // Marca el elemento como seleccionado
-      this.updateSelectedItems(); // Actualiza la lista de elementos seleccionados
+      // Encuentra el primer elemento que coincida con el término de búsqueda
+      const filteredItems = this.filteredData;
+      if (filteredItems.length > 0) {
+        const item = filteredItems[0]; // Selecciona el primer elemento filtrado
+        this.selected[item.id] = true; // Marca el elemento como seleccionado
+        this.updateSelectedItems(); // Actualiza la lista de elementos seleccionados
 
-      // Limpia el término de búsqueda después de mover el elemento
-      this.searchTerm = '';
-    }
-  },
+        // Limpia el término de búsqueda después de mover el elemento
+        this.searchTerm = '';
+      }
+    },
     iniciarFiltrado() {
       const departamentoCartero = this.user.departamento_cartero;
     },
@@ -428,28 +426,20 @@ export default {
 
 .table-responsive {
   max-width: 100%;
-  overflow-x: auto;
+  overflow-x: auto !important;
+  white-space: nowrap;
 }
 
 .table {
+  width: 100%;
   text-align: center;
   vertical-align: middle;
 }
 
-.table th {
-  background-color: #6c7a89;
-  color: #FFFFFF;
-  border-bottom: 2px solid #34447C;
-  font-size: 16px;
-  text-align: center;
-  white-space: nowrap;
-}
-
+.table th,
 .table td {
   font-size: 16px;
-  text-align: center;
   white-space: nowrap;
-  text-overflow: ellipsis;
   overflow: hidden;
 }
 
@@ -457,21 +447,48 @@ export default {
   background-color: #F8F9FA;
 }
 
-.pagination .page-item.active .page-link {
-  background-color: #ffffff;
-  border-color: #ffffff;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: unset;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    flex: 1;
+    font-weight: bold;
+    color: #34447C;
+    text-align: left;
+    padding-right: 5px;
+  }
 }
 
-.pagination .page-item .page-link {
-  color: #343A40;
-}
+/* Even smaller screens */
+@media (max-width: 360px) {
+  .table td {
+    font-size: 12px;
+    padding: 4px;
+  }
 
-.btn-primary {
-  background-color: #34447C;
-  border-color: #34447C;
-}
-
-.btn-primary:hover {
-  background-color: #4a5a7a;
+  .table td::before {
+    font-size: 12px;
+  }
 }
 </style>
