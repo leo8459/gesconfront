@@ -38,6 +38,7 @@
                     <th class="py-0 px-1">Fecha Solicitud</th>
                     <th class="py-0 px-1">Observacion</th>
                     <th class="py-0 px-1">imagen Devolucion</th>
+                    <th class="py-0 px-1">imagen de retorno</th>
 
                     
                   </tr>
@@ -72,7 +73,15 @@
                         </button>
                       </div>
                     </td>                    
-                   
+                    <td class="py-0 px-1">
+                      <div class="d-flex flex-column align-items-center">
+                       
+                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                          class="btn btn-sm btn-primary mt-1 align-self-start">
+                          Descargar
+                        </button>
+                      </div>
+                    </td>            
                   </tr>
                 </tbody>
               </table>
