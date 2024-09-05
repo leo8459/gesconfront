@@ -220,22 +220,38 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      const departamento = this.user?.user?.departamento; // Usamos 'departamento'
+    const searchTerm = this.searchTerm.toLowerCase();
+    const departamento = this.user?.user?.departamento; // Departamento del usuario logueado
 
-      if (!departamento) {
-        // Si el departamento no está definido, no hay datos que mostrar
-        return [];
+    if (!departamento) {
+      // Si el departamento no está definido, no hay datos que mostrar
+      return [];
+    }
+
+    return this.list.filter(item => {
+      // Si el campo reencaminamiento tiene un valor y coincide con el departamento del usuario, mostrar esos
+      if (item.reencaminamiento) {
+        return (
+          item.reencaminamiento === departamento && // Coincidencia con el departamento del usuario logueado
+          Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchTerm)
+          )
+        );
       }
 
-      return this.list.filter(item =>
+      // Si reencaminamiento es nulo, aplicar el filtro por tarifa y departamento
+      return (
         item.estado === 8 &&
         item.tarifa?.departamento === departamento && // Filtrar por el departamento del encargado
         Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
         )
       );
-    },
+    });
+  }
+
+
+  ,
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;

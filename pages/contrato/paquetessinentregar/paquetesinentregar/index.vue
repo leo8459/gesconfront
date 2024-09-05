@@ -249,14 +249,14 @@ export default {
       if (recojoDate.getDay() === 5 && recojoDate.getHours() >= 17) {
         // Si es viernes después de las 5 PM, mover la fecha límite al siguiente lunes a las 10 AM.
         fechaLimite = this.addBusinessDays(recojoDate, 1);
-        fechaLimite.setHours(10, 0, 0, 0);
+        fechaLimite.setHours(9, 30, 0, 0);
       } else if (recojoDate.getHours() >= 8 && recojoDate.getHours() < 10) {
         // Si es entre las 8 AM y las 10 AM, la fecha límite es el mismo día a las 8 PM.
-        fechaLimite.setHours(20, 0, 0, 0);
-      } else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 19) {
+        fechaLimite.setHours(19, 0, 0, 0);
+      } else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 23) {
         // Si es entre las 5 PM y las 7 PM, la fecha límite es el día siguiente a las 10 AM.
         fechaLimite = this.addBusinessDays(recojoDate, 1);
-        fechaLimite.setHours(10, 30, 0, 0);
+        fechaLimite.setHours(9, 30, 0, 0);
       } else {
         // Para otros horarios, añadir el tiempo de entrega en horas a la fecha de recogida.
         fechaLimite = new Date(recojoDate.getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000);

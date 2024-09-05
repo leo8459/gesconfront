@@ -9,6 +9,14 @@
               <i class="fas fa-check"></i> Verificar seleccionados
             </button>
           </div>
+          <div class="col-3" v-if="hasSelectedItems">
+  <button @click="openReencaminarModal" class="btn btn-warning btn-sm w-100">
+    <i class="fas fa-redo-alt"></i> Reencaminar seleccionados
+  </button>
+</div>
+
+
+
           <div class="col-3">
             <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
           </div>
@@ -29,12 +37,13 @@
                     </th>
                     <th class="py-0 px-1">#</th>
                     <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Cartero Recogida</th>
-                    <th class="py-0 px-1">Cartero Entrega</th>
+                 
                     <th class="py-0 px-1">Guia</th>
                     <th class="py-0 px-1">Peso Empresa (Kg)</th>
                     <th class="py-0 px-1">Peso Correos (Kg)</th>
                     <th class="py-0 px-1">Remitente</th>
+                    <th class="py-0 px-1">Observación</th>
+                    <th class="py-0 px-1">Foto</th>
                     <th class="py-0 px-1">Detalles de Domicilio</th>
 
                     <!-- Nueva columna para la dirección específica -->
@@ -50,9 +59,7 @@
                     <th class="py-0 px-1">Detalles domoicilio destinatario</th>
                     <th class="py-0 px-1">zona destinatario</th>
 
-                    <th class="py-0 px-1">Firma Destinatario</th>
                     <th class="py-0 px-1">Fecha Destinatario</th>
-                    <th class="py-0 px-1">Estado</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -62,12 +69,20 @@
                     </td>
                     <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
                     <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-                    <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
-                    <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
+                
                     <td class="py-0 px-1">{{ m.guia }}</td>
                     <td class="py-0 px-1">{{ m.peso_o }}</td>
                     <td class="py-0 px-1">{{ m.peso_v }}</td>
                     <td class="py-0 px-1">{{ m.remitente }}</td>
+                    <td class="py-0 px-1">{{ m.observacion }}</td>
+                        <td class="py-0 px-1">
+                      <div class="d-flex flex-column align-items-center">
+                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                          class="btn btn-sm btn-primary mt-1 align-self-start">
+                          Descargar
+                        </button>
+                      </div>
+                    </td>               
                     <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
                     <!-- Mostrar la dirección específica -->
                     <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
@@ -97,17 +112,37 @@
                     <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
                     <td class="py-0 px-1">{{ m.zona_d }}</td>
 
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
-                    </td>
+                   
                     <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                    <td class="py-0 px-1">{{ m.estado === 3 ? 'Entregado' : m.estado }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
         </div>
+        <b-modal id="reencaminarModal" ref="reencaminarModal" title="Reencaminar" @ok="confirmReencaminar">
+  <div class="form-group">
+    <label for="reencaminarSelect">Seleccione el destino de reencaminamiento:</label>
+    <select v-model="selectedReencaminar" class="form-control" id="reencaminarSelect">
+      <option value="LPB">La Paz (LPB)</option>
+      <option value="SRZ">Santa Cruz (SRZ)</option>
+      <option value="CBB">Cochabamba (CBB)</option>
+      <option value="ORU">Oruro (ORU)</option>
+      <option value="PTI">Potosí (PTI)</option>
+      <option value="TJA">Tarija (TJA)</option>
+      <option value="SRE">Sucre (SRE)</option>
+      <option value="BEN">Trinidad (TDD)</option>
+      <option value="CIJ">Cobija (CIJ)</option>
+    </select>
+  </div>
+
+  <!-- Nuevo campo para ingresar el peso reencaminar -->
+  <div class="form-group mt-3">
+    <label for="pesoReencaminarInput">Ingrese el peso para reencaminar (Kg):</label>
+    <input type="number" v-model="pesoReencaminar" class="form-control" id="pesoReencaminarInput" placeholder="0.000" step="0.001" min="0.001" />
+  </div>
+</b-modal>
+
 
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
@@ -160,7 +195,9 @@ export default {
         cartero: []
       },
       currentPage: 1,
-      itemsPerPage: 10,
+    itemsPerPage: 10,
+    pesoReencaminar: 0,          // Campo para el peso de reencaminamiento
+    selectedReencaminar: null    // Campo para seleccionar el destino de reencaminamiento
     };
   },
   computed: {
@@ -190,6 +227,50 @@ export default {
     }
   },
   methods: {
+    generateThumbnail(base64Image) {
+      const img = new Image();
+      img.src = base64Image;
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Ajustar la resolución del thumbnail
+      const MAX_WIDTH = 100; // Ajustar según sea necesario
+      const MAX_HEIGHT = 100; // Ajustar según sea necesario
+
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Aquí no es necesario comprimir el thumbnail en exceso si queremos mostrar una imagen más clara
+      return canvas.toDataURL('image/jpeg', 0.1);
+    },
+
+
+    downloadImage(base64Image) {
+      const link = document.createElement('a');
+      link.href = base64Image; // Aquí estás usando la imagen original almacenada
+      link.download = 'imagen_capturada.jpg';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
+
     prevPage() {
       if (this.currentPage > 1) {
         this.currentPage -= 1;
@@ -223,7 +304,48 @@ export default {
 
 
 
+    openReencaminarModal() {
+    this.$refs.reencaminarModal.show();
+  },
 
+  async confirmReencaminar() {
+  this.load = true;
+  try {
+    const selectedIds = Object.keys(this.selected).filter(key => this.selected[key]);
+
+    // Verificar que haya ítems seleccionados y que se haya seleccionado un destino
+    if (selectedIds.length > 0 && this.selectedReencaminar) {
+      for (let id of selectedIds) {
+        await this.$encargados.$put(`reencaminar5/${id}`, {
+          reencaminamiento: this.selectedReencaminar,
+          peso_reencaminar: this.pesoReencaminar  // Enviar el valor de peso_reencaminar
+        });
+      }
+      await this.GET_DATA(this.apiUrl); // Actualiza la lista después de reencaminar
+      this.$swal.fire({
+        icon: 'success',
+        title: 'Solicitudes reencaminadas',
+        text: 'Las solicitudes seleccionadas han sido reencaminadas con éxito.',
+      });
+      this.selected = {}; // Limpiar selección
+    } else {
+      this.$swal.fire({
+        icon: 'warning',
+        title: 'Selecciona un destino',
+        text: 'Por favor selecciona un destino de reencaminamiento.',
+      });
+    }
+  } catch (e) {
+    console.error(e);
+    this.$swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Hubo un error al reencaminar las solicitudes.',
+    });
+  } finally {
+    this.load = false;
+  }
+},
 
     async markSelectedAsVerified() {
       this.load = true;

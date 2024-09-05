@@ -4,7 +4,7 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-         
+
           <div class="col-3">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
               placeholder="Buscar..." />
@@ -21,63 +21,63 @@
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Guía</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Detalles de Domicilio</th>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Sucursal</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Detalles de Domicilio</th>
 
-                    <!-- Nueva columna para la dirección específica -->
-                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
-                    <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha Solicitud</th>
-                    <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono D</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Municipio/Provincia</th>
-                    <th class="py-0 px-1">Zona Destinatario</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
-                  </tr>
-                </tbody>
-              </table>
+                        <!-- Nueva columna para la dirección específica -->
+                        <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
+                        <th class="py-0 px-1">Dirección maps</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Fecha Solicitud</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Teléfono D</th>
+                        <th class="py-0 px-1">Dirección Destinatario</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th class="py-0 px-1">Zona Destinatario</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="i">
+                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td class="p-1">{{ m.sucursale.nombre }}</td>
+                        <td class="py-0 px-1">{{ m.guia }}</td>
+                        <td class="py-0 px-1">{{ m.remitente }}</td>
+                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                        <!-- Mostrar la dirección específica -->
+                        <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion.direccion }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.telefono }}</td>
+                        <td class="py-0 px-1">{{ m.contenido }}</td>
+                        <td class="py-0 px-1">{{ m.fecha }}</td>
+                        <td class="py-0 px-1">{{ m.destinatario }}</td>
+                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion_d)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                            class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion_d }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.ciudad }}</td>
+                        <td class="py-0 px-1">{{ m.zona_d }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
             <!-- Paginación -->
             <nav aria-label="Page navigation">
@@ -97,13 +97,13 @@
           </div>
         </div>
         <div class="col-3" v-if="selectedForAssign.length > 0">
-            <button @click="confirmAllAssignments" class="btn btn-primary btn-sm w-100">
-              <i class="fas fa-truck"></i> Asignar todos los seleccionados
-            </button>
-          </div>
+          <button @click="confirmAllAssignments" class="btn btn-primary btn-sm w-100">
+            <i class="fas fa-truck"></i> Mandar todos los seleccionados
+          </button>
+        </div>
         <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
         <div v-if="selectedForDelivery.length > 0" class="mt-4">
-          <h5>Paquetes para entregar</h5>
+          <h5>Paquetes para enviar</h5>
           <div class="table-responsive">
             <table class="table table-sm table-bordered">
               <thead>
@@ -131,15 +131,18 @@
     </AdminTemplate>
 
     <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer @shown="focusPesoInput">
+    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer
+      @shown="focusPesoInput">
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
         <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
 
         <!-- Campo de entrada con ref para enfoque directo -->
-        <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
+        <label :for="'peso_v-' + item.id" class="mt-2">Peso Envio (Kg)</label>
         <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control"
           @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" ref="pesoInput" />
-
+        <!-- Campo de entrada con ref para enfoque directo -->
+        <label :for="'peso_o-' + item.id" class="mt-2">Peso origen (Kg)</label>
+        <input type="text" :id="'peso_o-' + item.id" v-model="item.peso_o" class="form-control" disabled />
         <!-- Campo oculto para nombre_d -->
         <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
         <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
@@ -158,6 +161,10 @@
 
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+
+
 
 export default {
   name: "IndexPage",
@@ -200,24 +207,24 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    
-    // Verificar si `this.user` y `this.user.user` están definidos antes de acceder a `departamento`
-    const departamentoCartero = this.user && this.user.user ? this.user.user.departamento : null;
+      const searchTerm = this.searchTerm.toLowerCase();
 
-    return this.list.filter(item =>
-      item.estado === 5 &&
-      item.sucursale && // Asegurarse de que la sucursal exista
-      departamentoCartero && item.sucursale.origen === departamentoCartero && // Filtrar por el origen de la sucursal y el departamento del usuario
-      (
-        (this.selectedSucursal ? item.sucursale.id === this.selectedSucursal : true) && // Filtrar por sucursal seleccionada
-        (Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        ) ||
-          (item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)))
-      )
-    ).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  },
+      // Verificar si `this.user` y `this.user.user` están definidos antes de acceder a `departamento`
+      const departamentoCartero = this.user && this.user.user ? this.user.user.departamento : null;
+
+      return this.list.filter(item =>
+        item.estado === 5 &&
+        item.sucursale && // Asegurarse de que la sucursal exista
+        departamentoCartero && item.sucursale.origen === departamentoCartero && // Filtrar por el origen de la sucursal y el departamento del usuario
+        (
+          (this.selectedSucursal ? item.sucursale.id === this.selectedSucursal : true) && // Filtrar por sucursal seleccionada
+          (Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchTerm)
+          ) ||
+            (item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)))
+        )
+      ).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -296,7 +303,9 @@ export default {
           tarifa_id: item.tarifa_id,
           tarifa: this.getTarifaLabel(item.tarifa_id),
           nombre_d: precio,
-          precio: precio
+          precio: precio,
+          peso_o: item.peso_o // Incluye peso aquí
+
         };
       });
       this.isModalVisible = true;
@@ -312,7 +321,9 @@ export default {
           peso_v: item.peso_v || 0,
           tarifa_id: item.tarifa_id,
           tarifa: this.getTarifaLabel(item.tarifa_id), // Añadir la tarifa al objeto
-          precio: this.calculatePrice(item.tarifa_id, item.peso_v) // Calcular el precio inicial
+          precio: this.calculatePrice(item.tarifa_id, item.peso_v), // Calcular el precio inicial
+          peso_o: item.peso_o, // Incluye peso aquí
+
         }];
         this.isModalVisible = true;
       }
@@ -345,37 +356,93 @@ export default {
     },
 
     async confirmAllAssignments() {
-      this.load = true;
-      try {
-        const carteroId = this.user.user.id;
-        for (let item of this.selectedForAssign) {
-          await this.$encargados.$put(`solicitudesregional5/${item.id}`, {
-            encargado_id: carteroId,
-            peso_v: item.peso_v,
-            fecha_envio_regional: item.fecha_envio_regional,
-            precio: item.precio,
-            nombre_d: item.nombre_d // Incluir nombre_d en el envío
-          });
-        }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
-        this.$swal.fire({
-          icon: 'success',
-          title: 'Paquetes Enviados',
-          text: 'Todos los paquetes seleccionados.',
-        });
-        this.selectedForAssign = []; // Limpiar la selección después de asignar
-        this.selectedForDelivery = []; // Limpiar la lista de paquetes para entregar después de asignar
-      } catch (e) {
-        console.error(e);
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un error al asignar los carteros.',
-        });
-      } finally {
-        this.load = false;
-      }
-    },
+  this.load = true;
+  try {
+    const carteroId = this.user.user.id;
+    const payload = this.selectedForAssign.map(item => ({
+      id: item.id,
+      guia: item.guia,
+      origen: item.sucursale.origen, // Origen de la sucursal
+      tarifa: item.tarifa,
+      peso_v: item.peso_v,
+      sucursale_nombre: item.sucursale.nombre, // Nombre de la sucursal
+      fecha_solicitud: item.fecha,
+      fecha_envio_regional: item.fecha_envio_regional // Añadir fecha de envío regional
+    }));
+
+    // 1. Guardar los datos en el backend
+    for (let item of this.selectedForAssign) {
+      await this.$encargados.$put(`solicitudesregional5/${item.id}`, {
+        encargado_id: carteroId,
+        peso_v: item.peso_v,
+        fecha_envio_regional: item.fecha_envio_regional, // Guardar fecha de envío regional en backend
+        precio: item.precio,
+        nombre_d: item.nombre_d
+      });
+    }
+
+    // 2. Generar el archivo Excel en el frontend usando ExcelJS
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Asignaciones');
+
+    // Definir las cabeceras de la tabla
+    worksheet.columns = [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Guía', key: 'guia', width: 15 },
+      { header: 'Origen Sucursal', key: 'origen', width: 20 },
+      { header: 'Tarifa', key: 'tarifa', width: 15 },
+      { header: 'Peso (Kg)', key: 'peso_v', width: 10 },
+      { header: 'Nombre Sucursal', key: 'sucursale_nombre', width: 20 },
+      { header: 'Fecha Solicitud', key: 'fecha_solicitud', width: 20 },
+      { header: 'Fecha Envío Regional', key: 'fecha_envio_regional', width: 20 } // Añadir columna para fecha_envio_regional
+    ];
+
+    // Agregar los datos de los paquetes seleccionados
+    payload.forEach(item => {
+      worksheet.addRow({
+        id: item.id,
+        guia: item.guia,
+        origen: item.origen,
+        tarifa: item.tarifa,
+        peso_v: item.peso_v,
+        sucursale_nombre: item.sucursale_nombre,
+        fecha_solicitud: item.fecha_solicitud,
+        fecha_envio_regional: item.fecha_envio_regional // Añadir valor de fecha_envio_regional
+      });
+    });
+
+    // Formatear las celdas como quieras (opcional)
+    worksheet.getRow(1).font = { bold: true }; // Encabezados en negrita
+
+    // Guardar el archivo Excel
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, 'asignaciones.xlsx'); // Descargar el archivo Excel
+
+    // Limpiar los datos después de guardar y exportar
+    this.selectedForAssign = [];
+    this.selectedForDelivery = [];
+
+    this.$swal.fire({
+      icon: 'success',
+      title: 'Paquetes Enviados',
+      text: 'Todos los paquetes seleccionados han sido asignados y exportados.',
+    });
+  } catch (e) {
+    console.error(e);
+    this.$swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Hubo un error al asignar los paquetes.',
+    });
+  } finally {
+    this.load = false;
+  }
+}
+
+
+  
+  ,
     selectAll(event, group) {
       const isChecked = event.target.checked;
       group.forEach(item => {

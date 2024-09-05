@@ -41,6 +41,18 @@
                 </nuxtLink>
               </li>
               <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/admin/encargados/encargado">
+                  <span class="sidenav-mini-icon"> Encargados </span>
+                  <span class="sidenav-normal full-width-text"> Encargados </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/admin/carteros/cartero">
+                  <span class="sidenav-mini-icon"> Carteros </span>
+                  <span class="sidenav-normal full-width-text"> Carteros </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/admin/usuarios/usuario">
                   <span class="sidenav-mini-icon"> Usuario </span>
                   <span class="sidenav-normal full-width-text"> Usuario </span>
