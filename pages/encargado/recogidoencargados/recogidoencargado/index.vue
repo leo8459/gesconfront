@@ -97,9 +97,22 @@
           </div>
         </div>
         <div class="col-3" v-if="selectedForAssign.length > 0">
-          <button @click="confirmAllAssignments" class="btn btn-primary btn-sm w-100">
-            <i class="fas fa-truck"></i> Mandar a regional
+          <button class="btn btn-primary" @click="isModalNameVisible = true">
+            MANDAR A REGIONAL
           </button>
+
+          <!-- Modal para ingresar el nombre -->
+          <b-modal v-model="isModalNameVisible" title="Generar CN-33" hide-footer>
+            <div class="form-group">
+              <label for="nombreGenerador">Nombre de la persona que genera el CN-33</label>
+              <input v-model="nombreGenerador" type="text" class="form-control" placeholder="Escribe tu nombre..." />
+            </div>
+            <div class="d-flex justify-content-end">
+              <button class="btn btn-secondary" @click="isModalNameVisible = false">Cancelar</button>
+              <button class="btn btn-primary ml-2" @click="confirmNameAndGenerate">Generar Reporte</button>
+            </div>
+          </b-modal>
+
         </div>
         <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
         <div v-if="selectedForDelivery.length > 0" class="mt-4">
@@ -203,6 +216,11 @@ export default {
       },
       currentPage: 0,
       itemsPerPage: 10,
+      isModalNameVisible: false, // Controla la visibilidad del modal
+      nombreGenerador: '',       // Variable para almacenar el nombre ingresado
+      selectedForAssign: [],     // Paquetes seleccionados
+      selectedForDelivery: [],   // Paquetes para enviar
+      load: true,                // Controla la carga
     };
   },
   computed: {
@@ -354,7 +372,20 @@ export default {
       // Limpiar el campo de búsqueda
       this.searchTerm = '';
     },
+    confirmNameAndGenerate() {
+      if (!this.nombreGenerador) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Campo vacío',
+          text: 'Por favor, ingrese el nombre de la persona que genera el CN-33',
+        });
+        return;
+      }
 
+      // Cerrar el modal y llamar a la función que genera el Excel
+      this.isModalNameVisible = false;
+      this.confirmAllAssignments();
+    },
     async confirmAllAssignments() {
       this.load = true;
       try {
@@ -383,6 +414,11 @@ export default {
         // Generar el archivo Excel en el frontend usando ExcelJS con el nuevo diseño
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Designado Operador Postal');
+        // Obtener la fecha y hora actual
+        const currentDate = new Date();
+        const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}/${(currentDate.getMonth() + 1).toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
+        const formattedTime = `${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
+        const firstPackage = this.selectedForAssign.length > 0 ? this.selectedForAssign[0] : null;
 
         // Estilo de las celdas
         const headerStyle = {
@@ -395,6 +431,23 @@ export default {
             right: { style: 'thin' },
           }
         };
+        // Ajustar el ancho de las columnas
+        worksheet.columns = [
+          { header: 'ENVIO', key: 'envio', width: 20 },       // Ancho de la columna 'ENVIO'
+          { header: 'ORIG', key: 'orig', width: 15 },         // Ancho de la columna 'ORIG'
+          { header: 'DEST', key: 'dest', width: 15 },         // Ancho de la columna 'DEST'
+          { header: 'CAN', key: 'can', width: 10 },           // Ancho de la columna 'CAN'
+          { header: 'COR', key: 'cor', width: 10 },           // Ancho de la columna 'COR'
+          { header: 'EMS', key: 'ems', width: 15 },           // Ancho de la columna 'EMS'
+          { header: 'CLIENTE', key: 'cliente', width: 25 },   // Ancho de la columna 'CLIENTE'
+          { header: 'ENDAS', key: 'endas', width: 20 },       // Ancho de la columna 'ENDAS'
+          { header: 'OBSERVACION', key: 'observacion', width: 30 }  // Ancho de la columna 'OBSERVACION'
+        ];
+
+        // Ajustar la altura de las filas
+        worksheet.eachRow({ includeEmpty: false }, function (row, rowNumber) {
+          row.height = 20;  // Ajustar la altura de todas las filas a 20
+        });
 
         // Primera fila
         worksheet.mergeCells('A1:C2');
@@ -429,12 +482,13 @@ export default {
 
         // Cuarta fila
         worksheet.mergeCells('A5:C5');
-        worksheet.getCell('A5').value = 'LPB - LA PAZ';
+        worksheet.getCell('A5').value = `${firstPackage.sucursale.origen}`; // Usar el origen del primer paquete
         worksheet.getCell('A5').style = headerStyle;
 
         worksheet.mergeCells('H5:M5');
-        worksheet.getCell('H5').value = 'dd/mm/aaaa';
+        worksheet.getCell('H5').value = formattedDate; // Fecha actual
         worksheet.getCell('H5').style = headerStyle;
+
 
         // Quinta fila
         worksheet.mergeCells('A6:C6');
@@ -442,7 +496,7 @@ export default {
         worksheet.getCell('A6').style = headerStyle;
 
         worksheet.mergeCells('A7:C7');
-        worksheet.getCell('A7').value = 'SRZ- SANTA CRUZ';
+        worksheet.getCell('A7').value = `${firstPackage.tarifa}`; // Usar la tarifa/departamento del primer paquete
         worksheet.getCell('A7').style = headerStyle;
 
         // Aquí agregamos la imagen sin subdivisiones de celdas
@@ -455,7 +509,7 @@ export default {
         // La imagen ocupa una sola celda, sin divisiones
         worksheet.addImage(imageId, {
           tl: { col: 7, row: 5 }, // Posición exacta donde inicia la imagen
-          ext: { width: 400, height: 50 } // Tamaño ajustado de la imagen
+          ext: { width: 500, height: 50 } // Tamaño ajustado de la imagen
         });
 
         // Sexta fila
@@ -473,21 +527,22 @@ export default {
         worksheet.getCell('A9').style = headerStyle;
 
         worksheet.mergeCells('H9:M9');
-        worksheet.getCell('H9').value = 'DIA DE DESPACHO dd/mm/aaaa';
+        worksheet.getCell('H9').value = `DIA DE DESPACHO ${formattedDate}`; // Día de despacho con fecha actual
         worksheet.getCell('H9').style = headerStyle;
 
-        // Octava fila
+
         worksheet.mergeCells('H10:M10');
-        worksheet.getCell('H10').value = 'HORA HH:MM';
+        worksheet.getCell('H10').value = `HORA ${formattedTime}`; // Hora actual
         worksheet.getCell('H10').style = headerStyle;
+
 
         // Continuar agregando filas con los mismos estilos
         worksheet.mergeCells('A11:C11');
         worksheet.getCell('A11').value = '         ';
         worksheet.getCell('A11').style = headerStyle;
 
-          // Continuar agregando filas con los mismos estilos
-          worksheet.mergeCells('D11:F11');
+        // Continuar agregando filas con los mismos estilos
+        worksheet.mergeCells('D11:F11');
         worksheet.getCell('D11').value = 'PESO (kg)';
         worksheet.getCell('D11').style = headerStyle;
 
@@ -496,40 +551,89 @@ export default {
         worksheet.getCell('G11').value = 'weinght (kg)';
         worksheet.getCell('G11').style = headerStyle;
 
-      
+
 
         worksheet.mergeCells('J11:M12');
         worksheet.getCell('J11').value = 'OBSERVACION';
         worksheet.getCell('J11').style = headerStyle;
-worksheet.getCell('A12').value = 'ENVIO';
-worksheet.getCell('A12').style = headerStyle;
+        worksheet.getCell('A12').value = 'ENVIO';
+        worksheet.getCell('A12').style = headerStyle;
 
-worksheet.getCell('B12').value = 'ORIG';
-worksheet.getCell('B12').style = headerStyle;
+        worksheet.getCell('B12').value = 'ORIG';
+        worksheet.getCell('B12').style = headerStyle;
 
-worksheet.getCell('C12').value = 'DEST';
-worksheet.getCell('C12').style = headerStyle;
+        worksheet.getCell('C12').value = 'DEST';
+        worksheet.getCell('C12').style = headerStyle;
 
-worksheet.getCell('D12').value = 'CAN';
-worksheet.getCell('D12').style = headerStyle;
+        worksheet.getCell('D12').value = 'CAN';
+        worksheet.getCell('D12').style = headerStyle;
 
-worksheet.getCell('E12').value = 'COR';
-worksheet.getCell('E12').style = headerStyle;
+        worksheet.getCell('E12').value = 'COR';
+        worksheet.getCell('E12').style = headerStyle;
 
-worksheet.getCell('F12').value = 'EMS';
-worksheet.getCell('F12').style = headerStyle;
+        worksheet.getCell('F12').value = 'EMS';
+        worksheet.getCell('F12').style = headerStyle;
 
-worksheet.getCell('G12').value = 'CLIENTE';
-worksheet.getCell('G12').style = headerStyle;
+        worksheet.getCell('G12').value = 'CLIENTE';
+        worksheet.getCell('G12').style = headerStyle;
 
-worksheet.getCell('H12').value = 'ENDAS';
-worksheet.getCell('H12').style = headerStyle;
+        worksheet.getCell('H12').value = 'ENDAS';
+        worksheet.getCell('H12').style = headerStyle;
 
-worksheet.getCell('I12').value = 'EMS';
-worksheet.getCell('I12').style = headerStyle;
+        worksheet.getCell('I12').value = 'EMS';
+        worksheet.getCell('I12').style = headerStyle;
+
+
+        // Cabecera
+        worksheet.getCell('A12').value = 'ENVIO'; // Guías
+        worksheet.getCell('B12').value = 'ORIG'; // Origen Sucursal
+        worksheet.getCell('C12').value = 'DEST'; // Tarifa Departamento
+        worksheet.getCell('D12').value = 'CAN'; // Cantidad (Siempre 1)
+        worksheet.getCell('F12').value = 'EMS'; // Peso
+        worksheet.getCell('G12').value = 'CLIENTE'; // Nombre de la Sucursal
+
+        // Estilo de la cabecera
+        worksheet.getRow(12).eachCell((cell) => {
+          cell.style = headerStyle;
+        });
+        // // Asignar el nombre ingresado en la celda A20
+        // worksheet.getCell('A20').value = `Generado por: ${this.nombreGenerador}`; // Nombre ingresado en el modal
+        // worksheet.getCell('A20').style = headerStyle;
+        // // Agregar los datos seleccionados
+        let currentRow = 13; // Inicializar currentRow después de la cabecera
+
+        this.selectedForAssign.forEach((item) => {
+          let peso = parseFloat(item.peso_v); // Convertir peso a número con punto decimal
+          worksheet.getCell(`A${currentRow}`).value = item.guia;
+          worksheet.getCell(`B${currentRow}`).value = item.sucursale.origen;
+          worksheet.getCell(`C${currentRow}`).value = item.tarifa;
+          worksheet.getCell(`D${currentRow}`).value = 1; // Cantidad
+          worksheet.getCell(`F${currentRow}`).value = peso; // Asignar peso como número
+          worksheet.getCell(`G${currentRow}`).value = item.sucursale.nombre;
+
+          worksheet.getRow(currentRow).eachCell((cell) => {
+            cell.style = {
+              alignment: { vertical: 'middle', horizontal: 'center' },
+              border: {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' },
+              }
+            };
+          });
+
+          currentRow++; // Incrementar currentRow después de cada fila
+        });
+
+        // Aplicar las fórmulas para sumar el peso y cantidad total
+        worksheet.getCell(`D${currentRow}`).value = { formula: `SUM(D13:D${currentRow - 1})` }; // Total cantidad
+        worksheet.getCell(`F${currentRow}`).value = { formula: `SUM(F13:F${currentRow - 1})` }; // Total peso como número
 
         // Aplicar el formato de las celdas en toda la tabla
         worksheet.eachRow({ includeEmpty: false }, function (row) {
+          worksheet.getColumn('F').numFmt = '#,##0.000'; // Formato con coma para miles y decimales
+
           row.eachCell({ includeEmpty: false }, function (cell) {
             cell.alignment = { vertical: 'middle', horizontal: 'center' };
             cell.border = {
@@ -540,6 +644,40 @@ worksheet.getCell('I12').style = headerStyle;
             };
           });
         });
+        // Después de la tabla y los totales, añadimos las celdas para los nuevos campos
+        worksheet.mergeCells(`A${currentRow + 2}:B${currentRow + 2}`);
+        worksheet.getCell(`A${currentRow + 2}`).value = 'Dispatching office of exchange';
+        worksheet.getCell(`A${currentRow + 2}`).style = headerStyle;
+
+        worksheet.mergeCells(`A${currentRow + 3}:B${currentRow + 3}`);
+        worksheet.getCell(`A${currentRow + 3}`).value = this.nombreGenerador || 'Nombre no registrado';
+        worksheet.getCell(`A${currentRow + 3}`).style = headerStyle;
+
+        worksheet.mergeCells(`A${currentRow + 4}:B${currentRow + 4}`);
+        worksheet.getCell(`A${currentRow + 4}`).value = 'Signature';
+        worksheet.getCell(`A${currentRow + 4}`).style = headerStyle;
+
+        worksheet.mergeCells(`A${currentRow + 5}:B${currentRow + 5}`);
+        worksheet.getCell(`A${currentRow + 5}`).value = 'Salida Internacional';
+        worksheet.getCell(`A${currentRow + 5}`).style = headerStyle;
+
+        // Campos del centro
+        worksheet.mergeCells(`E${currentRow + 2}:G${currentRow + 2}`);
+        worksheet.getCell(`E${currentRow + 2}`).value = 'The official of the carrier or airport';
+        worksheet.getCell(`E${currentRow + 2}`).style = headerStyle;
+
+        worksheet.mergeCells(`E${currentRow + 3}:G${currentRow + 3}`);
+        worksheet.getCell(`E${currentRow + 3}`).value = 'Date and signature';
+        worksheet.getCell(`E${currentRow + 3}`).style = headerStyle;
+
+        // Campos de la derecha
+        worksheet.mergeCells(`H${currentRow + 2}:I${currentRow + 2}`);
+        worksheet.getCell(`H${currentRow + 2}`).value = 'Office of exchange of destination';
+        worksheet.getCell(`H${currentRow + 2}`).style = headerStyle;
+
+        worksheet.mergeCells(`H${currentRow + 3}:I${currentRow + 3}`);
+        worksheet.getCell(`H${currentRow + 3}`).value = 'Date and signature';
+        worksheet.getCell(`H${currentRow + 3}`).style = headerStyle;
 
         // Finalmente, guarda el archivo
         const buffer = await workbook.xlsx.writeBuffer();
