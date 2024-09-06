@@ -6,14 +6,14 @@
         <div class="row justify-content-end mb-3">
           <div class="col-3" v-if="hasSelectedItems">
             <button @click="markSelectedAsVerified" class="btn btn-success btn-sm w-100">
-              <i class="fas fa-check"></i> Verificar seleccionados
+              <i class="fas fa-check"></i> Devolver a destino 
             </button>
           </div>
           <div class="col-3" v-if="hasSelectedItems">
-  <button @click="openReencaminarModal" class="btn btn-warning btn-sm w-100">
-    <i class="fas fa-redo-alt"></i> Reencaminar seleccionados
-  </button>
-</div>
+            <button @click="openReencaminarModal" class="btn btn-warning btn-sm w-100">
+              <i class="fas fa-redo-alt"></i> Reencaminar 
+            </button>
+          </div>
 
 
 
@@ -32,118 +32,116 @@
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
-                    <th class="py-0 px-1">
-                      <input type="checkbox" @change="selectAll($event, paginatedData)" />
-                    </th>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                 
-                    <th class="py-0 px-1">Guia</th>
-                    <th class="py-0 px-1">Peso Empresa (Kg)</th>
-                    <th class="py-0 px-1">Peso Correos (Kg)</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Observación</th>
-                    <th class="py-0 px-1">Foto</th>
-                    <th class="py-0 px-1">Detalles de Domicilio</th>
+                        <th class="py-0 px-1">
+                          <input type="checkbox" @change="selectAll($event, paginatedData)" />
+                        </th>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Sucursal</th>
 
-                    <!-- Nueva columna para la dirección específica -->
-                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
-                    <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha</th>
-                    <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono D</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Municipio/Provincia</th>
-                    <th class="py-0 px-1">Detalles domoicilio destinatario</th>
-                    <th class="py-0 px-1">zona destinatario</th>
+                        <th class="py-0 px-1">Guia</th>
+                        <th class="py-0 px-1">Peso Empresa (Kg)</th>
+                        <th class="py-0 px-1">Peso Correos (Kg)</th>
+                        <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Observación</th>
+                        <th class="py-0 px-1">Foto</th>
+                        <th class="py-0 px-1">Detalles de Domicilio</th>
 
-                    <th class="py-0 px-1">Fecha Destinatario</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="m.id">
-                    <td class="py-0 px-1">
-                      <input type="checkbox" v-model="selected[m.id]" />
-                    </td>
-                    <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
-                    <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-                
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.peso_o }}</td>
-                    <td class="py-0 px-1">{{ m.peso_v }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.observacion }}</td>
+                        <!-- Nueva columna para la dirección específica -->
+                        <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
+                        <th class="py-0 px-1">Dirección maps</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Fecha</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Teléfono D</th>
+                        <th class="py-0 px-1">Dirección Destinatario</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th class="py-0 px-1">Detalles domoicilio destinatario</th>
+                        <th class="py-0 px-1">zona destinatario</th>
+
+                        <th class="py-0 px-1">Fecha Destinatario</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="m.id">
                         <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>               
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
+                          <input type="checkbox" v-model="selected[m.id]" />
+                        </td>
+                        <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
+                        <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
 
-                   
-                    <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                  </tr>
-                </tbody>
-              </table>
+                        <td class="py-0 px-1">{{ m.guia }}</td>
+                        <td class="py-0 px-1">{{ m.peso_o }}</td>
+                        <td class="py-0 px-1">{{ m.peso_v }}</td>
+                        <td class="py-0 px-1">{{ m.remitente }}</td>
+                        <td class="py-0 px-1">{{ m.observacion }}</td>
+                        <td class="py-0 px-1">
+                          <div class="d-flex flex-column align-items-center">
+                            <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              Descargar
+                            </button>
+                          </div>
+                        </td>
+                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
+                        <!-- Mostrar la dirección específica -->
+                        <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion.direccion }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.telefono }}</td>
+                        <td class="py-0 px-1">{{ m.contenido }}</td>
+                        <td class="py-0 px-1">{{ m.fecha }}</td>
+
+                        <td class="py-0 px-1">{{ m.destinatario }}</td>
+                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion_d)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                            class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion_d }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.ciudad }}</td>
+                        <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
+                        <td class="py-0 px-1">{{ m.zona_d }}</td>
+
+
+                        <td class="py-0 px-1">{{ m.fecha_d }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <b-modal id="reencaminarModal" ref="reencaminarModal" title="Reencaminar" @ok="confirmReencaminar">
-  <div v-for="(solicitud, index) in selectedItemsData" :key="solicitud.id" class="form-group">
-    <!-- Mostrar el número de guía -->
-    <p><strong>Solicitud {{ index + 1 }}: </strong>Guía {{ solicitud.guia }}</p>
-    
-    <!-- Seleccionar el destino de reencaminamiento -->
-    <label for="reencaminarSelect">Seleccione el destino de reencaminamiento:</label>
-    <select v-model="solicitud.reencaminamiento" class="form-control" id="reencaminarSelect">
-      <option value="LPB">La Paz (LPB)</option>
-      <option value="SRZ">Santa Cruz (SRZ)</option>
-      <option value="CBB">Cochabamba (CBB)</option>
-      <option value="ORU">Oruro (ORU)</option>
-      <option value="PTI">Potosí (PTI)</option>
-      <option value="TJA">Tarija (TJA)</option>
-      <option value="SRE">Sucre (SRE)</option>
-      <option value="BEN">Trinidad (TDD)</option>
-      <option value="CIJ">Cobija (CIJ)</option>
-    </select>
+            <b-modal id="reencaminarModal" ref="reencaminarModal" title="Reencaminar" @ok="confirmReencaminar">
+              <div v-for="(solicitud, index) in selectedItemsData" :key="solicitud.id" class="form-group">
+                <!-- Mostrar el número de guía -->
+                <p><strong>Solicitud {{ index + 1 }}: </strong>Guía {{ solicitud.guia }}</p>
 
-    <!-- Ingresar el peso reencaminado -->
-    <label for="pesoReencaminarInput">Ingrese el peso para reencaminar (Kg):</label>
-    <input type="number" v-model="solicitud.peso_reencaminar" class="form-control" id="pesoReencaminarInput" placeholder="0.000" step="0.001" min="0.001" />
-  </div>
-</b-modal>
+                <!-- Seleccionar el destino de reencaminamiento -->
+                <label for="reencaminarSelect">Seleccione el destino de reencaminamiento:</label>
+                <select v-model="solicitud.reencaminamiento" class="form-control" id="reencaminarSelect">
+                  <option value="LPB">La Paz (LPB)</option>
+                  <option value="SRZ">Santa Cruz (SRZ)</option>
+                  <option value="CBB">Cochabamba (CBB)</option>
+                  <option value="ORU">Oruro (ORU)</option>
+                  <option value="PTI">Potosí (PTI)</option>
+                  <option value="TJA">Tarija (TJA)</option>
+                  <option value="SRE">Sucre (SRE)</option>
+                  <option value="BEN">Trinidad (TDD)</option>
+                  <option value="CIJ">Cobija (CIJ)</option>
+                </select>
+
+
+              </div>
+            </b-modal>
 
 
             <div class="d-flex justify-content-between align-items-center mt-3">
@@ -164,7 +162,7 @@
         </div>
       </div>
     </AdminTemplate>
-   
+
   </div>
 </template>
 
@@ -197,23 +195,23 @@ export default {
         cartero: []
       },
       currentPage: 1,
-    itemsPerPage: 10,
-    pesoReencaminar: 0,          // Campo para el peso de reencaminamiento
-    selectedReencaminar: null,    // Campo para seleccionar el destino de reencaminamiento
-    selected: {},
+      itemsPerPage: 10,
+      pesoReencaminar: 0,          // Campo para el peso de reencaminamiento
+      selectedReencaminar: null,    // Campo para seleccionar el destino de reencaminamiento
+      selected: {},
       selectedItemsData: [], // Aquí guardamos los datos de las solicitudes seleccionadas
     };
   },
   computed: {
     filteredData() {
-  const searchTerm = this.searchTerm.toLowerCase();
-  return this.list.filter(item =>
-    (item.estado === 11 ) && // Incluir elementos con estado 3 o 10
-    Object.values(item).some(value =>
-      String(value).toLowerCase().includes(searchTerm)
-    )
-  );
-},
+      const searchTerm = this.searchTerm.toLowerCase();
+      return this.list.filter(item =>
+        (item.estado === 11) && // Incluir elementos con estado 3 o 10
+        Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        )
+      );
+    },
 
     paginatedData() {
       const start = (this.currentPage - 1) * this.itemsPerPage;

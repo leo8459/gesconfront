@@ -98,7 +98,7 @@
         </div>
         <div class="col-3" v-if="selectedForAssign.length > 0">
           <button @click="confirmAllAssignments" class="btn btn-primary btn-sm w-100">
-            <i class="fas fa-truck"></i> Mandar todos los seleccionados
+            <i class="fas fa-truck"></i> Mandar a regional
           </button>
         </div>
         <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
@@ -356,93 +356,253 @@ export default {
     },
 
     async confirmAllAssignments() {
-  this.load = true;
-  try {
-    const carteroId = this.user.user.id;
-    const payload = this.selectedForAssign.map(item => ({
-      id: item.id,
-      guia: item.guia,
-      origen: item.sucursale.origen, // Origen de la sucursal
-      tarifa: item.tarifa,
-      peso_v: item.peso_v,
-      sucursale_nombre: item.sucursale.nombre, // Nombre de la sucursal
-      fecha_solicitud: item.fecha,
-      fecha_envio_regional: item.fecha_envio_regional // Añadir fecha de envío regional
-    }));
+      this.load = true;
+      try {
+        const carteroId = this.user.user.id;
+        const payload = this.selectedForAssign.map(item => ({
+          id: item.id,
+          guia: item.guia,
+          origen: item.sucursale.origen,
+          tarifa: item.tarifa,
+          peso_v: item.peso_v,
+          sucursale_nombre: item.sucursale.nombre,
+          fecha_solicitud: item.fecha,
+          fecha_envio_regional: item.fecha_envio_regional
+        }));
 
-    // 1. Guardar los datos en el backend
-    for (let item of this.selectedForAssign) {
-      await this.$encargados.$put(`solicitudesregional5/${item.id}`, {
-        encargado_id: carteroId,
-        peso_v: item.peso_v,
-        fecha_envio_regional: item.fecha_envio_regional, // Guardar fecha de envío regional en backend
-        precio: item.precio,
-        nombre_d: item.nombre_d
+        for (let item of this.selectedForAssign) {
+          await this.$encargados.$put(`solicitudesregional5/${item.id}`, {
+            encargado_id: carteroId,
+            peso_v: item.peso_v,
+            fecha_envio_regional: item.fecha_envio_regional,
+            precio: item.precio,
+            nombre_d: item.nombre_d
+          });
+        }
+
+        // Generar el archivo Excel en el frontend usando ExcelJS con el nuevo diseño
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Designado Operador Postal');
+
+        // Estilo de las celdas
+        const headerStyle = {
+          font: { bold: true },
+          alignment: { vertical: 'middle', horizontal: 'center' },
+          border: {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          }
+        };
+
+        // Primera fila
+        worksheet.mergeCells('A1:C2');
+        worksheet.getCell('A1').value = 'Postal designated operator';
+        worksheet.getCell('A1').style = headerStyle;
+
+        worksheet.mergeCells('D1:G7');  // Aquí se asegura que esta sea la única celda para EMS
+        worksheet.getCell('D1').value = 'EMS';
+        worksheet.getCell('D1').style = headerStyle;
+
+        worksheet.mergeCells('H1:M2');
+        worksheet.getCell('H1').value = 'LISTA CN-33';
+        worksheet.getCell('H1').style = headerStyle;
+
+        // Segunda fila de datos
+        worksheet.mergeCells('A3:C3');
+        worksheet.getCell('A3').value = 'BO-BOLIVIA';
+        worksheet.getCell('A3').style = headerStyle;
+
+        worksheet.mergeCells('H3:M3');
+        worksheet.getCell('H3').value = 'Airmails';
+        worksheet.getCell('H3').style = headerStyle;
+
+        // Tercera fila
+        worksheet.mergeCells('A4:C4');
+        worksheet.getCell('A4').value = 'Office of origin';
+        worksheet.getCell('A4').style = headerStyle;
+
+        worksheet.mergeCells('H4:M4');
+        worksheet.getCell('H4').value = 'DIA';
+        worksheet.getCell('H4').style = headerStyle;
+
+        // Cuarta fila
+        worksheet.mergeCells('A5:C5');
+        worksheet.getCell('A5').value = 'LPB - LA PAZ';
+        worksheet.getCell('A5').style = headerStyle;
+
+        worksheet.mergeCells('H5:M5');
+        worksheet.getCell('H5').value = 'dd/mm/aaaa';
+        worksheet.getCell('H5').style = headerStyle;
+
+        // Quinta fila
+        worksheet.mergeCells('A6:C6');
+        worksheet.getCell('A6').value = 'office of destination';
+        worksheet.getCell('A6').style = headerStyle;
+
+        worksheet.mergeCells('A7:C7');
+        worksheet.getCell('A7').value = 'SRZ- SANTA CRUZ';
+        worksheet.getCell('A7').style = headerStyle;
+
+        // Aquí agregamos la imagen sin subdivisiones de celdas
+        const base64Image = await this.loadImageAsBase64(require('@/pages/sucursal/sucursales/sucursal/img/EMS.png'));
+        const imageId = workbook.addImage({
+          base64: base64Image,
+          extension: 'png',
+        });
+
+        // La imagen ocupa una sola celda, sin divisiones
+        worksheet.addImage(imageId, {
+          tl: { col: 7, row: 5 }, // Posición exacta donde inicia la imagen
+          ext: { width: 400, height: 50 } // Tamaño ajustado de la imagen
+        });
+
+        // Sexta fila
+        worksheet.mergeCells('A8:G8');
+        worksheet.getCell('A8').value = 'DESPACHO -001';
+        worksheet.getCell('A8').style = headerStyle;
+
+        worksheet.mergeCells('H8:M8');
+        worksheet.getCell('H8').value = 'X PRIORITARIO                  X POR AEREO';
+        worksheet.getCell('H8').style = headerStyle;
+
+        // Séptima fila
+        worksheet.mergeCells('A9:G10');
+        worksheet.getCell('A9').value = 'NUMERO DE VUELO LPB-OB-680';
+        worksheet.getCell('A9').style = headerStyle;
+
+        worksheet.mergeCells('H9:M9');
+        worksheet.getCell('H9').value = 'DIA DE DESPACHO dd/mm/aaaa';
+        worksheet.getCell('H9').style = headerStyle;
+
+        // Octava fila
+        worksheet.mergeCells('H10:M10');
+        worksheet.getCell('H10').value = 'HORA HH:MM';
+        worksheet.getCell('H10').style = headerStyle;
+
+        // Continuar agregando filas con los mismos estilos
+        worksheet.mergeCells('A11:C11');
+        worksheet.getCell('A11').value = '         ';
+        worksheet.getCell('A11').style = headerStyle;
+
+          // Continuar agregando filas con los mismos estilos
+          worksheet.mergeCells('D11:F11');
+        worksheet.getCell('D11').value = 'PESO (kg)';
+        worksheet.getCell('D11').style = headerStyle;
+
+
+        worksheet.mergeCells('G11:I11');
+        worksheet.getCell('G11').value = 'weinght (kg)';
+        worksheet.getCell('G11').style = headerStyle;
+
+      
+
+        worksheet.mergeCells('J11:M12');
+        worksheet.getCell('J11').value = 'OBSERVACION';
+        worksheet.getCell('J11').style = headerStyle;
+worksheet.getCell('A12').value = 'ENVIO';
+worksheet.getCell('A12').style = headerStyle;
+
+worksheet.getCell('B12').value = 'ORIG';
+worksheet.getCell('B12').style = headerStyle;
+
+worksheet.getCell('C12').value = 'DEST';
+worksheet.getCell('C12').style = headerStyle;
+
+worksheet.getCell('D12').value = 'CAN';
+worksheet.getCell('D12').style = headerStyle;
+
+worksheet.getCell('E12').value = 'COR';
+worksheet.getCell('E12').style = headerStyle;
+
+worksheet.getCell('F12').value = 'EMS';
+worksheet.getCell('F12').style = headerStyle;
+
+worksheet.getCell('G12').value = 'CLIENTE';
+worksheet.getCell('G12').style = headerStyle;
+
+worksheet.getCell('H12').value = 'ENDAS';
+worksheet.getCell('H12').style = headerStyle;
+
+worksheet.getCell('I12').value = 'EMS';
+worksheet.getCell('I12').style = headerStyle;
+
+        // Aplicar el formato de las celdas en toda la tabla
+        worksheet.eachRow({ includeEmpty: false }, function (row) {
+          row.eachCell({ includeEmpty: false }, function (cell) {
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' },
+            };
+          });
+        });
+
+        // Finalmente, guarda el archivo
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        saveAs(blob, 'designado_operador_postal.xlsx');
+
+
+        this.selectedForAssign = [];
+        this.selectedForDelivery = [];
+
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Paquetes Enviados',
+          text: 'Todos los paquetes seleccionados han sido asignados y exportados.',
+        });
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al asignar los paquetes.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
+
+    async loadImageAsBase64(path) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.crossOrigin = 'Anonymous'; // Permite cargar imágenes incluso si están en un servidor diferente
+        image.onload = function () {
+          const canvas = document.createElement('canvas');
+          canvas.width = image.width;
+          canvas.height = image.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(image, 0, 0);
+          const dataURL = canvas.toDataURL('image/png');
+          resolve(dataURL.replace(/^data:image\/(png|jpg);base64,/, ""));
+        };
+        image.onerror = reject;
+        image.src = path; // Aquí es donde usas la ruta de la imagen
+      });
+    },
+
+    async getBase64Image(path) {
+      const response = await fetch(path);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve(reader.result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
       });
     }
 
-    // 2. Generar el archivo Excel en el frontend usando ExcelJS
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Asignaciones');
-
-    // Definir las cabeceras de la tabla
-    worksheet.columns = [
-      { header: 'ID', key: 'id', width: 10 },
-      { header: 'Guía', key: 'guia', width: 15 },
-      { header: 'Origen Sucursal', key: 'origen', width: 20 },
-      { header: 'Tarifa', key: 'tarifa', width: 15 },
-      { header: 'Peso (Kg)', key: 'peso_v', width: 10 },
-      { header: 'Nombre Sucursal', key: 'sucursale_nombre', width: 20 },
-      { header: 'Fecha Solicitud', key: 'fecha_solicitud', width: 20 },
-      { header: 'Fecha Envío Regional', key: 'fecha_envio_regional', width: 20 } // Añadir columna para fecha_envio_regional
-    ];
-
-    // Agregar los datos de los paquetes seleccionados
-    payload.forEach(item => {
-      worksheet.addRow({
-        id: item.id,
-        guia: item.guia,
-        origen: item.origen,
-        tarifa: item.tarifa,
-        peso_v: item.peso_v,
-        sucursale_nombre: item.sucursale_nombre,
-        fecha_solicitud: item.fecha_solicitud,
-        fecha_envio_regional: item.fecha_envio_regional // Añadir valor de fecha_envio_regional
-      });
-    });
-
-    // Formatear las celdas como quieras (opcional)
-    worksheet.getRow(1).font = { bold: true }; // Encabezados en negrita
-
-    // Guardar el archivo Excel
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(blob, 'asignaciones.xlsx'); // Descargar el archivo Excel
-
-    // Limpiar los datos después de guardar y exportar
-    this.selectedForAssign = [];
-    this.selectedForDelivery = [];
-
-    this.$swal.fire({
-      icon: 'success',
-      title: 'Paquetes Enviados',
-      text: 'Todos los paquetes seleccionados han sido asignados y exportados.',
-    });
-  } catch (e) {
-    console.error(e);
-    this.$swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Hubo un error al asignar los paquetes.',
-    });
-  } finally {
-    this.load = false;
-  }
-}
 
 
-  
-  ,
+    ,
+
+
     selectAll(event, group) {
       const isChecked = event.target.checked;
       group.forEach(item => {

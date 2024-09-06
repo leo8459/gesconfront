@@ -179,22 +179,24 @@ export default {
   },
   computed: {
     filteredData() {
-      const departamentoCartero = this.user?.user?.departamento_cartero;
-      if (!departamentoCartero) {
-        return [];
-      }
+    const departamentoCartero = this.user?.user?.departamento_cartero;
+    if (!departamentoCartero) {
+      return [];
+    }
 
-      const searchTerm = this.searchTerm.toLowerCase();
+    const searchTerm = this.searchTerm.toLowerCase();
 
-      return this.list.filter(item =>
-        item.estado === 10 &&
-        item.tarifa &&
-        item.tarifa.departamento === departamentoCartero &&
-        Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        )
+    return this.list.filter(item => {
+      const matchesDepartamento = item.tarifa && item.tarifa.departamento === departamentoCartero;
+      const matchesReencaminamiento = item.reencaminamiento && item.reencaminamiento === departamentoCartero;
+
+      const matchesSearchTerm = Object.values(item).some(value =>
+        String(value).toLowerCase().includes(searchTerm)
       );
-    },
+
+      return item.estado === 10 && (matchesDepartamento || matchesReencaminamiento) && matchesSearchTerm;
+    });
+  },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
