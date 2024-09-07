@@ -5,7 +5,7 @@ php artisan migrate --path=/database/migrations/2024_06_07_135921_create_solicit
 
 
 @/pages/admin/auth/img/AGBClogo.png
-
+@/pages/sucursal/sucursales/sucursal/img/EMS.png
 '/pages/admin/img/logo.png'
 
 
