@@ -6,9 +6,9 @@
         <!-- Filtros -->
         <div class="row justify-content-end mb-3">
           <div class="col-md-2 d-flex align-items-end">
-            <button @click="exportToExcel" class="btn btn-success btn-sm w-100">
-              <i class="fas fa-file-excel"></i> Generar Reporte en Excel
-            </button>
+            <button @click="generarReporte" class="btn btn-success btn-sm w-100">
+  <i class="fas fa-file-excel"></i> Generar Reporte en Excel
+</button>
           </div>
           <div class="col-3">
             <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
@@ -25,15 +25,27 @@
             <label for="endDate" class="form-label">Fecha Fin</label>
             <input v-model="endDate" type="date" id="endDate" class="form-control" />
           </div>
-          <!-- Filtro Sucursal -->
-          <div class="col-md-2">
+         <!-- Filtro Sucursal -->
+         <div class="col-md-2">
             <label for="sucursal" class="form-label">Sucursal</label>
-            <select v-model="selectedSucursal" id="sucursal" class="form-control">
-              <option value="">Todas</option>
-              <option v-for="sucursal in sucursales" :key="sucursal.id" :value="sucursal.id">
-                {{ sucursal.nombre }}
-              </option>
-            </select>
+            <v-select 
+  :options="sucursales" 
+  v-model="selectedSucursales" 
+  label="nombre"
+  :reduce="sucursal => sucursal.id" 
+  placeholder="Buscar sucursales..."
+  multiple>
+  <template #option="option">
+    <div>
+      {{ option.nombre }}
+    </div>
+  </template>
+  <template #selected-option="option">
+    <div>
+      {{ option.nombre }}
+    </div>
+  </template>
+</v-select>
           </div>
           <!-- Filtro Departamento de la Sucursal -->
           <div class="col-md-2">
@@ -222,15 +234,19 @@ import 'jspdf-autotable';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
-
+import vSelect from 'vue-select';
+import 'vue-select/dist/vue-select.css';
 export default {
   name: "IndexPage",
   components: {
     BCollapse,
-    BModal
+    BModal,
+    vSelect // Aquí solo necesitas definir el componente una vez
+
   },
   data() {
     return {
+      selectedSucursales: [], // Sucursales seleccionadas (array)
       selectedSucursal: '', // Sucursal seleccionada
       sucursales: [], // Lista de sucursales para el dropdown
       load: true,
@@ -262,36 +278,34 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    const startDate = this.startDate ? new Date(this.startDate) : null;
-    const endDate = this.endDate ? new Date(this.endDate) : null;
+  const searchTerm = this.searchTerm.toLowerCase();
+  const startDate = this.startDate ? new Date(this.startDate) : null;
+  const endDate = this.endDate ? new Date(this.endDate) : null;
 
-    if (endDate) {
-      endDate.setDate(endDate.getDate() + 1);
+  if (endDate) {
+    endDate.setDate(endDate.getDate() + 1);
+  }
+
+  return this.list.filter(item => {
+    const isMatchingSucursales = !this.selectedSucursales.length || this.selectedSucursales.includes(item.sucursale?.id);
+    const isMatchingOrigen = !this.selectedOrigen || item.sucursale?.origen === this.selectedOrigen;
+    const isMatchingDepartamento = !this.selectedDepartamento || item.tarifa?.departamento === this.selectedDepartamento;
+    const isMatchingState = item.estado === 4 || item.estado === 7;
+
+    if (!item.fecha_d) {
+      return false; // Si fecha_d es null o undefined, omitir este item
     }
 
-    return this.list.filter(item => {
-      const isMatchingSucursal = !this.selectedSucursal || item.sucursale?.id === this.selectedSucursal;
-      const isMatchingOrigen = !this.selectedOrigen || item.sucursale?.origen === this.selectedOrigen;
-      const isMatchingDepartamento = !this.selectedDepartamento || item.tarifa?.departamento === this.selectedDepartamento;
-      const isMatchingState = item.estado === 4 || item.estado === 7;
+    const [day, month, year, hour, minute] = item.fecha_d.split(/[\s/:]+/);
+    const itemDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00`);
 
-      if (!item.fecha_d) {
-        return false; // Si fecha_d es null o undefined, omitir este item
-      }
+    const isWithinDateRange = (!startDate || (itemDate && itemDate >= startDate)) && (!endDate || (itemDate && itemDate <= endDate));
 
-      const [day, month, year, hour, minute] = item.fecha_d.split(/[\s/:]+/);
-      const itemDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00`);
-
-      const isWithinDateRange =
-        (!startDate || (itemDate && itemDate >= startDate)) &&
-        (!endDate || (itemDate && itemDate <= endDate));
-
-      return isMatchingSucursal && isMatchingOrigen && isMatchingDepartamento && isMatchingState &&
-        isWithinDateRange &&
-        Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
-    });
-  },
+    return isMatchingSucursales && isMatchingOrigen && isMatchingDepartamento && isMatchingState &&
+      isWithinDateRange &&
+      Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
+  });
+},
 
 
     paginatedData() {
@@ -540,6 +554,301 @@ export default {
         console.error('Error al obtener los datos:', e);
       }
     },
+
+    async generarReporte() {
+  if (this.selectedSucursales.length === 0) {
+    Swal.fire({
+      icon: 'info',
+      title: 'Sin sucursales seleccionadas',
+      text: 'Por favor, seleccione al menos una sucursal para generar el reporte.',
+    });
+    return;
+  }
+
+  if (this.selectedSucursales.length === 1) {
+    // Generar reporte para una sola sucursal
+    await this.exportToExcel();
+  } else if (this.selectedSucursales.length > 1) {
+    // Generar reporte para múltiples sucursales
+    await this.generarReporteMultiplesSucursales();
+  }
+},
+    async generarReporteMultiplesSucursales() {
+  if (this.selectedSucursales.length < 2) {
+    return; // Solo genera el reporte si hay más de una sucursal seleccionada
+  }
+
+  const filteredData = this.paginatedData.filter(item => this.selectedSucursales.includes(item.sucursale?.id));
+
+  if (filteredData.length === 0) {
+    await Swal.fire({
+      icon: 'info',
+      title: 'Sin datos',
+      text: 'No hay datos disponibles para los criterios seleccionados.',
+    });
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Reporte Múltiples Sucursales');
+
+  // Cargar la imagen usando la ruta correcta
+  const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
+
+  // Añadir la imagen en la parte superior
+  const imageId = workbook.addImage({
+    base64: base64Image,
+    extension: 'png',
+  });
+
+  worksheet.addImage(imageId, {
+    tl: { col: 2, row: 0 }, // Posición superior izquierda
+    ext: { width: 750, height: 75 } // Ajustar el tamaño según sea necesario
+  });
+
+  // Ajustar las fechas y sumar un día para corregir el desfase
+  const startDate = new Date(this.startDate);
+  startDate.setDate(startDate.getDate() + 1); // Sumar un día
+  const endDate = new Date(this.endDate);
+  endDate.setDate(endDate.getDate() + 1); // Sumar un día
+
+  const options = { month: 'long' }; // Para obtener el nombre completo del mes
+  const startMonth = startDate.toLocaleDateString('es-BO', options);
+  const endMonth = endDate.toLocaleDateString('es-BO', options);
+
+  // Añadir una fila con el rango de meses (formateado) en la columna correcta
+  const rangoMesesRow = worksheet.addRow([]);
+  worksheet.mergeCells('C8:F8'); // Ajusta el rango según el tamaño que necesites
+  worksheet.getCell('C8').value = `${startMonth}`;
+  worksheet.getCell('C8').font = { bold: true };
+  worksheet.getCell('C8').alignment = { horizontal: 'center' }; // Centrar el texto horizontalmente
+
+// Insertar filas vacías antes del encabezado para que los títulos comiencen en la fila 7
+for (let i = 0; i < 0; i++) {
+    worksheet.addRow([]);
+}
+
+// Añadir manualmente los títulos en la fila 7
+const titleRow = worksheet.addRow(['', '', 'REGIONALES', 'PESO (Kg)', 'TOTAL GUIAS', 'SUB TOTAL (Bs)']);
+titleRow.eachCell((cell, colNumber) => {
+  if (colNumber >= 3) { // Solo aplicar el estilo a las columnas desde C en adelante
+    cell.font = { bold: true };
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF9BBB59' }, // Color verde
+    };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    cell.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' },
+    };
+  }
+});
+
+// Configurar las columnas (sin usar `header`)
+worksheet.columns = [
+  { key: 'empty1', width: 20 }, // Columna vacía para desplazar el contenido a la columna C
+  { key: 'empty2', width: 20 }, // Segunda columna vacía
+  { key: 'regional', width: 30 },
+  { key: 'peso', width: 15 },
+  { key: 'totalGuias', width: 15 },
+  { key: 'subtotal', width: 20 },
+];
+    // Estilo de encabezado
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF9BBB59' }, // Color verde
+    };
+
+    // Bordes para las celdas
+    const borderStyle = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' },
+    };
+
+    // Agrupar los datos por sucursal
+    const sucursalesMap = {};
+
+    filteredData.forEach(item => {
+      const sucursalId = item.sucursale.id;
+      const sucursalNombre = item.sucursale.nombre;
+      const peso = item.peso_r ? parseFloat(item.peso_r) : parseFloat(item.peso_v) || 0;
+      const subtotal = parseFloat(item.nombre_d) || 0;
+
+      if (!sucursalesMap[sucursalId]) {
+        sucursalesMap[sucursalId] = {
+          nombre: sucursalNombre,
+          peso: 0,
+          totalGuias: 0,
+          subtotal: 0
+        };
+      }
+
+      sucursalesMap[sucursalId].peso += peso; // Sumar el peso correctamente
+      sucursalesMap[sucursalId].totalGuias += 1; // Cada ítem es una guía
+      sucursalesMap[sucursalId].subtotal += subtotal;
+    });
+
+    // Añadir filas al reporte
+    Object.values(sucursalesMap).forEach((sucursal) => {
+      const row = worksheet.addRow({
+        regional: sucursal.nombre,
+        peso: sucursal.peso.toFixed(3), // Mostrar con tres decimales
+        totalGuias: sucursal.totalGuias,
+        subtotal: sucursal.subtotal.toFixed(2)
+      });
+
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        cell.border = borderStyle;
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+    });
+
+    // Calcular totales
+    const totalPeso = Object.values(sucursalesMap).reduce((acc, suc) => acc + suc.peso, 0);
+    const totalGuias = Object.values(sucursalesMap).reduce((acc, suc) => acc + suc.totalGuias, 0);
+    const totalSubtotal = Object.values(sucursalesMap).reduce((acc, suc) => acc + suc.subtotal, 0);
+
+    // Añadir fila de totales
+    const totalRow = worksheet.addRow({
+      regional: 'TOTAL PESO',
+      peso: totalPeso.toFixed(3),
+      totalGuias: totalGuias,
+      subtotal: totalSubtotal.toFixed(2)
+    });
+
+   // Aplicar estilos solo desde la columna C en adelante en la fila de totales
+totalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+  if (colNumber >= 3) { // Solo aplicar el estilo a las columnas desde C en adelante
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFFFFF00' } // Fondo amarillo
+    };
+    cell.font = { bold: true };
+    cell.border = borderStyle;
+  }
+});
+
+
+    // Fila adicional para total final en Bolivianos
+    worksheet.addRow({});
+    const totalFinalRow = worksheet.addRow({
+      regional: 'TOTAL FINAL BOLIVIANOS',
+      subtotal: `Bs ${totalSubtotal.toFixed(2)}`
+    });
+
+    totalFinalRow.getCell(1).alignment = { horizontal: 'left' };
+    totalFinalRow.getCell(6).alignment = { horizontal: 'center' };
+    totalFinalRow.getCell(6).font = { bold: true };
+    totalFinalRow.getCell(6).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFFFFF00' } // Fondo amarillo
+    };
+
+    totalFinalRow.eachCell({ includeEmpty: true }, (cell) => {
+      cell.border = borderStyle;
+    });
+
+    // Añadir fila para el texto final
+    worksheet.addRow({});
+    const textoFinalRow = worksheet.addRow({
+      regional: `SON: ${await this.convertirNumeroALetras(Math.floor(totalSubtotal))} 00/100 BOLIVIANOS`
+    });
+
+    textoFinalRow.getCell(1).alignment = { horizontal: 'center' };
+    textoFinalRow.getCell(1).font = { italic: true };
+
+    // Estilo de la celda con el total en bolivianos
+    worksheet.getColumn('subtotal').numFmt = '"Bs"#,##0.00;[Red]"Bs"#,##0.00';
+
+    // Añadir filas vacías después de la tabla
+    const lastDataRow = worksheet.lastRow.number;
+    const emptyRowsCount = 10;
+    for (let i = 0; i < emptyRowsCount; i++) {
+      worksheet.addRow({});
+    }
+
+    // Añadir las firmas 10 filas después del final de la tabla
+    const signatureStartRow = lastDataRow + emptyRowsCount + 1;
+
+    // Añadir las firmas
+    worksheet.mergeCells(`C${signatureStartRow}:D${signatureStartRow}`);
+    worksheet.getCell(`C${signatureStartRow}`).value = "Rodrigo L.Alquez Chavez";
+    worksheet.getCell(`C${signatureStartRow}`).alignment = { horizontal: 'center' };
+    worksheet.getCell(`C${signatureStartRow}`).font = { bold: true, color: { argb: 'FF006400' } };
+
+    worksheet.mergeCells(`F${signatureStartRow}:F${signatureStartRow}`);
+    worksheet.getCell(`F${signatureStartRow}`).value = "Williams David Chavez Ticona";
+    worksheet.getCell(`F${signatureStartRow}`).alignment = { horizontal: 'center' };
+    worksheet.getCell(`F${signatureStartRow}`).font = { bold: true };
+
+    // Segunda fila de las firmas
+    worksheet.mergeCells(`C${signatureStartRow + 1}:D${signatureStartRow + 1}`);
+    worksheet.getCell(`C${signatureStartRow + 1}`).value = "AUX. DE CONTRATOS";
+    worksheet.getCell(`C${signatureStartRow + 1}`).alignment = { horizontal: 'center' };
+    worksheet.getCell(`C${signatureStartRow + 1}`).font = { italic: true };
+
+    worksheet.mergeCells(`F${signatureStartRow + 1}:F${signatureStartRow + 1}`);
+    worksheet.getCell(`F${signatureStartRow + 1}`).value = "ENCARGADO DE CONTRATOS";
+    worksheet.getCell(`F${signatureStartRow + 1}`).alignment = { horizontal: 'center' };
+    worksheet.getCell(`F${signatureStartRow + 1}`).font = { italic: true };
+
+    // Tercera fila de las firmas
+    worksheet.mergeCells(`C${signatureStartRow + 2}:D${signatureStartRow + 2}`);
+    worksheet.getCell(`C${signatureStartRow + 2}`).value = "AGENCIA BOLIVIANA DE CORREOS";
+    worksheet.getCell(`C${signatureStartRow + 2}`).alignment = { horizontal: 'center' };
+    worksheet.getCell(`C${signatureStartRow + 2}`).font = { italic: true };
+
+    worksheet.mergeCells(`F${signatureStartRow + 2}:F${signatureStartRow + 2}`);
+    worksheet.getCell(`F${signatureStartRow + 2}`).value = "AGENCIA BOLIVIANA DE CORREOS";
+    worksheet.getCell(`F${signatureStartRow + 2}`).alignment = { horizontal: 'center' };
+    worksheet.getCell(`F${signatureStartRow + 2}`).font = { italic: true };
+
+    // Guardar el archivo Excel
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'Reporte_Multiples_Sucursales_Formateado.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+
+  async convertirNumeroALetras(num) {
+    const unidades = ['CERO', 'UNO', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+    const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+    const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISEIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
+
+    if (num < 10) return unidades[num];
+    if (num < 20) return especiales[num - 10];
+    if (num < 100) return decenas[Math.floor(num / 10)] + (num % 10 === 0 ? '' : ' Y ' + unidades[num % 10]);
+
+    if (num < 1000) {
+      if (num === 100) return 'CIEN';
+      return unidades[Math.floor(num / 100)] + ' CIENTO ' + await this.convertirNumeroALetras(num % 100);
+    }
+    
+    if (num < 1000000) {
+      if (Math.floor(num / 1000) === 1) {
+        return 'MIL ' + await this.convertirNumeroALetras(num % 1000);
+      } else {
+        return await this.convertirNumeroALetras(Math.floor(num / 1000)) + ' MIL ' + await this.convertirNumeroALetras(num % 1000);
+      }
+    }
+    
+    return 'NUMERO DEMASIADO GRANDE';
+  },
+
 
 
 
