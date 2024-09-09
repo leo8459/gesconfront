@@ -8,9 +8,9 @@ export default function ({ $axios, store, redirect }, inject) {
         }
       }
     });
-          // let url ='http://172.65.10.52:8450/gestores/'
+          let url ='http://172.65.10.52:8450/gestores/'
 
-    const url = 'http://localhost/backgescon2/public/gestores/';
+    // const url = 'http://localhost/backgescon2/public/gestores/';
     gestores.setBaseURL(url);
   
     gestores.interceptors.request.use(config => {
