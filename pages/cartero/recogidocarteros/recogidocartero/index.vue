@@ -214,16 +214,35 @@ export default {
   computed: {
     filteredData() {
     const searchTerm = this.searchTerm.toLowerCase();
-    return this.list
-      .filter(item =>
-        item.estado === 5 && Object.values(item).some(value =>
+
+    // Asegúrate de que this.user y this.user.user existen
+    if (!this.user || !this.user.user || !this.user.user.departamento_cartero) {
+      return [];  // Retornar un array vacío si no existe el departamento_cartero
+    }
+
+    const departamentoCartero = this.user.user.departamento_cartero;
+
+    
+
+    const filtered = this.list
+      .filter(item => 
+        item.estado === 5 && 
+        item.sucursale.origen === departamentoCartero &&
+        Object.values(item).some(value => 
           String(value).toLowerCase().includes(searchTerm)
         )
       )
       .sort((a, b) => {
         return new Date(b.fecha_recojo_c) - new Date(a.fecha_recojo_c);
-      }); // Ordenar por fecha_recojo_c descendente
-  },
+      });
+
+    return filtered;
+  }
+  
+  
+  
+  
+  ,
   paginatedData() {
     const start = this.currentPage * this.itemsPerPage;
     const end = start + this.itemsPerPage;
@@ -433,29 +452,35 @@ export default {
   },
   mounted() {
     this.$nextTick(async () => {
-      let user = localStorage.getItem('userAuth');
+    let user = localStorage.getItem('userAuth');
+    
+    if (user) {
       this.user = JSON.parse(user);
-      try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
-        // Obtener tarifas para los nombres de tarifa
-        const tarifas = await this.GET_DATA('getTarifas');
-        if (Array.isArray(tarifas)) {
-          this.tarifas = tarifas;
-          console.log('Tarifas cargadas:', tarifas); // Log para verificar las tarifas
-        } else {
-          console.error('Las tarifas recuperadas no son un array:', tarifas);
-        }
-      } catch (e) {
-        console.error('Error al obtener los datos:', e);
-      } finally {
-        this.load = false;
+      
+      if (this.user.user.departamento_cartero) {
+      } else {
       }
-    });
+    } else {
+    }
+
+    try {
+      const data = await this.GET_DATA(this.apiUrl);
+      if (Array.isArray(data)) {
+        this.list = data;
+      } else {
+      }
+      
+      // Obtener tarifas para los nombres de tarifa
+      const tarifas = await this.GET_DATA('getTarifas');
+      if (Array.isArray(tarifas)) {
+        this.tarifas = tarifas;
+      } else {
+      }
+    } catch (e) {
+    } finally {
+      this.load = false;
+    }
+  });
   },
 };
 </script>

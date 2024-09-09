@@ -29,7 +29,7 @@ export default {
 .dog-running {
   width: 100px; /* Ancho del cuadro de la animación */
   height: 100px; /* Altura del cuadro de la animación */
-  background-image: url('/assets/imagenes/1.jpg'); /* Ruta de la imagen del perrito */
+  background-image: url('@/pages/admin/auth/img/AGBClogo.png'); /* Ruta de la imagen del perrito */
 
 }
 

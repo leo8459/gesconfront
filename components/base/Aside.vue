@@ -8,7 +8,7 @@
         <li class="nav-item mt-3 d-flex align-items-center sidebar-header">
           <img class="agbc-logo me-2" src="@/pages/admin/auth/img/AGBClogo.png" alt="AGBC Logo"
             :style="{ width: logoWidth, height: logoHeight }">
-          <h6 class="text-uppercase text-xs font-weight-bolder opacity-6">GESCON </h6>
+          <h6 class="text-uppercase text-xs font-weight-bolder opacity-6">GESCON</h6>
         </li>
 
 
@@ -112,22 +112,22 @@
             <ul class="nav flex-column submenu">
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/cartero/solicitudcartero/solicitudecartero">
-                  <span class="sidenav-normal"> Solicitud Cartero</span>
+                  <span class="sidenav-normal"> Recibir envios</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/cartero/recogidocarteros/recogidocartero">
-                  <span class="sidenav-normal"> Recogido Cartero</span>
+                  <span class="sidenav-normal"> Enviar envios</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/cartero/encaminocarteros/encaminocartero">
-                  <span class="sidenav-normal"> En camino Cartero</span>
+                  <span class="sidenav-normal"> Entregar envios</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/cartero/entregadocarteros/entregadocartero">
-                  <span class="sidenav-normal"> Entregado Cartero</span>
+                  <span class="sidenav-normal"> Entregados</span>
                 </nuxtLink>
               </li>
             </ul>
@@ -140,20 +140,20 @@
               class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
               <i class="fas fa-truck blue-icon"></i>
             </div>
-            <span class="nav-link-text ms-1 full-width-text">Cartero Regional</span>
+            <span class="nav-link-text ms-1 full-width-text">Regional</span>
           </a>
           <div class="collapse" id="perfil-cartero-regional">
             <ul class="nav flex-column submenu">
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link"
                   to="/cartero/recogidoregionalcarteros/recogidoregionalcartero">
-                  <span class="sidenav-normal"> En camino a Regional</span>
+                  <span class="sidenav-normal"> Enviar envios de regional</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link"
                   to="/cartero/encaminoregionalcarteros/encaminoregionalcartero">
-                  <span class="sidenav-normal"> Correspondencia en camino</span>
+                  <span class="sidenav-normal"> Entregar envios de regional</span>
                 </nuxtLink>
               </li>
             </ul>
@@ -172,12 +172,12 @@
             <ul class="nav flex-column submenu">
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/cartero/devolucioncarteros/devolucioncartero">
-                  <span class="sidenav-normal"> Devolución Cartero</span>
+                  <span class="sidenav-normal"> Devoluciónes pendientes</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/cartero/devueltoscarteros/devueltoscartero">
-                  <span class="sidenav-normal"> Retornados Cartero</span>
+                  <span class="sidenav-normal"> Retornados</span>
                 </nuxtLink>
               </li>
             </ul>
@@ -261,27 +261,27 @@
             <ul class="nav flex-column submenu">
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/encargado/solicitudencargados/solicitudencargado">
-                  <span class="sidenav-normal full-width-text"> Solicitud de recojo</span>
+                  <span class="sidenav-normal full-width-text"> Recibir envios</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/encargado/recogidoencargados/recogidoencargado">
-                  <span class="sidenav-normal full-width-text"> Paquetes recogidos</span>
+                  <span class="sidenav-normal full-width-text"> Enviar envios</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/encargado/encaminoencargados/encaminoencargado">
-                  <span class="sidenav-normal full-width-text"> Paquetes en camino</span>
+                  <span class="sidenav-normal full-width-text"> Envios en camino</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/encargado/entregadoencargados/entregadoencargado">
-                  <span class="sidenav-normal full-width-text"> Paquetes Entregada</span>
+                  <span class="sidenav-normal full-width-text"> Registrar entrega</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/encargado/verificadoencargados/verificadoencargado">
-                  <span class="sidenav-normal full-width-text"> Paquetes Verificada</span>
+                  <span class="sidenav-normal full-width-text"> Paquetes entregados</span>
                 </nuxtLink>
               </li>
             </ul>
@@ -301,7 +301,7 @@
             <ul class="nav flex-column submenu">
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/encargado/regionalencargados/regionalencargado">
-                  <span class="sidenav-normal full-width-text"> En camino a regional</span>
+                  <span class="sidenav-normal full-width-text"> Recibir envíos</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
@@ -328,7 +328,7 @@
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link"
                   to="/encargado/verificardevueltoencargados/verificardevueltoencargado">
-                  <span class="sidenav-normal full-width-text"> Verificar Return</span>
+                  <span class="sidenav-normal full-width-text"> Verificar envios return</span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
@@ -412,18 +412,18 @@
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/contrato/paquetessinentregar/paquetesinentregar">
-                  <span class="sidenav-normal full-width-text"> Paquetes con multa </span>
+                  <span class="sidenav-normal full-width-text"> Envios con multa </span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/contrato/verificadoencargados/verificadoencargado">
-                  <span class="sidenav-normal full-width-text"> Correspondencia Verificada </span>
+                  <span class="sidenav-normal full-width-text"> Envios Verificados </span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link"
                   to="/contrato/caminoregionalcontratos/caminoregionalcontrato">
-                  <span class="sidenav-normal full-width-text"> Despachada </span>
+                  <span class="sidenav-normal full-width-text"> Envios despachados </span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
