@@ -165,21 +165,27 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    
-    // Obtener el departamento del usuario logueado desde localStorage
+  const searchTerm = this.searchTerm.toLowerCase();
+
+  // Verificar si estamos en el navegador antes de acceder a localStorage
+  if (typeof window !== 'undefined' && localStorage.getItem('userAuth')) {
     const user = JSON.parse(localStorage.getItem('userAuth'));
     const userDepartment = user && user.user ? user.user.departamento : null;
-    
+
     return this.list.filter(item =>
-      (item.estado === 3 || item.estado === 10) && // Incluir elementos con estado 3 o 10
-      item.cartero_entrega && // Asegúrate de que exista un cartero_entrega
-      item.cartero_entrega.departamento_cartero === userDepartment && // Filtrar por el departamento
+      (item.estado === 3 || item.estado === 10) &&
+      item.cartero_entrega && // Asegurarse de que existe cartero_entrega
+      item.cartero_entrega.departamento_cartero === userDepartment && // Filtrar por departamento
       Object.values(item).some(value =>
         String(value).toLowerCase().includes(searchTerm)
       )
     );
-  },
+  }
+
+  // Si no estamos en el navegador o no hay usuario autenticado, devolver un array vacío
+  return [];
+},
+
 
     paginatedData() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -269,29 +275,29 @@ export default {
   },
   mounted() {
     this.$nextTick(async () => {
-      let user = localStorage.getItem('userAuth');
+    if (typeof window !== 'undefined') { // Verificar si estamos en el navegador
+      const user = localStorage.getItem('userAuth');
       if (user) {
         this.user = JSON.parse(user);
-        console.log('Usuario cargado:', this.user);
       } else {
         console.error('No se encontró el usuario en el almacenamiento local');
         this.user = { cartero: null };
       }
+    }
 
-      try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-          console.log('Datos cargados:', this.list);
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
-      } catch (e) {
-        console.error('Error al obtener los datos:', e);
-      } finally {
-        this.load = false;
+    try {
+      const data = await this.GET_DATA(this.apiUrl);
+      if (Array.isArray(data)) {
+        this.list = data;
+      } else {
+        console.error('Los datos recuperados no son un array:', data);
       }
-    });
+    } catch (e) {
+      console.error('Error al obtener los datos:', e);
+    } finally {
+      this.load = false;
+    }
+  });
   },
 };
 </script>

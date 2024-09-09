@@ -158,25 +158,38 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    
-    // Obtener el departamento del usuario logueado desde localStorage
+  const searchTerm = this.searchTerm ? this.searchTerm.toLowerCase() : '';
+  
+  // Verificar si estamos en un entorno de navegador
+  if (typeof window !== 'undefined' && localStorage.getItem('userAuth')) {
     const user = JSON.parse(localStorage.getItem('userAuth'));
     const userDepartment = user && user.user ? user.user.departamento : null;
-    
-    const filtered = this.list.filter(item =>
-      item.estado === 4 &&
-      item.cartero_entrega && // Asegúrate de que exista un cartero_entrega
-      item.cartero_entrega.departamento_cartero === userDepartment && // Filtrar por el departamento
-      Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm)
-      )
-    );
 
-  
+    if (!userDepartment) {
+      return [];
+    }
+
+    const filtered = this.list.filter(item => {
+      if (!item.cartero_entrega || !item.cartero_entrega.departamento_cartero) {
+        return false;
+      }
+
+      const matchesDepartment = item.cartero_entrega.departamento_cartero === userDepartment;
+      const matchesEstado = item.estado === 4;
+
+      const matchesSearchTerm = Object.values(item).some(value => {
+        return String(value).toLowerCase().includes(searchTerm);
+      });
+
+      return matchesDepartment && matchesEstado && matchesSearchTerm;
+    });
 
     return filtered;
-  },  
+  }
+
+  // Si no hay acceso a `localStorage`, devolver un array vacío (SSR o no autenticado)
+  return [];
+},
 
 
 
@@ -236,6 +249,7 @@ export default {
   },
   mounted() {
     this.$nextTick(async () => {
+    if (typeof window !== 'undefined') { // Verificamos si estamos en el navegador
       let user = localStorage.getItem('userAuth');
       if (user) {
         this.user = JSON.parse(user);
@@ -244,21 +258,22 @@ export default {
         console.error('No se encontró el usuario en el almacenamiento local');
         this.user = { cartero: null };
       }
+    }
 
-      try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-          console.log('Datos cargados:', this.list);
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
-      } catch (e) {
-        console.error('Error al obtener los datos:', e);
-      } finally {
-        this.load = false;
+    try {
+      const data = await this.GET_DATA(this.apiUrl);
+      if (Array.isArray(data)) {
+        this.list = data;
+        console.log('Datos cargados:', this.list);
+      } else {
+        console.error('Los datos recuperados no son un array:', data);
       }
-    });
+    } catch (e) {
+      console.error('Error al obtener los datos:', e);
+    } finally {
+      this.load = false;
+    }
+  });
   },
 };
 </script>
