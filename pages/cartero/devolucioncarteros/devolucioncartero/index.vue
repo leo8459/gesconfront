@@ -4,6 +4,14 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
+          <div class="col-12 col-md-3">
+            <select v-model="selectedSucursal" class="form-control" @change="handleSucursalChange">
+              <option value="">Todas las Sucursales</option>
+              <option v-for="sucursal in uniqueSucursalesInTable" :key="sucursal.id" :value="sucursal.id">
+                {{ sucursal.nombre }}
+              </option>
+            </select>
+          </div>
           <div class="col-3" v-if="hasSelectedItems">
             <button @click="openAssignModal" class="btn btn-primary btn-sm w-100">
               <i class="fas fa-truck"></i> Asignar todos los seleccionados
@@ -46,7 +54,8 @@
                         <td class="p-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
                         <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
-                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica }}</td>
+                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica }}
+                        </td>
                         <td class="py-0 px-1" data-label="Zona">{{ m.direccion.zona }}</td>
                         <td class="py-0 px-1" data-label="Dirección maps">
                           <a v-if="isCoordinates(m.direccion.direccion)"
@@ -84,9 +93,11 @@
             <nav aria-label="Page navigation">
               <ul class="pagination justify-content-between">
                 <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0"><</button>
+                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0">
+                    <</button>
                 </li>
-                <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page - 1 }">
+                <li class="page-item" v-for="page in totalPages" :key="page"
+                  :class="{ active: currentPage === page - 1 }">
                   <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
                 </li>
                 <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
@@ -142,6 +153,8 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
+      sucursales: [], // Almacena la lista de sucursales
+      selectedSucursal: '', // Almacena la sucursal seleccionada
       apiUrl: 'solicitudes',
       page: 'solicitudes',
       modulo: 'solicitudes',
@@ -164,12 +177,36 @@ export default {
   computed: {
     filteredData() {
       const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item =>
-        item.estado === 6 && 
-        Object.values(item).some(value =>
+      return this.list.filter(item => {
+        // Filtrar por estado (6 o 13)
+        const isCorrectState = item.estado === 6 || item.estado === 13;
+
+        // Filtrar por término de búsqueda
+        const matchesSearchTerm = Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
-        )
-      );
+        );
+
+        // Filtrar por sucursal seleccionada (si hay alguna seleccionada)
+        const matchesSucursal = this.selectedSucursal
+          ? item.sucursale.id === this.selectedSucursal
+          : true; // Si no hay sucursal seleccionada, mostrar todas
+
+        return isCorrectState && matchesSearchTerm && matchesSucursal;
+      });
+    },
+
+    uniqueSucursalesInTable() {
+      const sucursalIds = new Set();
+      const uniqueSucursales = [];
+
+      this.list.forEach(item => {
+        if (item.sucursale && !sucursalIds.has(item.sucursale.id)) {
+          sucursalIds.add(item.sucursale.id);
+          uniqueSucursales.push(item.sucursale);
+        }
+      });
+
+      return uniqueSucursales;
     },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
@@ -184,6 +221,9 @@ export default {
     }
   },
   methods: {
+    handleSucursalChange() {
+      this.currentPage = 0; // Reiniciar la paginación cuando se selecciona una nueva sucursal
+    },
     async confirmRechazar() {
       this.load = true;
 

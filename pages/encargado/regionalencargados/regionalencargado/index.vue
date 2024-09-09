@@ -135,39 +135,43 @@
       </div>
     </AdminTemplate>
 
-    <!-- Modal para añadir peso_r -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer @shown="focusPesoInput">
-      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_r-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
-        <div class="mt-3"></div>
+  <!-- Modal para añadir peso_r y mostrar botón según el estado -->
+<b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer @shown="focusPesoInput">
+  <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+    <label :for="'peso_r-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+    <div class="mt-3"></div>
 
-        <label :for="'peso_o-' + item.id" class="mt-2">Peso origen (Kg)</label>
-        <input type="text" :id="'peso_o-' + item.id" v-model="item.peso_o" class="form-control" disabled />
+    <label :for="'peso_o-' + item.id" class="mt-2">Peso origen (Kg)</label>
+    <input type="text" :id="'peso_o-' + item.id" v-model="item.peso_o" class="form-control" disabled />
 
-        <!-- Separación entre los labels -->
-        <div class="mt-3"></div>
+    <div class="mt-3"></div>
 
-        <label :for="'peso_v-' + item.id" class="mt-2">Peso verificado regional (Kg)</label>
-        <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" disabled />
+    <label :for="'peso_v-' + item.id" class="mt-2">Peso verificado regional (Kg)</label>
+    <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" disabled />
 
-        <!-- Separación entre los labels -->
-        <div class="mt-3"></div>
+    <div class="mt-3"></div>
 
-        <!-- Campo editable para ingresar peso_r -->
-        <label :for="'peso_r-' + item.id" class="mt-2">Peso oficina destino (Kg)</label>
-        <input type="text" :id="'peso_r-' + item.id" v-model="item.peso_r" class="form-control"
-          @keypress.enter="formatPesoR(item)" @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001"
-          ref="pesoInput" />
+    <!-- Campo editable para ingresar peso_r -->
+    <label :for="'peso_r-' + item.id" class="mt-2">Peso oficina destino (Kg)</label>
+    <input type="text" :id="'peso_r-' + item.id" v-model="item.peso_r" class="form-control"
+      @keypress.enter="formatPesoR(item)" @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" ref="pesoInput" />
 
+    <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
+    <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
+  </div>
 
-        <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
-        <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
-      </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-        <button class="btn btn-primary ml-2" @click="recibirPaquetes">Recibir</button>
-      </div>
-    </b-modal>
+  <!-- Mostrar botón adicional si el estado es 12 -->
+  <div v-if="selectedItemsData.length > 0">
+    <div v-if="selectedItemsData[0].estado === 12" class="d-flex justify-content-end">
+      <button class="btn btn-warning" @click="devolverPaquete">Devolver Paquete</button>
+    </div>
+    <div v-else class="d-flex justify-content-end">
+      <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
+      <button class="btn btn-primary ml-2" @click="recibirPaquetes">Recibir</button>
+    </div>
+  </div>
+</b-modal>
+
     x
   </div>
 </template>
@@ -335,24 +339,24 @@ export default {
     },
 
     handleSearchEnter() {
-      const filteredItems = this.filteredData;
-      if (filteredItems.length > 0) {
-        const item = filteredItems[0];
-        this.selectedItemsData = [{
-          id: item.id,
-          guia: item.guia,
-          sucursale: item.sucursale,
-          peso_r: item.peso_r || 0,
-          peso_v: item.peso_v || 0,
-          peso_o: item.peso_o, // Incluye peso aquí
-
-          tarifa_id: item.tarifa_id,
-          tarifa: this.getTarifaLabel(item.tarifa_id),
-          precio: this.calculatePrice(item.tarifa_id, item.peso_r)
-        }];
-        this.isModalVisible = true;
-      }
-    },
+  const filteredItems = this.filteredData;
+  if (filteredItems.length > 0) {
+    const item = filteredItems[0];
+    this.selectedItemsData = [{
+      id: item.id,
+      guia: item.guia,
+      sucursale: item.sucursale,
+      peso_r: item.peso_r || 0,
+      peso_v: item.peso_v || 0,
+      peso_o: item.peso_o, 
+      tarifa_id: item.tarifa_id,
+      tarifa: this.getTarifaLabel(item.tarifa_id),
+      precio: this.calculatePrice(item.tarifa_id, item.peso_r),
+      estado: item.estado // Asegúrate de que el estado esté disponible
+    }];
+    this.isModalVisible = true;
+  }
+},
     confirmAssignSelected() {
       this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
         let peso = parseFloat(item.peso_r);
@@ -403,57 +407,87 @@ export default {
         this.load = false;
       }
     },
-    async recibirPaquetes() {
-  this.load = true;
-  try {
-    // Tomar el primer elemento seleccionado desde el modal
-    const item = this.selectedItemsData[0];
-    const carteroId = this.user.user.id; // Obtener el ID del cartero logueado
+    async devolverPaquete() {
+    this.load = true;
+    try {
+      // Obtener el primer elemento seleccionado
+      const item = this.selectedItemsData[0];
+      const carteroId = this.user.user.id;
 
-    if (item) {
-      // Enviar la solicitud PUT al backend
-      await this.$encargados.$put(`recibirpaquetes5/${item.id}`, {
-        encargado_regional_id: carteroId, // Registrar el encargado_id
-        peso_r: item.peso_r,              // Actualizar el peso_r
-        nombre_d: item.nombre_d           // Actualizar el nombre_d
+      // Llamar a la API para devolver el paquete
+      await this.$encargados.$put(`reencaminadorecibido5/${item.id}`, {
+        encargado_regional_id: carteroId, // ID del encargado
+        peso_r: item.peso_r,              // Peso actualizado
+        nombre_d: item.nombre_d           // Nombre destinatario actualizado
       });
+
+      // Mostrar mensaje de éxito
+      this.$swal.fire({
+        icon: 'success',
+        title: 'Paquete Devuelto',
+        text: 'El paquete ha sido marcado como devuelto.',
+      });
+
+      // Eliminar el paquete devuelto de la lista
+      this.list = this.list.filter(p => p.id !== item.id);
+
+      // Limpiar la selección
+      this.selected = {};
+      this.selectedItemsData = [];
+      this.selectedForDelivery = [];
+
+      // Cerrar el modal
+      this.isModalVisible = false;
+    } catch (e) {
+      console.error(e);
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un error al devolver el paquete.',
+      });
+    } finally {
+      this.load = false;
     }
+  },
 
-    // Mostrar mensaje de éxito
-    this.$swal.fire({
-      icon: 'success',
-      title: 'Paquete recibido',
-      text: 'El paquete seleccionado ha sido marcado como recibido.',
-    });
+  // Función para recibir paquetes (comportamiento actual)
+  async recibirPaquetes() {
+    this.load = true;
+    try {
+      const item = this.selectedItemsData[0];
+      const carteroId = this.user.user.id;
 
-    // Eliminar el paquete recibido de la lista
-    this.list = this.list.filter(p => p.id !== item.id);
+      if (item) {
+        await this.$encargados.$put(`recibirpaquetes5/${item.id}`, {
+          encargado_regional_id: carteroId,
+          peso_r: item.peso_r,
+          nombre_d: item.nombre_d
+        });
+      }
 
-    // Limpiar la selección después de recibir
-    this.selected = {};
-    this.selectedItemsData = [];
-    this.selectedForDelivery = [];
+      this.$swal.fire({
+        icon: 'success',
+        title: 'Paquete recibido',
+        text: 'El paquete seleccionado ha sido marcado como recibido.',
+      });
 
-    // Limpiar el campo de búsqueda
-    this.searchTerm = '';
+      this.list = this.list.filter(p => p.id !== item.id);
+      this.selected = {};
+      this.selectedItemsData = [];
+      this.selectedForDelivery = [];
+      this.isModalVisible = false;
 
-    // Recargar los datos de la tabla actualizados desde la API (opcional, en caso de que desees recargar toda la tabla desde el backend)
-    await this.GET_DATA(this.apiUrl);
-    
-    // Cerrar el modal
-    this.isModalVisible = false;
-
-  } catch (e) {
-    console.error(e);
-    this.$swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Hubo un error al recibir el paquete.',
-    });
-  } finally {
-    this.load = false;
+    } catch (e) {
+      console.error(e);
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un error al recibir el paquete.',
+      });
+    } finally {
+      this.load = false;
+    }
   }
-}
 
 
 
