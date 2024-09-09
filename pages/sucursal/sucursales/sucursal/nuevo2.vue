@@ -14,7 +14,7 @@
                 <div class="form-group col-12">
                   <h4>Remitente</h4>
                 </div>
-                <CrudCreate2 :model="model" :apiUrl="apiUrl" @success="onSuccess">
+                <CrudCreate100 :model="model" :apiUrl="apiUrl" @success="onSuccess">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="sucursal">Sucursal</label>
@@ -138,7 +138,7 @@
                       Frecuente</button>
 
                   </div>
-                </CrudCreate2>
+                </CrudCreate100>
               </div>
             </div>
           </div>

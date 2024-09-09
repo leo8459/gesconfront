@@ -1061,7 +1061,8 @@ worksheet.getCell('C14').value = `${formattedStartDate} - ${formattedEndDateAdju
     totalPriceWithDiscount += precioConDescuento;
     totalRetention += descuentoRetencion;
     totalPriceWithRetention += precioConRetencion;
-    totalWeight += parseFloat(m.peso_v) || 0;
+    const peso = m.peso_r ? parseFloat(m.peso_r) : (m.peso_v ? parseFloat(m.peso_v) : 0);
+totalWeight += peso;
 
     const fillColor = index % 2 === 0 ? 'FFFFFF' : 'FFFFFF';
     row.eachCell({ includeEmpty: true }, function (cell) {

@@ -426,6 +426,11 @@
                   <span class="sidenav-normal full-width-text"> Despachada </span>
                 </nuxtLink>
               </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/contrato/tarifas/tarifa">
+                  <span class="sidenav-normal full-width-text"> Tarifas </span>
+                </nuxtLink>
+              </li>
             </ul>
           </div>
         </li>

@@ -5,10 +5,18 @@
       <div slot="body">
         <div class="row justify-content-end mb-3">
           <div class="col-12 col-md-3 search-input-container">
-            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
-              placeholder="Buscar..." />
-          </div>
-        </div>
+            <div class="col-12 col-md-3 search-input-container">
+  <div class="position-relative">
+    <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control search-input"
+      placeholder="Buscar..." />
+    <i class="fas fa-search search-icon" @click="handleSearchEnter"></i>
+  </div>
+</div>
+</div>
+
+</div>
+
+
 
         <div class="row">
           <div class="col-12">
@@ -56,7 +64,7 @@
                         </td>
                         <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
                         <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
-                        <td class="py-0 px-1" data-label="Fecha Solicitud">{{ m.fecha }}</td>
+                        <td class="py-0 px-1" data-label="Fecha Solicitud">{{ m.fecha_recojo_c }}</td>
                         <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
                         <td class="py-0 px-1" data-label="Teléfono D">{{ m.telefono_d }}</td>
                         <td class="py-0 px-1" data-label="Dirección Destinatario">
@@ -205,21 +213,25 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item =>
+    const searchTerm = this.searchTerm.toLowerCase();
+    return this.list
+      .filter(item =>
         item.estado === 5 && Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
         )
-      );
-    },
-    paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
-    },
-    totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
-    },
+      )
+      .sort((a, b) => {
+        return new Date(b.fecha_recojo_c) - new Date(a.fecha_recojo_c);
+      }); // Ordenar por fecha_recojo_c descendente
+  },
+  paginatedData() {
+    const start = this.currentPage * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    return this.filteredData.slice(start, end);
+  },
+  totalPages() {
+    return Math.ceil(this.filteredData.length / this.itemsPerPage);
+  },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
     }
@@ -605,5 +617,35 @@ export default {
     width: 100%;
   }
 }
+.search-input-container {
+  position: relative;
+}
+/* Contenedor de la búsqueda */
+.search-input-container {
+  position: relative;
+}
+
+/* Ajustes para el input */
+.search-input {
+  background-color: transparent;
+  border: 1px solid #ccc;
+  padding-right: 35px; /* Espacio para el ícono dentro del input */
+}
+
+/* Estilos para el ícono de lupa */
+.search-icon {
+  position: absolute;
+  top: 50%;
+  right: 10px; /* Ajusta la posición del ícono dentro del campo */
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #34447C;
+  font-size: 1.2rem;
+}
+
+.search-icon:hover {
+  color: #6c7a89;
+}
+
 </style>
 

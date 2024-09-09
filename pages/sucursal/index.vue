@@ -7,10 +7,11 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div class="d-flex align-items-center">
             <select @change="handleSelectChange" class="btn btn-dark btn-sm mr-3">
-              <option value="" disabled selected>Crear solicitud de Correspondencia</option>
-              <option value="url_nuevo2">Crear solicitud de Correspondencia sin numero de guia</option>
-              <option value="url_nuevo">Crear solicitud de Correspondencia con numero de guia</option>
-            </select>
+  <option value="" disabled selected>Crear solicitud de Correspondencia</option>
+  <option value="url_nuevo2">Crear solicitud de Correspondencia sin numero de guia</option>
+  <option value="url_nuevo">Crear solicitud de Correspondencia con numero de guia</option>
+</select>
+
 
             <a href="https://ips.correos.gob.bo/CDS.Web/Operational/andeclaration.aspx" class="btn btn-dark btn-sm mr-3"
               target="_blank">
@@ -297,5 +298,74 @@ export default {
 
 .mr-3 {
   margin-right: 1rem;
+}
+
+
+
+
+.card {
+  background: linear-gradient(145deg, #f0f0f0, #ffffff);
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 20px; /* Incrementa el espacio entre tarjetas */
+  padding: 20px; /* Aumenta el padding dentro de cada card */
+}
+
+.card:hover {
+  transform: scale(1.02);
+}
+
+.icon-shape {
+  background: linear-gradient(45deg, #6a82fb, #fc5c7d);
+  border-radius: 50%;
+  color: white;
+}
+
+.numbers h6 {
+  font-size: 1.2rem; /* Ajusta el tamaño de texto */
+  margin-bottom: 10px;
+}
+
+.numbers p {
+  font-size: 1rem; /* Ajusta el tamaño del texto en las descripciones */
+  color: #666; /* Color de texto más suave */
+}
+
+.row {
+  margin-top: 20px; /* Espacio superior a las filas */
+}
+
+.col-xl-3, .col-sm-6 {
+  padding: 15px; /* Espacio entre las columnas */
+}
+
+button.btn {
+  background-color: #22C55E;
+  color: white;
+  border-radius: 10px;
+  padding: 10px 20px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  font-weight: bold; /* Hace que el texto sea más grueso */
+}
+
+select.btn option {
+  font-weight: bold; /* Aplica el grosor de texto a las opciones del select */
+  color: #ffffff; /* Color blanco para mayor contraste */
+}
+
+button.btn:hover {
+  background-color: #22C55E;
+  transform: scale(1.05);
+  font-weight: bold; /* Mantiene el texto grueso también en el hover */
+}
+select.btn {
+  background-color: #22C55E;
+  color: white;
+  padding: 20px 25px;
+}
+
+select option[disabled] {
+  display: none;
 }
 </style>
