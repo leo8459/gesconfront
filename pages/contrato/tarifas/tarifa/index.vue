@@ -4,7 +4,11 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end">
-    
+          <div class="col-2">
+            <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
+              <i class=""></i> Crear tarifas
+            </nuxtLink>
+          </div>
           <div class="col-12">
             <div class="row">
               <div v-for="(sucursal, index) in sucursales" :key="index" class="col-12 col-sm-6 col-lg-4 mb-3">
@@ -28,18 +32,16 @@
     </AdminTemplate>
 
     <!-- Modal -->
-    <div class="modal fade" id="sucursalModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-scrollable modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Tarifas de la Sucursal: {{ selectedSucursal.nombre }}</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-            <div class="col-2">
-          </div>
-          </div>
-          <div class="modal-body">
+<div v-if="modalVisible" class="modal fade show" id="sucursalModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: block;">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Tarifas de la Sucursal: {{ selectedSucursal.nombre }}</h5>
+        <button type="button" class="close" @click="closeModal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
             <table class="table table-striped table-responsive-sm">
               <thead>
                 <tr>
@@ -68,16 +70,22 @@
                   <td class="p-1">{{ m.retencion }}</td>
                   <td class="p-1">{{ m.dias_entrega }}</td>
 
-                  <!-- <td class="p-1">
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-info btn-sm p-1" @click="editarTarifa(m.id)">
-                        <i class="fas fa-pen"></i>
-                      </button>
-                      <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm p-1">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </div>
-                  </td> -->
+                  <td class="p-1">
+  <div v-if="m.estado !== 2" class="btn-group">
+    <!-- <button type="button" class="btn btn-info btn-sm p-1" @click="editarTarifa(m.id)">
+      <i class="fas fa-pen"></i>
+    </button>
+    <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm p-1">
+      <i class="fas fa-trash"></i>
+    </button> -->
+    <button type="button" @click="verificarTarifa(m.id)" class="btn btn-success btn-sm p-1">
+      <i class="fas fa-check"></i> Verificar
+    </button>
+  </div>
+</td>
+
+
+
                 </tr>
               </tbody>
             </table>
@@ -107,14 +115,42 @@ export default {
   data() {
     return {
       load: true,
+      modalVisible: false, // Controla la visibilidad del modal
       sucursales: [],
       selectedSucursal: {},
       apiUrl: 'tarifas4',
       page: 'tarifas',
       modulo: 'AGBC',
+      url_nuevo: '/gestore/tarifas/tarifa/nuevo',
+      url_editar: '/gestore/tarifas/tarifa/editar/',
     };
   },
   methods: {
+    async verificarTarifa(id) {
+    this.load = true;
+    try {
+      // Hacemos la solicitud PUT a la ruta que funciona en Postman
+      const res = await this.$contratos.$put(`/validar4/${id}/inactivar`);
+      console.log(res);
+      this.$swal.fire({
+        title: 'Tarifa verificada!',
+        text: 'La tarifa ha sido marcada como inactiva.',
+        icon: 'success',
+        confirmButtonText: 'OK'
+      });
+      await this.loadData(); // Recargar los datos después de verificar la tarifa
+    } catch (e) {
+      console.error(e);
+      this.$swal.fire({
+        title: 'Error!',
+        text: 'No se pudo verificar la tarifa.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    } finally {
+      this.load = false;
+    }
+  },
     async GET_DATA(path) {
       const res = await this.$contratos.$get(path);
       return res;
@@ -168,14 +204,12 @@ export default {
       return sucursales;
     },
     openModal(sucursal) {
-      this.selectedSucursal = sucursal;
-      this.$nextTick(() => {
-        $('#sucursalModal').modal('show');
-      });
-    },
-    closeModal() {
-      $('#sucursalModal').modal('hide');
-    },
+    this.selectedSucursal = sucursal;
+    this.modalVisible = true;
+  },
+  closeModal() {
+    this.modalVisible = false;
+  },
     editarTarifa(id) {
       this.closeModal();
       this.$router.push(this.url_editar + id);

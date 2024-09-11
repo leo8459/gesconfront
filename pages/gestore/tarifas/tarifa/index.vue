@@ -70,16 +70,22 @@
                   <td class="p-1">{{ m.retencion }}</td>
                   <td class="p-1">{{ m.dias_entrega }}</td>
 
-                  <!-- <td class="p-1">
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-info btn-sm p-1" @click="editarTarifa(m.id)">
-                        <i class="fas fa-pen"></i>
-                      </button>
-                      <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm p-1">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </div>
-                  </td> -->
+                  <td class="p-1">
+  <div v-if="m.estado !== 2" class="btn-group">
+    <button type="button" class="btn btn-info btn-sm p-1" @click="editarTarifa(m.id)">
+      <i class="fas fa-pen"></i>
+    </button>
+    <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm p-1">
+      <i class="fas fa-trash"></i>
+    </button>
+    <!-- <button type="button" @click="verificarTarifa(m.id)" class="btn btn-success btn-sm p-1">
+      <i class="fas fa-check"></i> Verificar
+    </button> -->
+  </div>
+</td>
+
+
+
                 </tr>
               </tbody>
             </table>
@@ -120,6 +126,31 @@ export default {
     };
   },
   methods: {
+    async verificarTarifa(id) {
+    this.load = true;
+    try {
+      // Hacemos la solicitud PUT a la ruta que funciona en Postman
+      const res = await this.$gestores.$put(`/validar3/${id}/inactivar`);
+      console.log(res);
+      this.$swal.fire({
+        title: 'Tarifa verificada!',
+        text: 'La tarifa ha sido marcada como inactiva.',
+        icon: 'success',
+        confirmButtonText: 'OK'
+      });
+      await this.loadData(); // Recargar los datos después de verificar la tarifa
+    } catch (e) {
+      console.error(e);
+      this.$swal.fire({
+        title: 'Error!',
+        text: 'No se pudo verificar la tarifa.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    } finally {
+      this.load = false;
+    }
+  },
     async GET_DATA(path) {
       const res = await this.$gestores.$get(path);
       return res;

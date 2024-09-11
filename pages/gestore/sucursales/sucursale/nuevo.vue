@@ -11,7 +11,7 @@
                 <h3>Crear Nueva Sucursal</h3>
               </div>
               <div class="card-body">
-                <CrudCreate4 :model="model" :apiUrl="apiUrl">
+                <CrudCreate1002 :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="empresa">Empresa</label>
@@ -33,12 +33,10 @@
                    <div class="form-group col-12">
                       <label for="">Nombre de sucursal *</label>
                       <input type="text" v-model="model.nombre" class="form-control" id="">
-                      <span v-if="!model.nombre && showErrors" class="text-danger">Inserte el nombre de sucursal por favor</span>
                     </div>
                     <div class="form-group col-12">
                       <label for="">Sigla *</label>
                       <input type="text" v-model="model.sigla" class="form-control" id="">
-                      <span v-if="!model.sigla && showErrors" class="text-danger">Inserte la sigla por favor</span>
                     </div>
 
                     <div class="form-group col-12">
@@ -49,7 +47,7 @@
 
 
                     <div class="form-group col-12">
-                      <label for="origen">Departamento de la sucursal</label>
+                      <label for="origen">Departamento de la sucursal*</label>
                       <select v-model="model.origen" class="form-control" id="origen">
                         <option value="LPB">La Paz (LPB)</option>
                         <option value="SRZ">Santa Cruz (SRZ)</option>
@@ -65,7 +63,7 @@
 
 
                     <div class="form-group col-12">
-                      <label for="acuerdo_contrato">Acuerdo contrato</label>
+                      <label for="acuerdo_contrato">Acuerdo contrato*</label>
                       <select v-model="model.acuerdo_contrato" class="form-control" id="acuerdo_contrato">
                         <option value="CONTRATO">CONTRATO</option>
                         <option value="CONVENIO">CONVENIO</option>
@@ -75,7 +73,7 @@
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="tipo_contrato">Tipo de contrato</label>
+                      <label for="tipo_contrato">Tipo de contrato*</label>
                       <select v-model="model.tipo_contrato" class="form-control" id="tipo_contrato">
                         <option value="EMS">EMS</option>
                         <option value="ECA">ECA</option>
@@ -84,12 +82,12 @@
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="">Inicio de contrato</label>
+                      <label for="">Inicio de contrato*</label>
                       <input type="date" v-model="model.ini_vigencia" class="form-control" :min="ini_vigencia">
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="">Fin de contrato</label>
+                      <label for="">Fin de contrato*</label>
                       <input type="date" v-model="model.fin_vigencia" class="form-control" :min="fin_vigencia">
                     </div>
 
@@ -99,7 +97,7 @@
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="cobertura">Cobertura</label>
+                      <label for="cobertura">Cobertura*</label>
                       <select v-model="model.cobertura" class="form-control" id="cobertura">
                         <option value="Internacional">Internacional</option>
                         <option value="Nacional">Nacional</option>
@@ -110,7 +108,7 @@
 
 
                     <div class="form-group col-12">
-                      <label for="">Acuerdo recojo</label>
+                      <label for="">Acuerdo recojo*</label>
                       <input type="text" v-model="model.acuerdos" class="form-control" id="">
                     </div>
 <!-- 
@@ -125,18 +123,18 @@
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="">Email</label>
+                      <label for="">Email*</label>
                       <input type="text" v-model="model.email" class="form-control" id="">
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="">Password</label>
+                      <label for="">Password*</label>
                       <input type="password" v-model="model.password" class="form-control" id="">
                     </div>
 
 
                   </div>
-                </CrudCreate4>
+                </CrudCreate1002>
               </div>
             </div>
           </div>
