@@ -32,21 +32,16 @@
     </AdminTemplate>
 
     <!-- Modal -->
-    <div class="modal fade" id="sucursalModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-scrollable modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Tarifas de la Sucursal: {{ selectedSucursal.nombre }}</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-            <div class="col-2">
-            <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class=""></i> Crear Mas tarifas
-            </nuxtLink>
-          </div>
-          </div>
-          <div class="modal-body">
+<div v-if="modalVisible" class="modal fade show" id="sucursalModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: block;">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Tarifas de la Sucursal: {{ selectedSucursal.nombre }}</h5>
+        <button type="button" class="close" @click="closeModal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
             <table class="table table-striped table-responsive-sm">
               <thead>
                 <tr>
@@ -114,6 +109,7 @@ export default {
   data() {
     return {
       load: true,
+      modalVisible: false, // Controla la visibilidad del modal
       sucursales: [],
       selectedSucursal: {},
       apiUrl: 'tarifas3',
@@ -177,14 +173,12 @@ export default {
       return sucursales;
     },
     openModal(sucursal) {
-      this.selectedSucursal = sucursal;
-      this.$nextTick(() => {
-        $('#sucursalModal').modal('show');
-      });
-    },
-    closeModal() {
-      $('#sucursalModal').modal('hide');
-    },
+    this.selectedSucursal = sucursal;
+    this.modalVisible = true;
+  },
+  closeModal() {
+    this.modalVisible = false;
+  },
     editarTarifa(id) {
       this.closeModal();
       this.$router.push(this.url_editar + id);
