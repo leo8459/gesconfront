@@ -610,6 +610,8 @@ export default {
           worksheet.getCell(`D${currentRow}`).value = 1; // Cantidad
           worksheet.getCell(`F${currentRow}`).value = peso; // Asignar peso como número
           worksheet.getCell(`G${currentRow}`).value = item.sucursale.nombre;
+          worksheet.mergeCells(`J${currentRow}:M${currentRow}`);
+  worksheet.getCell(`J${currentRow}`).value = item.observacion || ''; // Asignar observación
 
           worksheet.getRow(currentRow).eachCell((cell) => {
             cell.style = {
@@ -645,39 +647,39 @@ export default {
           });
         });
         // Después de la tabla y los totales, añadimos las celdas para los nuevos campos
-        worksheet.mergeCells(`A${currentRow + 2}:B${currentRow + 2}`);
-        worksheet.getCell(`A${currentRow + 2}`).value = 'Dispatching office of exchange';
-        worksheet.getCell(`A${currentRow + 2}`).style = headerStyle;
+        worksheet.mergeCells(`A${currentRow + 8}:B${currentRow + 8}`);
+        worksheet.getCell(`A${currentRow + 8}`).value = 'Dispatching office of exchange';
+        worksheet.getCell(`A${currentRow + 8}`).style = headerStyle;
 
-        worksheet.mergeCells(`A${currentRow + 3}:B${currentRow + 3}`);
-        worksheet.getCell(`A${currentRow + 3}`).value = this.nombreGenerador || 'Nombre no registrado';
-        worksheet.getCell(`A${currentRow + 3}`).style = headerStyle;
+        worksheet.mergeCells(`A${currentRow + 9}:B${currentRow + 9}`);
+        worksheet.getCell(`A${currentRow + 9}`).value = this.nombreGenerador || 'Nombre no registrado';
+        worksheet.getCell(`A${currentRow + 9}`).style = headerStyle;
 
-        worksheet.mergeCells(`A${currentRow + 4}:B${currentRow + 4}`);
-        worksheet.getCell(`A${currentRow + 4}`).value = 'Signature';
-        worksheet.getCell(`A${currentRow + 4}`).style = headerStyle;
+        worksheet.mergeCells(`A${currentRow + 10}:B${currentRow + 10}`);
+        worksheet.getCell(`A${currentRow + 10}`).value = 'Signature';
+        worksheet.getCell(`A${currentRow + 10}`).style = headerStyle;
 
-        worksheet.mergeCells(`A${currentRow + 5}:B${currentRow + 5}`);
-        worksheet.getCell(`A${currentRow + 5}`).value = 'Salida Internacional';
-        worksheet.getCell(`A${currentRow + 5}`).style = headerStyle;
+        worksheet.mergeCells(`A${currentRow + 11}:B${currentRow + 11}`);
+        worksheet.getCell(`A${currentRow + 11}`).value = 'Salida Internacional';
+        worksheet.getCell(`A${currentRow + 11}`).style = headerStyle;
 
         // Campos del centro
-        worksheet.mergeCells(`E${currentRow + 2}:G${currentRow + 2}`);
-        worksheet.getCell(`E${currentRow + 2}`).value = 'The official of the carrier or airport';
-        worksheet.getCell(`E${currentRow + 2}`).style = headerStyle;
+        worksheet.mergeCells(`E${currentRow + 8}:G${currentRow + 8}`);
+        worksheet.getCell(`E${currentRow + 8}`).value = 'The official of the carrier or airport';
+        worksheet.getCell(`E${currentRow + 8}`).style = headerStyle;
 
-        worksheet.mergeCells(`E${currentRow + 3}:G${currentRow + 3}`);
-        worksheet.getCell(`E${currentRow + 3}`).value = 'Date and signature';
-        worksheet.getCell(`E${currentRow + 3}`).style = headerStyle;
+        worksheet.mergeCells(`E${currentRow + 9}:G${currentRow + 9}`);
+        worksheet.getCell(`E${currentRow + 9}`).value = 'Date and signature';
+        worksheet.getCell(`E${currentRow + 9}`).style = headerStyle;
 
         // Campos de la derecha
-        worksheet.mergeCells(`H${currentRow + 2}:I${currentRow + 2}`);
-        worksheet.getCell(`H${currentRow + 2}`).value = 'Office of exchange of destination';
-        worksheet.getCell(`H${currentRow + 2}`).style = headerStyle;
+        worksheet.mergeCells(`H${currentRow + 8}:I${currentRow + 8}`);
+        worksheet.getCell(`H${currentRow + 8}`).value = 'Office of exchange of destination';
+        worksheet.getCell(`H${currentRow + 8}`).style = headerStyle;
 
-        worksheet.mergeCells(`H${currentRow + 3}:I${currentRow + 3}`);
-        worksheet.getCell(`H${currentRow + 3}`).value = 'Date and signature';
-        worksheet.getCell(`H${currentRow + 3}`).style = headerStyle;
+        worksheet.mergeCells(`H${currentRow + 9}:I${currentRow + 9}`);
+        worksheet.getCell(`H${currentRow + 9}`).value = 'Date and signature';
+        worksheet.getCell(`H${currentRow + 9}`).style = headerStyle;
 
         // Finalmente, guarda el archivo
         const buffer = await workbook.xlsx.writeBuffer();
