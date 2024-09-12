@@ -130,6 +130,7 @@
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
 import Pica from 'pica';
+import heic2any from "heic2any";
 
 export default {
   name: "IndexPage",
@@ -185,16 +186,38 @@ export default {
     }
   },
   methods: {
-    handleImageUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
+    async handleImageUpload(event) {
+    const file = event.target.files[0];
+    
+    if (file) {
+      // Verifica si el archivo es HEIC
+      if (file.type === 'image/heic' || file.type === 'image/heif') {
+        try {
+          // Convierte HEIC a JPEG o PNG
+          const convertedBlob = await heic2any({
+            blob: file,
+            toType: 'image/jpeg', // Puedes usar 'image/png' si prefieres PNG
+          });
+          
+          // Usa FileReader para mostrar la imagen convertida
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.uploadedImage = e.target.result;
+          };
+          reader.readAsDataURL(convertedBlob);
+        } catch (error) {
+          console.error("Error al convertir imagen HEIC:", error);
+        }
+      } else {
+        // Si no es HEIC, simplemente procesa la imagen como antes
         const reader = new FileReader();
         reader.onload = (e) => {
           this.uploadedImage = e.target.result;
         };
         reader.readAsDataURL(file);
       }
-    },
+    }
+  },
     async confirmRechazar() {
       this.load = true;
 
