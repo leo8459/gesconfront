@@ -146,29 +146,31 @@
       </div>
     </AdminTemplate>
     
-    <!-- Modal para el mapa -->
-    <b-modal ref="mapsModalD" title="Seleccionar Dirección en el Mapa">
-      <div>
-        <div class="input-group mb-2">
-          <input type="text" v-model="searchQuery_d" @keyup.enter="searchLocationD" placeholder="Buscar dirección"
-            class="form-control" />
-          <div class="input-group-append">
-            <button class="btn btn-primary" type="button" @click="searchLocationD">Buscar</button>
-          </div>
-        </div>
-        <div v-if="searching_d" class="overlay">
-          <div class="alert alert-info" role="alert">
-            Buscando ubicación...
-          </div>
-        </div>
-        <div id="map_d" style="height: 500px; width: 100%;"></div>
+   <!-- Modal para el mapa -->
+   <b-modal ref="mapsModalD" title="Seleccionar Dirección en el Mapa" :footer="false"hide-backdrop hide-footer>
+    <div>
+    <div class="input-group mb-2">
+      <input type="text" v-model="searchQuery_d" @keyup.enter="searchLocationD" placeholder="Buscar dirección"
+        class="form-control" />
+      <div class="input-group-append">
+        <button class="btn btn-primary" type="button" @click="searchLocationD">Buscar</button>
       </div>
-      <div class="coordinates mt-2">
-        <p>Latitud: {{ currentLat_d }}</p>
-        <p>Longitud: {{ currentLng_d }}</p>
-        <button class="btn btn-primary mt-2" @click="handleOkD">Confirmar Dirección</button>
+    </div>
+    <div v-if="searching_d" class="overlay">
+      <div class="alert alert-info" role="alert">
+        Buscando ubicación...
       </div>
-    </b-modal>
+    </div>
+    <div id="map_d" style="height: 500px; width: 100%;"></div>
+  </div>
+  <div class="coordinates mt-2">
+    <p>Latitud: {{ currentLat_d }}</p>
+    <p>Longitud: {{ currentLng_d }}</p>
+    <button class="btn btn-primary mt-2" @click="handleOkD">Confirmar Dirección</button>
+    <button class="btn btn-secondary mt-2" @click="goBack">Volver</button>
+  </div>
+</b-modal>
+
   </div>
 </template>
 
@@ -417,12 +419,22 @@ export default {
       this.model.direccion_d_lng = this.currentLng_d;
       this.searching_d = false;
     },
-    handleOkD() {
-      this.model.direccion_d_lat = this.currentLat_d;
-      this.model.direccion_d_lng = this.currentLng_d;
-      this.model.direccion_d = `${this.currentLat_d}, ${this.currentLng_d}`;
-      this.$refs.mapsModalD.hide();
-    },
+    goBack() {
+    // Reset latitude and longitude so they are not saved
+    this.model.direccion_d_lat = null;
+    this.model.direccion_d_lng = null;
+    this.model.direccion_d = '';
+    
+    this.$refs.mapsModalD.hide(); // Closes the modal without saving
+  },
+  handleOkD() {
+    // Keep the logic to save the coordinates when confirming
+    this.model.direccion_d_lat = this.currentLat_d;
+    this.model.direccion_d_lng = this.currentLng_d;
+    this.model.direccion_d = `${this.currentLat_d}, ${this.currentLng_d}`;
+    
+    this.$refs.mapsModalD.hide(); // Close the modal after confirming
+  },
     async searchLocationD() {
       if (this.searchQuery_d && this.currentLat_d && this.currentLng_d) {
         this.searching_d = true;

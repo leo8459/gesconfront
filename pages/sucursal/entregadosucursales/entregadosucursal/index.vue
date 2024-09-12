@@ -23,9 +23,7 @@
               <button @click="mostrarLimiteFaltante" class="btn btn-warning btn-sm me-2">
                 Mostrar límite faltante
               </button>
-              <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm">
-                Crear solicitud de Correspondencia
-              </nuxtLink>
+             
             </div>
           </div>
         </div>

@@ -10,7 +10,8 @@
               <i class=""></i> Crear solicitud de Correspondencia Internacional
             </a>
             <div class="d-flex align-items-center">
-              <select @change="handleSelectChange" class="btn btn-dark btn-sm mr-3">
+              <!-- Updated select dropdown button -->
+              <select @change="handleSelectChange" class="btn btn-green btn-sm mr-3">
                 <option value="" disabled selected>Crear solicitud de Correspondencia</option>
                 <option value="url_nuevo2">Crear solicitud de Correspondencia sin numero de guia</option>
                 <option value="url_nuevo">Crear solicitud de Correspondencia con numero de guia</option>
@@ -395,4 +396,33 @@ export default {
   background-color: #343a40;
   border-color: #343a40;
 }
+.btn-green {
+  background-color: #22C55E; /* Green color */
+  color: white;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-green:hover {
+  background-color: #16a34a; /* Darker green on hover */
+  transform: scale(1.05); /* Slight zoom effect on hover */
+}
+
+/* Styling for select dropdown options */
+select.btn-green {
+  background-color: #22C55E;
+  color: white;
+}
+
+select option {
+  font-weight: bold; /* Makes the dropdown options bold */
+  color: #ffffff; /* Ensures white text inside the dropdown */
+}
+
+select option[disabled] {
+  color: #ccc; /* Light gray for disabled option */
+}
+
 </style>

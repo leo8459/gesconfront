@@ -5,9 +5,7 @@
       <div slot="body">
         <div class="row justify-content-end mb-3">
           <div class="col-2">
-            <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class=""></i> Crear solicitud de Correspondencia
-            </nuxtLink>
+            
           </div>
         </div>
         <div class="row">
