@@ -1,13 +1,13 @@
 <template>
   <main class="main-content mt-0 ps">
     <section>
-      <div class="page-header min-vh-100 d-flex">
+      <div class="page-header d-flex flex-column flex-lg-row">
         <!-- Imagen en la mitad izquierda -->
-        <div class="col-6 d-flex align-items-center justify-content-center p-0">
+        <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center p-0">
           <img ref="image" src="@/pages/admin/auth/img/contratos.webp" alt="Logo" class="img-fluid w-100 h-100 rounded shadow-lg">
         </div>
         <!-- Formulario de inicio de sesión en la mitad derecha -->
-        <div class="col-6 d-flex align-items-center justify-content-center">
+        <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center">
           <div class="container">
             <div class="row justify-content-center">
               <div ref="formContainer" class="col-xl-8 col-lg-10 col-md-12 d-flex flex-column">
@@ -21,17 +21,6 @@
                   <div ref="formBody" class="card-body">
                     <div role="form" class="text-start">
                       <label>Tipo de Usuario</label>
-                      <!-- <div class="mb-3">
-                        <select v-model="model.userType" class="form-control rounded shadow-sm">
-                          <option value="cartero">Cartero</option>
-                          <option value="sucursale">Sucursal</option>
-                          <option value="administrador">Administrador</option>
-                          <option value="Gestor">Gestor</option>
-                          <option value="encargado">Encargado</option>
-                          <option value="contrato">Contratos</option>
-
-                        </select>
-                      </div> -->
                       <label>Email</label>
                       <div class="mb-3">
                         <input type="text" v-model="model.email" class="form-control rounded shadow-sm"
@@ -52,7 +41,7 @@
                         </button>
                         <button @click="regresarBienvenida" class="btn bg-gradient-info w-100 mt-4 mb-0 rounded shadow">
                           Regresar a Bienvenida
-                        </button> <!-- Botón añadido -->
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -65,6 +54,7 @@
     </section>
   </main>
 </template>
+
 
 <script>
 import api from '@/plugins/api';
@@ -108,7 +98,7 @@ export default {
     renderRecaptcha() {
       if (window.grecaptcha) {
         window.grecaptcha.render('recaptcha', {
-          sitekey: '6LetfTwqAAAAAG0mLlOtwBEkJZ922QoplIXgIsmq'
+          sitekey: '6Le-WgsqAAAAAKYucBNfMWdrYAHbha6aapIQTb7J'
         });
       }
     },
@@ -222,21 +212,29 @@ export default {
 </script>
 
 <style scoped>
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .main-content {
-  height: 100vh;
+  min-height: 100vh; /* Permite que el contenido crezca más allá de la pantalla */
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  overflow-y: auto; /* Asegura que el contenido sea desplazable si es más alto que la pantalla */
 }
 
 .page-header {
   display: flex;
-  flex-direction: row;
   width: 100%;
+  flex-direction: column;
 }
 
 .img-fluid {
   object-fit: cover;
   border-radius: 15px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  max-height: 40vh; /* Reduce la altura de la imagen en móviles */
 }
 
 .typing {
@@ -252,21 +250,17 @@ export default {
 
 @keyframes typing {
   from {
-    width: 0
+    width: 0;
   }
-
   to {
-    width: 100%
+    width: 100%;
   }
 }
 
 @keyframes blink-caret {
-
-  from,
-  to {
-    border-color: transparent
+  from, to {
+    border-color: transparent;
   }
-
   50% {
     border-color: orange;
   }
@@ -297,4 +291,43 @@ export default {
 .btn {
   border-radius: 25px;
 }
+
+/* Estilos para pantallas grandes (computadora) */
+@media (min-width: 992px) {
+  .page-header {
+    flex-direction: row; /* Mantiene la disposición de dos columnas en computadoras */
+  }
+
+  .img-fluid {
+    max-height: 100vh; /* Mantiene la imagen en su tamaño completo en pantallas grandes */
+  }
+}
+
+/* Media Queries para móviles */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column; /* En móviles, la imagen y el formulario estarán uno debajo del otro */
+  }
+
+  .card {
+    margin: 2rem 0;
+  }
+
+  .typing {
+    font-size: 1.5rem;
+  }
+
+  .form-control {
+    font-size: 1rem;
+  }
+
+  .btn {
+    font-size: 1rem;
+  }
+
+  .img-fluid {
+    max-height: 30vh; /* Reduce la altura de la imagen en móviles */
+  }
+}
+
 </style>
