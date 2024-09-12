@@ -129,7 +129,7 @@ export default {
       title: 'Éxito',
       text: 'La correspondencia a sido entregada con exito'
     }).then(() => {
-      window.location.href = 'http://localhost:3005/cartero/encaminoregionalcarteros/encaminoregionalcartero'; // Redirigir a la URL especificada
+      window.history.back();
     });
   } catch (error) {
     Swal.fire({

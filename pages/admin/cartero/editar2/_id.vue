@@ -126,7 +126,7 @@ export default {
           title: 'Éxito',
           text: 'El registro ha sido dado de baja.'
         }).then(() => {
-          window.location.href = 'http://localhost:3005/contrato/paquetessinentregar/paquetesinentregar'; // Redirigir a la URL especificada
+          window.history.back();
         });
       } catch (error) {
         console.error('Error al dar de baja:', error);
