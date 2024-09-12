@@ -1,5 +1,6 @@
 export default {
-  
+  ssr: false,
+
   // Global page headers: https://go.nuxtjs.dev/config-head
   server: {
     port: 3005, // Cambia el puerto a uno que no esté en uso
