@@ -167,7 +167,7 @@ export default {
       selectedForAssign: [],
       selectedForDelivery: [], // Nueva propiedad para almacenar los paquetes seleccionados para entregar
       user: {
-        cartero: []
+        cartero: []//recuperar usuario
       },
       currentPage: 0,
       itemsPerPage: 10,
@@ -375,8 +375,8 @@ export default {
   },
   mounted() {
     this.$nextTick(async () => {
-      let user = localStorage.getItem('userAuth');
-      this.user = JSON.parse(user);
+      let user = localStorage.getItem('userAuth');//recuperar usuario
+      this.user = JSON.parse(user);//recuperar usuario
       try {
         const data = await this.GET_DATA(this.apiUrl);
         if (Array.isArray(data)) {
