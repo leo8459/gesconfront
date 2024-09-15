@@ -23,9 +23,9 @@
                         <th>Sucursal</th>
                         <th>Guía</th>
                         <th>Observación</th>
-                        <th>Foto</th>
+                        <th>Foto de observacion</th>
                         <th>Fecha devolucion</th>
-                        <th>Foto</th>
+                        <th>Foto de la entrega</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -37,7 +37,7 @@
                         <td>
                           <div class="d-flex flex-column align-items-center">
                             <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              class="btn btn-sm btn-primary mt-1 align-self-center">
                               Descargar
                             </button>
                           </div>
@@ -46,7 +46,7 @@
                         <td>
                           <div class="d-flex flex-column align-items-center">
                             <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
-                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              class="btn btn-sm btn-primary mt-1 align-self-center">
                               Descargar
                             </button>
                           </div>

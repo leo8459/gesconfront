@@ -18,10 +18,7 @@
                         <option v-for="m in sucursales" :key="m.id" :value="m.id">{{ m.nombre }}</option>
                       </select>
                     </div>
-                    <div class="form-group col-12">
-                      <label for="guia">Guia</label>
-                      <input type="text" v-model.trim="model.guia" class="form-control" id="guia">
-                    </div>
+                  
                     <div class="form-group col-12">
                       <label for="peso_o">Peso (Gr)</label>
                       <input type="text" v-model.trim="model.peso_o" class="form-control" id="peso_o">

@@ -5,16 +5,13 @@
       <div slot="body">
         <div class="row justify-content-end mb-3">
           <div class="d-flex justify-content-between">
-            <a href="https://ips.correos.gob.bo/CDS.Web/Operational/andeclaration.aspx" class="btn btn-dark btn-sm ml-2"
-              target="_blank">
-              <i class=""></i> Crear solicitud de Correspondencia Internacional
-            </a>
+           
             <div class="d-flex align-items-center">
               <!-- Updated select dropdown button -->
               <select @change="handleSelectChange" class="btn btn-green btn-sm mr-3">
                 <option value="" disabled selected>Crear solicitud de Correspondencia</option>
-                <option value="url_nuevo2">Crear solicitud de Correspondencia sin numero de guia</option>
-                <option value="url_nuevo">Crear solicitud de Correspondencia con numero de guia</option>
+                <option value="url_nuevo2">Digital</option>
+                <option value="url_nuevo">Boleta fisica</option>
               </select>
             </div>
           </div>
@@ -405,10 +402,7 @@ export default {
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.btn-green:hover {
-  background-color: #16a34a; /* Darker green on hover */
-  transform: scale(1.05); /* Slight zoom effect on hover */
-}
+
 
 /* Styling for select dropdown options */
 select.btn-green {
@@ -416,13 +410,22 @@ select.btn-green {
   color: white;
 }
 
-select option {
-  font-weight: bold; /* Makes the dropdown options bold */
-  color: #ffffff; /* Ensures white text inside the dropdown */
+
+select.btn {
+  background-color: #22C55E; /* Este es el color del botón principal */
+  color: white;
+  padding: 20px 25px;
+  border: none;
+}
+
+select.btn option {
+  background-color:  #ffffff; /* Elimina el fondo */
+  color: black; /* Cambia el color de las letras a negro */
+  font-weight: bold;
 }
 
 select option[disabled] {
-  color: #ccc; /* Light gray for disabled option */
+  display: none;
 }
 
 </style>

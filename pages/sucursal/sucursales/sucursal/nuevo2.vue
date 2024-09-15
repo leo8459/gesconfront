@@ -7,7 +7,7 @@
           <div class="col-md-8 col-12">
             <div class="card">
               <div class="card-header">
-                <h3>Agregar Solicitud</h3>
+                <h3>Agregar Solicitud Digital</h3>
               </div>
 
               <div class="card-body">
@@ -26,16 +26,20 @@
                     </div> -->
                     <div class="form-group col-12">
                       <label for="remitente">Remitente</label>
-                      <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente">
+                      <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente"
+                        placeholder="Ej: Juan Pérez">
                     </div>
 
                     <div class="form-group col-12">
                       <label for="telefono">Teléfono</label>
-                      <input type="number" v-model.trim="model.telefono" class="form-control" id="telefono">
+                      <input type="number" v-model.trim="model.telefono" class="form-control" id="telefono"
+                        placeholder="Ej: 12345678">
                     </div>
+
                     <div class="form-group col-12">
                       <label for="contenido">Contenido</label>
-                      <input type="text" v-model.trim="model.contenido" class="form-control" id="contenido">
+                      <input type="text" v-model.trim="model.contenido" class="form-control" id="contenido"
+                        placeholder="Ej: Documentos">
                     </div>
 
                     <div class="form-group col-12">
@@ -54,6 +58,7 @@
                         </template>
                       </v-select>
                     </div>
+
                     <div class="form-group col-12">
                       <label for="direccion">Dirección de Recojo</label>
                       <v-select :options="direcciones" v-model="model.direccion_id" label="direccion"
@@ -69,32 +74,29 @@
                           </div>
                         </template>
                       </v-select>
-
-                      <!-- Botón para agregar nueva dirección dentro del mismo div -->
                       <button @click="redirectToAddNewAddress" class="btn btn-primary btn-sm mt-2">
-                        Agregar nueva dirección de recogida
+                        Agregar nueva dirección de recojo
                       </button>
                     </div>
 
                     <div class="form-group col-12">
                       <label for="peso_o">Peso (Medido en Kilogramos)</label>
                       <input type="number" v-model.number="model.peso_o" class="form-control" id="peso_o" step="0.001"
-                        @input="limitDecimals">
+                        @input="limitDecimals" placeholder="Ej: 1.250">
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="precios">Precio Estimado</label>
-                      <input type="text" id="precios" class="form-control" :value="precioSeleccionado" disabled>
+                      <label for="precios" class="underline-label">Precio Estimado</label>
+                      <input type="text" id="precios" class="form-control" :value="precioSeleccionado" disabled
+                        placeholder="Calculado automáticamente">
                     </div>
-
                     <div class="form-group col-12">
                       <h4>Destinatario</h4>
                     </div>
-
                     <div class="form-group col-12">
                       <label for="destinatario">Destinatario</label>
                       <input type="text" v-model.trim="model.destinatario" class="form-control" id="destinatario"
-                        @input="showSuggestions" @blur="hideSuggestions">
+                        @input="showSuggestions" @blur="hideSuggestions" placeholder="Ej: María López">
                       <ul v-if="suggestions.length" class="suggestions-list">
                         <li v-for="suggestion in suggestions" @click="applyFrequentAddress(suggestion)">
                           {{ suggestion.destinatario }}
@@ -104,13 +106,14 @@
 
                     <div class="form-group col-12">
                       <label for="telefono_d">Teléfono Destinatario</label>
-                      <input type="number" v-model.trim="model.telefono_d" class="form-control" id="telefono_d">
+                      <input type="number" v-model.trim="model.telefono_d" class="form-control" id="telefono_d"
+                        placeholder="Ej: 87654321">
                     </div>
+
                     <div class="form-group col-12">
-                      <label for="direccion_d">Dirección Destino (Latitud, Longitud)</label>
+                      <label for="direccion_d">Mapa de destino</label>
                       <input type="text" id="direccion_d" class="form-control" @click="openModal('direccion_d')"
-                        :value="direccionDisplay" readonly>
-                      <!-- Campos ocultos para almacenar la latitud y longitud -->
+                        :value="direccionDisplay" readonly placeholder="Seleccionar en el mapa">
                       <input type="hidden" v-model="model.direccion_d_lat">
                       <input type="hidden" v-model="model.direccion_d_lng">
                     </div>
@@ -118,16 +121,21 @@
                     <div class="form-group col-12">
                       <label for="direccion_especifica_d">Dirección</label>
                       <input type="text" v-model.trim="model.direccion_especifica_d" class="form-control"
-                        id="direccion_especifica_d">
+                        id="direccion_especifica_d" placeholder="Ej: Calle Principal 456">
                     </div>
+
                     <div class="form-group col-12">
                       <label for="zona_d">Zona Destinatario</label>
-                      <input type="text" v-model.trim="model.zona_d" class="form-control" id="zona_d">
+                      <input type="text" v-model.trim="model.zona_d" class="form-control" id="zona_d"
+                        placeholder="Ej: Zona Norte">
                     </div>
+
                     <div class="form-group col-12">
                       <label for="ciudad">Provincia</label>
-                      <input type="text" v-model.trim="model.ciudad" class="form-control" id="ciudad">
+                      <input type="text" v-model.trim="model.ciudad" class="form-control" id="ciudad"
+                        placeholder="Ej: La Paz">
                     </div>
+
                     <div class="form-group col-12">
                       <label for="fecha">Inicio Fecha</label>
                       <input type="text" v-model="model.fecha" class="form-control" id="fecha" disabled>
@@ -145,31 +153,31 @@
         </div>
       </div>
     </AdminTemplate>
-    
-     <!-- Modal para el mapa -->
-   <b-modal ref="mapsModalD" title="Seleccionar Dirección en el Mapa" :footer="false"hide-backdrop hide-footer>
-    <div>
-    <div class="input-group mb-2">
-      <input type="text" v-model="searchQuery_d" @keyup.enter="searchLocationD" placeholder="Buscar dirección"
-        class="form-control" />
-      <div class="input-group-append">
-        <button class="btn btn-primary" type="button" @click="searchLocationD">Buscar</button>
+
+    <!-- Modal para el mapa -->
+    <b-modal ref="mapsModalD" title="Seleccionar Dirección en el Mapa" :footer="false" hide-backdrop hide-footer>
+      <div>
+        <div class="input-group mb-2">
+          <input type="text" v-model="searchQuery_d" @keyup.enter="searchLocationD" placeholder="Buscar dirección"
+            class="form-control" />
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="button" @click="searchLocationD">Buscar</button>
+          </div>
+        </div>
+        <div v-if="searching_d" class="overlay">
+          <div class="alert alert-info" role="alert">
+            Buscando ubicación...
+          </div>
+        </div>
+        <div id="map_d" style="height: 500px; width: 100%;"></div>
       </div>
-    </div>
-    <div v-if="searching_d" class="overlay">
-      <div class="alert alert-info" role="alert">
-        Buscando ubicación...
+      <div class="coordinates mt-2">
+        <p>Latitud: {{ currentLat_d }}</p>
+        <p>Longitud: {{ currentLng_d }}</p>
+        <button class="btn btn-primary mt-2" @click="handleOkD">Confirmar Dirección</button>
+        <button class="btn btn-secondary mt-2" @click="goBack">Volver</button>
       </div>
-    </div>
-    <div id="map_d" style="height: 500px; width: 100%;"></div>
-  </div>
-  <div class="coordinates mt-2">
-    <p>Latitud: {{ currentLat_d }}</p>
-    <p>Longitud: {{ currentLng_d }}</p>
-    <button class="btn btn-primary mt-2" @click="handleOkD">Confirmar Dirección</button>
-    <button class="btn btn-secondary mt-2" @click="goBack">Volver</button>
-  </div>
-</b-modal>
+    </b-modal>
   </div>
 </template>
 
@@ -274,23 +282,7 @@ export default {
     }
   },
   methods: {
-    generatePDF() {
-      const doc = new jsPDF();
 
-      // Agrega contenido al PDF
-      doc.text(`Número de Guía: ${this.model.guia}`, 10, 10);
-      doc.text(`Remitente: ${this.model.remitente}`, 10, 20);
-      doc.text(`Teléfono Remitente: ${this.model.telefono}`, 10, 30);
-      doc.text(`Contenido: ${this.model.contenido}`, 10, 40);
-      doc.text(`Destinatario: ${this.model.destinatario}`, 10, 50);
-      doc.text(`Teléfono Destinatario: ${this.model.telefono_d}`, 10, 60);
-      doc.text(`Dirección Destino: ${this.model.direccion_d}`, 10, 70);
-      doc.text(`Provincia: ${this.model.ciudad}`, 10, 80);
-      doc.text(`Fecha: ${this.model.fecha}`, 10, 90);
-
-      // Generar y descargar el PDF
-      doc.save(`Solicitud-${this.model.guia}.pdf`);
-    },
     redirectToAddNewAddress() {
       this.$router.push(this.url_nuevo);
     },
@@ -366,17 +358,17 @@ export default {
               this.initializeMapD(latitude, longitude);
             });
           }, () => {
-            this.currentLat_d = -16.290154;
-            this.currentLng_d = -63.588653;
+            this.currentLat_d = -16.499225148793467;
+            this.currentLng_d = -68.1352785229683;
             this.$nextTick(() => {
-              this.initializeMapD(-16.290154, -63.588653);
+              this.initializeMapD(-16.499225148793467, -68.1352785229683);
             });
           });
         } else {
-          this.currentLat_d = -16.290154;
-          this.currentLng_d = -63.588653;
+          this.currentLat_d = -16.499225148793467;
+          this.currentLng_d = -68.1352785229683;
           this.$nextTick(() => {
-            this.initializeMapD(-16.290154, -63.588653);
+            this.initializeMapD(-16.499225148793467, -68.1352785229683);
           });
         }
       }
@@ -419,21 +411,21 @@ export default {
       this.searching_d = false;
     },
     goBack() {
-    // Reset latitude and longitude so they are not saved
-    this.model.direccion_d_lat = null;
-    this.model.direccion_d_lng = null;
-    this.model.direccion_d = '';
-    
-    this.$refs.mapsModalD.hide(); // Closes the modal without saving
-  },
-  handleOkD() {
-    // Keep the logic to save the coordinates when confirming
-    this.model.direccion_d_lat = this.currentLat_d;
-    this.model.direccion_d_lng = this.currentLng_d;
-    this.model.direccion_d = `${this.currentLat_d}, ${this.currentLng_d}`;
-    
-    this.$refs.mapsModalD.hide(); // Close the modal after confirming
-  },
+      // Reset latitude and longitude so they are not saved
+      this.model.direccion_d_lat = null;
+      this.model.direccion_d_lng = null;
+      this.model.direccion_d = '';
+
+      this.$refs.mapsModalD.hide(); // Closes the modal without saving
+    },
+    handleOkD() {
+      // Keep the logic to save the coordinates when confirming
+      this.model.direccion_d_lat = this.currentLat_d;
+      this.model.direccion_d_lng = this.currentLng_d;
+      this.model.direccion_d = `${this.currentLat_d}, ${this.currentLng_d}`;
+
+      this.$refs.mapsModalD.hide(); // Close the modal after confirming
+    },
     async searchLocationD() {
       if (this.searchQuery_d && this.currentLat_d && this.currentLng_d) {
         this.searching_d = true;
@@ -641,5 +633,9 @@ export default {
   .table-responsive {
     margin-bottom: 1rem;
   }
+}
+
+.underline-label {
+  text-decoration: underline;
 }
 </style>

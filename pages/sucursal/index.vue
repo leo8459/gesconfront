@@ -3,14 +3,18 @@
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
+         <!-- Mensaje de bienvenida -->
+         <div class="text- mb-4">
+          <h2>Bienvenidos al sistema Gescon</h2>
+        </div>
         <!-- Barra superior con botón de Agregar y Cerrar Sesión -->
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div class="d-flex align-items-center">
             <select @change="handleSelectChange" class="btn btn-dark btn-sm mr-3">
-  <option value="" disabled selected>Crear solicitud de Correspondencia</option>
-  <option value="url_nuevo2">Crear solicitud de Correspondencia sin numero de guia</option>
-  <option value="url_nuevo">Crear solicitud de Correspondencia con numero de guia</option>
-</select>
+              <option value="" disabled selected>Crear solicitud de Correspondencia</option>
+              <option value="url_nuevo2">Digital</option>
+              <option value="url_nuevo">Boleta fisica</option>
+            </select>
 
 
             <a href="https://ips.correos.gob.bo/CDS.Web/Operational/andeclaration.aspx" class="btn btn-dark btn-sm mr-3"
@@ -211,8 +215,8 @@ export default {
         }
       },
       variableInt: null,
-      page: "Dashboard",
-      modulo: "Dashboard",
+      page: "Sucursal",
+      modulo: "Inicio",
       load: false,
       dashboard: {
         alquileres: 10,
@@ -308,8 +312,10 @@ export default {
   border-radius: 15px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  margin-bottom: 20px; /* Incrementa el espacio entre tarjetas */
-  padding: 20px; /* Aumenta el padding dentro de cada card */
+  margin-bottom: 20px;
+  /* Incrementa el espacio entre tarjetas */
+  padding: 20px;
+  /* Aumenta el padding dentro de cada card */
 }
 
 .card:hover {
@@ -323,21 +329,27 @@ export default {
 }
 
 .numbers h6 {
-  font-size: 1.2rem; /* Ajusta el tamaño de texto */
+  font-size: 1.2rem;
+  /* Ajusta el tamaño de texto */
   margin-bottom: 10px;
 }
 
 .numbers p {
-  font-size: 1rem; /* Ajusta el tamaño del texto en las descripciones */
-  color: #666; /* Color de texto más suave */
+  font-size: 1rem;
+  /* Ajusta el tamaño del texto en las descripciones */
+  color: #666;
+  /* Color de texto más suave */
 }
 
 .row {
-  margin-top: 20px; /* Espacio superior a las filas */
+  margin-top: 20px;
+  /* Espacio superior a las filas */
 }
 
-.col-xl-3, .col-sm-6 {
-  padding: 15px; /* Espacio entre las columnas */
+.col-xl-3,
+.col-sm-6 {
+  padding: 15px;
+  /* Espacio entre las columnas */
 }
 
 button.btn {
@@ -346,26 +358,34 @@ button.btn {
   border-radius: 10px;
   padding: 10px 20px;
   transition: background-color 0.3s ease, transform 0.2s ease;
-  font-weight: bold; /* Hace que el texto sea más grueso */
+  font-weight: bold;
+  /* Hace que el texto sea más grueso */
 }
 
-select.btn option {
-  font-weight: bold; /* Aplica el grosor de texto a las opciones del select */
-  color: #ffffff; /* Color blanco para mayor contraste */
-}
+
 
 button.btn:hover {
   background-color: #22C55E;
   transform: scale(1.05);
-  font-weight: bold; /* Mantiene el texto grueso también en el hover */
+  font-weight: bold;
+  /* Mantiene el texto grueso también en el hover */
 }
+
 select.btn {
-  background-color: #22C55E;
+  background-color: #22C55E; /* Este es el color del botón principal */
   color: white;
   padding: 20px 25px;
+  border: none;
+}
+
+select.btn option {
+  background-color:  #ffffff; /* Elimina el fondo */
+  color: black; /* Cambia el color de las letras a negro */
+  font-weight: bold;
 }
 
 select option[disabled] {
   display: none;
 }
+
 </style>
