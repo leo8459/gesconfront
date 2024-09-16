@@ -5,6 +5,11 @@
       <div slot="body">
         <!-- Filtros -->
         <div class="row justify-content-end mb-3">
+          <div class="col-md-2">
+            <button @click="mostrarSaldoRestanteManual" class="btn btn-warning w-100">
+              Ver Sucursales con Saldo Bajo
+            </button>
+          </div>
           <div class="col-md-2 d-flex align-items-end">
             <button @click="generarReporte" class="btn btn-success btn-sm w-100">
   <i class="fas fa-file-excel"></i> Generar Reporte en Excel
@@ -324,23 +329,33 @@ export default {
 
     async obtenerSaldoRestanteTodasSucursales() {
     try {
-      // Obtener la fecha de la última vez que se mostró la alerta desde el localStorage
       const lastAlertDate = localStorage.getItem('lastAlertDate');
       const today = new Date().toLocaleDateString();
 
-      // Si la alerta ya fue mostrada hoy, no hacer nada
-      if (lastAlertDate === today) {
-        return;
+      // Mostrar la alerta automáticamente solo si no se mostró hoy
+      if (lastAlertDate !== today) {
+        await this.mostrarSaldoRestante();
+        localStorage.setItem('lastAlertDate', today); // Guardar la fecha de hoy
       }
+    } catch (e) {
+      console.error('Error al obtener los saldos restantes:', e);
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo obtener el saldo restante de las sucursales.',
+        confirmButtonText: 'Aceptar'
+      });
+    }
+  },
 
+  async mostrarSaldoRestante() {
+    // Esta función siempre mostrará la alerta
+    try {
       const response = await this.$contratos.$get('/restantessaldo4');
-      console.log('Respuesta de la API:', response);
-
       if (response && response.length > 0) {
         const sucursalesConSaldoBajo = response;
         const cantidadSucursales = sucursalesConSaldoBajo.length;
 
-        // Mostrar la alerta con la cantidad de sucursales
         const result = await this.$swal.fire({
           icon: 'warning',
           title: 'Sucursales con Saldo Bajo',
@@ -353,14 +368,9 @@ export default {
           }
         });
 
-        // Verifica la acción del usuario
         if (result.dismiss === this.$swal.DismissReason.cancel) {
-          // Si el usuario hizo clic en "Ver más detalles"
           this.generarPDF(sucursalesConSaldoBajo);
         }
-
-        // Guardar la fecha de hoy en el localStorage para evitar que la alerta se muestre nuevamente hoy
-        localStorage.setItem('lastAlertDate', today);
       } else {
         throw new Error('La respuesta de la API no contiene sucursales.');
       }
@@ -373,6 +383,11 @@ export default {
         confirmButtonText: 'Aceptar'
       });
     }
+  },
+
+  mostrarSaldoRestanteManual() {
+    // Esta función permite que el botón muestre la alerta manualmente
+    this.mostrarSaldoRestante();
   },
 
 
@@ -1171,6 +1186,7 @@ async loadImageAsBase64(path) {
   mounted() {
     this.$nextTick(async () => {
       await this.obtenerSaldoRestanteTodasSucursales();
+
       await this.fetchSucursales();
       await this.GET_DATA(this.apiUrl);
       this.load = false;
