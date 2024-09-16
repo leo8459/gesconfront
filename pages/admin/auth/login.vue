@@ -4,8 +4,7 @@
       <div class="page-header d-flex flex-column flex-lg-row">
         <!-- Imagen en la mitad izquierda -->
         <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center p-0">
-          <img ref="image" src="@/pages/admin/auth/img/contratos.webp" alt="Logo"
-            class="img-fluid w-100 h-100 rounded shadow-lg">
+          <img ref="image" src="@/pages/admin/auth/img/contratos.webp" alt="Logo" class="img-fluid w-100 h-100 rounded shadow-lg">
         </div>
         <!-- Formulario de inicio de sesión en la mitad derecha -->
         <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center">
@@ -23,12 +22,12 @@
                     <div role="form" class="text-start">
                       <label>Tipo de Usuario</label>
                       <label>Email</label>
-                      <div class="mb-3" data-intro="Introduce tu email aquí." data-step="1">
+                      <div class="mb-3">
                         <input type="text" v-model="model.email" class="form-control rounded shadow-sm"
                           placeholder="Email" aria-label="Email" />
                       </div>
                       <label>Password</label>
-                      <div class="mb-3" data-intro="Escribe tu contraseña aquí." data-step="2">
+                      <div class="mb-3">
                         <input type="password" v-model="model.password" class="form-control rounded shadow-sm"
                           placeholder="Password" aria-label="Password" />
                       </div>
@@ -36,16 +35,12 @@
                         <div id="recaptcha" class="g-recaptcha"></div>
                       </div>
                       <div class="text-center">
-                        <!-- Botón para iniciar sesión -->
-                        <button ref="loginButton" type="button"
-                          class="btn bg-gradient-info w-100 mt-4 mb-0 rounded shadow" @click="Login()">
+                        <button type="button" class="btn bg-gradient-info w-100 mt-4 mb-0 rounded shadow"
+                          @click="Login()">
                           Ingresar
                         </button>
-
-
-                        <!-- Nuevo botón para mostrar el tutorial manualmente -->
-                        <button type="button" class="btn btn-outline-secondary w-100 mt-4 mb-0" @click="showTutorial">
-                          Mostrar Tutorial
+                        <button @click="regresarBienvenida" class="btn bg-gradient-info w-100 mt-4 mb-0 rounded shadow">
+                          Regresar a Bienvenida
                         </button>
                       </div>
                     </div>
@@ -61,9 +56,6 @@
 </template>
 
 
-
-
-
 <script>
 import api from '@/plugins/api';
 import sucursalesApi from '@/plugins/sucursales';
@@ -71,8 +63,6 @@ import administradorApi from '@/plugins/administrador';
 import gestoresApi from '@/plugins/gestores'; // Importar el plugin gestores
 import contratosApi from '@/plugins/contratos'; // Importar el plugin contratos
 const anime = require('animejs/lib/anime.js'); // Usando la versión CommonJS de anime.js
-import 'intro.js/introjs.css';
-import introJs from 'intro.js';
 
 export default {
   data() {
@@ -81,126 +71,15 @@ export default {
         email: '',
         password: '',
         userType: '' // Valor por defecto
-      },
-      isPaused: false, // Controla el estado de la animación
-      animationImage: null,
-      animationText: null
+      }
     }
   },
-
   mounted() {
     this.animateImage();
     this.animateText();
     this.loadRecaptcha();
-    this.animateImage();
-    this.animateText();
-    this.loadRecaptcha();
-    this.startIntro();  // El tour solo se mostrará si no se ha mostrado antes
-
   },
   methods: {
-    startIntro() {
-      if (!localStorage.getItem('introShown')) {
-        introJs().start();
-        localStorage.setItem('introShown', 'true');
-      }
-    },
-    toggleAnimation() {
-      // Pausar o reanudar la animación
-      this.isPaused = !this.isPaused;
-      if (this.isPaused) {
-        this.animationImage.pause();
-        this.animationText.pause();
-      } else {
-        this.animationImage.play();
-        this.animationText.play();
-      }
-    },
-    animateImage() {
-      this.animationImage = anime({
-        targets: this.$refs.image,
-        scale: [0, 1],
-        duration: 2500,
-        easing: 'easeInOutExpo',
-        autoplay: true // Se reproduce automáticamente
-      });
-    },
-    animateText() {
-      this.animationText = anime({
-        targets: [this.$refs.typingTitle, this.$refs.typingSubtitle],
-        opacity: [0, 1],
-        duration: 500,
-        easing: 'easeInOutQuad',
-        delay: anime.stagger(250, { start: 250 }),
-        autoplay: true // Se reproduce automáticamente
-      });
-    },
-    showTutorial() {
-      const intro = introJs();
-
-      intro.onchange((targetElement) => {
-        // Simula la escritura del email cuando el tutorial apunta al campo de email
-        if (targetElement.querySelector('input[type="text"]')) {
-          this.typeText('email', 'bnblp@gmail.com'); // Simula la escritura en el campo de email
-        }
-
-        // Simula la escritura de la contraseña cuando el tutorial apunta al campo de password
-        if (targetElement.querySelector('input[type="password"]')) {
-          this.typeText('password', '12345678'); // Simula la escritura en el campo de password
-        }
-      });
-
-      intro.oncomplete(() => {
-        // Simula el clic en el botón de ingresar después de finalizar el tutorial
-        this.simulateClick('loginButton');  // Simula el clic en el botón de Ingresar
-      });
-
-      intro.start();  // Inicia el tutorial de Intro.js
-    },
-
-    // Función que simula el clic en un botón por su referencia
-    simulateClick(buttonRef) {
-      const button = this.$refs[buttonRef];
-      if (button) {
-        button.click();  // Simula un clic en el botón de Ingresar
-      }
-    },
-
-    // Función que simula la animación de escritura letra por letra
-    typeText(field, text) {
-      let i = 0;
-      this.model[field] = '';  // Limpiamos el campo antes de empezar a escribir
-      const interval = setInterval(() => {
-        if (i < text.length) {
-          this.model[field] += text.charAt(i);  // Agrega una letra por vez
-          i++;
-        } else {
-          clearInterval(interval);  // Detiene la animación cuando el texto está completo
-        }
-      }, 100);  // Velocidad de la animación (100 ms entre letras)
-    },
-
-    // Función que simula el clic en un botón por su referencia
-    simulateClick(buttonRef) {
-      const button = this.$refs[buttonRef];
-      if (button) {
-        button.click();  // Simula un clic en el botón de Ingresar
-      }
-    },
-
-    // Función que simula la animación de escritura letra por letra
-    typeText(field, text) {
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i < text.length) {
-          this.model[field] += text.charAt(i);  // Agrega una letra por vez
-          i++;
-        } else {
-          clearInterval(interval);  // Detiene la animación cuando el texto está completo
-        }
-      }, 100);  // Velocidad de la animación (100 ms entre letras)
-    },
-
     regresarBienvenida() {
       this.$router.push('/auth/welcome');
     },
@@ -232,75 +111,75 @@ export default {
 
 
     async Login() {
-      const recaptchaResponse = window.grecaptcha.getResponse();
+  const recaptchaResponse = window.grecaptcha.getResponse();
 
-      if (!recaptchaResponse) {
-        this.$swal.fire({
-          title: "Por favor, verifica que no eres un robot",
-          showDenyButton: false,
-          showCancelButton: false,
-          confirmButtonText: "Ok"
-        });
-        return;
-      }
+  if (!recaptchaResponse) {
+    this.$swal.fire({
+      title: "Por favor, verifica que no eres un robot",
+      showDenyButton: false,
+      showCancelButton: false,
+      confirmButtonText: "Ok"
+    });
+    return;
+  }
 
-      let apiClient = this.$administrador;
-      let loginUrl = 'login';
+  let apiClient = this.$administrador;
+  let loginUrl = 'login';
 
-      try {
-        const res = await apiClient.post(loginUrl, {
-          email: this.model.email,
-          password: this.model.password,
-          recaptcha: recaptchaResponse
-        });
+  try {
+    const res = await apiClient.post(loginUrl, {
+      email: this.model.email,
+      password: this.model.password,
+      recaptcha: recaptchaResponse
+    });
 
-        console.log('API Response:', res);
+    console.log('API Response:', res);
 
-        if (res.status !== 200 || !res.data.token) {
-          this.$swal.fire({
-            title: "Credenciales incorrectas",
-            showDenyButton: false,
-            showCancelButton: false,
-            confirmButtonText: "Ok"
-          });
-          return;
-        }
+    if (res.status !== 200 || !res.data.token) {
+      this.$swal.fire({
+        title: "Credenciales incorrectas",
+        showDenyButton: false,
+        showCancelButton: false,
+        confirmButtonText: "Ok"
+      });
+      return;
+    }
 
-        const userType = res.data.userType;
-        const user = res.data.user;
+    const userType = res.data.userType;
+    const user = res.data.user;
 
-        localStorage.setItem('userAuth', JSON.stringify({ token: res.data.token, user, userType }));
-        this.$store.dispatch('auth/login', { token: res.data.token, user, userType });
+    localStorage.setItem('userAuth', JSON.stringify({ token: res.data.token, user, userType }));
+    this.$store.dispatch('auth/login', { token: res.data.token, user, userType });
 
-        let redirectPath = '';
-        if (userType === 'administrador') {
-          redirectPath = '/admin';
-        } else if (userType === 'sucursal') {
-          redirectPath = '/sucursal';
-        } else if (userType === 'cartero') {
-          redirectPath = '/cartero';
-        } else if (userType === 'Gestore') {
-          redirectPath = '/gestore';
-        } else if (userType === 'encargado') {
-          redirectPath = '/encargado';
-        } else if (userType === 'contratos') {
-          redirectPath = '/contrato';
-        } else if (userType === 'empresas') {
-          redirectPath = '/empresa';
-        }
+    let redirectPath = '';
+    if (userType === 'administrador') {
+      redirectPath = '/admin';
+    } else if (userType === 'sucursal') {
+      redirectPath = '/sucursal';
+    } else if (userType === 'cartero') {
+      redirectPath = '/cartero';
+    } else if (userType === 'Gestore') {
+      redirectPath = '/gestore';
+    } else if (userType === 'encargado') {
+      redirectPath = '/encargado';
+    }else if (userType === 'contratos') {
+      redirectPath = '/contrato';
+    }else if (userType === 'empresas') {
+      redirectPath = '/empresa';
+    }
 
-        this.$router.push(redirectPath);
-      } catch (e) {
-        console.log(e);
-        this.$swal.fire({
-          title: "No se pudo iniciar sesión",
-          text: e.message,
-          showDenyButton: false,
-          showCancelButton: false,
-          confirmButtonText: "Ok"
-        });
-      }
-    },
+    this.$router.push(redirectPath);
+  } catch (e) {
+    console.log(e);
+    this.$swal.fire({
+      title: "No se pudo iniciar sesión",
+      text: e.message,
+      showDenyButton: false,
+      showCancelButton: false,
+      confirmButtonText: "Ok"
+    });
+  }
+},
 
 
 
@@ -333,19 +212,16 @@ export default {
 </script>
 
 <style scoped>
-html,
-body {
+html, body {
   height: 100%;
   margin: 0;
   padding: 0;
 }
 
 .main-content {
-  min-height: 100vh;
-  /* Permite que el contenido crezca más allá de la pantalla */
+  min-height: 100vh; /* Permite que el contenido crezca más allá de la pantalla */
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  overflow-y: auto;
-  /* Asegura que el contenido sea desplazable si es más alto que la pantalla */
+  overflow-y: auto; /* Asegura que el contenido sea desplazable si es más alto que la pantalla */
 }
 
 .page-header {
@@ -358,8 +234,7 @@ body {
   object-fit: cover;
   border-radius: 15px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  max-height: 40vh;
-  /* Reduce la altura de la imagen en móviles */
+  max-height: 40vh; /* Reduce la altura de la imagen en móviles */
 }
 
 .typing {
@@ -377,19 +252,15 @@ body {
   from {
     width: 0;
   }
-
   to {
     width: 100%;
   }
 }
 
 @keyframes blink-caret {
-
-  from,
-  to {
+  from, to {
     border-color: transparent;
   }
-
   50% {
     border-color: orange;
   }
@@ -424,21 +295,18 @@ body {
 /* Estilos para pantallas grandes (computadora) */
 @media (min-width: 992px) {
   .page-header {
-    flex-direction: row;
-    /* Mantiene la disposición de dos columnas en computadoras */
+    flex-direction: row; /* Mantiene la disposición de dos columnas en computadoras */
   }
 
   .img-fluid {
-    max-height: 100vh;
-    /* Mantiene la imagen en su tamaño completo en pantallas grandes */
+    max-height: 100vh; /* Mantiene la imagen en su tamaño completo en pantallas grandes */
   }
 }
 
 /* Media Queries para móviles */
 @media (max-width: 768px) {
   .page-header {
-    flex-direction: column;
-    /* En móviles, la imagen y el formulario estarán uno debajo del otro */
+    flex-direction: column; /* En móviles, la imagen y el formulario estarán uno debajo del otro */
   }
 
   .card {
@@ -458,22 +326,8 @@ body {
   }
 
   .img-fluid {
-    max-height: 30vh;
-    /* Reduce la altura de la imagen en móviles */
-  }
-
-  .pause-play-btn {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    color: #344767;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: transform 0.2s ease;
-  }
-
-  .pause-play-btn:hover {
-    transform: scale(1.1);
+    max-height: 30vh; /* Reduce la altura de la imagen en móviles */
   }
 }
+
 </style>
