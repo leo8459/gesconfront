@@ -30,7 +30,7 @@
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
-                      
+
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Guía</th>
@@ -50,7 +50,7 @@
                     </thead>
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i">
-                    
+
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1">{{ m.guia }}</td>
@@ -108,71 +108,57 @@
 
         <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
         <div v-if="selectedForDelivery.length > 0" class="mt-4">
-          <h5>Paquetes para entregar</h5>
+          <button class="btn btn-primary" @click="recibirTodosLosPaquetes">Recibir todos los paquetes</button>
+
+          <h5>Paquetes seleccionados para recibir</h5>
+
           <div class="table-responsive">
             <table class="table table-sm table-bordered">
               <thead>
                 <tr>
                   <th class="py-0 px-1">#</th>
                   <th class="py-0 px-1">Guía</th>
-                  <th class="py-0 px-1">Sucursal</th>
-                  <th class="py-0 px-1">Tarifa</th>
-                  <th class="py-0 px-1">Peso Correos (Kg)</th>
+                  <th class="py-0 px-1">Peso_r (Kg)</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(item, index) in selectedForDelivery" :key="index">
                   <td class="py-0 px-1">{{ index + 1 }}</td>
                   <td class="py-0 px-1">{{ item.guia }}</td>
-                  <td class="py-0 px-1">{{ item.sucursale.nombre }}</td>
-                  <td class="py-0 px-1">{{ item.tarifa }}</td>
                   <td class="py-0 px-1">{{ item.peso_r }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
+          <!-- Botón para recibir todos los paquetes -->
         </div>
       </div>
     </AdminTemplate>
 
-  <!-- Modal para añadir peso_r y mostrar botón según el estado -->
-<b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer @shown="focusPesoInput">
-  <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-    <label :for="'peso_r-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
-    <div class="mt-3"></div>
+    <!-- Modal para añadir peso_r -->
+    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer
+      @shown="focusPesoInput">
+      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+        <!-- Contenido del modal con los campos de peso -->
+        <label :for="'peso_r-' + item.id" class="mt-2">Peso oficina destino (Kg)</label>
+        <input 
+  type="text" 
+  :id="'peso_r-' + item.id" 
+  v-model="item.peso_r" 
+  class="form-control" 
+  ref="pesoInput"
+  placeholder="000.001" 
+  step="0.001" 
+  min="0.001"
+/>
 
-    <label :for="'peso_o-' + item.id" class="mt-2">Peso origen (Kg)</label>
-    <input type="text" :id="'peso_o-' + item.id" v-model="item.peso_o" class="form-control" disabled />
 
-    <div class="mt-3"></div>
 
-    <label :for="'peso_v-' + item.id" class="mt-2">Peso verificado regional (Kg)</label>
-    <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" disabled />
-
-    <div class="mt-3"></div>
-
-    <!-- Campo editable para ingresar peso_r -->
-    <label :for="'peso_r-' + item.id" class="mt-2">Peso oficina destino (Kg)</label>
-    <input type="text" :id="'peso_r-' + item.id" v-model="item.peso_r" class="form-control"
-      @keypress.enter="formatPesoR(item)" @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" ref="pesoInput" />
-
-    <label :for="'nombre_d-' + item.id" class="d-none">Nombre Destinatario</label>
-    <input type="text" :id="'nombre_d-' + item.id" v-model="item.nombre_d" class="form-control d-none" readonly />
-  </div>
-
-  <!-- Mostrar botón adicional si el estado es 12 -->
-  <div v-if="selectedItemsData.length > 0">
-    <div v-if="selectedItemsData[0].estado === 12" class="d-flex justify-content-end">
-      <button class="btn btn-warning" @click="devolverPaquete">Devolver Paquete</button>
-    </div>
-    <div v-else class="d-flex justify-content-end">
-      <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-      <button class="btn btn-primary ml-2" @click="recibirPaquetes">Recibir</button>
-    </div>
-  </div>
-</b-modal>
-
-    x
+          
+      </div>
+      <!-- Botón para agregar el paquete a la lista -->
+      <button class="btn btn-secondary" @click="agregarPaquetesALista">Agregar a la lista</button>
+    </b-modal>
   </div>
 </template>
 
@@ -210,7 +196,7 @@ export default {
       selected: {},
       selectedItemsData: [],
       selectedForAssign: [],
-      selectedForDelivery: [],
+      selectedForDelivery: [], // Lista de paquetes seleccionados para recibir
       user: {
         cartero: []
       },
@@ -220,29 +206,29 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    const departamento = this.user?.user?.departamento; // Departamento del usuario logueado
+      const searchTerm = this.searchTerm.toLowerCase();
+      const departamento = this.user?.user?.departamento; // Departamento del usuario logueado
 
-    if (!departamento) {
-      // Si el departamento no está definido, no hay datos que mostrar
-      return [];
-    }
+      if (!departamento) {
+        // Si el departamento no está definido, no hay datos que mostrar
+        return [];
+      }
 
-    return this.list.filter(item => {
-      // Filtrar elementos que coincidan con el reencaminamiento o el departamento del usuario logueado
-      const matchesReencaminamiento = item.reencaminamiento && item.reencaminamiento === departamento;
-      const matchesDepartamento = item.tarifa?.departamento === departamento;
-      
-      // Aplicar búsqueda por término y el estado requerido (8 o 12)
-      const matchesSearchTerm = Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm)
-      );
+      return this.list.filter(item => {
+        // Filtrar elementos que coincidan con el reencaminamiento o el departamento del usuario logueado
+        const matchesReencaminamiento = item.reencaminamiento && item.reencaminamiento === departamento;
+        const matchesDepartamento = item.tarifa?.departamento === departamento;
 
-      return (matchesReencaminamiento || matchesDepartamento) && matchesSearchTerm && (item.estado === 8 || item.estado === 12);
-    });
-  },
+        // Aplicar búsqueda por término y el estado requerido (8 o 12)
+        const matchesSearchTerm = Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        );
 
-  
+        return (matchesReencaminamiento || matchesDepartamento) && matchesSearchTerm && (item.estado === 8 || item.estado === 12);
+      });
+    },
+
+
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -256,17 +242,83 @@ export default {
     }
   },
   methods: {
-    formatPesoR(item) {
-      // Si el valor es un número entero, agrega ",000" al final
-      if (!item.peso_r.includes('.')) {
-        item.peso_r = `${item.peso_r},000`;
-      }
-      // Actualizar el precio después de formatear el peso
-      this.updatePrice(item);
-    },
+    agregarALista(item) {
+  this.updatePrice(item); // Actualiza el precio antes de agregar el paquete a la lista
+  const existe = this.selectedForDelivery.find(p => p.id === item.id);
+  if (!existe) {
+    this.selectedForDelivery.push({ ...item });
+    console.log('Paquete agregado:', item);
+    this.list = this.list.filter(p => p.id !== item.id);
+  } else {
+    console.log('Paquete ya existe en la lista');
+  }
+  this.isModalVisible = false;
+},
+
+
+agregarPaquetesALista() {
+  // Formatear los paquetes seleccionados antes de agregarlos a la lista
+  this.selectedItemsData.forEach(item => {
+    this.formatPesoR(item);  // Aplicar formateo solo al agregar a la lista
+    this.agregarALista(item);  // Llamar al método que agrega a la lista
+  });
+
+  // Limpiar el campo de búsqueda después de agregar a la lista
+  this.searchTerm = '';
+},
+
+    async recibirTodosLosPaquetes() {
+  this.load = true;
+  try {
+    const carteroId = this.user.user.id;
+    for (let item of this.selectedForDelivery) {
+      await this.$encargados.$put(`recibirpaquetes5/${item.id}`, {
+        encargado_regional_id: carteroId,
+        peso_r: item.peso_r,
+        nombre_d: item.nombre_d // Asegúrate de enviar este valor
+      });
+    }
+    this.$swal.fire({
+      icon: 'success',
+      title: 'Paquetes recibidos',
+      text: 'Todos los paquetes seleccionados han sido recibidos.',
+    });
+    this.selectedForDelivery = []; // Vaciar la lista después de recibir
+  } catch (e) {
+    console.error(e);
+    this.$swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Hubo un error al recibir los paquetes.',
+    });
+  } finally {
+    this.load = false;
+  }
+},
+formatPesoR(item) {
+  let value = parseFloat(item.peso_r);
+  
+  // Si el valor no es un número válido, establecemos un valor predeterminado
+  if (isNaN(value)) {
+    item.peso_r = '0.001';  // Valor por defecto si el peso no es válido
+  } else {
+    // Limitar el peso máximo a 25 kg solo al agregar a la lista
+    if (value > 25) {
+      value = 25;
+    }
+    // Formateamos el número para que tenga exactamente 3 decimales
+    item.peso_r = value.toFixed(3);
+  }
+},
+
 
     focusPesoInput() {
-      this.$refs.pesoInput[0].focus();
+      // Asegúrate de que this.$refs.pesoInput no esté vacío y sea un array
+      if (this.$refs.pesoInput && this.$refs.pesoInput.length > 0) {
+        this.$refs.pesoInput[0].focus();
+      } else {
+        console.error('No se pudo encontrar el campo pesoInput');
+      }
     },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
@@ -280,28 +332,30 @@ export default {
       return tarifa ? tarifa.departamento : 'Tarifa no encontrada';
     },
     calculatePrice(tarifa_id, peso_r) {
-      const tarifa = this.tarifas.find(t => t.id === tarifa_id);
-      if (tarifa) {
-        const basePrice = tarifa.precio ? parseFloat(tarifa.precio) : 0;
-        const extraPrice = tarifa.precio_extra ? parseFloat(tarifa.precio_extra) : 0;
-        const peso = parseFloat(peso_r);
-        if (isNaN(peso)) {
-          return '';
-        }
-        if (peso > 1) {
-          const pesoAdicional = Math.ceil(peso - 1);
-          return basePrice + pesoAdicional * extraPrice;
-        } else {
-          return basePrice;
-        }
-      }
-      return '';
-    },
-    updatePrice(item) {
-      const peso = parseFloat(item.peso_r.replace(',', '.')); // Reemplazar la coma por un punto para la conversión
-      item.precio = this.calculatePrice(item.tarifa_id, peso);
-      item.nombre_d = item.precio;
-    },
+  const tarifa = this.tarifas.find(t => t.id === tarifa_id);
+  if (tarifa) {
+    const basePrice = tarifa.precio ? parseFloat(tarifa.precio) : 0;
+    const extraPrice = tarifa.precio_extra ? parseFloat(tarifa.precio_extra) : 0;
+    const peso = parseFloat(peso_r);
+    if (isNaN(peso)) {
+      return ''; // Devuelve un valor vacío si el peso no es un número válido
+    }
+    if (peso > 1) {
+      const pesoAdicional = Math.ceil(peso - 1);
+      return basePrice + pesoAdicional * extraPrice;
+    } else {
+      return basePrice;
+    }
+  }
+  return ''; // Retorna un valor vacío si no hay una tarifa encontrada
+},
+
+updatePrice(item) {
+  const peso = parseFloat(item.peso_r.replace(',', '.')); // Reemplaza coma por punto si es necesario
+  item.precio = this.calculatePrice(item.tarifa_id, peso); // Calcula el precio
+  item.nombre_d = item.precio; // Asigna el precio al campo nombre_d
+},
+
     async GET_DATA(path) {
       const res = await this.$encargados.$get(path);
       return res;
@@ -339,24 +393,24 @@ export default {
     },
 
     handleSearchEnter() {
-  const filteredItems = this.filteredData;
-  if (filteredItems.length > 0) {
-    const item = filteredItems[0];
-    this.selectedItemsData = [{
-      id: item.id,
-      guia: item.guia,
-      sucursale: item.sucursale,
-      peso_r: item.peso_r || 0,
-      peso_v: item.peso_v || 0,
-      peso_o: item.peso_o, 
-      tarifa_id: item.tarifa_id,
-      tarifa: this.getTarifaLabel(item.tarifa_id),
-      precio: this.calculatePrice(item.tarifa_id, item.peso_r),
-      estado: item.estado // Asegúrate de que el estado esté disponible
-    }];
-    this.isModalVisible = true;
-  }
-},
+      const filteredItems = this.filteredData;
+      if (filteredItems.length > 0) {
+        const item = filteredItems[0];
+        this.selectedItemsData = [{
+          id: item.id,
+          guia: item.guia,
+          sucursale: item.sucursale,
+          peso_r: item.peso_r || 0,
+          peso_v: item.peso_v || 0,
+          peso_o: item.peso_o,
+          tarifa_id: item.tarifa_id,
+          tarifa: this.getTarifaLabel(item.tarifa_id),
+          precio: this.calculatePrice(item.tarifa_id, item.peso_r),
+          estado: item.estado // Asegúrate de que el estado esté disponible
+        }];
+        this.isModalVisible = true;
+      }
+    },
     confirmAssignSelected() {
       this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
         let peso = parseFloat(item.peso_r);
@@ -408,86 +462,86 @@ export default {
       }
     },
     async devolverPaquete() {
-    this.load = true;
-    try {
-      // Obtener el primer elemento seleccionado
-      const item = this.selectedItemsData[0];
-      const carteroId = this.user.user.id;
+      this.load = true;
+      try {
+        // Obtener el primer elemento seleccionado
+        const item = this.selectedItemsData[0];
+        const carteroId = this.user.user.id;
 
-      // Llamar a la API para devolver el paquete
-      await this.$encargados.$put(`reencaminadorecibido5/${item.id}`, {
-        encargado_regional_id: carteroId, // ID del encargado
-        peso_r: item.peso_r,              // Peso actualizado
-        nombre_d: item.nombre_d           // Nombre destinatario actualizado
-      });
-
-      // Mostrar mensaje de éxito
-      this.$swal.fire({
-        icon: 'success',
-        title: 'Paquete Devuelto',
-        text: 'El paquete ha sido marcado como devuelto.',
-      });
-
-      // Eliminar el paquete devuelto de la lista
-      this.list = this.list.filter(p => p.id !== item.id);
-
-      // Limpiar la selección
-      this.selected = {};
-      this.selectedItemsData = [];
-      this.selectedForDelivery = [];
-
-      // Cerrar el modal
-      this.isModalVisible = false;
-    } catch (e) {
-      console.error(e);
-      this.$swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Hubo un error al devolver el paquete.',
-      });
-    } finally {
-      this.load = false;
-    }
-  },
-
-  // Función para recibir paquetes (comportamiento actual)
-  async recibirPaquetes() {
-    this.load = true;
-    try {
-      const item = this.selectedItemsData[0];
-      const carteroId = this.user.user.id;
-
-      if (item) {
-        await this.$encargados.$put(`recibirpaquetes5/${item.id}`, {
-          encargado_regional_id: carteroId,
-          peso_r: item.peso_r,
-          nombre_d: item.nombre_d
+        // Llamar a la API para devolver el paquete
+        await this.$encargados.$put(`reencaminadorecibido5/${item.id}`, {
+          encargado_regional_id: carteroId, // ID del encargado
+          peso_r: item.peso_r,              // Peso actualizado
+          nombre_d: item.nombre_d           // Nombre destinatario actualizado
         });
+
+        // Mostrar mensaje de éxito
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Paquete Devuelto',
+          text: 'El paquete ha sido marcado como devuelto.',
+        });
+
+        // Eliminar el paquete devuelto de la lista
+        this.list = this.list.filter(p => p.id !== item.id);
+
+        // Limpiar la selección
+        this.selected = {};
+        this.selectedItemsData = [];
+        this.selectedForDelivery = [];
+
+        // Cerrar el modal
+        this.isModalVisible = false;
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al devolver el paquete.',
+        });
+      } finally {
+        this.load = false;
       }
+    },
 
-      this.$swal.fire({
-        icon: 'success',
-        title: 'Paquete recibido',
-        text: 'El paquete seleccionado ha sido marcado como recibido.',
-      });
+    // Función para recibir paquetes (comportamiento actual)
+    async recibirPaquetes() {
+      this.load = true;
+      try {
+        const item = this.selectedItemsData[0];
+        const carteroId = this.user.user.id;
 
-      this.list = this.list.filter(p => p.id !== item.id);
-      this.selected = {};
-      this.selectedItemsData = [];
-      this.selectedForDelivery = [];
-      this.isModalVisible = false;
+        if (item) {
+          await this.$encargados.$put(`recibirpaquetes5/${item.id}`, {
+            encargado_regional_id: carteroId,
+            peso_r: item.peso_r,
+            nombre_d: item.nombre_d
+          });
+        }
 
-    } catch (e) {
-      console.error(e);
-      this.$swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Hubo un error al recibir el paquete.',
-      });
-    } finally {
-      this.load = false;
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Paquete recibido',
+          text: 'El paquete seleccionado ha sido marcado como recibido.',
+        });
+
+        this.list = this.list.filter(p => p.id !== item.id);
+        this.selected = {};
+        this.selectedItemsData = [];
+        this.selectedForDelivery = [];
+        this.isModalVisible = false;
+
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al recibir el paquete.',
+        });
+      } finally {
+        this.load = false;
+      }
     }
-  }
 
 
 

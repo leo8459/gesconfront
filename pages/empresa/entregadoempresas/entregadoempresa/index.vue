@@ -278,151 +278,148 @@ export default {
     },
 
     generateElegantPDF() {
-      // Convertir las fechas seleccionadas a objetos Date en el formato correcto
-      const start = this.startDate ? new Date(this.startDate + 'T00:00:00') : null;
-      const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
+  // Convertir las fechas seleccionadas a objetos Date en el formato correcto
+  const start = this.startDate ? new Date(this.startDate + 'T00:00:00') : null;
+  const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
 
+  // Filtrando los datos usando los datos ya filtrados en la tabla
+  const dataForPDF = this.filteredData.filter(m => {
+    if (!m.fecha_d) return false;
 
+    // Validar y convertir fecha_d al formato de fecha adecuado (DD/MM/YYYY -> YYYY-MM-DD)
+    const parts = m.fecha_d.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Meses en JavaScript son 0-indexados
+      const year = parseInt(parts[2], 10);
 
-      // Filtrando y organizando los datos
-      const dataForPDF = this.paginatedData.filter(m => {
-        if (!m.fecha_d) return false;
+      if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+        const recordDateD = new Date(year, month, day, 0, 0, 0);
 
-        // Validar y convertir fecha_d al formato de fecha adecuado (DD/MM/YYYY -> YYYY-MM-DD)
-        const parts = m.fecha_d.split('/');
-        if (parts.length === 3) {
-          const day = parseInt(parts[0], 10);
-          const month = parseInt(parts[1], 10) - 1; // Meses en JavaScript son 0-indexados
-          const year = parseInt(parts[2], 10);
-
-          if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-            const recordDateD = new Date(year, month, day, 0, 0, 0);
-
-
-            // Filtrar según el rango de fechas
-            return (!start || recordDateD >= start) && (!end || recordDateD <= end);
-          } else {
-            return false;
-          }
-        } else {
-          return false;
-        }
-      }).map(m => ({
-        sucursal: m.sucursale ? m.sucursale.nombre : '',
-        guia: m.guia,
-        peso: m.peso_r || m.peso_v,
-        fecha_recojo: m.fecha_recojo_c,
-        fecha_entrega: m.fecha_d,
-        costo: parseFloat(m.nombre_d) || 0
-      }));
-
-
-      // Suma total del costo (nombre_d)
-      const totalCosto = dataForPDF.reduce((sum, item) => sum + item.costo, 0);
-
-      // Verificar si hay datos filtrados para generar el PDF
-      if (dataForPDF.length === 0) {
-        this.$swal.fire({
-          icon: 'info',
-          title: 'Sin datos',
-          text: 'No se encontraron registros en el rango de fechas seleccionado.',
-        });
-        return;
+        // Filtrar según el rango de fechas
+        return (!start || recordDateD >= start) && (!end || recordDateD <= end);
+      } else {
+        return false;
       }
-
-      // Definición del contenido del PDF
-      const docDefinition = {
-        content: [
-          { text: 'Reporte de Solicitudes', style: 'header' },
-          {
-            table: {
-              headerRows: 1,
-              widths: ['20%', '15%', '15%', '20%', '20%', '10%'],
-              body: [
-                [
-                  { text: 'Sucursal', style: 'tableHeader' },
-                  { text: 'Guía', style: 'tableHeader' },
-                  { text: 'Peso (Kg)', style: 'tableHeader' },
-                  { text: 'Fecha de Recojo', style: 'tableHeader' },
-                  { text: 'Fecha de Entrega', style: 'tableHeader' },
-                  { text: 'Costo (Bs)', style: 'tableHeader' }
-                ],
-                ...dataForPDF.map(item => [
-                  { text: item.sucursal, style: 'tableBody', alignment: 'center' },
-                  { text: item.guia, style: 'tableBody', alignment: 'center' },
-                  { text: item.peso, style: 'tableBody', alignment: 'center' },
-                  { text: item.fecha_recojo, style: 'tableBody', alignment: 'center' },
-                  { text: item.fecha_entrega, style: 'tableBody', alignment: 'center' },
-                  { text: item.costo.toFixed(2), style: 'tableBody', alignment: 'center' }
-                ]),
-                [
-                  { text: 'Total Gastado', colSpan: 5, alignment: 'right', style: 'tableTotal' }, {}, {}, {}, {},
-                  { text: totalCosto.toFixed(2), style: 'tableTotal', alignment: 'center' }
-                ]
-              ]
-            },
-            layout: {
-              fillColor: function (rowIndex) {
-                return (rowIndex % 2 === 0) ? '#f3f3f3' : null;
-              },
-              hLineWidth: function (i, node) {
-                return (i === 0 || i === node.table.body.length) ? 1 : 0;
-              },
-              vLineWidth: function (i) {
-                return 0;
-              },
-              hLineColor: function (i) {
-                return '#aaa';
-              },
-              paddingLeft: function (i) {
-                return i === 0 ? 10 : 5;
-              },
-              paddingRight: function (i) {
-                return i === 0 ? 10 : 5;
-              },
-              paddingTop: function (i, node) {
-                return i === 0 ? 4 : 2;
-              },
-              paddingBottom: function (i, node) {
-                return i === 0 ? 4 : 2;
-              }
-            }
-          }
-        ],
-        styles: {
-          header: {
-            fontSize: 22,
-            bold: true,
-            margin: [0, 0, 0, 20],
-            color: '#2a3e52',
-            alignment: 'center'
-          },
-          tableHeader: {
-            bold: true,
-            fontSize: 12,
-            color: 'white',
-            fillColor: '#2a3e52',
-            alignment: 'center',
-            margin: [0, 5, 0, 5]
-          },
-          tableBody: {
-            fontSize: 11,
-            margin: [0, 5, 0, 5],
-          },
-          tableTotal: {
-            bold: true,
-            fontSize: 12,
-            color: '#2a3e52'
-          }
-        },
-        defaultStyle: {
-          fontSize: 10
-        }
-      };
-
-      // Genera el PDF y abre la descarga
-      pdfMake.createPdf(docDefinition).download('reporte_sucursales.pdf');
+    } else {
+      return false;
     }
+  }).map(m => ({
+    sucursal: m.sucursale ? m.sucursale.nombre : '',
+    guia: m.guia,
+    peso: m.peso_r || m.peso_v,
+    fecha_recojo: m.fecha_recojo_c,
+    fecha_entrega: m.fecha_d,
+    costo: parseFloat(m.nombre_d) || 0
+  }));
+
+  // Suma total del costo (nombre_d)
+  const totalCosto = dataForPDF.reduce((sum, item) => sum + item.costo, 0);
+
+  // Verificar si hay datos filtrados para generar el PDF
+  if (dataForPDF.length === 0) {
+    this.$swal.fire({
+      icon: 'info',
+      title: 'Sin datos',
+      text: 'No se encontraron registros en el rango de fechas seleccionado.',
+    });
+    return;
+  }
+
+  // Definición del contenido del PDF
+  const docDefinition = {
+    content: [
+      { text: 'Reporte de Solicitudes', style: 'header' },
+      {
+        table: {
+          headerRows: 1,
+          widths: ['20%', '15%', '15%', '20%', '20%', '10%'],
+          body: [
+            [
+              { text: 'Sucursal', style: 'tableHeader' },
+              { text: 'Guía', style: 'tableHeader' },
+              { text: 'Peso (Kg)', style: 'tableHeader' },
+              { text: 'Fecha de Recojo', style: 'tableHeader' },
+              { text: 'Fecha de Entrega', style: 'tableHeader' },
+              { text: 'Costo (Bs)', style: 'tableHeader' }
+            ],
+            ...dataForPDF.map(item => [
+              { text: item.sucursal, style: 'tableBody', alignment: 'center' },
+              { text: item.guia, style: 'tableBody', alignment: 'center' },
+              { text: item.peso, style: 'tableBody', alignment: 'center' },
+              { text: item.fecha_recojo, style: 'tableBody', alignment: 'center' },
+              { text: item.fecha_entrega, style: 'tableBody', alignment: 'center' },
+              { text: item.costo.toFixed(2), style: 'tableBody', alignment: 'center' }
+            ]),
+            [
+              { text: 'Total Gastado', colSpan: 5, alignment: 'right', style: 'tableTotal' }, {}, {}, {}, {},
+              { text: totalCosto.toFixed(2), style: 'tableTotal', alignment: 'center' }
+            ]
+          ]
+        },
+        layout: {
+          fillColor: function (rowIndex) {
+            return (rowIndex % 2 === 0) ? '#f3f3f3' : null;
+          },
+          hLineWidth: function (i, node) {
+            return (i === 0 || i === node.table.body.length) ? 1 : 0;
+          },
+          vLineWidth: function (i) {
+            return 0;
+          },
+          hLineColor: function (i) {
+            return '#aaa';
+          },
+          paddingLeft: function (i) {
+            return i === 0 ? 10 : 5;
+          },
+          paddingRight: function (i) {
+            return i === 0 ? 10 : 5;
+          },
+          paddingTop: function (i, node) {
+            return i === 0 ? 4 : 2;
+          },
+          paddingBottom: function (i, node) {
+            return i === 0 ? 4 : 2;
+          }
+        }
+      }
+    ],
+    styles: {
+      header: {
+        fontSize: 22,
+        bold: true,
+        margin: [0, 0, 0, 20],
+        color: '#2a3e52',
+        alignment: 'center'
+      },
+      tableHeader: {
+        bold: true,
+        fontSize: 12,
+        color: 'white',
+        fillColor: '#2a3e52',
+        alignment: 'center',
+        margin: [0, 5, 0, 5]
+      },
+      tableBody: {
+        fontSize: 11,
+        margin: [0, 5, 0, 5],
+      },
+      tableTotal: {
+        bold: true,
+        fontSize: 12,
+        color: '#2a3e52'
+      }
+    },
+    defaultStyle: {
+      fontSize: 10
+    }
+  };
+
+  // Genera el PDF y abre la descarga
+  pdfMake.createPdf(docDefinition).download('reporte_sucursales.pdf');
+}
+
 
 
     ,

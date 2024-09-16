@@ -190,15 +190,37 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item =>
+    const searchTerm = this.searchTerm.toLowerCase();
+    
+    return this.list
+      .filter(item =>
         (item.estado === 3 || item.estado === 4 || item.estado === 10) &&
         item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
         Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
         )
-      );
-    },
+      )
+      .sort((a, b) => {
+        // Asegúrate de que ambas fechas existen
+        if (a.fecha_d && b.fecha_d) {
+          const [dayA, monthA, yearTimeA] = a.fecha_d.split('/');
+          const [dayB, monthB, yearTimeB] = b.fecha_d.split('/');
+          
+          const [yearA, timeA] = yearTimeA.split(' ');
+          const [yearB, timeB] = yearTimeB.split(' ');
+
+          const [hoursA, minutesA] = timeA.split(':');
+          const [hoursB, minutesB] = timeB.split(':');
+          
+          const dateA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA);
+          const dateB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB);
+
+          // Orden descendente
+          return dateB - dateA;
+        }
+        return 0;
+      });
+  },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
