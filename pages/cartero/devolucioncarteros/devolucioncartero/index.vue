@@ -110,30 +110,34 @@
       </div>
     </AdminTemplate>
 
-    <!-- Modal para añadir observación -->
-    <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop>
-      <div class="form-group">
-        <label for="capturephoto">Subir Foto</label>
-        <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
-        <img v-if="uploadedImage" :src="uploadedImage" class="img-fluid mt-2" />
+    <b-modal v-model="isObservationModalVisible" title="Agregar Observación" @shown="initializeSignaturePad" hide-backdrop hide-footer>
+  <div class="form-group">
+    <label for="capturephoto">Subir Foto</label>
+    <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
+    <img v-if="uploadedImage" :src="uploadedImage" class="img-fluid mt-2" />
+  </div>
+  
+  <!-- Firma del Operador -->
+  <div class="form-group">
+    <label for="firma_o">Firma Operador</label>
+    <input type="text" v-model.trim="model.firma_o" class="form-control d-none" id="firma_o">
+    <div class="position-relative">
+      <canvas id="canvas_firma_o" class="border border-2 rounded-3 bg-white" width="350px" height="250px"></canvas>
+      <div class="btn-canvas">
+        <button type="button" id="guardar_firma_o" class="btn btn-primary">Guardar</button>
+        <button type="button" id="limpiar_firma_o" class="btn btn-secondary">Limpiar</button>
       </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-secondary" @click="isObservationModalVisible = false">Cancelar</button>
-        <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
-      </div>
-    </b-modal>
+    </div>
+  </div>
 
-    <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
-      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }}</label>
-        <input type="number" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" />
-      </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-        <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
-      </div>
-    </b-modal>
+  <div class="d-flex justify-content-end">
+    <button class="btn btn-secondary" @click="isObservationModalVisible = false">Cancelar</button>
+    <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
+  </div>
+</b-modal>
+
+
+   
   </div>
 </template>
 
@@ -141,6 +145,8 @@
 <script>
 import Pica from 'pica'; // Importa Pica para redimensionar y comprimir imágenes
 import { BCollapse, BModal } from 'bootstrap-vue';
+import SignaturePad from 'signature_pad';
+import Swal from 'sweetalert2';
 
 export default {
   name: "IndexPage",
@@ -172,6 +178,14 @@ export default {
       isObservationModalVisible: false,
       observacion: '',
       uploadedImage: '', // Añadido para manejar la imagen subida
+      model: {
+      firma_o: '',  // Firma del operador
+      firma_d: '',  // Firma del destinatario
+      observacion: '',
+      imagen: '', // Para la imagen subida
+      fecha_devolucion: '', // Agrega esta si también la usas
+      // Agrega otras propiedades necesarias aquí...
+    },
     };
   },
   computed: {
@@ -221,44 +235,71 @@ export default {
     }
   },
   methods: {
+    initializeSignaturePad() {
+    const canvasFirmaO = document.getElementById('canvas_firma_o');
+    
+    if (canvasFirmaO) {
+      const signaturePadFirmaO = new SignaturePad(canvasFirmaO);
+      const clearButtonFirmaO = document.getElementById('limpiar_firma_o');
+      const generateButtonFirmaO = document.getElementById('guardar_firma_o');
+
+      clearButtonFirmaO.addEventListener('click', () => {
+        signaturePadFirmaO.clear();
+        this.model.firma_o = "";
+      });
+
+      generateButtonFirmaO.addEventListener('click', () => {
+        const firmaO = signaturePadFirmaO.toDataURL();
+        this.model.firma_o = firmaO;
+        
+        // Verificar si la firma fue capturada correctamente
+        if (this.model.firma_o) {
+          // Mostrar mensaje de éxito con SweetAlert
+          Swal.fire({
+            icon: 'success',
+            title: 'Firma registrada',
+            text: 'Firma del operador registrada exitosamente.'
+          });
+        } else {
+          // Mostrar mensaje de error si no hay firma
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo registrar la firma. Inténtalo de nuevo.'
+          });
+        }
+      });
+    } else {
+      console.error("Canvas para firma del operador no encontrado.");
+    }
+  },
     handleSucursalChange() {
       this.currentPage = 0; // Reiniciar la paginación cuando se selecciona una nueva sucursal
     },
     async confirmRechazar() {
-      this.load = true;
+  this.load = true;
 
-      try {
-        // Almacenar la imagen original antes de optimizarla
-        const originalImage = this.uploadedImage;
+  try {
+    const optimizedImage = await this.optimizeImage(this.uploadedImage);
+    const formattedDate = this.getFormattedDate();
 
-        // Redimensionar y comprimir la imagen antes de enviarla
-        const optimizedImage = await this.optimizeImage(originalImage);
+    await this.$api.$put(`devolucion/${this.selectedSolicitudeId}`, {
+      fecha_devolucion: formattedDate,
+      observacion: this.observacion,
+      imagen_devolucion: optimizedImage,
+      firma_o: this.model.firma_o // Incluye la firma del operador
+    });
 
-        // Formatear la fecha actual
-        const formattedDate = this.getFormattedDate();
-
-        // Enviar la solicitud de actualización con la imagen optimizada
-        await this.$api.$put(`devolucion/${this.selectedSolicitudeId}`, {
-          fecha_devolucion: formattedDate,
-          observacion: this.observacion,
-          imagen_devolucion: optimizedImage, // Enviar la imagen optimizada
-        });
-
-        // Recargar los datos
-        await this.GET_DATA(this.apiUrl);
-
-        // Mostrar mensaje de éxito
-        this.showSuccessMessage();
-
-        // Limpiar la entrada de datos después de guardar
-        this.resetForm();
-      } catch (e) {
-        console.error(e);
-        this.showErrorMessage();
-      } finally {
-        this.load = false;
-      }
-    },
+    this.showSuccessMessage();
+    this.resetForm();
+  } catch (e) {
+    console.error(e);
+    this.showErrorMessage();
+  } finally {
+    this.load = false;
+  }
+}
+,
 
     async optimizeImage(imageDataUrl) {
       const pica = Pica();
@@ -536,16 +577,98 @@ export default {
 
   mounted() {
     this.$nextTick(async () => {
-      let user = localStorage.getItem('userAuth');
-      this.user = JSON.parse(user);
-      try {
-        await this.GET_DATA(this.apiUrl);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        this.load = false;
+    try {
+      await this.GET_DATA(this.apiUrl);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      this.load = false;
+    }
+
+    // Código relacionado con la firma (sin cambios)
+    var canvas2 = document.getElementById('canvas2');
+    var signaturePad2 = new SignaturePad(canvas2);
+    var clearButton2 = document.getElementById('limpiar2');
+    var generateButton2 = document.getElementById('guardar2');
+
+    clearButton2.addEventListener('click', () => {
+      signaturePad2.clear();
+      this.model.firma_d = "";
+    });
+
+    generateButton2.addEventListener('click', () => {
+      var firma2 = signaturePad2.toDataURL();
+      this.model.firma_d = firma2;
+      Swal.fire({
+        icon: 'success',
+        title: 'Firma registrada',
+        text: 'Firma registrada exitosamente.'
+      });
+    });
+
+    // Manejo de la captura de foto con límite de tamaño muy bajo
+    var fileInput = document.getElementById('capturephoto');
+
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Definir una resolución baja
+            const maxWidth = 1750; // Ancho máximo
+            const maxHeight = 1750; // Alto máximo
+
+            let width = img.width;
+            let height = img.height;
+
+            // Escalar la imagen a las dimensiones más pequeñas posibles
+            if (width > height) {
+              if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width *= maxHeight / height;
+                height = maxHeight;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Comprimir la imagen en formato WebP lo máximo posible
+            let quality = 0.4; // Calidad baja
+            let dataurl = canvas.toDataURL('image/webp', quality);
+
+            // Intentar reducir el tamaño por debajo de 1 KB
+            while (dataurl.length > 100000 && quality > 0.01) {
+              quality -= 0.01;
+              dataurl = canvas.toDataURL('image/webp', quality);
+            }
+
+            this.model.imagen = dataurl; // Guardar la imagen comprimida en el modelo
+
+            // Mostrar alerta cuando se sube una foto
+            Swal.fire({
+              icon: 'success',
+              title: 'Foto registrada',
+              text: 'La foto se ha subido exitosamente.'
+            });
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
       }
     });
+    });
+
   },
 };
 </script>
