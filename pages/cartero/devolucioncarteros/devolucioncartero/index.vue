@@ -184,7 +184,9 @@ export default {
       observacion: '',
       imagen: '', // Para la imagen subida
       fecha_devolucion: '', // Agrega esta si también la usas
-      // Agrega otras propiedades necesarias aquí...
+      user: {
+        cartero: []
+      },
     },
     };
   },
@@ -276,30 +278,32 @@ export default {
     handleSucursalChange() {
       this.currentPage = 0; // Reiniciar la paginación cuando se selecciona una nueva sucursal
     },
-    async confirmRechazar() {
-  this.load = true;
+      async confirmRechazar() {
+    this.load = true;
 
-  try {
-    const optimizedImage = await this.optimizeImage(this.uploadedImage);
-    const formattedDate = this.getFormattedDate();
+    try {
+      const optimizedImage = await this.optimizeImage(this.uploadedImage);
+      const formattedDate = this.getFormattedDate();
+      const carteroId = this.user.user.id;
 
-    await this.$api.$put(`devolucion/${this.selectedSolicitudeId}`, {
-      fecha_devolucion: formattedDate,
-      observacion: this.observacion,
-      imagen_devolucion: optimizedImage,
-      firma_o: this.model.firma_o // Incluye la firma del operador
-    });
+      await this.$api.$put(`devolucion/${this.selectedSolicitudeId}`, {
+        fecha_devolucion: formattedDate,
+        observacion: this.observacion,
+        imagen_devolucion: optimizedImage,
+        cartero_entrega_id: carteroId,
+        firma_o: this.model.firma_o // Incluye la firma del operador
+      });
 
-    this.showSuccessMessage();
-    this.resetForm();
-  } catch (e) {
-    console.error(e);
-    this.showErrorMessage();
-  } finally {
-    this.load = false;
+      this.showSuccessMessage();
+      this.resetForm();
+    } catch (e) {
+      console.error(e);
+      this.showErrorMessage();
+    } finally {
+      this.load = false;
+    }
   }
-}
-,
+  ,
 
     async optimizeImage(imageDataUrl) {
       const pica = Pica();
@@ -577,7 +581,8 @@ export default {
 
   mounted() {
     this.$nextTick(async () => {
-    try {
+      let user = localStorage.getItem('userAuth');
+      this.user = JSON.parse(user);    try {
       await this.GET_DATA(this.apiUrl);
     } catch (e) {
       console.error(e);
