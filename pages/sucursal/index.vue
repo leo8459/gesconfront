@@ -12,7 +12,7 @@
           <div class="d-flex align-items-center">
             <select @change="handleSelectChange" class="btn btn-dark btn-sm mr-3">
               <option value="" disabled selected>Crear solicitud de Correspondencia</option>
-              <option value="url_nuevo2">Digital</option>
+              <option value="url_nuevo2">Boleta Digital</option>
               <option value="url_nuevo">Boleta fisica</option>
             </select>
 

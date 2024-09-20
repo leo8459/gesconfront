@@ -3,12 +3,15 @@
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
+        <!-- Buscador -->
         <div class="row justify-content-end mb-3">
           <div class="col-12 col-md-3 search-input-container">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
               placeholder="Buscar..." />
           </div>
         </div>
+
+        <!-- Tabla de solicitudes en camino -->
         <div class="row">
           <div class="col-12">
             <div class="card border-rounded">
@@ -21,7 +24,8 @@
                     <thead>
                       <tr>
                         <th class="py-0 px-1">
-                          <input type="checkbox" @change="selectAll($event, paginatedData)">
+                          <!-- Checkbox para seleccionar todo -->
+                          <input type="checkbox" @change="toggleSelectAll($event)" />
                         </th>
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
@@ -42,8 +46,9 @@
                     </thead>
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i">
-                        <td class="py-0 px-1" data-label="Seleccionar">
-                          <input type="checkbox" :checked="selected[m.id]" @change="toggleSelect(m.id)">
+                        <!-- Checkbox para seleccionar individualmente -->
+                        <td class="py-0 px-1">
+                          <input type="checkbox" :value="m" @change="toggleSelection(m)" />
                         </td>
                         <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
@@ -84,27 +89,15 @@
           </div>
         </div>
 
-        <!-- Paginación -->
-        <nav aria-label="Page navigation">
-          <ul class="pagination justify-content-between">
-            <li class="page-item" :class="{ disabled: currentPage === 0 }">
-              <button class="page-link" @click="previousPage" :disabled="currentPage === 0">&lt;</button>
-            </li>
-            <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page - 1 }">
-              <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
-            </li>
-            <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
-              <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
-            </li>
-          </ul>
-        </nav>
-
-        <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
-        <div v-if="selectedForDelivery.length > 0" class="mt-4">
-          <button @click="startDelivery" class="btn btn-primary btn-sm mb-3">
+        <!-- Mostrar la lista y el botón solo si hay elementos seleccionados -->
+        <div v-if="selectedForDelivery.length > 0">
+          <!-- Lista de seleccionados -->
+          <h5>Seleccionados para entrega:</h5>
+          
+          <div class="table-responsive">
+            <button @click="startDelivery" class="btn btn-primary btn-sm mb-3">
             <i class="fas fa-truck"></i> Empezar Entrega
           </button>
-          <div class="table-responsive">
             <table class="table table-sm table-bordered">
               <thead>
                 <tr>
@@ -122,11 +115,13 @@
                   <td class="py-0 px-1" data-label="Sucursal">{{ item.sucursale.nombre }}</td>
                   <td class="py-0 px-1" data-label="Departamento">{{ item.tarifa.departamento }}</td>
                   <td class="py-0 px-1" data-label="Peso Correos (Kg)">{{ item.peso_r }}</td>
-
                 </tr>
               </tbody>
             </table>
           </div>
+
+          <!-- Botón para iniciar la entrega -->
+        
         </div>
       </div>
     </AdminTemplate>
@@ -134,21 +129,9 @@
 </template>
 
 <script>
-import { BCollapse, BModal } from 'bootstrap-vue';
+import Swal from 'sweetalert2';
 
 export default {
-  name: "IndexPage",
-  components: {
-    BCollapse,
-    BModal
-  },
-  directives: {
-    focus: {
-      inserted(el) {
-        el.focus();
-      }
-    }
-  },
   data() {
     return {
       load: true,
@@ -167,7 +150,7 @@ export default {
       selected: {},
       selectedItemsData: [],
       selectedForAssign: [],
-      selectedForDelivery: [],
+      selectedForDelivery: [], // Lista para las solicitudes seleccionadas
       user: {
         user: {
           departamento_cartero: '',
@@ -179,24 +162,24 @@ export default {
   },
   computed: {
     filteredData() {
-    const departamentoCartero = this.user?.user?.departamento_cartero;
-    if (!departamentoCartero) {
-      return [];
-    }
+      const departamentoCartero = this.user?.user?.departamento_cartero;
+      if (!departamentoCartero) {
+        return [];
+      }
 
-    const searchTerm = this.searchTerm.toLowerCase();
+      const searchTerm = this.searchTerm.toLowerCase();
 
-    return this.list.filter(item => {
-      const matchesDepartamento = item.tarifa && item.tarifa.departamento === departamentoCartero;
-      const matchesReencaminamiento = item.reencaminamiento && item.reencaminamiento === departamentoCartero;
+      return this.list.filter(item => {
+        const matchesDepartamento = item.tarifa && item.tarifa.departamento === departamentoCartero;
+        const matchesReencaminamiento = item.reencaminamiento && item.reencaminamiento === departamentoCartero;
 
-      const matchesSearchTerm = Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm)
-      );
+        const matchesSearchTerm = Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        );
 
-      return item.estado === 10 && (matchesDepartamento || matchesReencaminamiento) && matchesSearchTerm;
-    });
-  },
+        return item.estado === 10 && (matchesDepartamento || matchesReencaminamiento) && matchesSearchTerm;
+      });
+    },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -207,155 +190,71 @@ export default {
     }
   },
   methods: {
+    toggleSelection(item) {
+      const index = this.selectedForDelivery.indexOf(item);
+      if (index === -1) {
+        // Añadir a la lista de seleccionados
+        this.selectedForDelivery.push(item);
+      } else {
+        // Quitar de la lista de seleccionados
+        this.selectedForDelivery.splice(index, 1);
+      }
+    },
+    toggleSelectAll(event) {
+      if (event.target.checked) {
+        this.selectedForDelivery = [...this.paginatedData];
+      } else {
+        this.selectedForDelivery = [];
+      }
+    },
+    async startDelivery() {
+  const cartero_entrega_id = this.user?.user?.id || null;
+  try {
+    for (const item of this.selectedForDelivery) {
+      await this.$api.$put(`/encaminoregional/${item.id}`, {
+        cartero_entrega_id,
+      });
+    }
+    
+    // Mostrar la alerta con SweetAlert cuando todos los envíos estén en camino
+    Swal.fire({
+      icon: 'success',
+      title: 'Envíos en camino',
+      text: 'Todos los envíos seleccionados han sido marcados como en camino.',
+      confirmButtonText: 'OK'
+    }).then(() => {
+      // Recargar la página una vez que se cierre la alerta
+      location.reload();
+    });
+    
+  } catch (error) {
+    console.error(`Error entregando la solicitud:`, error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Hubo un error al intentar enviar las solicitudes.',
+      confirmButtonText: 'OK'
+    });
+  }
+}
+,
+
     handleSearchEnter() {
-      // Encuentra el primer elemento que coincida con el término de búsqueda
       const filteredItems = this.filteredData;
       if (filteredItems.length > 0) {
-        const item = filteredItems[0]; // Selecciona el primer elemento filtrado
-        this.selected[item.id] = true; // Marca el elemento como seleccionado
-        this.updateSelectedItems(); // Actualiza la lista de elementos seleccionados
-
-        // Limpia el término de búsqueda después de mover el elemento
+        const item = filteredItems[0];
+        this.selected[item.id] = true;
+        this.updateSelectedItems();
         this.searchTerm = '';
       }
-    },
-    iniciarFiltrado() {
-      const departamentoCartero = this.user.departamento_cartero;
-    },
-    focusPesoInput() {
-      this.$refs.pesoInput[0].focus();
-    },
-    isCoordinates(address) {
-      const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
-      return regex.test(address);
-    },
-    async markAsEnCamino(solicitudeId) {
-      this.load = true;
-      try {
-        const carteroId = this.user.id;
-        const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
-        await this.GET_DATA(this.apiUrl);
-        this.$swal.fire({
-          icon: 'success',
-          title: 'Cartero asignado',
-          text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
-        });
-        await this.GET_DATA(this.apiUrl);
-      } catch (e) {
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un error al asignar el cartero.',
-        });
-      } finally {
-        this.load = false;
-      }
-    },
-    getTarifaLabel(tarifa_id) {
-      if (!this.tarifas) {
-        return 'Tarifas no cargadas';
-      }
-      const tarifa = this.tarifas.find(t => t.id === tarifa_id);
-      return tarifa ? tarifa.departamento : 'Tarifa no encontrada';
-    },
-    calculatePrice(tarifa_id, peso_r) {
-      const tarifa = this.tarifas.find(t => t.id === tarifa_id);
-      if (tarifa) {
-        const basePrice = tarifa.precio ? parseFloat(tarifa.precio) : 0;
-        const extraPrice = tarifa.precio_extra ? parseFloat(tarifa.precio_extra) : 0;
-        const peso = parseFloat(peso_r);
-        if (isNaN(peso)) {
-          return '';
-        }
-        if (peso > 1) {
-          const pesoAdicional = Math.ceil(peso - 1);
-          return basePrice + pesoAdicional * extraPrice;
-        } else {
-          return basePrice;
-        }
-      }
-      return '';
-    },
-    updatePrice(item) {
-      const peso = parseFloat(item.peso_r);
-      item.precio = this.calculatePrice(item.tarifa_id, item.peso_r);
-      item.nombre_d = item.precio;
     },
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
       return res;
     },
-    async EliminarItem(id) {
-      this.load = true;
-      try {
-        const res = await this.$api.$delete(this.apiUrl + '/' + id);
-        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0];
-        });
-      } catch (e) {
-        console.log(e);
-      } finally {
-        this.load = false;
-      }
-    },
-    updateSelectedItems() {
-      // Mover los elementos seleccionados a la tabla inferior
-      this.selectedForAssign = this.paginatedData.filter(item => this.selected[item.id]);
-
-      // Actualizar la lista de paquetes para entregar
-      this.selectedForDelivery = [...this.selectedForAssign];
-    },
-
-    toggleSelect(itemId) {
-      // Este método se llamará cuando se seleccione o deseleccione un elemento individual
-      this.selected[itemId] = !this.selected[itemId];
-      this.updateSelectedItems();
-    },
-
-    selectAll(event, group) {
-      const isChecked = event.target.checked;
-      group.forEach(item => {
-        this.$set(this.selected, item.id, isChecked);
-      });
-      this.updateSelectedItems(); // Llamar a la función después de seleccionar todos
-    },
-    async startDelivery() {
-      this.load = true;
-      try {
-        const carteroId = this.user.user.id;
-        for (let item of this.selectedForDelivery) {
-          await this.$api.$put(`encaminoregional/${item.id}`, {
-            cartero_entrega_id: carteroId,
-            peso_r: item.peso_r,
-            fecha_d: item.fecha_d,
-            precio: item.precio,
-            nombre_d: item.nombre_d
-          });
-        }
-
-        this.selectedForDelivery = [];
-
-        this.$swal.fire({
-          icon: 'success',
-          title: 'Entrega Iniciada',
-          text: 'Todos los carteros seleccionados han sido marcados como en camino.',
-        });
-      } catch (e) {
-        console.error(e);
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un error al asignar los carteros.',
-        });
-      } finally {
-        this.load = false;
-      }
-    },
-    selectAll(event, group) {
-      const isChecked = event.target.checked;
-      group.forEach(item => {
-        this.$set(this.selected, item.id, isChecked);
-      });
+    isCoordinates(address) {
+      const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+      return regex.test(address);
     },
     nextPage() {
       if (this.currentPage < this.totalPages - 1) {
@@ -369,15 +268,6 @@ export default {
     },
     goToPage(page) {
       this.currentPage = page;
-    }
-  },
-  watch: {
-    selected: {
-      handler() {
-        // Aquí estamos asegurándonos de que solo estamos moviendo los elementos seleccionados sin modificar `selected`
-        this.updateSelectedItems();
-      },
-      deep: true
     }
   },
   mounted() {
@@ -409,9 +299,8 @@ export default {
 };
 </script>
 
-
-
 <style scoped>
+/* Estilos para la tabla y la página */
 .card.border-rounded {
   border-radius: 15px;
   border: 1px solid #000000;
@@ -449,7 +338,7 @@ export default {
   background-color: #F8F9FA;
 }
 
-/* Responsive adjustments */
+/* Ajustes responsivos */
 @media (max-width: 768px) {
   .table-responsive {
     overflow-x: unset;
@@ -482,7 +371,7 @@ export default {
   }
 }
 
-/* Even smaller screens */
+/* Para pantallas aún más pequeñas */
 @media (max-width: 360px) {
   .table td {
     font-size: 12px;
