@@ -29,6 +29,7 @@
                         <th class="py-0 px-1">Guia</th>
                         <th class="py-0 px-1">Accion</th>
                         <th class="py-0 px-1">Descripcion</th>
+                        <th class="py-0 px-1">Usuario</th>
                         <th class="py-0 px-1">Fecha</th>
                       </tr>
                     </thead>
@@ -38,6 +39,14 @@
                         <td class="py-0 px-1">{{ m.codigo }}</td>
                         <td class="py-0 px-1">{{ m.accion }}</td>
                         <td class="py-0 px-1">{{ m.descripcion }}</td>
+                        <td class="py-0 px-1">
+                          {{
+                            (m.sucursale && m.sucursale.nombre) ||
+                            (m.cartero && `${m.cartero.nombre} `) ||
+                            (m.encargado && `${m.encargado.nombre}`) ||
+                            'Sin responsable'
+                          }}
+                        </td>
                         <td class="py-0 px-1">{{ m.fecha_hora }}</td>
                       </tr>
                     </tbody>

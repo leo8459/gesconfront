@@ -4,15 +4,10 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end">
-          
+
           <!-- Input de búsqueda -->
           <div class="col-12 mb-3">
-            <input
-              v-model="searchTerm"
-              type="text"
-              class="form-control"
-              placeholder="Buscar..."
-            />
+            <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
           </div>
 
           <div class="col-12">
@@ -29,6 +24,7 @@
                         <th class="py-0 px-1">Guia</th>
                         <th class="py-0 px-1">Accion</th>
                         <th class="py-0 px-1">Descripcion</th>
+                        <th class="py-0 px-1">Usuario</th>
                         <th class="py-0 px-1">Fecha</th>
                       </tr>
                     </thead>
@@ -38,6 +34,14 @@
                         <td class="py-0 px-1">{{ m.codigo }}</td>
                         <td class="py-0 px-1">{{ m.accion }}</td>
                         <td class="py-0 px-1">{{ m.descripcion }}</td>
+                        <td class="py-0 px-1">
+                          {{
+                            (m.sucursale && m.sucursale.nombre) ||
+                            (m.cartero && `${m.cartero.nombre} `) ||
+                            (m.encargado && `${m.encargado.nombre}`) ||
+                            'Sin responsable'
+                          }}
+                        </td>
                         <td class="py-0 px-1">{{ m.fecha_hora }}</td>
                       </tr>
                     </tbody>
@@ -46,7 +50,6 @@
               </div>
             </div>
           </div>
-
         </div>
 
         <!-- Paginación -->
@@ -58,7 +61,8 @@
                   &lt;
                 </button>
               </li>
-              <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page - 1 }">
+              <li class="page-item" v-for="page in totalPages" :key="page"
+                :class="{ active: currentPage === page - 1 }">
                 <button class="page-link" @click="goToPage(page - 1)">
                   {{ page }}
                 </button>
@@ -75,6 +79,7 @@
     </AdminTemplate>
   </div>
 </template>
+
 
 <script>
 export default {
@@ -176,10 +181,13 @@ export default {
   border-collapse: collapse;
 }
 
-.table th, .table td {
-  font-size: 18px; /* Ajuste de tamaño de fuente para hacerla más grande */
+.table th,
+.table td {
+  font-size: 18px;
+  /* Ajuste de tamaño de fuente para hacerla más grande */
   text-align: center;
-  padding: 12px; /* Aumenta el padding para darle más espacio a las celdas */
+  padding: 12px;
+  /* Aumenta el padding para darle más espacio a las celdas */
   border: 1px solid #dee2e6;
 }
 
