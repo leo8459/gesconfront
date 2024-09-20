@@ -130,6 +130,11 @@
                   <span class="sidenav-normal"> Entregados</span>
                 </nuxtLink>
               </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/cartero/eventocarteros/eventocartero">
+                  <span class="sidenav-normal"> Eventos</span>
+                </nuxtLink>
+              </li>
             </ul>
           </div>
 
@@ -188,51 +193,51 @@
 
 
 
-      <!-- EMPRESA -->
-<li class="nav-item full-width-item" v-if="isSucursale">
-  <a @click="handleItemClick('empresa')" class="nav-link full-width-link">
-    <div
-      class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
-      <i v-if="role === 'empresa'" class="fas fa-money-bill blue-icon"></i>
-    </div>
-    <span class="nav-link-text ms-1 full-width-text">Empresa</span>
-  </a>
-  <!-- Aquí quitamos el collapse para que siempre esté desplegado -->
-  <div id="perfil-empresa">
-    <ul class="nav flex-column submenu">
-      <li class="nav-item" v-if="isSucursale">
-        <nuxtLink class="nav-link full-width-link" to="/sucursal">
-          <span class="sidenav-normal full-width-text">Pagina principal</span>
-        </nuxtLink>
-      </li>
-      <li class="nav-item" v-if="isSucursale">
-        <nuxtLink class="nav-link full-width-link" to="/sucursal/canceladossucursales/canceladosucursal">
-          <span class="sidenav-normal full-width-text">Cancelados</span>
-        </nuxtLink>
-      </li>
-      <li class="nav-item" v-if="isSucursale">
-        <nuxtLink class="nav-link full-width-link" to="/sucursal/sucursales/sucursal">
-          <span class="sidenav-normal full-width-text">Pendientes de envio</span>
-        </nuxtLink>
-      </li>
-      <li class="nav-item" v-if="isSucursale">
-        <nuxtLink class="nav-link full-width-link" to="/sucursal/encaminosucursales/encaminosucursal">
-          <span class="sidenav-normal full-width-text">Enviados</span>
-        </nuxtLink>
-      </li>
-      <li class="nav-item" v-if="isSucursale">
-        <nuxtLink class="nav-link full-width-link" to="/sucursal/entregadosucursales/entregadosucursal">
-          <span class="sidenav-normal full-width-text">Paquetes entregados</span>
-        </nuxtLink>
-      </li>
-      <li class="nav-item" v-if="isSucursale">
-        <nuxtLink class="nav-link full-width-link" to="/sucursal/devueltosucursales/devueltosucursale">
-          <span class="sidenav-normal full-width-text">Devoluciones</span>
-        </nuxtLink>
-      </li>
-    </ul>
-  </div>
-</li>
+        <!-- EMPRESA -->
+        <li class="nav-item full-width-item" v-if="isSucursale">
+          <a @click="handleItemClick('empresa')" class="nav-link full-width-link">
+            <div
+              class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center me-2">
+              <i v-if="role === 'empresa'" class="fas fa-money-bill blue-icon"></i>
+            </div>
+            <span class="nav-link-text ms-1 full-width-text">Empresa</span>
+          </a>
+          <!-- Aquí quitamos el collapse para que siempre esté desplegado -->
+          <div id="perfil-empresa">
+            <ul class="nav flex-column submenu">
+              <li class="nav-item" v-if="isSucursale">
+                <nuxtLink class="nav-link full-width-link" to="/sucursal">
+                  <span class="sidenav-normal full-width-text">Pagina principal</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item" v-if="isSucursale">
+                <nuxtLink class="nav-link full-width-link" to="/sucursal/canceladossucursales/canceladosucursal">
+                  <span class="sidenav-normal full-width-text">Cancelados</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item" v-if="isSucursale">
+                <nuxtLink class="nav-link full-width-link" to="/sucursal/sucursales/sucursal">
+                  <span class="sidenav-normal full-width-text">Pendientes de envio</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item" v-if="isSucursale">
+                <nuxtLink class="nav-link full-width-link" to="/sucursal/encaminosucursales/encaminosucursal">
+                  <span class="sidenav-normal full-width-text">Enviados</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item" v-if="isSucursale">
+                <nuxtLink class="nav-link full-width-link" to="/sucursal/entregadosucursales/entregadosucursal">
+                  <span class="sidenav-normal full-width-text">Paquetes entregados</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item" v-if="isSucursale">
+                <nuxtLink class="nav-link full-width-link" to="/sucursal/devueltosucursales/devueltosucursale">
+                  <span class="sidenav-normal full-width-text">Devoluciones</span>
+                </nuxtLink>
+              </li>
+            </ul>
+          </div>
+        </li>
 
 
 
@@ -283,6 +288,11 @@
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/encargado/verificadoencargados/verificadoencargado">
                   <span class="sidenav-normal full-width-text"> Paquetes entregados</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/encargado/eventoencargados/eventoencargado">
+                  <span class="sidenav-normal"> Eventos</span>
                 </nuxtLink>
               </li>
             </ul>
@@ -430,6 +440,11 @@
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/contrato/tarifas/tarifa">
                   <span class="sidenav-normal full-width-text"> Tarifas </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/contrato/eventocontratos/eventocontrato">
+                  <span class="sidenav-normal"> Eventos</span>
                 </nuxtLink>
               </li>
             </ul>
