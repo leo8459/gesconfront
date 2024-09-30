@@ -5,9 +5,7 @@
       <div slot="body">
         <div class="row justify-content-end mb-3">
           <div class="col-3" v-if="hasSelectedItems">
-            <button @click="openAssignModal" class="btn btn-primary btn-sm w-100">
-              <i class="fas fa-truck"></i> Asignar todos los seleccionados
-            </button>
+            
           </div>
           <div class="col-12 col-md-3 search-input-container">
       <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control search-input" placeholder="Buscar..." />
@@ -24,6 +22,9 @@
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
+                        <th class="py-0 px-1">
+      <input type="checkbox" @change="selectAll($event, paginatedData)">
+    </th>
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Guía</th>
@@ -41,6 +42,9 @@
                     </thead>
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i">
+                        <td class="py-0 px-1">
+      <input type="checkbox" v-model="selected[m.id]">
+    </td>
                         <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="py-0 px-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
@@ -76,6 +80,15 @@
                 </div>
               </div>
             </div>
+            <div class="row justify-content-end mb-3">
+
+  <div class="col-3" v-if="hasSelectedItems">
+    <button @click="showMap" class="btn btn-primary btn-sm w-100">
+      <i class="fas fa-map"></i> Mapa
+    </button>
+  </div>
+ 
+</div>
 
             <!-- Paginación -->
             <nav aria-label="Page navigation">
@@ -130,12 +143,15 @@
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
 import Pica from 'pica';
+import Vue from 'vue';
+import Router from 'vue-router';
 
 export default {
   name: "IndexPage",
   components: {
     BCollapse,
-    BModal
+    BModal,
+    // path: '/map',
   },
   data() {
     return {
@@ -159,6 +175,10 @@ export default {
       isObservationModalVisible: false,
       observacion: '',
       uploadedImage: '',
+      isMapModalVisible: false,
+    selectedMapItems: [],
+    userLocation: null,
+    sortedMapItems: [],
     };
   },
   computed: {
@@ -185,6 +205,122 @@ export default {
     }
   },
   methods: {
+    showMap() {
+      const selectedItems = this.list.filter(item => this.selected[item.id]);
+
+      if (selectedItems.length === 0) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'No hay elementos seleccionados',
+          text: 'Por favor, seleccione al menos un elemento.',
+        });
+        return;
+      }
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+
+          this.processMap(selectedItems, userLocation);
+        }, error => {
+          console.error(error);
+          this.$swal.fire({
+            icon: 'error',
+            title: 'Error al obtener ubicación',
+            text: 'No se pudo obtener su ubicación actual.',
+          });
+        });
+      } else {
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Geolocalización no soportada',
+          text: 'Su navegador no soporta geolocalización.',
+        });
+      }
+    },
+
+    processMap(selectedItems, userLocation) {
+      const itemsWithCoordinates = selectedItems.map(item => {
+        if (this.isCoordinates(item.direccion_d)) {
+          const coords = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
+          return {
+            id: item.id,
+            guia: item.guia,
+            destinatario: item.destinatario,
+            lat: coords[0],
+            lng: coords[1]
+          };
+        } else {
+          return null;
+        }
+      }).filter(item => item !== null);
+
+      if (itemsWithCoordinates.length === 0) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Sin coordenadas válidas',
+          text: 'No se encontraron coordenadas válidas en los elementos seleccionados.',
+        });
+        return;
+      }
+
+      itemsWithCoordinates.forEach(item => {
+        item.distance = this.calculateDistance(userLocation.lat, userLocation.lng, item.lat, item.lng);
+      });
+
+      itemsWithCoordinates.sort((a, b) => a.distance - b.distance);
+
+      this.openGoogleMaps(userLocation, itemsWithCoordinates);
+    },
+
+    openGoogleMaps(userLocation, items) {
+      let url = 'https://www.google.com/maps/dir/?api=1';
+
+      // Usar coordenadas del usuario como origen
+      url += `&origin=${userLocation.lat},${userLocation.lng}`;
+
+      const lastItem = items[items.length - 1];
+      url += `&destination=${lastItem.lat},${lastItem.lng}`;
+
+      if (items.length > 1) {
+        const waypoints = items.slice(0, items.length - 1).map(item => `${item.lat},${item.lng}`).join('|');
+        url += `&waypoints=${encodeURIComponent(waypoints)}`;
+      }
+
+      const mapWindow = window.open(url, '_blank');
+      if (!mapWindow) {
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Bloqueo de ventanas emergentes',
+          text: 'Por favor, habilite las ventanas emergentes para esta aplicación.',
+        });
+      }
+    },
+
+    calculateDistance(lat1, lng1, lat2, lng2) {
+      const toRad = value => value * Math.PI / 180;
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLng = toRad(lng2 - lng1);
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distance = R * c;
+      return distance;
+    },
+
+    isCoordinates(address) {
+      const regex = /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/;
+      return regex.test(address);
+    },
+
+ 
+ 
+ 
     handleImageUpload(event) {
       const file = event.target.files[0];
       if (file) {
@@ -270,10 +406,7 @@ export default {
       this.selectedSolicitudeId = id;
       this.isObservationModalVisible = true;
     },
-    isCoordinates(address) {
-      const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
-      return regex.test(address);
-    },
+    
     async markAsEnCamino(solicitudeId) {
       this.load = true;
       try {
@@ -414,6 +547,7 @@ export default {
     this.$nextTick(async () => {
       let user = localStorage.getItem('userAuth');
       this.user = JSON.parse(user);
+
       try {
         const data = await this.GET_DATA(this.apiUrl);
         if (Array.isArray(data)) {
@@ -597,5 +731,8 @@ export default {
     width: 100%;
   }
 }
-
+#map {
+  width: 100%;
+  height: 100vh;
+}
 </style>

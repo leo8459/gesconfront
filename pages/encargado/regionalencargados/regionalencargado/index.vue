@@ -136,29 +136,24 @@
     </AdminTemplate>
 
     <!-- Modal para añadir peso_r -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer
-      @shown="focusPesoInput">
-      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <!-- Contenido del modal con los campos de peso -->
-        <label :for="'peso_r-' + item.id" class="mt-2">Peso oficina destino (Kg)</label>
-        <input 
-  type="text" 
-  :id="'peso_r-' + item.id" 
-  v-model="item.peso_r" 
-  class="form-control" 
-  ref="pesoInput"
-  placeholder="000.001" 
-  step="0.001" 
-  min="0.001"
-/>
-
-
-
-          
-      </div>
-      <!-- Botón para agregar el paquete a la lista -->
-      <button class="btn btn-secondary" @click="agregarPaquetesALista">Agregar a la lista</button>
-    </b-modal>
+    <b-modal v-model="isModalVisible" :title="modalTitle" hide-backdrop hide-footer @shown="focusPesoInput">
+          <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+            <!-- Contenido del modal con los campos de peso -->
+            <label :for="'peso_r-' + item.id" class="mt-2">Peso oficina destino (Kg)</label>
+            <input 
+              type="text" 
+              :id="'peso_r-' + item.id" 
+              v-model="item.peso_r" 
+              class="form-control" 
+              ref="pesoInput"
+              placeholder="000.001" 
+              step="0.001" 
+              min="0.001"
+            />
+          </div>
+          <!-- Botón para agregar el paquete a la lista -->
+          <button class="btn btn-secondary" @click="handleAgregarPaquetes">Agregar a la lista</button>
+        </b-modal>
   </div>
 </template>
 
@@ -196,7 +191,7 @@ export default {
       selected: {},
       selectedItemsData: [],
       selectedForAssign: [],
-      selectedForDelivery: [], // Lista de paquetes seleccionados para recibir
+      selectedForDelivery: [],
       user: {
         cartero: []
       },
@@ -205,21 +200,29 @@ export default {
     };
   },
   computed: {
+    modalTitle() {
+      if (this.selectedItemsData.length > 0) {
+        const estado = this.selectedItemsData[0].estado;
+        if (estado === 12) {
+          return 'Recibir Reencaminamiento';
+        } else if (estado === 8) {
+          return 'Recibir Enviados Regional';
+        }
+      }
+      return 'Asignar Peso Correos (Kg)';
+    },
     filteredData() {
       const searchTerm = this.searchTerm.toLowerCase();
-      const departamento = this.user?.user?.departamento; // Departamento del usuario logueado
+      const departamento = this.user?.user?.departamento;
 
       if (!departamento) {
-        // Si el departamento no está definido, no hay datos que mostrar
         return [];
       }
 
       return this.list.filter(item => {
-        // Filtrar elementos que coincidan con el reencaminamiento o el departamento del usuario logueado
         const matchesReencaminamiento = item.reencaminamiento && item.reencaminamiento === departamento;
         const matchesDepartamento = item.tarifa?.departamento === departamento;
 
-        // Aplicar búsqueda por término y el estado requerido (8 o 12)
         const matchesSearchTerm = Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
         );
@@ -227,8 +230,6 @@ export default {
         return (matchesReencaminamiento || matchesDepartamento) && matchesSearchTerm && (item.estado === 8 || item.estado === 12);
       });
     },
-
-
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -242,78 +243,83 @@ export default {
     }
   },
   methods: {
+
+    handleAgregarPaquetes() {
+    if (this.selectedItemsData.length > 0) {
+      const estado = this.selectedItemsData[0].estado;
+      if (estado === 8) {
+        this.agregarPaquetesALista();
+      } else if (estado === 12) {
+        this.devolverPaquete();
+      } else {
+        // Opcional: manejar otros estados o mostrar un mensaje
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Estado no manejado',
+          text: `El estado ${estado} no es manejado por esta acción.`,
+        });
+      }
+    }
+  },
     agregarALista(item) {
-  this.updatePrice(item); // Actualiza el precio antes de agregar el paquete a la lista
-  const existe = this.selectedForDelivery.find(p => p.id === item.id);
-  if (!existe) {
-    this.selectedForDelivery.push({ ...item });
-    console.log('Paquete agregado:', item);
-    this.list = this.list.filter(p => p.id !== item.id);
-  } else {
-    console.log('Paquete ya existe en la lista');
-  }
-  this.isModalVisible = false;
-},
-
-
-agregarPaquetesALista() {
-  // Formatear los paquetes seleccionados antes de agregarlos a la lista
-  this.selectedItemsData.forEach(item => {
-    this.formatPesoR(item);  // Aplicar formateo solo al agregar a la lista
-    this.agregarALista(item);  // Llamar al método que agrega a la lista
-  });
-
-  // Limpiar el campo de búsqueda después de agregar a la lista
-  this.searchTerm = '';
-},
-
-    async recibirTodosLosPaquetes() {
-  this.load = true;
-  try {
-    const carteroId = this.user.user.id;
-    for (let item of this.selectedForDelivery) {
-      await this.$encargados.$put(`recibirpaquetes5/${item.id}`, {
-        encargado_regional_id: carteroId,
-        peso_r: item.peso_r,
-        nombre_d: item.nombre_d // Asegúrate de enviar este valor
+      this.updatePrice(item);
+      const existe = this.selectedForDelivery.find(p => p.id === item.id);
+      if (!existe) {
+        this.selectedForDelivery.push({ ...item });
+        console.log('Paquete agregado:', item);
+        this.list = this.list.filter(p => p.id !== item.id);
+      } else {
+        console.log('Paquete ya existe en la lista');
+      }
+      this.isModalVisible = false;
+    },
+    agregarPaquetesALista() {
+      this.selectedItemsData.forEach(item => {
+        this.formatPesoR(item);
+        this.agregarALista(item);
       });
-    }
-    this.$swal.fire({
-      icon: 'success',
-      title: 'Paquetes recibidos',
-      text: 'Todos los paquetes seleccionados han sido recibidos.',
-    });
-    this.selectedForDelivery = []; // Vaciar la lista después de recibir
-  } catch (e) {
-    console.error(e);
-    this.$swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Hubo un error al recibir los paquetes.',
-    });
-  } finally {
-    this.load = false;
-  }
-},
-formatPesoR(item) {
-  let value = parseFloat(item.peso_r);
-  
-  // Si el valor no es un número válido, establecemos un valor predeterminado
-  if (isNaN(value)) {
-    item.peso_r = '0.001';  // Valor por defecto si el peso no es válido
-  } else {
-    // Limitar el peso máximo a 25 kg solo al agregar a la lista
-    if (value > 25) {
-      value = 25;
-    }
-    // Formateamos el número para que tenga exactamente 3 decimales
-    item.peso_r = value.toFixed(3);
-  }
-},
-
-
+      this.searchTerm = '';
+    },
+    async recibirTodosLosPaquetes() {
+      this.load = true;
+      try {
+        const carteroId = this.user.user.id;
+        for (let item of this.selectedForDelivery) {
+          await this.$encargados.$put(`recibirpaquetes5/${item.id}`, {
+            encargado_regional_id: carteroId,
+            peso_r: item.peso_r,
+            nombre_d: item.nombre_d
+          });
+        }
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Paquetes recibidos',
+          text: 'Todos los paquetes seleccionados han sido recibidos.',
+        });
+        this.selectedForDelivery = [];
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al recibir los paquetes.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
+    formatPesoR(item) {
+      let value = parseFloat(item.peso_r);
+      if (isNaN(value)) {
+        item.peso_r = '0.001';
+      } else {
+        if (value > 25) {
+          value = 25;
+        }
+        item.peso_r = value.toFixed(3);
+      }
+    },
     focusPesoInput() {
-      // Asegúrate de que this.$refs.pesoInput no esté vacío y sea un array
       if (this.$refs.pesoInput && this.$refs.pesoInput.length > 0) {
         this.$refs.pesoInput[0].focus();
       } else {
@@ -332,30 +338,28 @@ formatPesoR(item) {
       return tarifa ? tarifa.departamento : 'Tarifa no encontrada';
     },
     calculatePrice(tarifa_id, peso_r) {
-  const tarifa = this.tarifas.find(t => t.id === tarifa_id);
-  if (tarifa) {
-    const basePrice = tarifa.precio ? parseFloat(tarifa.precio) : 0;
-    const extraPrice = tarifa.precio_extra ? parseFloat(tarifa.precio_extra) : 0;
-    const peso = parseFloat(peso_r);
-    if (isNaN(peso)) {
-      return ''; // Devuelve un valor vacío si el peso no es un número válido
-    }
-    if (peso > 1) {
-      const pesoAdicional = Math.ceil(peso - 1);
-      return basePrice + pesoAdicional * extraPrice;
-    } else {
-      return basePrice;
-    }
-  }
-  return ''; // Retorna un valor vacío si no hay una tarifa encontrada
-},
-
-updatePrice(item) {
-  const peso = parseFloat(item.peso_r.replace(',', '.')); // Reemplaza coma por punto si es necesario
-  item.precio = this.calculatePrice(item.tarifa_id, peso); // Calcula el precio
-  item.nombre_d = item.precio; // Asigna el precio al campo nombre_d
-},
-
+      const tarifa = this.tarifas.find(t => t.id === tarifa_id);
+      if (tarifa) {
+        const basePrice = tarifa.precio ? parseFloat(tarifa.precio) : 0;
+        const extraPrice = tarifa.precio_extra ? parseFloat(tarifa.precio_extra) : 0;
+        const peso = parseFloat(peso_r);
+        if (isNaN(peso)) {
+          return '';
+        }
+        if (peso > 1) {
+          const pesoAdicional = Math.ceil(peso - 1);
+          return basePrice + pesoAdicional * extraPrice;
+        } else {
+          return basePrice;
+        }
+      }
+      return '';
+    },
+    updatePrice(item) {
+      const peso = parseFloat(item.peso_r.replace(',', '.'));
+      item.precio = this.calculatePrice(item.tarifa_id, peso);
+      item.nombre_d = item.precio;
+    },
     async GET_DATA(path) {
       const res = await this.$encargados.$get(path);
       return res;
@@ -385,13 +389,13 @@ updatePrice(item) {
           tarifa: this.getTarifaLabel(item.tarifa_id),
           nombre_d: precio,
           precio: precio,
-          peso_v: item.peso_v, // Incluye peso_v aquí
-          peso_o: item.peso_o // Incluye peso aquí
+          peso_v: item.peso_v,
+          peso_o: item.peso_o,
+          estado: item.estado // Incluir 'estado' aquí
         };
       });
       this.isModalVisible = true;
     },
-
     handleSearchEnter() {
       const filteredItems = this.filteredData;
       if (filteredItems.length > 0) {
@@ -406,7 +410,7 @@ updatePrice(item) {
           tarifa_id: item.tarifa_id,
           tarifa: this.getTarifaLabel(item.tarifa_id),
           precio: this.calculatePrice(item.tarifa_id, item.peso_r),
-          estado: item.estado // Asegúrate de que el estado esté disponible
+          estado: item.estado // Incluir 'estado' aquí
         }];
         this.isModalVisible = true;
       }
@@ -464,33 +468,27 @@ updatePrice(item) {
     async devolverPaquete() {
       this.load = true;
       try {
-        // Obtener el primer elemento seleccionado
         const item = this.selectedItemsData[0];
         const carteroId = this.user.user.id;
 
-        // Llamar a la API para devolver el paquete
         await this.$encargados.$put(`reencaminadorecibido5/${item.id}`, {
-          encargado_regional_id: carteroId, // ID del encargado
-          peso_r: item.peso_r,              // Peso actualizado
-          nombre_d: item.nombre_d           // Nombre destinatario actualizado
+          encargado_regional_id: carteroId,
+          peso_r: item.peso_r,
+          nombre_d: item.nombre_d
         });
 
-        // Mostrar mensaje de éxito
         this.$swal.fire({
           icon: 'success',
           title: 'Paquete Devuelto',
           text: 'El paquete ha sido marcado como devuelto.',
         });
 
-        // Eliminar el paquete devuelto de la lista
         this.list = this.list.filter(p => p.id !== item.id);
 
-        // Limpiar la selección
         this.selected = {};
         this.selectedItemsData = [];
         this.selectedForDelivery = [];
 
-        // Cerrar el modal
         this.isModalVisible = false;
       } catch (e) {
         console.error(e);
@@ -503,8 +501,6 @@ updatePrice(item) {
         this.load = false;
       }
     },
-
-    // Función para recibir paquetes (comportamiento actual)
     async recibirPaquetes() {
       this.load = true;
       try {
@@ -541,11 +537,7 @@ updatePrice(item) {
       } finally {
         this.load = false;
       }
-    }
-
-
-
-    ,
+    },
     selectAll(event, group) {
       const isChecked = event.target.checked;
       group.forEach(item => {
@@ -596,6 +588,7 @@ updatePrice(item) {
   },
 };
 </script>
+
 
 
 

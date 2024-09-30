@@ -6,17 +6,14 @@
         <div class="row justify-content-end mb-3">
           <div class="col-12 col-md-3 search-input-container">
             <div class="col-12 col-md-3 search-input-container">
-  <div class="position-relative">
-    <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control search-input"
-      placeholder="Buscar..." />
-    <i class="fas fa-search search-icon" @click="handleSearchEnter"></i>
-  </div>
-</div>
-</div>
-
-</div>
-
-
+              <div class="position-relative">
+                <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control search-input"
+                  placeholder="Buscar..." />
+                <i class="fas fa-search search-icon" @click="handleSearchEnter"></i>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="row">
           <div class="col-12">
@@ -44,6 +41,8 @@
                         <th class="py-0 px-1">Dirección Destinatario</th>
                         <th class="py-0 px-1">Municipio/Provincia</th>
                         <th class="py-0 px-1">Zona Destinatario</th>
+                        <!-- Nueva columna para la acción -->
+                        <th class="py-0 px-1">Acción</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -77,6 +76,12 @@
                         </td>
                         <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
                         <td class="py-0 px-1" data-label="Zona Destinatario">{{ m.zona_d }}</td>
+                        <!-- Botón para abrir el modal de observación -->
+                        <td class="py-0 px-1" data-label="Acción">
+                          <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm w-100">
+                            <i class="fas fa-undo"></i> Devolver a destino
+                          </button>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -122,11 +127,10 @@
                   <tbody>
                     <tr v-for="(item, index) in selectedForDelivery" :key="index">
                       <td class="py-0 px-1" data-label="Nº">{{ index + 1 }}</td>
-<td class="py-0 px-1" data-label="Guía">{{ item.guia }}</td>
-<td class="py-0 px-1" data-label="Sucursal">{{ item.sucursale.nombre }}</td>
-<td class="py-0 px-1" data-label="Tarifa">{{ item.tarifa }}</td>
-<td class="py-0 px-1" data-label="Peso">{{ item.peso_v }}</td>
-
+                      <td class="py-0 px-1" data-label="Guía">{{ item.guia }}</td>
+                      <td class="py-0 px-1" data-label="Sucursal">{{ item.sucursale.nombre }}</td>
+                      <td class="py-0 px-1" data-label="Tarifa">{{ item.tarifa }}</td>
+                      <td class="py-0 px-1" data-label="Peso">{{ item.peso_v }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -165,12 +169,31 @@
         <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
       </div>
     </b-modal>
+
+    <!-- Modal para añadir observación e imagen -->
+    <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop hide-footer>
+      <div class="form-group">
+        <label for="observacion">Observación</label>
+        <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="capturephoto">Subir Foto</label>
+        <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
+        <img v-if="uploadedImage" :src="uploadedImage" class="img-fluid mt-2" />
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isObservationModalVisible = false">Cancelar</button>
+        <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
+      </div>
+    </b-modal>
   </div>
 </template>
 
 
+
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
+import Pica from 'pica'; // Importamos Pica para optimizar imágenes
 
 export default {
   name: "IndexPage",
@@ -209,59 +232,145 @@ export default {
       },
       currentPage: 0,
       itemsPerPage: 10,
+      // Nuevas propiedades para la observación y la imagen
+      isObservationModalVisible: false,
+      observacion: '',
+      uploadedImage: '',
+      selectedSolicitudeId: null,
     };
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
+      const searchTerm = this.searchTerm.toLowerCase();
 
-    // Asegúrate de que this.user y this.user.user existen
-    if (!this.user || !this.user.user || !this.user.user.departamento_cartero) {
-      return [];  // Retornar un array vacío si no existe el departamento_cartero
-    }
+      // Asegúrate de que this.user y this.user.user existen
+      if (!this.user || !this.user.user || !this.user.user.departamento_cartero) {
+        return [];  // Retornar un array vacío si no existe el departamento_cartero
+      }
 
-    const departamentoCartero = this.user.user.departamento_cartero;
+      const departamentoCartero = this.user.user.departamento_cartero;
 
-    
-
-    const filtered = this.list
-      .filter(item => 
-        item.estado === 5 && 
-        item.sucursale.origen === departamentoCartero &&
-        Object.values(item).some(value => 
-          String(value).toLowerCase().includes(searchTerm)
+      const filtered = this.list
+        .filter(item => 
+          item.estado === 5 && 
+          item.sucursale.origen === departamentoCartero &&
+          Object.values(item).some(value => 
+            String(value).toLowerCase().includes(searchTerm)
+          )
         )
-      )
-      .sort((a, b) => {
-        return new Date(b.fecha_recojo_c) - new Date(a.fecha_recojo_c);
-      });
+        .sort((a, b) => {
+          return new Date(b.fecha_recojo_c) - new Date(a.fecha_recojo_c);
+        });
 
-    return filtered;
-  }
-  
-  
-  
-  
-  ,
-  paginatedData() {
-    const start = this.currentPage * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredData.slice(start, end);
-  },
-  totalPages() {
-    return Math.ceil(this.filteredData.length / this.itemsPerPage);
-  },
+      return filtered;
+    },
+    paginatedData() {
+      const start = this.currentPage * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredData.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+    },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
     }
   },
   methods: {
     focusPesoInput() {
-    this.$refs.pesoInput[0].focus(); // Asegúrate de que el campo de entrada esté enfocado
-  },
+      this.$refs.pesoInput[0].focus(); // Asegúrate de que el campo de entrada esté enfocado
+    },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
+    },
+    // Método para manejar la carga de imágenes
+    handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.uploadedImage = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    // Método para abrir el modal de observación
+    openObservationModal(id) {
+      this.selectedSolicitudeId = id;
+      this.isObservationModalVisible = true;
+    },
+    // Método para confirmar el rechazo y enviar los datos al servidor
+    async confirmRechazar() {
+      this.load = true;
+
+      try {
+        const originalImage = this.uploadedImage;
+        const optimizedImage = await this.optimizeImage(originalImage);
+        const formattedDate = this.getFormattedDate();
+
+        await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, {
+          observacion: this.observacion,
+          fecha_d: formattedDate,
+          imagen: optimizedImage,
+          imagen_original: originalImage,
+        });
+
+        await this.GET_DATA(this.apiUrl);
+        this.showSuccessMessage();
+        this.resetForm();
+      } catch (e) {
+        console.error(e);
+        this.showErrorMessage();
+      } finally {
+        this.load = false;
+      }
+    },
+    // Método para optimizar la imagen
+    async optimizeImage(imageDataUrl) {
+      const pica = Pica();
+      const img = new Image();
+      img.src = imageDataUrl;
+
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 750;
+      canvas.height = img.height * (750 / img.width);
+
+      await pica.resize(img, canvas);
+      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.3);
+      return optimizedImageDataUrl;
+    },
+    // Método para obtener la fecha formateada
+    getFormattedDate() {
+      const now = new Date();
+      const options = { timeZone: 'America/La_Paz' };
+      return now.toLocaleDateString('es-ES', options) + ' ' + now.toLocaleTimeString('es-ES', options);
+    },
+    // Mostrar mensaje de éxito
+    showSuccessMessage() {
+      this.$swal.fire({
+        icon: 'success',
+        title: 'Solicitud ha sido Retornada',
+        text: 'La solicitud ha sido marcada como "Devuelta a destino" con la observación.',
+      });
+    },
+    // Mostrar mensaje de error
+    showErrorMessage() {
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un error al devolver la solicitud a destino.',
+      });
+    },
+    // Resetear el formulario
+    resetForm() {
+      this.isObservationModalVisible = false;
+      this.observacion = '';
+      this.uploadedImage = '';
     },
     async markAsEnCamino(solicitudeId) {
       this.load = true;
@@ -287,16 +396,16 @@ export default {
       }
     },
     getTarifaLabel(tarifa_id) {
-  if (!this.tarifas || this.tarifas.length === 0) {
-    return 'Tarifas no cargadas';
-  }
-  const tarifa = this.tarifas.find(t => t.id === tarifa_id);
-  if (!tarifa) {
-    console.error(`Tarifa con ID ${tarifa_id} no encontrada.`);
-    return 'Tarifa no encontrada';
-  }
-  return tarifa.departamento;
-},
+      if (!this.tarifas || this.tarifas.length === 0) {
+        return 'Tarifas no cargadas';
+      }
+      const tarifa = this.tarifas.find(t => t.id === tarifa_id);
+      if (!tarifa) {
+        console.error(`Tarifa con ID ${tarifa_id} no encontrada.`);
+        return 'Tarifa no encontrada';
+      }
+      return tarifa.departamento;
+    },
     calculatePrice(tarifa_id, peso_v) {
       const tarifa = this.tarifas.find(t => t.id === tarifa_id);
       if (tarifa) {
@@ -370,32 +479,31 @@ export default {
       }
     },
     confirmAssignSelected() {
-  this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
-    // Validación final
-    let peso = parseFloat(item.peso_v);
-    if (isNaN(peso) || peso < 0.001) {
-      peso = 0.001;
-    } else if (peso > 25.000) {
-      peso = 25.000;
-    }
-    item.peso_v = peso.toFixed(3); // Ajustar y formatear el valor
-    item.nombre_d = item.precio; // Asegúrate de que nombre_d tenga el mismo valor que precio
-    return item;
-  })];
-  
-  // Actualizar la lista de paquetes para entregar
-  this.selectedForDelivery = [...this.selectedForAssign];
-  
-  // Remover los elementos seleccionados de la lista original (tabla de arriba)
-  this.list = this.list.filter(item => !this.selectedForAssign.some(selectedItem => selectedItem.id === item.id));
-
-  this.isModalVisible = false;
-  this.selected = {}; // Limpiar la selección después de asignar
-
-  // Limpiar el campo de búsqueda
-  this.searchTerm = '';
-},
-
+      this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
+        // Validación final
+        let peso = parseFloat(item.peso_v);
+        if (isNaN(peso) || peso < 0.001) {
+          peso = 0.001;
+        } else if (peso > 25.000) {
+          peso = 25.000;
+        }
+        item.peso_v = peso.toFixed(3); // Ajustar y formatear el valor
+        item.nombre_d = item.precio; // Asegúrate de que nombre_d tenga el mismo valor que precio
+        return item;
+      })];
+      
+      // Actualizar la lista de paquetes para entregar
+      this.selectedForDelivery = [...this.selectedForAssign];
+      
+      // Remover los elementos seleccionados de la lista original (tabla de arriba)
+      this.list = this.list.filter(item => !this.selectedForAssign.some(selectedItem => selectedItem.id === item.id));
+    
+      this.isModalVisible = false;
+      this.selected = {}; // Limpiar la selección después de asignar
+    
+      // Limpiar el campo de búsqueda
+      this.searchTerm = '';
+    },
     async confirmAllAssignments() {
       this.load = true;
       try {
@@ -452,38 +560,45 @@ export default {
   },
   mounted() {
     this.$nextTick(async () => {
-    let user = localStorage.getItem('userAuth');
-    
-    if (user) {
-      this.user = JSON.parse(user);
+      let user = localStorage.getItem('userAuth');
       
-      if (this.user.user.departamento_cartero) {
+      if (user) {
+        this.user = JSON.parse(user);
+        
+        if (this.user.user.departamento_cartero) {
+          // Lógica adicional si es necesario
+        } else {
+          // Lógica adicional si es necesario
+        }
       } else {
+        // Manejar el caso en que no hay usuario
       }
-    } else {
-    }
-
-    try {
-      const data = await this.GET_DATA(this.apiUrl);
-      if (Array.isArray(data)) {
-        this.list = data;
-      } else {
+  
+      try {
+        const data = await this.GET_DATA(this.apiUrl);
+        if (Array.isArray(data)) {
+          this.list = data;
+        } else {
+          // Manejar el caso en que los datos no son un array
+        }
+        
+        // Obtener tarifas para los nombres de tarifa
+        const tarifas = await this.GET_DATA('getTarifas');
+        if (Array.isArray(tarifas)) {
+          this.tarifas = tarifas;
+        } else {
+          // Manejar el caso en que las tarifas no son un array
+        }
+      } catch (e) {
+        // Manejar errores en la obtención de datos
+      } finally {
+        this.load = false;
       }
-      
-      // Obtener tarifas para los nombres de tarifa
-      const tarifas = await this.GET_DATA('getTarifas');
-      if (Array.isArray(tarifas)) {
-        this.tarifas = tarifas;
-      } else {
-      }
-    } catch (e) {
-    } finally {
-      this.load = false;
-    }
-  });
+    });
   },
 };
 </script>
+
 
 
 
