@@ -54,11 +54,16 @@
                         <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
                         <td class="py-0 px-1" data-label="Teléfono Destinatario">{{ m.telefono_d }}</td>
                         <td class="py-0 px-1" data-label="Dirección Destinatario Maps">
-                          <a v-if="isCoordinates(m.direccion_d)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank" class="btn btn-primary btn-sm">
-                            Ver mapa
-                          </a>
-                          <span v-else>{{ m.direccion_d }}</span>
-                        </td>
+  <a 
+    v-if="isCoordinates(m.direccion_d) || m.direccion_especifica_d" 
+    :href="'https://www.google.com/maps/search/?api=1&query=' + (isCoordinates(m.direccion_d) ? m.direccion_d : m.direccion_especifica_d)" 
+    target="_blank" 
+    class="btn btn-primary btn-sm">
+    Ver mapa
+  </a>
+  <span v-else>No hay dirección disponible</span>
+</td>
+
                         <td class="py-0 px-1" data-label="Dirección">{{ m.direccion_especifica_d }}</td>
                         <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
                         <td class="py-0 px-1" data-label="Zona">{{ m.zona_d }}</td>
@@ -176,9 +181,9 @@ export default {
       observacion: '',
       uploadedImage: '',
       isMapModalVisible: false,
-    selectedMapItems: [],
-    userLocation: null,
-    sortedMapItems: [],
+      selectedMapItems: [],
+      userLocation: null,
+      sortedMapItems: [],
     };
   },
   computed: {
@@ -243,53 +248,46 @@ export default {
     },
 
     processMap(selectedItems, userLocation) {
-      const itemsWithCoordinates = selectedItems.map(item => {
+      const waypoints = selectedItems.map(item => {
         if (this.isCoordinates(item.direccion_d)) {
-          const coords = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
-          return {
-            id: item.id,
-            guia: item.guia,
-            destinatario: item.destinatario,
-            lat: coords[0],
-            lng: coords[1]
-          };
+          return item.direccion_d.trim();
+        } else if (item.direccion_especifica_d) {
+          return encodeURIComponent(item.direccion_especifica_d.trim());
         } else {
           return null;
         }
       }).filter(item => item !== null);
 
-      if (itemsWithCoordinates.length === 0) {
+      if (waypoints.length === 0) {
         this.$swal.fire({
           icon: 'warning',
-          title: 'Sin coordenadas válidas',
-          text: 'No se encontraron coordenadas válidas en los elementos seleccionados.',
+          title: 'Sin direcciones válidas',
+          text: 'No se encontraron direcciones válidas en los elementos seleccionados.',
         });
         return;
       }
 
-      itemsWithCoordinates.forEach(item => {
-        item.distance = this.calculateDistance(userLocation.lat, userLocation.lng, item.lat, item.lng);
-      });
-
-      itemsWithCoordinates.sort((a, b) => a.distance - b.distance);
-
-      this.openGoogleMaps(userLocation, itemsWithCoordinates);
+      this.openGoogleMaps(userLocation, waypoints);
     },
 
-    openGoogleMaps(userLocation, items) {
+    openGoogleMaps(userLocation, waypoints) {
       let url = 'https://www.google.com/maps/dir/?api=1';
 
-      // Usar coordenadas del usuario como origen
+      // Establecer el origen como la ubicación del usuario
       url += `&origin=${userLocation.lat},${userLocation.lng}`;
 
-      const lastItem = items[items.length - 1];
-      url += `&destination=${lastItem.lat},${lastItem.lng}`;
-
-      if (items.length > 1) {
-        const waypoints = items.slice(0, items.length - 1).map(item => `${item.lat},${item.lng}`).join('|');
-        url += `&waypoints=${encodeURIComponent(waypoints)}`;
+      if (waypoints.length === 1) {
+        // Solo un destino
+        url += `&destination=${waypoints[0]}`;
+      } else {
+        // Múltiples destinos: último como destino, anteriores como waypoints
+        const destination = waypoints.pop();
+        const waypointsParam = waypoints.join('|');
+        url += `&destination=${destination}`;
+        url += `&waypoints=${waypointsParam}`;
       }
 
+      // Abrir la URL en una nueva pestaña
       const mapWindow = window.open(url, '_blank');
       if (!mapWindow) {
         this.$swal.fire({
@@ -300,27 +298,11 @@ export default {
       }
     },
 
-    calculateDistance(lat1, lng1, lat2, lng2) {
-      const toRad = value => value * Math.PI / 180;
-      const R = 6371;
-      const dLat = toRad(lat2 - lat1);
-      const dLng = toRad(lng2 - lng1);
-      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-                Math.sin(dLng / 2) * Math.sin(dLng / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const distance = R * c;
-      return distance;
-    },
-
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
 
- 
- 
- 
     handleImageUpload(event) {
       const file = event.target.files[0];
       if (file) {
@@ -541,7 +523,24 @@ export default {
     },
     goToPage(page) {
       this.currentPage = page;
-    }
+    },
+    // Función actualizada para manejar coordenadas y direcciones
+    getMapRoute(item) {
+      if (this.isCoordinates(item.direccion_d)) {
+        const [lat, lng] = item.direccion_d.split(',').map(coord => coord.trim());
+        return {
+          path: '/map',
+          query: { lat, lng }
+        };
+      } else if (item.direccion_especifica_d) {
+        return {
+          path: '/map',
+          query: { address: item.direccion_especifica_d }
+        };
+      }
+      // Retorna una ruta vacía o una ruta por defecto si no hay datos
+      return {};
+    },
   },
   mounted() {
     this.$nextTick(async () => {
@@ -564,6 +563,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .card.border-rounded {

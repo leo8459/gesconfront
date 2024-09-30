@@ -5,27 +5,26 @@
       <div slot="body">
         <div class="row justify-content-end mb-3">
           <div class="col-3" v-if="hasSelectedItems">
-            <button @click="openAssignModal" class="btn btn-primary btn-sm w-100">
-              <i class="fas fa-truck"></i> Asignar todos los seleccionados
-            </button>
+            
           </div>
-          <!-- Ajuste del campo de búsqueda -->
           <div class="col-12 col-md-3 search-input-container">
-            <input v-model="searchTerm" type="text" class="form-control search-input" placeholder="Buscar..." />
-          </div>
+      <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control search-input" placeholder="Buscar..." />
+    </div>
         </div>
-        
         <div class="row">
           <div class="col-12">
             <div class="card border-rounded">
               <div class="card-header">
-                EN CAMINO
+                En Camino
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
+                        <th class="py-0 px-1">
+      <input type="checkbox" @change="selectAll($event, paginatedData)">
+    </th>
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Guía</th>
@@ -43,7 +42,9 @@
                     </thead>
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i">
-                        <!-- Agregamos data-label para mostrar los títulos de las columnas en pantallas pequeñas -->
+                        <td class="py-0 px-1">
+      <input type="checkbox" v-model="selected[m.id]">
+    </td>
                         <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="py-0 px-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
@@ -53,13 +54,16 @@
                         <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
                         <td class="py-0 px-1" data-label="Teléfono Destinatario">{{ m.telefono_d }}</td>
                         <td class="py-0 px-1" data-label="Dirección Destinatario Maps">
-                          <a v-if="isCoordinates(m.direccion_d)" 
-                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                             class="btn btn-primary btn-sm">
-                            Ver mapa
-                          </a>
-                          <span v-else>{{ m.direccion_d }}</span>
-                        </td>
+  <a 
+    v-if="isCoordinates(m.direccion_d) || m.direccion_especifica_d" 
+    :href="'https://www.google.com/maps/search/?api=1&query=' + (isCoordinates(m.direccion_d) ? m.direccion_d : m.direccion_especifica_d)" 
+    target="_blank" 
+    class="btn btn-primary btn-sm">
+    Ver mapa
+  </a>
+  <span v-else>No hay dirección disponible</span>
+</td>
+
                         <td class="py-0 px-1" data-label="Dirección">{{ m.direccion_especifica_d }}</td>
                         <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
                         <td class="py-0 px-1" data-label="Zona">{{ m.zona_d }}</td>
@@ -81,6 +85,15 @@
                 </div>
               </div>
             </div>
+            <div class="row justify-content-end mb-3">
+
+  <div class="col-3" v-if="hasSelectedItems">
+    <button @click="showMap" class="btn btn-primary btn-sm w-100">
+      <i class="fas fa-map"></i> Mapa
+    </button>
+  </div>
+ 
+</div>
 
             <!-- Paginación -->
             <nav aria-label="Page navigation">
@@ -132,16 +145,18 @@
   </div>
 </template>
 
-
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
-import Pica from 'pica'; // Importa Pica para redimensionar y comprimir imágenes
+import Pica from 'pica';
+import Vue from 'vue';
+import Router from 'vue-router';
 
 export default {
   name: "IndexPage",
   components: {
     BCollapse,
-    BModal
+    BModal,
+    // path: '/map',
   },
   data() {
     return {
@@ -164,7 +179,11 @@ export default {
       itemsPerPage: 10,
       isObservationModalVisible: false,
       observacion: '',
-      uploadedImage: '', // Añadido para manejar la imagen subida
+      uploadedImage: '',
+      isMapModalVisible: false,
+      selectedMapItems: [],
+      userLocation: null,
+      sortedMapItems: [],
     };
   },
   computed: {
@@ -191,6 +210,99 @@ export default {
     }
   },
   methods: {
+    showMap() {
+      const selectedItems = this.list.filter(item => this.selected[item.id]);
+
+      if (selectedItems.length === 0) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'No hay elementos seleccionados',
+          text: 'Por favor, seleccione al menos un elemento.',
+        });
+        return;
+      }
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+
+          this.processMap(selectedItems, userLocation);
+        }, error => {
+          console.error(error);
+          this.$swal.fire({
+            icon: 'error',
+            title: 'Error al obtener ubicación',
+            text: 'No se pudo obtener su ubicación actual.',
+          });
+        });
+      } else {
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Geolocalización no soportada',
+          text: 'Su navegador no soporta geolocalización.',
+        });
+      }
+    },
+
+    processMap(selectedItems, userLocation) {
+      const waypoints = selectedItems.map(item => {
+        if (this.isCoordinates(item.direccion_d)) {
+          return item.direccion_d.trim();
+        } else if (item.direccion_especifica_d) {
+          return encodeURIComponent(item.direccion_especifica_d.trim());
+        } else {
+          return null;
+        }
+      }).filter(item => item !== null);
+
+      if (waypoints.length === 0) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Sin direcciones válidas',
+          text: 'No se encontraron direcciones válidas en los elementos seleccionados.',
+        });
+        return;
+      }
+
+      this.openGoogleMaps(userLocation, waypoints);
+    },
+
+    openGoogleMaps(userLocation, waypoints) {
+      let url = 'https://www.google.com/maps/dir/?api=1';
+
+      // Establecer el origen como la ubicación del usuario
+      url += `&origin=${userLocation.lat},${userLocation.lng}`;
+
+      if (waypoints.length === 1) {
+        // Solo un destino
+        url += `&destination=${waypoints[0]}`;
+      } else {
+        // Múltiples destinos: último como destino, anteriores como waypoints
+        const destination = waypoints.pop();
+        const waypointsParam = waypoints.join('|');
+        url += `&destination=${destination}`;
+        url += `&waypoints=${waypointsParam}`;
+      }
+
+      // Abrir la URL en una nueva pestaña
+      const mapWindow = window.open(url, '_blank');
+      if (!mapWindow) {
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Bloqueo de ventanas emergentes',
+          text: 'Por favor, habilite las ventanas emergentes para esta aplicación.',
+        });
+      }
+    },
+
+    isCoordinates(address) {
+      const regex = /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/;
+      return regex.test(address);
+    },
+
     handleImageUpload(event) {
       const file = event.target.files[0];
       if (file) {
@@ -202,42 +314,30 @@ export default {
       }
     },
     async confirmRechazar() {
-  this.load = true;
+      this.load = true;
 
-  try {
-    // Almacenar la imagen original antes de optimizarla
-    const originalImage = this.uploadedImage;
+      try {
+        const originalImage = this.uploadedImage;
+        const optimizedImage = await this.optimizeImage(originalImage);
+        const formattedDate = this.getFormattedDate();
 
-    // Redimensionar y comprimir la imagen antes de enviarla
-    const optimizedImage = await this.optimizeImage(originalImage);
+        await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, {
+          observacion: this.observacion,
+          fecha_d: formattedDate,
+          imagen: optimizedImage,
+          imagen_original: originalImage,
+        });
 
-    // Formatear la fecha actual
-    const formattedDate = this.getFormattedDate();
-
-    // Enviar la solicitud de actualización con la imagen optimizada
-    await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, {
-      observacion: this.observacion,
-      fecha_d: formattedDate,
-      imagen: optimizedImage, // Enviar la imagen optimizada
-      imagen_original: originalImage, // También enviar la imagen original
-    });
-
-    // Recargar los datos
-    await this.GET_DATA(this.apiUrl);
-
-    // Mostrar mensaje de éxito
-    this.showSuccessMessage();
-
-    // Limpiar la entrada de datos después de guardar
-    this.resetForm();
-  } catch (e) {
-    console.error(e);
-    this.showErrorMessage();
-  } finally {
-    this.load = false;
-  }
-},
-
+        await this.GET_DATA(this.apiUrl);
+        this.showSuccessMessage();
+        this.resetForm();
+      } catch (e) {
+        console.error(e);
+        this.showErrorMessage();
+      } finally {
+        this.load = false;
+      }
+    },
 
     async optimizeImage(imageDataUrl) {
       const pica = Pica();
@@ -249,11 +349,11 @@ export default {
       });
 
       const canvas = document.createElement('canvas');
-      canvas.width = 750; // Ancho deseado
-      canvas.height = img.height * (750 / img.width); // Mantiene la proporción de aspecto
+      canvas.width = 750;
+      canvas.height = img.height * (750 / img.width);
 
       await pica.resize(img, canvas);
-      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.3); // Convertir a WebP con calidad 50%
+      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.3);
       return optimizedImageDataUrl;
     },
 
@@ -282,21 +382,18 @@ export default {
     resetForm() {
       this.isObservationModalVisible = false;
       this.observacion = '';
-      this.uploadedImage = ''; // Limpiar la imagen después de guardar
+      this.uploadedImage = '';
     },
     openObservationModal(id) {
       this.selectedSolicitudeId = id;
       this.isObservationModalVisible = true;
     },
-    isCoordinates(address) {
-      const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
-      return regex.test(address);
-    },
+    
     async markAsEnCamino(solicitudeId) {
       this.load = true;
       try {
         const carteroId = this.user.user.id;
-        const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
+        await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
         await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
           icon: 'success',
@@ -368,7 +465,12 @@ export default {
       }));
       this.isModalVisible = true;
     },
-   
+    handleSearchEnter() {
+      this.selectedItemsData = this.filteredData;
+      if (this.selectedItemsData.length > 0) {
+        this.isModalVisible = true;
+      }
+    },
     async confirmAssignSelected() {
       this.load = true;
       try {
@@ -421,12 +523,30 @@ export default {
     },
     goToPage(page) {
       this.currentPage = page;
-    }
+    },
+    // Función actualizada para manejar coordenadas y direcciones
+    getMapRoute(item) {
+      if (this.isCoordinates(item.direccion_d)) {
+        const [lat, lng] = item.direccion_d.split(',').map(coord => coord.trim());
+        return {
+          path: '/map',
+          query: { lat, lng }
+        };
+      } else if (item.direccion_especifica_d) {
+        return {
+          path: '/map',
+          query: { address: item.direccion_especifica_d }
+        };
+      }
+      // Retorna una ruta vacía o una ruta por defecto si no hay datos
+      return {};
+    },
   },
   mounted() {
     this.$nextTick(async () => {
       let user = localStorage.getItem('userAuth');
       this.user = JSON.parse(user);
+
       try {
         const data = await this.GET_DATA(this.apiUrl);
         if (Array.isArray(data)) {
@@ -444,69 +564,8 @@ export default {
 };
 </script>
 
+
 <style scoped>
-.card.border-rounded {
-  border-radius: 15px;
-  border: 1px solid #000000;
-  margin-bottom: 1.5rem;
-  overflow: hidden;
-}
-
-.card-header {
-  background-color: #34447C;
-  color: #FFFFFF;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.table-responsive {
-  max-width: 100%;
-  overflow-x: auto;
-}
-
-.table {
-  text-align: center;
-  vertical-align: middle;
-}
-
-.table th {
-  background-color: #6c7a89;
-  color: #FFFFFF;
-  border-bottom: 2px solid #34447C;
-  font-size: 16px;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.table td {
-  font-size: 16px;
-  text-align: center;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-
-.table-hover tbody tr:hover {
-  background-color: #F8F9FA;
-}
-
-.pagination .page-item.active .page-link {
-  background-color: #ffffff;
-  border-color: #ffffff;
-}
-
-.pagination .page-item .page-link {
-  color: #343A40;
-}
-
-.btn-primary {
-  background-color: #34447C;
-  border-color: #34447C;
-}
-
-.btn-primary:hover {
-  background-color: #4a5a7a;
-}
 .card.border-rounded {
   border-radius: 15px;
   border: 1px solid #000000;
@@ -524,12 +583,13 @@ export default {
 /* Estilos generales de la tabla */
 .table-responsive {
   max-width: 100%;
-  overflow-x: auto; /* Permitir scroll horizontal si es necesario */
+  overflow-x: auto !important; /* Asegura el scroll horizontal */
+  white-space: nowrap; /* Mantiene el texto en una línea */
 }
 
 .table {
   width: 100%;
-  table-layout: auto; /* Permitir que la tabla se ajuste automáticamente */
+  table-layout: auto;
   text-align: center;
   vertical-align: middle;
 }
@@ -567,43 +627,39 @@ export default {
 
 .btn {
   width: 100%;
-  margin-bottom: 5px; /* Espacio entre los botones */
-  font-size: 14px; /* Tamaño ajustado para pantallas medianas */
+  margin-bottom: 5px;
+  font-size: 14px;
 }
 
 .btn i {
-  margin-right: 5px; /* Espacio entre el icono y el texto */
+  margin-right: 5px;
 }
 
-/* Estilo del input de búsqueda */
+.search-input-container {
+  width: 100%;
+}
+
 .search-input {
-  width: auto;
+  width: 100%;
 }
 
-
-
-.pagination .page-item.active .page-link {
-  background-color: #ffffff;
-  border-color: #ffffff;
-}
-
-.pagination .page-item .page-link {
-  color: #343A40;
-}
-
+/* Para pantallas pequeñas (móviles) */
 @media (max-width: 768px) {
-  /* Para pantallas móviles */
+  .search-input-container {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
   .search-input {
-    width: 100%; /* Asegurar que el campo de búsqueda ocupe todo el ancho */
-    margin-bottom: 10px; /* Añadir espacio debajo */
+    width: 100%;
   }
 
   .table-responsive {
-    overflow-x: unset;
+    overflow-x: scroll;
   }
 
   .table thead {
-    display: none; /* Ocultar el encabezado en pantallas pequeñas */
+    display: none;
   }
 
   .table tr {
@@ -618,7 +674,7 @@ export default {
     padding: 5px;
     border: none;
     border-bottom: 1px solid #ddd;
-    font-size: 14px; /* Tamaño ajustado para pantallas medianas */
+    font-size: 14px;
   }
 
   .table td::before {
@@ -627,11 +683,10 @@ export default {
     font-weight: bold;
     color: #34447C;
     text-align: left;
-    padding-right: 5px; /* Espacio entre el título de la columna y el contenido */
-    font-size: 14px; /* Tamaño de fuente ajustado */
+    padding-right: 5px;
+    font-size: 14px;
   }
 
-  /* Ajustar los botones en pantallas pequeñas */
   .btn {
     font-size: 14px;
     padding: 8px 12px;
@@ -641,7 +696,6 @@ export default {
     margin-right: 5px;
   }
 
-  /* Ajuste para el modal */
   #observacion {
     width: 100%;
     resize: none;
@@ -653,8 +707,8 @@ export default {
   }
 }
 
+/* Ajustes para pantallas más pequeñas */
 @media (max-width: 360px) {
-  /* Estilos para pantallas muy pequeñas */
   .table td {
     font-size: 12px;
     padding: 4px;
@@ -676,5 +730,9 @@ export default {
   .search-input {
     width: 100%;
   }
+}
+#map {
+  width: 100%;
+  height: 100vh;
 }
 </style>
