@@ -228,8 +228,8 @@ export default {
         }
       },
       variableInt: null,
-      page: "Dashboard",
-      modulo: "Dashboard",
+      page: "Menu Principal",
+      modulo: "Menu Principal",
       load: false,
       dashboard: {
         alquileres: 10,

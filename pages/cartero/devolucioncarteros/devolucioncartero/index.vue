@@ -26,7 +26,7 @@
           <div class="col-12">
             <div class="card border-rounded">
               <div class="card-header">
-                EN CAMINO
+                DEVOLUCION EN CAMINO 
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
@@ -162,8 +162,8 @@ export default {
       sucursales: [], // Almacena la lista de sucursales
       selectedSucursal: '', // Almacena la sucursal seleccionada
       apiUrl: 'solicitudes',
-      page: 'solicitudes',
-      modulo: 'solicitudes',
+      page: 'Envios en Devolucion',
+      modulo: 'Envios en Devolucion',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
       url_editar: '/admin/cartero/editar/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',

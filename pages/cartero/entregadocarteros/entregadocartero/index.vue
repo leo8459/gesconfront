@@ -42,7 +42,7 @@
                     <th class="py-0 px-1">Sucursal</th>
                     <th class="py-0 px-1">Cartero</th>
                     <th class="py-0 px-1">Guia</th>
-                    <th class="py-0 px-1">Peso Correos (Kg)</th>
+                    <th class="py-0 px-1">Peso</th>
                     <th class="py-0 px-1">Remitente</th>
 
                     <!-- Nueva columna para la dirección específica -->
@@ -177,8 +177,8 @@ export default {
       list: [],
       searchTerm: '',
       apiUrl: 'solicitudes',
-      page: 'solicitudes',
-      modulo: 'solicitudes',
+      page: 'Envios Entregados',
+      modulo: 'Envios Entregados',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
       url_editar: '/admin/solicitudescartero/solicitudecartero/editar/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',

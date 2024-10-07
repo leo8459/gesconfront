@@ -8,9 +8,9 @@ export default function ({ $axios, store, redirect }, inject) {
         }
       }
     });
-    let url ='http://172.65.10.52:8450/administrador/'
+    // let url ='http://172.65.10.52:8450/administrador/'
 
-    // const url = 'http://localhost/backgescon2/public/administrador/';
+    const url = 'http://localhost/backgescon2/public/administrador/';
     administrador.setBaseURL(url);
   
     administrador.interceptors.request.use(config => {

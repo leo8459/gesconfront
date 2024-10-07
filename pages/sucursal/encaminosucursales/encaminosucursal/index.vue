@@ -12,7 +12,7 @@
           <div class="col-12">
             <div class="card border-rounded">
               <div class="card-header">
-                En Camino
+                ENVIOS EN CAMINO
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
@@ -107,8 +107,8 @@ export default {
       load: true,
       list: [],
       apiUrl: 'solicitudes2',
-      page: 'solicitudes',
-      modulo: 'solicitudes',
+      page: 'Envios en Camino',
+      modulo: 'Envios en Camino',
       url_nuevo: '/admin/sucursal/sucursales/sucursal/nuevo',
       url_editar: '/admin/sucursal/sucursales/sucursal/editar/',
       user: {

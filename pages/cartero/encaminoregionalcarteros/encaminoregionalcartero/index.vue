@@ -164,8 +164,8 @@ export default {
       list: [],
       searchTerm: '',
       apiUrl: 'solicitudes',
-      page: 'solicitudes',
-      modulo: 'solicitudes',
+      page: 'Envios en Camino',
+      modulo: 'Envios en Camino',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
       url_editar: '/admin/cartero/editar/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',
@@ -246,13 +246,35 @@ export default {
         });
       }
     },
+    calculateDistance(coord1, coord2) {
+      const toRad = (value) => (value * Math.PI) / 180;
 
-    processMap(selectedItems, userLocation) {
-      const waypoints = selectedItems.map(item => {
+      const lat1 = coord1.lat;
+      const lon1 = coord1.lng;
+      const lat2 = coord2.lat;
+      const lon2 = coord2.lng;
+
+      const R = 6371; // Radio de la Tierra en kilómetros
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) *
+          Math.cos(toRad(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distance = R * c;
+      return distance; // en kilómetros
+    },
+    async processMap(selectedItems, userLocation) {
+      let waypoints = selectedItems.map(item => {
         if (this.isCoordinates(item.direccion_d)) {
-          return item.direccion_d.trim();
+          const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
+          return { lat, lng };
         } else if (item.direccion_especifica_d) {
-          return encodeURIComponent(item.direccion_especifica_d.trim());
+          // Implementar geocodificación si es necesario
+          return null;
         } else {
           return null;
         }
@@ -267,7 +289,45 @@ export default {
         return;
       }
 
-      this.openGoogleMaps(userLocation, waypoints);
+      // Ordenar las waypoints usando el algoritmo de vecino más cercano
+      let sortedWaypoints = [];
+      let currentLocation = { ...userLocation };
+      let remainingWaypoints = [...waypoints];
+
+      while (remainingWaypoints.length > 0) {
+        let nearest = remainingWaypoints.reduce((prev, curr) => {
+          const distPrev = this.calculateDistance(currentLocation, prev);
+          const distCurr = this.calculateDistance(currentLocation, curr);
+          return distPrev < distCurr ? prev : curr;
+        });
+
+        sortedWaypoints.push(nearest);
+        currentLocation = nearest;
+        remainingWaypoints = remainingWaypoints.filter(wp => wp !== nearest);
+      }
+
+      // Convertir las waypoints ordenadas a strings para la URL de Google Maps
+      const waypointsParam = sortedWaypoints.map(wp => `${wp.lat},${wp.lng}`).join('|');
+
+      // Construir la URL de Google Maps
+      let url = 'https://www.google.com/maps/dir/?api=1';
+      url += `&origin=${userLocation.lat},${userLocation.lng}`;
+      url += `&destination=${sortedWaypoints[sortedWaypoints.length - 1].lat},${sortedWaypoints[sortedWaypoints.length - 1].lng}`;
+
+      if (sortedWaypoints.length > 1) {
+        const intermediateWaypoints = sortedWaypoints.slice(0, -1).map(wp => `${wp.lat},${wp.lng}`).join('|');
+        url += `&waypoints=${intermediateWaypoints}`;
+      }
+
+      // Abrir la URL en una nueva pestaña
+      const mapWindow = window.open(url, '_blank');
+      if (!mapWindow) {
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Bloqueo de ventanas emergentes',
+          text: 'Por favor, habilite las ventanas emergentes para esta aplicación.',
+        });
+      }
     },
 
     openGoogleMaps(userLocation, waypoints) {

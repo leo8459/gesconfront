@@ -29,7 +29,7 @@
           <div class="col-12">
             <div class="card border-rounded">
               <div class="card-header">
-                Solicitudes
+                Solicitudes Pendientes
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
@@ -145,8 +145,8 @@ export default {
       load: true,
       list: [],
       apiUrl: 'solicitudes2',
-      page: 'solicitudes',
-      modulo: 'solicitudes',
+      page: 'Solicitudes Pendientes',
+      modulo: 'Solicitudes Pendientes',
       tarifas: [], // Inicializamos tarifas como un array vacío
       codigoBarras: '', // Para almacenar el código de barras ingresado
       url_nuevo: '/sucursal/sucursales/sucursal/nuevo',

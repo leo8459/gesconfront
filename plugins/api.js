@@ -7,9 +7,9 @@ export default function ({ $axios, store, redirect }, inject) {
       }
     }
   });
-  let url ='http://172.65.10.52:8450/carteros/'
+  // let url ='http://172.65.10.52:8450/carteros/'
 
-  // const url = 'http://localhost/backgescon2/public/carteros/';
+  const url = 'http://localhost/backgescon2/public/carteros/';
   api.setBaseURL(url);
 
   api.interceptors.request.use(config => {

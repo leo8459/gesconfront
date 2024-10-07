@@ -78,8 +78,8 @@ export default {
       load: true,
       list: [],
       apiUrl: 'solicitudes2',
-      page: 'solicitudes',
-      modulo: 'solicitudes',
+      page: 'Envios Cancelados',
+      modulo: 'Envios Cancelados',
       url_nuevo: '/sucursal/sucursales/sucursal/nuevo',
       url_editar: '/sucursal/sucursales/sucursal/editar/',
       user: {
