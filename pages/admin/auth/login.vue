@@ -71,8 +71,8 @@ import administradorApi from '@/plugins/administrador';
 import gestoresApi from '@/plugins/gestores'; // Importar el plugin gestores
 import contratosApi from '@/plugins/contratos'; // Importar el plugin contratos
 const anime = require('animejs/lib/anime.js'); // Usando la versión CommonJS de anime.js
-import 'intro.js/introjs.css';
-import introJs from 'intro.js';
+// import introJs from 'introjs';
+// import 'introjs/introjs.css';
 
 export default {
   data() {
@@ -219,8 +219,7 @@ export default {
     renderRecaptcha() {
       if (window.grecaptcha) {
         window.grecaptcha.render('recaptcha', {
-          sitekey: '6LetfTwqAAAAAG0mLlOtwBEkJZ922QoplIXgIsmq'
-        });
+          sitekey: '6Le-WgsqAAAAAKYucBNfMWdrYAHbha6aapIQTb7J'        });
       }
     },
 
