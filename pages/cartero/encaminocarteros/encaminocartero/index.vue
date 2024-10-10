@@ -5,11 +5,12 @@
       <div slot="body">
         <div class="row justify-content-end mb-3">
           <div class="col-3" v-if="hasSelectedItems">
-            
+
           </div>
           <div class="col-12 col-md-3 search-input-container">
-      <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control search-input" placeholder="Buscar..." />
-    </div>
+            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text"
+              class="form-control search-input" placeholder="Buscar..." />
+          </div>
         </div>
         <div class="row">
           <div class="col-12">
@@ -23,11 +24,12 @@
                     <thead>
                       <tr>
                         <th class="py-0 px-1">
-      <input type="checkbox" @change="selectAll($event, paginatedData)">
-    </th>
+                          <input type="checkbox" @change="selectAll($event, paginatedData)">
+                        </th>
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Paquete Casilla</th>
                         <th class="py-0 px-1">Remitente</th>
                         <th class="py-0 px-1">Teléfono</th>
                         <th class="py-0 px-1">Contenido</th>
@@ -43,26 +45,25 @@
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i">
                         <td class="py-0 px-1">
-      <input type="checkbox" v-model="selected[m.id]">
-    </td>
+                          <input type="checkbox" v-model="selected[m.id]">
+                        </td>
                         <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="py-0 px-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
+                        <td class="py-0 px-1" data-label="Guía">{{ m.alquiler_id ? m.alquiler_id : 'S/P' }}</td>
                         <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
                         <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
                         <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
                         <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
                         <td class="py-0 px-1" data-label="Teléfono Destinatario">{{ m.telefono_d }}</td>
                         <td class="py-0 px-1" data-label="Dirección Destinatario Maps">
-  <a 
-    v-if="isCoordinates(m.direccion_d) || m.direccion_especifica_d" 
-    :href="'https://www.google.com/maps/search/?api=1&query=' + (isCoordinates(m.direccion_d) ? m.direccion_d : m.direccion_especifica_d)" 
-    target="_blank" 
-    class="btn btn-primary btn-sm">
-    Ver mapa
-  </a>
-  <span v-else>No hay dirección disponible</span>
-</td>
+                          <a v-if="isCoordinates(m.direccion_d) || m.direccion_especifica_d"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + (isCoordinates(m.direccion_d) ? m.direccion_d : m.direccion_especifica_d)"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>No hay dirección disponible</span>
+                        </td>
 
                         <td class="py-0 px-1" data-label="Dirección">{{ m.direccion_especifica_d }}</td>
                         <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
@@ -87,21 +88,23 @@
             </div>
             <div class="row justify-content-end mb-3">
 
-  <div class="col-3" v-if="hasSelectedItems">
-    <button @click="showMap" class="btn btn-primary btn-sm w-100">
-      <i class="fas fa-map"></i> Mapa
-    </button>
-  </div>
- 
-</div>
+              <div class="col-3" v-if="hasSelectedItems">
+                <button @click="showMap" class="btn btn-primary btn-sm w-100">
+                  <i class="fas fa-map"></i> Mapa
+                </button>
+              </div>
+
+            </div>
 
             <!-- Paginación -->
             <nav aria-label="Page navigation">
               <ul class="pagination justify-content-between">
                 <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0"><</button>
+                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0">
+                    <</button>
                 </li>
-                <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page - 1 }">
+                <li class="page-item" v-for="page in totalPages" :key="page"
+                  :class="{ active: currentPage === page - 1 }">
                   <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
                 </li>
                 <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
@@ -113,12 +116,13 @@
         </div>
       </div>
     </AdminTemplate>
-    
+
     <!-- Modal para añadir observación -->
     <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop hide-footer>
       <div class="form-group">
         <label for="observacion">Observación</label>
-        <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
+        <textarea id="observacion" v-model="observacion" class="form-control" rows="3"
+          placeholder="Ingrese la observación..."></textarea>
       </div>
       <div class="form-group">
         <label for="capturephoto">Subir Foto</label>
@@ -190,7 +194,7 @@ export default {
     filteredData() {
       const searchTerm = this.searchTerm.toLowerCase();
       return this.list.filter(item =>
-        item.estado === 2 && 
+        item.estado === 2 &&
         item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
         Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
@@ -388,7 +392,7 @@ export default {
       this.selectedSolicitudeId = id;
       this.isObservationModalVisible = true;
     },
-    
+
     async markAsEnCamino(solicitudeId) {
       this.load = true;
       try {
@@ -400,7 +404,7 @@ export default {
           title: 'Cartero asignado',
           text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
         });
-        await this.GET_DATA(this.apiUrl); 
+        await this.GET_DATA(this.apiUrl);
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -447,7 +451,7 @@ export default {
         const item = this.list.find(m => m.id === id);
         if (item) {
           const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
-          Object.assign(item, response); 
+          Object.assign(item, response);
           await this.GET_DATA(this.apiUrl);
         }
       } catch (e) {
@@ -482,14 +486,14 @@ export default {
             console.error('Item inválido:', item);
           }
         }
-        await this.GET_DATA(this.apiUrl); 
+        await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
           icon: 'success',
           title: 'Carteros asignados',
           text: 'Todos los carteros seleccionados han sido asignados.',
         });
         this.isModalVisible = false;
-        this.selected = {}; 
+        this.selected = {};
         await this.GET_DATA(this.apiUrl);
       } catch (e) {
         console.error(e);
@@ -583,8 +587,10 @@ export default {
 /* Estilos generales de la tabla */
 .table-responsive {
   max-width: 100%;
-  overflow-x: auto !important; /* Asegura el scroll horizontal */
-  white-space: nowrap; /* Mantiene el texto en una línea */
+  overflow-x: auto !important;
+  /* Asegura el scroll horizontal */
+  white-space: nowrap;
+  /* Mantiene el texto en una línea */
 }
 
 .table {
@@ -731,6 +737,7 @@ export default {
     width: 100%;
   }
 }
+
 #map {
   width: 100%;
   height: 100vh;

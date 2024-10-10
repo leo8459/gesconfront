@@ -29,6 +29,33 @@
                       <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente"
                         placeholder="Ej: Juan Pérez">
                     </div>
+                    <div class="form-group col-12">
+  <label for="codigo_paquete">Código del Paquete y Casilla</label>
+  <v-select 
+  :options="paquetes" 
+  v-model="model.alquiler_id" 
+  label="display" 
+  :reduce="paquete => paquete.codigo" 
+  placeholder="Seleccionar paquete...">
+  <template #option="option">
+    <div>
+      {{ option.codigo }} - Casilla: {{ option.casilla_nombre }}
+    </div>
+  </template>
+  <template #selected-option="option">
+    <div>
+      {{ option.codigo }} - Casilla: {{ option.casilla_nombre }}
+    </div>
+  </template>
+</v-select>
+
+
+
+</div>
+
+
+
+
 
                     <div class="form-group col-12">
                       <label for="telefono">Teléfono</label>
@@ -248,7 +275,9 @@ export default {
       searchQuery_d: '',
       searching_d: false,
       direcciones: [],
-      suggestions: []
+      suggestions: [],
+      paquetes: [] // <--- Asegúrate de definir esta propiedad aquí
+
     };
   },
   computed: {
@@ -309,16 +338,18 @@ export default {
       }
     },
     async createRequest() {
-      try {
-        this.model.guia = await this.generateGuideNumber();
-        const response = await this.$sucursales.$post(this.apiUrl, this.model);
-        this.onSuccess(response);
-        this.generatePDF();
-      } catch (error) {
-        console.error('Error al crear la solicitud:', error);
-        this.showSuccessAlert();
-      }
-    },
+  try {
+    this.model.guia = await this.generateGuideNumber();
+    console.log('Datos antes de enviar:', this.model); // Asegúrate de que `alquiler_id` tenga el código aquí
+    const response = await this.$sucursales.$post(this.apiUrl, this.model);
+    this.onSuccess(response);
+    this.generatePDF();
+  } catch (error) {
+    console.error('Error al crear la solicitud:', error);
+    this.showSuccessAlert();
+  }
+},
+
     onSuccess(response) {
       this.showSuccessAlert();
     },
@@ -508,46 +539,44 @@ export default {
   },
   mounted() {
     this.$nextTick(async () => {
-      await this.fetchUser();
-      await this.fetchDirecciones();
-      try {
-        const sucursales = await this.GET_DATA('sucursales2');
-        this.sucursales = sucursales;
-        const tarifas = await this.GET_DATA('getTarifas2', { sucursale_id: this.sucursale_id_logueada });
-        this.tarifas = tarifas;
-      } catch (e) {
-        console.log(e);
-      } finally {
-        this.load = false;
+    await this.fetchUser();
+    await this.fetchDirecciones();
+    
+    try {
+      const sucursales = await this.GET_DATA('sucursales2');
+      this.sucursales = sucursales;
+      const tarifas = await this.GET_DATA('getTarifas2', { sucursale_id: this.sucursale_id_logueada });
+      this.tarifas = tarifas;
+
+      // Obtener los datos de alquileres y paquetes
+      const alquileresResponse = await this.GET_DATA('solicitudes/alquileres');
+      if (alquileresResponse.data && alquileresResponse.data.length) {
+        // Filtrar los alquileres donde el nombre del cliente coincide con el nombre de la sucursal
+        const sucursaleNombre = this.model.sucursale_nombre;
+        const filteredAlquileres = alquileresResponse.data.filter(alquiler => {
+          return alquiler.cliente && alquiler.cliente.nombre === sucursaleNombre;
+        });
+
+        // Mapear los paquetes para el select
+        this.paquetes = filteredAlquileres.map(alquiler => ({
+          codigo: alquiler.paquete ? alquiler.paquete.codigo : 'Sin código',
+          casilla_nombre: alquiler.casilla ? alquiler.casilla.nombre : 'Sin casilla',
+          alquiler_id: alquiler.id,
+          display: `${alquiler.paquete ? alquiler.paquete.codigo : 'Sin código'} - Casilla: ${alquiler.casilla ? alquiler.casilla.nombre : 'Sin casilla'}`
+        }));
       }
-      const now = moment().tz("America/La_Paz");
-      this.model.fecha = now.format('YYYY-MM-DD HH:mm:ss');
-      var canvas = document.getElementById('canvas');
-      var signaturePad = new SignaturePad(canvas);
-      var clearButton = document.getElementById('limpiar');
-      var generateButton = document.getElementById('guardar');
-      clearButton.addEventListener('click', () => {
-        signaturePad.clear();
-        this.model.firma_o = "";
-      });
-      generateButton.addEventListener('click', () => {
-        var firma = signaturePad.toDataURL();
-        this.model.firma_o = firma;
-      });
-      var canvas2 = document.getElementById('canvas2');
-      var signaturePad2 = new SignaturePad(canvas2);
-      var clearButton2 = document.getElementById('limpiar2');
-      var generateButton2 = document.getElementById('guardar2');
-      clearButton2.addEventListener('click', () => {
-        signaturePad2.clear();
-        this.model.firma_d = "";
-      });
-      generateButton2.addEventListener('click', () => {
-        var firma2 = signaturePad2.toDataURL();
-        this.model.firma_d = firma2;
-      });
-    });
-  }
+    } catch (e) {
+      console.log('Error al obtener los datos:', e);
+    } finally {
+      this.load = false;
+    }
+
+    const now = moment().tz("America/La_Paz");
+    this.model.fecha = now.format('YYYY-MM-DD HH:mm:ss');
+  });
+}
+
+
 }
 </script>
 
