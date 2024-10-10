@@ -30,28 +30,24 @@
                         placeholder="Ej: Juan Pérez">
                     </div>
                     <div class="form-group col-12">
-  <label for="codigo_paquete">Código del Paquete y Casilla</label>
-  <v-select 
-  :options="paquetes" 
-  v-model="model.alquiler_id" 
-  label="display" 
-  :reduce="paquete => paquete.codigo" 
-  placeholder="Seleccionar paquete...">
-  <template #option="option">
-    <div>
-      {{ option.codigo }} - Casilla: {{ option.casilla_nombre }}
-    </div>
-  </template>
-  <template #selected-option="option">
-    <div>
-      {{ option.codigo }} - Casilla: {{ option.casilla_nombre }}
-    </div>
-  </template>
-</v-select>
+                      <label for="codigo_paquete">Código del Paquete y Casilla</label>
+                      <v-select :options="paquetes" v-model="model.alquiler_id" label="display"
+                        :reduce="paquete => paquete.codigo" placeholder="Seleccionar paquete...">
+                        <template #option="option">
+                          <div>
+                            {{ option.codigo }} - Casilla: {{ option.casilla_nombre }}
+                          </div>
+                        </template>
+                        <template #selected-option="option">
+                          <div>
+                            {{ option.codigo }} - Casilla: {{ option.casilla_nombre }}
+                          </div>
+                        </template>
+                      </v-select>
 
 
 
-</div>
+                    </div>
 
 
 
@@ -338,17 +334,17 @@ export default {
       }
     },
     async createRequest() {
-  try {
-    this.model.guia = await this.generateGuideNumber();
-    console.log('Datos antes de enviar:', this.model); // Asegúrate de que `alquiler_id` tenga el código aquí
-    const response = await this.$sucursales.$post(this.apiUrl, this.model);
-    this.onSuccess(response);
-    this.generatePDF();
-  } catch (error) {
-    console.error('Error al crear la solicitud:', error);
-    this.showSuccessAlert();
-  }
-},
+      try {
+        this.model.guia = await this.generateGuideNumber();
+        console.log('Datos antes de enviar:', this.model); // Asegúrate de que `alquiler_id` tenga el código aquí
+        const response = await this.$sucursales.$post(this.apiUrl, this.model);
+        this.onSuccess(response);
+        this.generatePDF();
+      } catch (error) {
+        console.error('Error al crear la solicitud:', error);
+        this.showSuccessAlert();
+      }
+    },
 
     onSuccess(response) {
       this.showSuccessAlert();
@@ -539,42 +535,42 @@ export default {
   },
   mounted() {
     this.$nextTick(async () => {
-    await this.fetchUser();
-    await this.fetchDirecciones();
-    
-    try {
-      const sucursales = await this.GET_DATA('sucursales2');
-      this.sucursales = sucursales;
-      const tarifas = await this.GET_DATA('getTarifas2', { sucursale_id: this.sucursale_id_logueada });
-      this.tarifas = tarifas;
+      await this.fetchUser();
+      await this.fetchDirecciones();
 
-      // Obtener los datos de alquileres y paquetes
-      const alquileresResponse = await this.GET_DATA('solicitudes/alquileres');
-      if (alquileresResponse.data && alquileresResponse.data.length) {
-        // Filtrar los alquileres donde el nombre del cliente coincide con el nombre de la sucursal
-        const sucursaleNombre = this.model.sucursale_nombre;
-        const filteredAlquileres = alquileresResponse.data.filter(alquiler => {
-          return alquiler.cliente && alquiler.cliente.nombre === sucursaleNombre;
-        });
+      try {
+        const sucursales = await this.GET_DATA('sucursales2');
+        this.sucursales = sucursales;
+        const tarifas = await this.GET_DATA('getTarifas2', { sucursale_id: this.sucursale_id_logueada });
+        this.tarifas = tarifas;
 
-        // Mapear los paquetes para el select
-        this.paquetes = filteredAlquileres.map(alquiler => ({
-          codigo: alquiler.paquete ? alquiler.paquete.codigo : 'Sin código',
-          casilla_nombre: alquiler.casilla ? alquiler.casilla.nombre : 'Sin casilla',
-          alquiler_id: alquiler.id,
-          display: `${alquiler.paquete ? alquiler.paquete.codigo : 'Sin código'} - Casilla: ${alquiler.casilla ? alquiler.casilla.nombre : 'Sin casilla'}`
-        }));
+        // Obtener los datos de alquileres y paquetes
+        const alquileresResponse = await this.GET_DATA('solicitudes/alquileres');
+        if (alquileresResponse.data && alquileresResponse.data.length) {
+          // Filtrar los alquileres donde el nombre del cliente coincide con el nombre de la sucursal
+          const sucursaleNombre = this.model.sucursale_nombre;
+          const filteredAlquileres = alquileresResponse.data.filter(alquiler => {
+            return alquiler.cliente && alquiler.cliente.nombre === sucursaleNombre;
+          });
+
+          // Mapear los paquetes para el select
+          this.paquetes = filteredAlquileres.map(alquiler => ({
+            codigo: alquiler.paquete ? alquiler.paquete.codigo : 'Sin Correspondencia',
+            casilla_nombre: alquiler.casilla ? alquiler.casilla.nombre : 'Sin casilla',
+            alquiler_id: alquiler.id,
+            display: `${alquiler.paquete ? alquiler.paquete.codigo : 'Sin Correspondencia'} - Casilla: ${alquiler.casilla ? alquiler.casilla.nombre : 'Sin casilla'}`
+          }));
+        }
+      } catch (e) {
+        console.log('Error al obtener los datos:', e);
+      } finally {
+        this.load = false;
       }
-    } catch (e) {
-      console.log('Error al obtener los datos:', e);
-    } finally {
-      this.load = false;
-    }
 
-    const now = moment().tz("America/La_Paz");
-    this.model.fecha = now.format('YYYY-MM-DD HH:mm:ss');
-  });
-}
+      const now = moment().tz("America/La_Paz");
+      this.model.fecha = now.format('YYYY-MM-DD HH:mm:ss');
+    });
+  }
 
 
 }
