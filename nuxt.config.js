@@ -26,6 +26,11 @@ export default {
       { rel: 'stylesheet', href: '/assets/css/soft-ui-dashboard.min.css' },
     ],
     script: [
+      {
+        src: "https://maps.googleapis.com/maps/api/js?key=AIzaSyAioIddXBUV51pKFj_OYarOTPJcy94mNI8&libraries=places",
+        async: true,
+        defer: true,
+      },
       { src: "https://kit.fontawesome.com/a95fc26abb.js" },
       { src: "/assets/js/core/popper.min.js" },
       { src: "/assets/js/core/bootstrap.min.js" },
