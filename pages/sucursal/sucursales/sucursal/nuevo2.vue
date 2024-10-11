@@ -91,6 +91,9 @@
                         placeholder="Calculado automáticamente">
                     </div>
                     <div class="form-group col-12">
+                      <h4>Destinatario</h4>
+                    </div>
+                    <div class="form-group col-12">
   <label for="destinatario">Destinatario</label>
   <input type="text" v-model.trim="model.destinatario" class="form-control" id="destinatario"
     @input="showSuggestions" @blur="hideSuggestions" placeholder="Ej: María López">
