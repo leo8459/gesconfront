@@ -334,17 +334,20 @@ export default {
       }
     },
     async createRequest() {
-      try {
-        this.model.guia = await this.generateGuideNumber();
-        console.log('Datos antes de enviar:', this.model); // Asegúrate de que `alquiler_id` tenga el código aquí
-        const response = await this.$sucursales.$post(this.apiUrl, this.model);
-        this.onSuccess(response);
-        this.generatePDF();
-      } catch (error) {
-        console.error('Error al crear la solicitud:', error);
-        this.showSuccessAlert();
-      }
-    },
+  try {
+    this.model.guia = await this.generateGuideNumber();
+    const dataToSave = {
+      ...this.model,
+      direccion_d: undefined // Elimina el campo de dirección si es necesario
+    };
+    const response = await this.$sucursales.$post(this.apiUrl, dataToSave);
+    this.onSuccess(response);
+    this.generatePDF();
+  } catch (error) {
+    console.error('Error al crear la solicitud:', error);
+    this.showSuccessAlert();
+  }
+},
 
     onSuccess(response) {
       this.showSuccessAlert();
