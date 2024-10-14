@@ -122,6 +122,7 @@
                         <th class="py-0 px-1">Fecha de Entrega</th>
                         <th class="py-0 px-1">Imagen Capturada</th>
                         <th class="py-0 px-1">Justificación</th>
+                        <th class="py-0 px-1">PDF Justificación</th> <!-- Nueva columna para descargar PDF -->
                         <th class="py-0 px-1">Imagen Justificación</th>
                         <th class="py-0 px-1">Fecha devolución</th>
                         <th class="py-0 px-1">Imagen devolución</th>
@@ -177,6 +178,14 @@
                           </div>
                         </td>
                         <td class="py-0 px-1">{{ m.justificacion }}</td>
+                        <td class="py-0 px-1">
+  <button v-if="m.pdf_justificacion" @click="downloadPDF(m.pdf_justificacion)" class="btn btn-sm btn-primary mt-1">
+    Descargar PDF
+  </button>
+  <span v-else>No PDF</span>
+</td>
+
+
                         <td class="py-0 px-1">
                           <div class="d-flex flex-column align-items-center">
                             <button v-if="m.imagen_justificacion" @click="downloadImage(m.imagen_justificacion)"
@@ -307,6 +316,8 @@ import pdfFonts from 'pdfmake/build/vfs_fonts';
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 import vSelect from 'vue-select';
 import 'vue-select/dist/vue-select.css';
+import { openDB } from 'idb';
+
 export default {
   name: "IndexPage",
   components: {
@@ -393,7 +404,15 @@ export default {
     }
   },
   methods: {
-
+    downloadPDF(pdfDataUrl) {
+  const link = document.createElement('a');
+  link.href = pdfDataUrl;
+  link.download = 'justificacion.pdf';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+,
     async obtenerSaldoRestanteTodasSucursales() {
       try {
         const lastAlertDate = localStorage.getItem('lastAlertDate');
@@ -1252,18 +1271,34 @@ export default {
 
   mounted() {
     this.$nextTick(async () => {
-      await this.obtenerSaldoRestanteTodasSucursales();
+  // Inicialmente cargar el saldo restante, sucursales y datos
+  await this.obtenerSaldoRestanteTodasSucursales();
+  await this.fetchSucursales();
+  await this.GET_DATA(this.apiUrl);
 
-      await this.fetchSucursales();
-      await this.GET_DATA(this.apiUrl);
-      this.load = false;
+  // Después de obtener los datos, acceder a IndexedDB para cargar los PDF
+  try {
+    const db = await openDB('pdf-storage', 1);
+    
+    // Recorrer la lista de datos y buscar los PDF correspondientes en IndexedDB
+    for (let item of this.list) {
+      const pdfRecord = await db.get('pdfs', item.id);
+      if (pdfRecord) {
+        item.pdf_justificacion = pdfRecord.content; // Asignar el PDF al item si existe en IndexedDB
+      } else {
+        item.pdf_justificacion = null; // No hay PDF disponible
+      }
+    }
+    
+    // Filtrar los elementos por estado
+    this.list = this.list.filter(item => item.estado === 4 || item.estado === 7);
+    console.log('Datos después del filtrado y recuperación de PDF:', this.list);
+  } catch (e) {
+    console.error('Error al recuperar PDFs desde IndexedDB:', e);
+  }
 
-      console.log('Usuario cargado:', this.user);
-      console.log('Datos cargados después de montaje:', this.list);
-
-      this.list = this.list.filter(item => item.estado === 4 || item.estado === 7);
-      console.log('Datos después del filtrado inicial:', this.list);
-    });
+  this.load = false; // Cambiar el estado de carga
+});
   },
 };
 </script>

@@ -29,6 +29,7 @@
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Peso</th>
                         <th class="py-0 px-1">Remitente</th>
                         <th class="py-0 px-1">Detalles de Domicilio</th>
                         <th class="py-0 px-1">Zona</th>
@@ -50,6 +51,8 @@
                         <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
+                        <td class="py-0 px-1" data-label="Guía">{{ m.peso_o }}</td>
+
                         <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
                         <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica }}</td>
                         <td class="py-0 px-1" data-label="Zona">{{ m.direccion.zona }}</td>

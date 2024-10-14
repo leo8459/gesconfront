@@ -102,16 +102,21 @@ export default {
   },
   computed: {
     filteredList() {
-      // Filtrar la lista según el término de búsqueda
-      return this.list.filter(item => {
-        const searchTerm = this.searchTerm.toLowerCase();
-        return (
-          item.codigo.toLowerCase().includes(searchTerm) ||
-          item.accion.toLowerCase().includes(searchTerm) ||
-          item.descripcion.toLowerCase().includes(searchTerm) ||
-          item.fecha_hora.toLowerCase().includes(searchTerm)
-        );
-      });
+      // Filtrar la lista según el término de búsqueda y ordenarla por fecha de más nuevo a más antiguo
+      return this.list
+        .filter(item => {
+          const searchTerm = this.searchTerm.toLowerCase();
+          return (
+            item.codigo.toLowerCase().includes(searchTerm) ||
+            item.accion.toLowerCase().includes(searchTerm) ||
+            item.descripcion.toLowerCase().includes(searchTerm) ||
+            item.fecha_hora.toLowerCase().includes(searchTerm)
+          );
+        })
+        .sort((a, b) => {
+          // Ordenar por fecha_hora de más reciente a más antiguo
+          return new Date(b.fecha_hora) - new Date(a.fecha_hora);
+        });
     },
     paginatedData() {
       // Datos paginados

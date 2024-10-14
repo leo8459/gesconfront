@@ -13,27 +13,16 @@
                 <div slot="body" class="row">
                  
                   <div class="form-group col-12">
-                    <label for="">Justificacion</label>
+                    <label for="">Justificación</label>
                     <input type="text" v-model="model.justificacion" class="form-control" id="justificacion" >
                   </div>
-
-                  <!-- <div class="form-group col-12">
-                    <label for="firma_d">Firma Destino</label>
-                    <input type="text" v-model.trim="model.firma_d" class="form-control" id="firma_d">
-                    <div class="position-relative">
-                      <canvas id="canvas2" class="border border-2 rounded-3 bg-white" width="560px"
-                        height="250px"></canvas>
-                      <div class="btn-canvas">
-                        <button type="button" id="guardar2" class="btn btn-primary">Guardar</button>
-                        <button type="button" id="limpiar2" class="btn btn-secondary">Limpiar</button>
-                      </div>
-                    </div>
-                  </div> -->
                   
                 </div>
-                <input type="text" v-model.trim="model.imagen_justificacion" class="form-control" id="imagen_justificacion" placeholder="imagen">
-                <div id="div2" class="mb-3 text-center">
 
+                <!-- Input para la imagen de justificación -->
+                <input type="text" v-model.trim="model.imagen_justificacion" class="form-control" id="imagen_justificacion" placeholder="Imagen">
+
+                <div id="div2" class="mb-3 text-center">
                   <label class="border border-black rounded-2 w-100 bg-white pt-5 pb-5">
                     <div class="d-flex justify-content-center">
                       <div class="d-flex flex-column px-5 pt-4">
@@ -44,6 +33,26 @@
                     <input type="file" accept="image/*" id="capturephoto" capture="camera" class="d-none">
                   </label>
                 </div>
+
+               
+                <!-- Nuevo botón para subir PDF -->
+                <div id="pdf-upload" class="mb-3 text-center">
+                  <label class="border border-black rounded-2 w-100 bg-white pt-5 pb-5">
+                    <div class="d-flex justify-content-center">
+                      <div class="d-flex flex-column px-5 pt-4">
+                        <i class="fa-solid fa-file-pdf fa-bounce fa-5x" style="color: #FF6347;"></i>
+                        <p>Subir PDF</p>
+                      </div>
+                    </div>
+                    <input type="file" accept=".pdf" @change="handlePDFUpload" class="d-none">
+                  </label>
+                </div>
+
+                <!-- Botón para descargar PDF -->
+                <div class="mb-3 text-center">
+                  <button v-if="model.pdf_justificacion" @click="descargarPDF" class="btn btn-primary">Descargar PDF Subido</button>
+                </div>
+
                 <button class="btn btn-danger" @click="darDeBaja">Entregar Correspondencia</button>
               </div>
             </div>
@@ -54,9 +63,11 @@
   </div>
 </template>
 
+
 <script>
 import SignaturePad from 'signature_pad';
 import Swal from 'sweetalert2';
+import { openDB } from 'idb';
 
 export default {
   name: "IndexPage",
@@ -92,6 +103,7 @@ export default {
         imagen: '',
         imagen_justificacion: '',
         justificacion: '',
+        pdf_justificacion: '', // Campo para almacenar el PDF subido
 
       },
       apiUrl: "solicitudes4",
@@ -104,6 +116,65 @@ export default {
     };
   },
   methods: {
+    async handlePDFUpload(event) {
+  const file = event.target.files[0];
+
+  if (file && file.type === "application/pdf") {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const fileContent = reader.result;
+
+      // Guardar el archivo PDF en IndexedDB
+      const db = await openDB('pdf-storage', 1, {
+        upgrade(db) {
+          db.createObjectStore('pdfs', { keyPath: 'id' });
+        },
+      });
+
+      // Almacenar el PDF en el caché del navegador (IndexedDB)
+      await db.put('pdfs', { id: this.model.id, content: fileContent });
+      this.model.pdf_justificacion = fileContent; // Actualizar el modelo para visualizar el PDF
+
+      // Mostrar alerta de éxito
+      Swal.fire({
+        icon: "success",
+        title: "PDF subido con éxito",
+        text: "El archivo PDF ha sido guardado temporalmente.",
+      });
+    };
+
+    reader.readAsDataURL(file); // Leer el archivo como base64
+  } else {
+    Swal.fire({
+      icon: "error",
+      title: "Archivo inválido",
+      text: "Solo se permiten archivos PDF.",
+    });
+  }
+},
+
+
+    // Método para descargar el PDF almacenado en IndexedDB
+    async descargarPDF() {
+      const db = await openDB('pdf-storage', 1);
+      const pdfData = await db.get('pdfs', 'uploadedPDF');
+
+      if (pdfData && pdfData.content) {
+        const link = document.createElement('a');
+        link.href = pdfData.content;
+        link.download = 'justificacion.pdf'; // Nombre del archivo descargado
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se encontró ningún PDF almacenado.',
+        });
+      }
+    },
+
     async GET_DATA(path) {
       const res = await this.$contratos.$get(path);
       return res;
@@ -124,7 +195,7 @@ export default {
         Swal.fire({
           icon: 'success',
           title: 'Éxito',
-          text: 'El registro ha sido dado de baja.'
+          text: 'El registro ha sido dado Justificado.'
         }).then(() => {
           window.history.back();
         });

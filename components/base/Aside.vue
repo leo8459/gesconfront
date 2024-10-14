@@ -423,7 +423,7 @@
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/contrato/paquetessinentregar/paquetesinentregar">
-                  <span class="sidenav-normal full-width-text"> Envios con multa </span>
+                  <span class="sidenav-normal full-width-text"> Envios Observados </span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
@@ -434,7 +434,7 @@
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link"
                   to="/contrato/caminoregionalcontratos/caminoregionalcontrato">
-                  <span class="sidenav-normal full-width-text"> Envios despachados </span>
+                  <span class="sidenav-normal full-width-text"> Envios Despachados </span>
                 </nuxtLink>
               </li>
               <li class="nav-item">

@@ -38,7 +38,7 @@
           <div class="col-12">
             <div class="card border-rounded">
               <div class="card-header">
-                Solicitudes con Multa
+                Envio observados
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
@@ -65,10 +65,12 @@
                         <th class="py-0 px-1">Zona</th>
                         <th class="py-0 px-1">Ciudad/Provincia</th>
                         <th class="py-0 px-1">Precio (Bs)</th>
-                        <th class="py-0 px-1">Fecha de Entrega</th>
+                        <th class="py-0 px-1">Fecha de Entrega/Devolucion</th>
                         <th class="py-0 px-1">Imagen Capturada</th>
                         <th class="py-0 px-1">Justificación</th>
                         <th class="py-0 px-1">Imagen Justificación</th>
+                        <th class="py-0 px-1">Estado</th> <!-- Nuevo encabezado -->
+
                         <th class="py-0 px-1"></th>
                       </tr>
                     </thead>
@@ -126,6 +128,8 @@
                             </button>
                           </div>
                         </td>
+                        <td class="py-0 px-1">{{ translateStatus(m.estado) }}</td> <!-- Mostrar estado traducido -->
+
                         <td class="py-0 px-1">
                           <div class="btn-group">
                             <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
@@ -307,7 +311,22 @@ export default {
   },
   methods: {
    
-
+    translateStatus(status) {
+      switch (status) {
+        case 1:
+          return 'Solicitud de envío';
+        case 2:
+          return 'Despachado';
+        case 5:
+          return 'Recojo de empresa';
+        case 8:
+          return 'Despachado de envío a regional';
+        case 9:
+          return 'Envío en camino';
+        default:
+          return 'Estado desconocido';
+      }
+    },
 
 
     generateThumbnail(base64Image) {
