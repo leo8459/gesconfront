@@ -140,6 +140,7 @@
             <button @click="calculateTotalTime" class="btn btn-primary mb-3">
   <i class="fas fa-clock"></i> Mostrar Tiempo Total
 </button>
+
             <div id="map" class="mt-3" style="height: 500px;"></div>
 
           </div>
@@ -370,8 +371,10 @@ export default {
 
         // Configurar los servicios de direcciones (enrutamiento)
         this.directionsService = new google.maps.DirectionsService();
-        this.directionsRenderer = new google.maps.DirectionsRenderer();
-        this.directionsRenderer.setMap(this.map);
+        this.directionsRenderer = new google.maps.DirectionsRenderer({
+  suppressMarkers: true
+});       
+this.directionsRenderer.setMap(this.map);
 
         // Si el navegador soporta la geolocalización, configuramos la ubicación actual
         if (navigator.geolocation) {
@@ -417,36 +420,40 @@ export default {
 
 
 
-    addMarkersToMap() {
-      const selectedItems = this.list.filter(item => this.selected[item.id]);
-      selectedItems.forEach((item, index) => {
-        let position;
-        if (this.isCoordinates(item.direccion_d)) {
-          const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
-          position = { lat, lng };
-        } else {
-          // Si no hay coordenadas, usa una posición por defecto
-          position = { lat: -16.5000, lng: -68.1500 };
-        }
-
-        // Ruta a la imagen de tu marcador personalizado
-        const markerImage = '/logo.png';  // Actualiza esta ruta si tu imagen está en una subcarpeta de `static`
-
-        // Crear el marcador con la imagen personalizada
-        const marker = new google.maps.Marker({
-          position,
-          map: this.map,
-          title: item.destinatario,  // O cualquier dato relevante del punto
-          icon: {
-            url: markerImage,  // Usar la imagen personalizada como marcador
-            scaledSize: new google.maps.Size(40, 40),  // Ajustar el tamaño del marcador
-          },
-          label: null  // Asegúrate de que esto esté en null para que no aparezcan letras
-        });
-
-        this.markers.push(marker); // Guardar el marcador en el array para referencia futura
-      });
+  addMarkersToMap() {
+  const selectedItems = this.list.filter(item => this.selected[item.id]);
+  selectedItems.forEach((item, index) => {
+    let position;
+    if (this.isCoordinates(item.direccion_d)) {
+      const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
+      position = { lat, lng };
+    } else {
+      // Default position if no coordinates
+      position = { lat: -16.5000, lng: -68.1500 };
     }
+
+    // Ruta al archivo de imagen que has subido
+    const markerImage = '/logo.png';  // Acceso directo al archivo en la carpeta static
+
+    // Crear el marcador con la imagen personalizada en lugar de las letras
+    const marker = new google.maps.Marker({
+      position,
+      map: this.map,
+      title: item.destinatario,  // O cualquier dato relevante del punto
+      icon: {
+        url: markerImage,  // Usar la imagen personalizada como marcador
+        scaledSize: new google.maps.Size(40, 40),  // Ajustar el tamaño si es necesario
+      },
+      label: null  // Evitar que aparezcan letras (A, B, C)
+    });
+
+    this.markers.push(marker);  // Almacena el marcador para referencia futura
+  });
+}
+
+
+
+
 
     ,
 
@@ -466,78 +473,129 @@ export default {
       // Recalcula la ruta cada vez que se seleccionan elementos
       this.calculateRouteWithWaypoints(selectedItems);
     },
+    formatDuration(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secondsLeft = seconds % 60;
+
+    let durationStr = '';
+    if (hours > 0) {
+      durationStr += `${hours} h `;
+    }
+    if (minutes > 0) {
+      durationStr += `${minutes} min `;
+    }
+    if (secondsLeft > 0 || durationStr === '') {
+      durationStr += `${secondsLeft} s`;
+    }
+    return durationStr.trim();
+  },
+
+  formatDistance(meters) {
+    if (meters >= 1000) {
+      const km = meters / 1000;
+      return `${km.toFixed(2)} km`;
+    } else {
+      return `${meters} m`;
+    }
+  },
 
     // Método para calcular la ruta
     calculateRouteWithWaypoints(selectedItems, travelMode = google.maps.TravelMode.DRIVING) {
-    if (!this.userLocation) {
+  if (!this.userLocation) {
+    this.$swal.fire({
+      icon: 'error',
+      title: 'Error de ubicación',
+      text: 'No se ha podido obtener la ubicación actual.',
+    });
+    return;
+  }
+
+  const waypoints = selectedItems.length > 1
+    ? selectedItems.slice(1).map(item => ({
+        location: new google.maps.LatLng(
+          parseFloat(item.direccion_d.split(',')[0]),
+          parseFloat(item.direccion_d.split(',')[1])
+        ),
+        stopover: true,
+      }))
+    : [];
+
+  const destination = new google.maps.LatLng(
+    parseFloat(selectedItems[0].direccion_d.split(',')[0]),
+    parseFloat(selectedItems[0].direccion_d.split(',')[1])
+  );
+
+  const request = {
+    origin: this.userLocation,
+    destination: destination,
+    waypoints: waypoints,
+    travelMode: travelMode,
+    optimizeWaypoints: selectedItems.length > 1,
+  };
+
+  this.directionsService.route(request, (result, status) => {
+    if (status === google.maps.DirectionsStatus.OK) {
+      this.directionsRenderer.setDirections(result);
+
+      // Limpiar marcadores existentes
+      this.clearAllMarkers();
+
+      const markerImage = '/logo.png'; // Asegúrate de que esta ruta es correcta
+
+      // No agregamos un marcador en la ubicación del usuario
+
+      // Obtener la ruta
+      const route = result.routes[0];
+
+      // Agregar marcadores en cada ubicación (waypoints y destino)
+      route.legs.forEach((leg, index) => {
+        // Agregar marcador personalizado en el punto de destino de cada tramo (leg)
+        const marker = new google.maps.Marker({
+          position: leg.end_location,
+          map: this.map,
+          title: leg.end_address,
+          icon: {
+            url: markerImage,
+            scaledSize: new google.maps.Size(40, 40),
+          },
+        });
+        this.markers.push(marker);
+      });
+
+      // **Cálculo del tiempo y distancia total**
+      let totalDuration = 0;
+      let totalDistance = 0;
+
+      route.legs.forEach(leg => {
+        totalDuration += leg.duration.value; // en segundos
+        totalDistance += leg.distance.value; // en metros
+      });
+
+      // Formatear el tiempo y distancia
+      const totalDurationText = this.formatDuration(totalDuration);
+      const totalDistanceText = this.formatDistance(totalDistance);
+
+      // Mostrar un mensaje con el tiempo y distancia total
+      this.$swal.fire({
+        icon: 'info',
+        title: 'Ruta calculada',
+        html: `Tiempo total: ${totalDurationText}<br>Distancia total: ${totalDistanceText}`,
+      });
+    } else {
       this.$swal.fire({
         icon: 'error',
-        title: 'Error de ubicación',
-        text: 'No se ha podido obtener la ubicación actual.',
+        title: 'Error al calcular la ruta',
+        text: 'No se ha podido calcular la ruta.',
       });
-      return;
+      console.error('Error al calcular la ruta:', status);
     }
+  });
+},
 
-    const waypoints = selectedItems.length > 1
-      ? selectedItems.slice(1).map(item => ({
-          location: new google.maps.LatLng(
-            parseFloat(item.direccion_d.split(',')[0]),
-            parseFloat(item.direccion_d.split(',')[1])
-          ),
-          stopover: true,
-        }))
-      : [];
 
-    const destination = new google.maps.LatLng(
-      parseFloat(selectedItems[0].direccion_d.split(',')[0]),
-      parseFloat(selectedItems[0].direccion_d.split(',')[1])
-    );
 
-    const request = {
-      origin: this.userLocation,
-      destination: destination,
-      waypoints: waypoints,
-      travelMode: travelMode, // Usar el modo de transporte seleccionado
-      optimizeWaypoints: selectedItems.length > 1,
-    };
 
-    // Llamada a la API DirectionsService de Google
-    this.directionsService.route(request, (result, status) => {
-      if (status === google.maps.DirectionsStatus.OK) {
-        this.directionsRenderer.setDirections(result);
-
-        // Sumar los tiempos de cada tramo (legs)
-        let totalTimeSeconds = 0; // Tiempo total en segundos
-        let totalDistance = 0; // Distancia total en metros
-
-        result.routes[0].legs.forEach(leg => {
-          totalTimeSeconds += leg.duration.value; // Sumar el tiempo de cada tramo (en segundos)
-          totalDistance += leg.distance.value; // Sumar la distancia de cada tramo (en metros)
-        });
-
-        // Convertir los segundos a minutos y horas
-        const totalTimeMinutes = Math.floor(totalTimeSeconds / 60); // Convertir segundos a minutos
-        const hours = Math.floor(totalTimeMinutes / 60); // Horas
-        const minutes = totalTimeMinutes % 60; // Minutos restantes
-
-        const totalDistanceKm = (totalDistance / 1000).toFixed(2); // Convertir metros a kilómetros
-
-        // Mostrar el tiempo total estimado y la distancia
-        this.$swal.fire({
-          icon: 'info',
-          title: 'Tiempo Total Estimado',
-          text: `Tiempo estimado: ${hours} horas y ${minutes} minutos (${totalDistanceKm} km)`,
-        });
-      } else {
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error al calcular la ruta',
-          text: 'No se ha podido calcular la ruta.',
-        });
-        console.error('Error al calcular la ruta:', status);
-      }
-    });
-  },
 
 
     addMarkersForAllPoints(selectedItems) {
@@ -593,12 +651,12 @@ export default {
       });
     },
     clearAllMarkers() {
-      // Verificar si markers está definido y es un array antes de usar forEach
-      if (this.markers && Array.isArray(this.markers)) {
-        this.markers.forEach(marker => marker.setMap(null));
-        this.markers = [];
-      }
-    },
+  if (this.markers && Array.isArray(this.markers)) {
+    this.markers.forEach(marker => marker.setMap(null));
+    this.markers = [];
+  }
+},
+
     updateMapWithSelectedPoints(selectedItems) {
       if (!this.userLocation) {
         this.$swal.fire({
@@ -615,14 +673,16 @@ export default {
 
       // Añadir un marcador para la ubicación del usuario
       const userMarker = new google.maps.Marker({
-        position: this.userLocation,
-        map: this.map,
-        title: 'Mi Ubicación',
-        icon: {
-          url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-        },
-      });
-      this.markers.push(userMarker);
+  position: this.userLocation,
+  map: this.map,
+  title: 'Mi Ubicación',
+  icon: {
+    url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png', // Icono azul estándar
+    scaledSize: new google.maps.Size(40, 40),
+  },
+});
+this.markers.push(userMarker);
+
 
       // Añadir marcadores para cada punto seleccionado
       selectedItems.forEach((item, index) => {
