@@ -227,7 +227,7 @@
               </li>
               <li class="nav-item" v-if="isSucursale">
                 <nuxtLink class="nav-link full-width-link" to="/sucursal/entregadosucursales/entregadosucursal">
-                  <span class="sidenav-normal full-width-text">Paquetes entregados</span>
+                  <span class="sidenav-normal full-width-text">Envios entregados</span>
                 </nuxtLink>
               </li>
               <li class="nav-item" v-if="isSucursale">

@@ -5,11 +5,12 @@
       <div slot="body">
         <div class="row justify-content-end mb-3">
           <div class="col-3" v-if="hasSelectedItems">
-            
+
           </div>
           <div class="col-12 col-md-3 search-input-container">
-      <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control search-input" placeholder="Buscar..." />
-    </div>
+            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text"
+              class="form-control search-input" placeholder="Buscar..." />
+          </div>
         </div>
         <div class="row">
           <div class="col-12">
@@ -23,8 +24,8 @@
                     <thead>
                       <tr>
                         <th class="py-0 px-1">
-      <input type="checkbox" @change="selectAll($event, paginatedData)">
-    </th>
+                          <input type="checkbox" @change="selectAll($event, paginatedData)">
+                        </th>
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Guía</th>
@@ -43,8 +44,8 @@
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i">
                         <td class="py-0 px-1">
-      <input type="checkbox" v-model="selected[m.id]">
-    </td>
+                          <input type="checkbox" v-model="selected[m.id]">
+                        </td>
                         <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="py-0 px-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
                         <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
@@ -54,15 +55,13 @@
                         <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
                         <td class="py-0 px-1" data-label="Teléfono Destinatario">{{ m.telefono_d }}</td>
                         <td class="py-0 px-1" data-label="Dirección Destinatario Maps">
-  <a 
-    v-if="isCoordinates(m.direccion_d) || m.direccion_especifica_d" 
-    :href="'https://www.google.com/maps/search/?api=1&query=' + (isCoordinates(m.direccion_d) ? m.direccion_d : m.direccion_especifica_d)" 
-    target="_blank" 
-    class="btn btn-primary btn-sm">
-    Ver mapa
-  </a>
-  <span v-else>No hay dirección disponible</span>
-</td>
+                          <a v-if="isCoordinates(m.direccion_d) || m.direccion_especifica_d"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + (isCoordinates(m.direccion_d) ? m.direccion_d : m.direccion_especifica_d)"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>No hay dirección disponible</span>
+                        </td>
 
                         <td class="py-0 px-1" data-label="Dirección">{{ m.direccion_especifica_d }}</td>
                         <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
@@ -87,21 +86,23 @@
             </div>
             <div class="row justify-content-end mb-3">
 
-  <div class="col-3" v-if="hasSelectedItems">
-    <button @click="showMap" class="btn btn-primary btn-sm w-100">
-      <i class="fas fa-map"></i> Mapa
-    </button>
-  </div>
- 
-</div>
+              <div class="col-3" v-if="hasSelectedItems">
+                <button @click="showMap" class="btn btn-primary btn-sm w-100">
+                  <i class="fas fa-map"></i> Mapa
+                </button>
+              </div>
+
+            </div>
 
             <!-- Paginación -->
             <nav aria-label="Page navigation">
               <ul class="pagination justify-content-between">
                 <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0"><</button>
+                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0">
+                    <</button>
                 </li>
-                <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page - 1 }">
+                <li class="page-item" v-for="page in totalPages" :key="page"
+                  :class="{ active: currentPage === page - 1 }">
                   <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
                 </li>
                 <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
@@ -113,12 +114,13 @@
         </div>
       </div>
     </AdminTemplate>
-    
+
     <!-- Modal para añadir observación -->
     <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop hide-footer>
       <div class="form-group">
         <label for="observacion">Observación</label>
-        <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
+        <textarea id="observacion" v-model="observacion" class="form-control" rows="3"
+          placeholder="Ingrese la observación..."></textarea>
       </div>
       <div class="form-group">
         <label for="capturephoto">Subir Foto</label>
@@ -188,22 +190,22 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    return this.list
-      .filter(item =>
-        item.estado === 2 &&
-        item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
-        (
-          (item.guia && item.guia.toLowerCase().includes(searchTerm)) ||
-          (item.sucursale && item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)) ||
-          (item.remitente && item.remitente.toLowerCase().includes(searchTerm)) ||
-          (item.direccion_especifica_d && item.direccion_especifica_d.toLowerCase().includes(searchTerm)) ||
-          (item.ciudad && item.ciudad.toLowerCase().includes(searchTerm)) ||
-          (item.zona_d && item.zona_d.toLowerCase().includes(searchTerm))
+      const searchTerm = this.searchTerm.toLowerCase();
+      return this.list
+        .filter(item =>
+          item.estado === 2 &&
+          item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
+          (
+            (item.guia && item.guia.toLowerCase().includes(searchTerm)) ||
+            (item.sucursale && item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)) ||
+            (item.remitente && item.remitente.toLowerCase().includes(searchTerm)) ||
+            (item.direccion_especifica_d && item.direccion_especifica_d.toLowerCase().includes(searchTerm)) ||
+            (item.ciudad && item.ciudad.toLowerCase().includes(searchTerm)) ||
+            (item.zona_d && item.zona_d.toLowerCase().includes(searchTerm))
+          )
         )
-      )
-      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordena del más reciente al más antiguo
-  },
+        .sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordena del más reciente al más antiguo
+    },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -218,114 +220,122 @@ export default {
   },
   methods: {
     showMap() {
-    const selectedItems = this.list.filter(item => this.selected[item.id]);
+      const selectedItems = this.list.filter(item => this.selected[item.id]);
 
-    if (selectedItems.length === 0) {
-      this.$swal.fire({
-        icon: 'warning',
-        title: 'No hay elementos seleccionados',
-        text: 'Por favor, seleccione al menos un elemento.',
-      });
-      return;
-    }
+      if (selectedItems.length === 0) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'No hay elementos seleccionados',
+          text: 'Por favor, seleccione al menos un elemento.',
+        });
+        return;
+      }
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(position => {
-        const userLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
 
-        this.processMap(selectedItems, userLocation);
-      }, error => {
-        console.error(error);
+          this.processMap(selectedItems, userLocation);
+        }, error => {
+          console.error(error);
+          this.$swal.fire({
+            icon: 'error',
+            title: 'Error al obtener ubicación',
+            text: 'No se pudo obtener su ubicación actual.',
+          });
+        });
+      } else {
         this.$swal.fire({
           icon: 'error',
-          title: 'Error al obtener ubicación',
-          text: 'No se pudo obtener su ubicación actual.',
+          title: 'Geolocalización no soportada',
+          text: 'Su navegador no soporta geolocalización.',
         });
-      });
-    } else {
-      this.$swal.fire({
-        icon: 'error',
-        title: 'Geolocalización no soportada',
-        text: 'Su navegador no soporta geolocalización.',
-      });
-    }
-  },
+      }
+    },
 
     async processMap(selectedItems, userLocation) {
-    // Filtrar y preparar las coordenadas de las waypoints
-    let waypoints = selectedItems.map(item => {
-      if (this.isCoordinates(item.direccion_d)) {
-        const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
-        return { lat, lng };
-      } else if (item.direccion_especifica_d) {
-        // Implementar geocodificación para direcciones específicas si es necesario
-        // Aquí asumiremos que todas las direcciones tienen coordenadas para simplificar
-        // Puedes usar una API de geocodificación como Google Geocoding API
-        return null;
-      } else {
-        return null;
-      }
-    }).filter(item => item !== null);
+  let validItems = [];
+  let invalidItems = [];
 
-    if (waypoints.length === 0) {
-      this.$swal.fire({
-        icon: 'warning',
-        title: 'Sin direcciones válidas',
-        text: 'No se encontraron direcciones válidas en los elementos seleccionados.',
-      });
-      return;
+  // Iterar sobre los elementos seleccionados
+  selectedItems.forEach(item => {
+    if (this.isCoordinates(item.direccion_d)) {
+      const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
+      validItems.push({ item: item, lat: lat, lng: lng });
+    } else if (item.direccion_especifica_d) {
+      // Si tienes lógica para manejar direcciones específicas, puedes implementarla aquí
+      // Por ahora, consideramos que estas direcciones no son válidas
+      invalidItems.push(item);
+    } else {
+      invalidItems.push(item);
     }
+  });
 
-    // Ordenar las waypoints usando el algoritmo de vecino más cercano
-    let sortedWaypoints = [];
-    let currentLocation = { ...userLocation };
-    let remainingWaypoints = [...waypoints];
+  if (validItems.length === 0) {
+    const guiaNumbers = invalidItems.map(item => item.guia).join(', ');
+    this.$swal.fire({
+      icon: 'warning',
+      title: 'Sin direcciones válidas',
+      text: 'No se encontraron direcciones válidas en los elementos seleccionados. Las guías sin direcciones válidas son: ' + guiaNumbers,
+    });
+    return;
+  }
 
-    while (remainingWaypoints.length > 0) {
-      // Encontrar la waypoint más cercana a la ubicación actual
-      let nearest = remainingWaypoints.reduce((prev, curr) => {
-        const distPrev = this.calculateDistance(currentLocation, prev);
-        const distCurr = this.calculateDistance(currentLocation, curr);
-        return distPrev < distCurr ? prev : curr;
-      });
+  if (invalidItems.length > 0) {
+    const guiaNumbers = invalidItems.map(item => item.guia).join(', ');
+    this.$swal.fire({
+      icon: 'info',
+      title: 'Algunas direcciones no son válidas',
+      text: 'Las siguientes guías no tienen direcciones válidas y no serán incluidas en el mapa: ' + guiaNumbers,
+    });
+  }
 
-      // Agregar la waypoint más cercana a la lista ordenada
-      sortedWaypoints.push(nearest);
+  // Proceder con los elementos válidos
+  let waypoints = validItems.map(obj => ({ lat: obj.lat, lng: obj.lng }));
 
-      // Actualizar la ubicación actual a la de la waypoint añadida
-      currentLocation = nearest;
+  // Ordenar las waypoints usando el algoritmo de vecino más cercano
+  let sortedWaypoints = [];
+  let currentLocation = { ...userLocation };
+  let remainingWaypoints = [...waypoints];
 
-      // Eliminar la waypoint añadida de las restantes
-      remainingWaypoints = remainingWaypoints.filter(wp => wp !== nearest);
-    }
+  while (remainingWaypoints.length > 0) {
+    let nearest = remainingWaypoints.reduce((prev, curr) => {
+      const distPrev = this.calculateDistance(currentLocation, prev);
+      const distCurr = this.calculateDistance(currentLocation, curr);
+      return distPrev < distCurr ? prev : curr;
+    });
 
-    // Convertir las waypoints ordenadas a strings para la URL de Google Maps
-    const waypointsParam = sortedWaypoints.map(wp => `${wp.lat},${wp.lng}`).join('|');
+    sortedWaypoints.push(nearest);
+    currentLocation = nearest;
+    remainingWaypoints = remainingWaypoints.filter(wp => wp !== nearest);
+  }
 
-    // Construir la URL de Google Maps
-    let url = 'https://www.google.com/maps/dir/?api=1';
-    url += `&origin=${userLocation.lat},${userLocation.lng}`;
-    url += `&destination=${sortedWaypoints[sortedWaypoints.length - 1].lat},${sortedWaypoints[sortedWaypoints.length - 1].lng}`;
+  // Convertir las waypoints ordenadas a strings para la URL de Google Maps
+  const waypointsParam = sortedWaypoints.map(wp => `${wp.lat},${wp.lng}`).join('|');
 
-    if (sortedWaypoints.length > 1) {
-      // Excluir el último punto que ya está establecido como destino
-      const intermediateWaypoints = sortedWaypoints.slice(0, -1).map(wp => `${wp.lat},${wp.lng}`).join('|');
-      url += `&waypoints=${intermediateWaypoints}`;
-    }
+  // Construir la URL de Google Maps
+  let url = 'https://www.google.com/maps/dir/?api=1';
+  url += `&origin=${userLocation.lat},${userLocation.lng}`;
+  url += `&destination=${sortedWaypoints[sortedWaypoints.length - 1].lat},${sortedWaypoints[sortedWaypoints.length - 1].lng}`;
 
-    // Abrir la URL en una nueva pestaña
-    const mapWindow = window.open(url, '_blank');
-    if (!mapWindow) {
-      this.$swal.fire({
-        icon: 'error',
-        title: 'Bloqueo de ventanas emergentes',
-        text: 'Por favor, habilite las ventanas emergentes para esta aplicación.',
-      });
-    }
-  },
+  if (sortedWaypoints.length > 1) {
+    const intermediateWaypoints = sortedWaypoints.slice(0, -1).map(wp => `${wp.lat},${wp.lng}`).join('|');
+    url += `&waypoints=${intermediateWaypoints}`;
+  }
+
+  // Abrir la URL en una nueva pestaña
+  const mapWindow = window.open(url, '_blank');
+  if (!mapWindow) {
+    this.$swal.fire({
+      icon: 'error',
+      title: 'Bloqueo de ventanas emergentes',
+      text: 'Por favor, habilite las ventanas emergentes para esta aplicación.',
+    });
+  }
+},
 
     openGoogleMaps(userLocation, waypoints) {
       let url = 'https://www.google.com/maps/dir/?api=1';
@@ -360,26 +370,26 @@ export default {
       return regex.test(address);
     },
     calculateDistance(coord1, coord2) {
-    const toRad = (value) => (value * Math.PI) / 180;
+      const toRad = (value) => (value * Math.PI) / 180;
 
-    const lat1 = coord1.lat;
-    const lon1 = coord1.lng;
-    const lat2 = coord2.lat;
-    const lon2 = coord2.lng;
+      const lat1 = coord1.lat;
+      const lon1 = coord1.lng;
+      const lat2 = coord2.lat;
+      const lon2 = coord2.lng;
 
-    const R = 6371; // Radio de la Tierra en kilómetros
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) *
+      const R = 6371; // Radio de la Tierra en kilómetros
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) *
         Math.cos(toRad(lat2)) *
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    return distance; // en kilómetros
-  },
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distance = R * c;
+      return distance; // en kilómetros
+    },
     handleImageUpload(event) {
       const file = event.target.files[0];
       if (file) {
@@ -465,7 +475,7 @@ export default {
       this.selectedSolicitudeId = id;
       this.isObservationModalVisible = true;
     },
-    
+
     async markAsEnCamino(solicitudeId) {
       this.load = true;
       try {
@@ -477,7 +487,7 @@ export default {
           title: 'Cartero asignado',
           text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
         });
-        await this.GET_DATA(this.apiUrl); 
+        await this.GET_DATA(this.apiUrl);
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -524,7 +534,7 @@ export default {
         const item = this.list.find(m => m.id === id);
         if (item) {
           const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
-          Object.assign(item, response); 
+          Object.assign(item, response);
           await this.GET_DATA(this.apiUrl);
         }
       } catch (e) {
@@ -559,14 +569,14 @@ export default {
             console.error('Item inválido:', item);
           }
         }
-        await this.GET_DATA(this.apiUrl); 
+        await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
           icon: 'success',
           title: 'Carteros asignados',
           text: 'Todos los carteros seleccionados han sido asignados.',
         });
         this.isModalVisible = false;
-        this.selected = {}; 
+        this.selected = {};
         await this.GET_DATA(this.apiUrl);
       } catch (e) {
         console.error(e);
@@ -660,8 +670,10 @@ export default {
 /* Estilos generales de la tabla */
 .table-responsive {
   max-width: 100%;
-  overflow-x: auto !important; /* Asegura el scroll horizontal */
-  white-space: nowrap; /* Mantiene el texto en una línea */
+  overflow-x: auto !important;
+  /* Asegura el scroll horizontal */
+  white-space: nowrap;
+  /* Mantiene el texto en una línea */
 }
 
 .table {
@@ -808,6 +820,7 @@ export default {
     width: 100%;
   }
 }
+
 #map {
   width: 100%;
   height: 100vh;
