@@ -117,8 +117,29 @@
                 </li>
               </ul>
             </nav>
-          
 
+            <div class="btn-group map-type-selector mb-3">
+              <button @click="changeMapType('roadmap')" class="btn btn-light">Mapa</button>
+              <button @click="changeMapType('satellite')" class="btn btn-light">Satélite</button>
+              <button @click="changeMapType('terrain')" class="btn btn-light">Terreno</button>
+              <button @click="changeMapType('hybrid')" class="btn btn-light">Híbrido</button>
+            </div>
+            <!-- Botones para elegir el tipo de transporte -->
+            <!-- Botones para elegir el tipo de transporte -->
+            <div class="transportation-options mb-3">
+              <button @click="changeTravelMode('DRIVING')" class="btn btn-light">
+                <i class="fas fa-car"></i> Auto
+              </button>
+              <button @click="changeTravelMode('WALKING')" class="btn btn-light">
+                <i class="fas fa-walking"></i> A pie
+              </button>
+              <button @click="changeTravelMode('MOTORCYCLE')" class="btn btn-light">
+                <i class="fas fa-motorcycle"></i> Moto
+              </button>
+            </div>
+            <button @click="calculateTotalTime" class="btn btn-primary mb-3">
+  <i class="fas fa-clock"></i> Mostrar Tiempo Total
+</button>
             <div id="map" class="mt-3" style="height: 500px;"></div>
 
           </div>
@@ -199,8 +220,8 @@ export default {
       sortedMapItems: [],
       selectedMarkers: {},
       directionsService: null,
-    directionsRenderer: null,
-    markers: [], // Inicializar los marcadores como un array vacío
+      directionsRenderer: null,
+      markers: [], // Inicializar los marcadores como un array vacío
 
     };
   },
@@ -228,74 +249,334 @@ export default {
     }
   },
   methods: {
-    async calculateRouteToNearest(selectedItems) {
-  if (!this.userLocation) {
-    this.$swal.fire({
-      icon: 'error',
-      title: 'Error de ubicación',
-      text: 'No se ha podido obtener la ubicación actual.',
-    });
-    return;
-  }
+    calculateTotalTime() {
+    const selectedItems = Object.keys(this.selected)
+      .map(id => this.list.find(m => m.id == id))
+      .filter(item => item && this.isCoordinates(item.direccion_d));
 
-  // Obtener coordenadas de los destinos seleccionados.
-  const destinations = selectedItems
-    .map(item => {
-      const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
-      return { lat, lng, item };
-    });
+    if (selectedItems.length === 0) {
+      this.$swal.fire({
+        icon: 'warning',
+        title: 'No hay puntos seleccionados',
+        text: 'Por favor, selecciona al menos un punto.',
+      });
+      return;
+    }
 
-  if (destinations.length === 0) {
-    this.$swal.fire({
-      icon: 'warning',
-      title: 'Sin destinos válidos',
-      text: 'No se encontraron destinos válidos para calcular la ruta.',
-    });
-    return;
-  }
-
-  // Obtener las ubicaciones como objetos LatLng.
-  const destinationLocations = destinations.map(dest => new google.maps.LatLng(dest.lat, dest.lng));
-
-  const service = new google.maps.DistanceMatrixService();
-  service.getDistanceMatrix(
-    {
-      origins: [this.userLocation],
-      destinations: destinationLocations,
-      travelMode: google.maps.TravelMode.DRIVING,
-      unitSystem: google.maps.UnitSystem.METRIC,
+    this.calculateRouteWithWaypoints(selectedItems, this.selectedTravelMode); // Usar el modo de transporte seleccionado
+  },
+    changeMapType(type) {
+      if (this.map) {
+        this.map.setMapTypeId(google.maps.MapTypeId[type.toUpperCase()]);
+      }
     },
-    (response, status) => {
-      if (status !== google.maps.DistanceMatrixStatus.OK) {
-        console.error('Error de Distance Matrix:', status);
+    async calculateRouteToNearest(selectedItems) {
+      if (!this.userLocation) {
         this.$swal.fire({
           icon: 'error',
-          title: 'Error al calcular la distancia',
-          text: 'No se ha podido calcular la distancia.',
+          title: 'Error de ubicación',
+          text: 'No se ha podido obtener la ubicación actual.',
         });
         return;
       }
 
-      // Ordenar los destinos según la distancia desde la ubicación del usuario.
-      const distances = response.rows[0].elements.map((element, index) => ({
-        distance: element.distance.value,
-        destination: destinations[index],
-      }));
-      distances.sort((a, b) => a.distance - b.distance);
+      // Obtener coordenadas de los destinos seleccionados.
+      const destinations = selectedItems
+        .map(item => {
+          const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
+          return { lat, lng, item };
+        });
 
-      // Crear un array de waypoints (excluyendo el primer punto que es el más cercano).
-      const waypoints = distances.slice(1).map(d => ({
-        location: new google.maps.LatLng(d.destination.lat, d.destination.lng),
-        stopover: true,
-      }));
+      if (destinations.length === 0) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Sin destinos válidos',
+          text: 'No se encontraron destinos válidos para calcular la ruta.',
+        });
+        return;
+      }
 
-      // Calcular la ruta utilizando DirectionsService.
+      // Obtener las ubicaciones como objetos LatLng.
+      const destinationLocations = destinations.map(dest => new google.maps.LatLng(dest.lat, dest.lng));
+
+      const service = new google.maps.DistanceMatrixService();
+      service.getDistanceMatrix(
+        {
+          origins: [this.userLocation],
+          destinations: destinationLocations,
+          travelMode: google.maps.TravelMode.DRIVING,
+          unitSystem: google.maps.UnitSystem.METRIC,
+        },
+        (response, status) => {
+          if (status !== google.maps.DistanceMatrixStatus.OK) {
+            console.error('Error de Distance Matrix:', status);
+            this.$swal.fire({
+              icon: 'error',
+              title: 'Error al calcular la distancia',
+              text: 'No se ha podido calcular la distancia.',
+            });
+            return;
+          }
+
+          // Ordenar los destinos según la distancia desde la ubicación del usuario.
+          const distances = response.rows[0].elements.map((element, index) => ({
+            distance: element.distance.value,
+            destination: destinations[index],
+          }));
+          distances.sort((a, b) => a.distance - b.distance);
+
+          // Crear un array de waypoints (excluyendo el primer punto que es el más cercano).
+          const waypoints = distances.slice(1).map(d => ({
+            location: new google.maps.LatLng(d.destination.lat, d.destination.lng),
+            stopover: true,
+          }));
+
+          // Calcular la ruta utilizando DirectionsService.
+          const request = {
+            origin: this.userLocation,
+            destination: new google.maps.LatLng(distances[0].destination.lat, distances[0].destination.lng),
+            waypoints: waypoints,
+            travelMode: google.maps.TravelMode.DRIVING,
+            optimizeWaypoints: true, // Optimiza la ruta si hay múltiples waypoints.
+          };
+
+          this.directionsService.route(request, (result, status) => {
+            if (status === google.maps.DirectionsStatus.OK) {
+              this.directionsRenderer.setDirections(result);
+            } else {
+              this.$swal.fire({
+                icon: 'error',
+                title: 'Error al calcular la ruta',
+                text: 'No se ha podido calcular la ruta.',
+              });
+              console.error('Error al calcular la ruta:', status);
+            }
+          });
+        }
+      );
+    },
+
+    initializeMap() {
+      if (window.google && window.google.maps) {
+        const mapOptions = {
+          center: { lat: -16.5000, lng: -68.1500 }, // Coordenadas de La Paz, Bolivia
+          zoom: 12,
+          mapTypeId: google.maps.MapTypeId.SATELLITE, // Opción de vista satélite
+          tilt: 45 // Agrega vista en 3D si está disponible
+        };
+
+        const mapElement = document.getElementById('map');
+        this.map = new google.maps.Map(mapElement, mapOptions);
+
+        // Configurar los servicios de direcciones (enrutamiento)
+        this.directionsService = new google.maps.DirectionsService();
+        this.directionsRenderer = new google.maps.DirectionsRenderer();
+        this.directionsRenderer.setMap(this.map);
+
+        // Si el navegador soporta la geolocalización, configuramos la ubicación actual
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              this.userLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              };
+              this.map.setCenter(this.userLocation);
+
+              new google.maps.Marker({
+                position: this.userLocation,
+                map: this.map,
+                title: 'Mi Ubicación',
+                icon: {
+                  url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                },
+              });
+
+              this.addMarkersToMap(); // Añadir markers después de obtener la ubicación
+            },
+            (error) => {
+              console.error('Error al obtener la ubicación del usuario:', error);
+              this.addMarkersToMap();
+            }
+          );
+        } else {
+          this.addMarkersToMap(); // Si no se obtiene geolocalización, solo añadimos los markers
+        }
+      } else {
+        console.error('Google Maps no está cargado correctamente.');
+      }
+    },
+
+    changeTravelMode(mode) {
+    if (mode === 'MOTORCYCLE') {
+      this.selectedTravelMode = google.maps.TravelMode.DRIVING;
+    } else {
+      this.selectedTravelMode = google.maps.TravelMode[mode];
+    }
+  },
+
+
+
+    addMarkersToMap() {
+      const selectedItems = this.list.filter(item => this.selected[item.id]);
+      selectedItems.forEach((item, index) => {
+        let position;
+        if (this.isCoordinates(item.direccion_d)) {
+          const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
+          position = { lat, lng };
+        } else {
+          // Si no hay coordenadas, usa una posición por defecto
+          position = { lat: -16.5000, lng: -68.1500 };
+        }
+
+        // Ruta a la imagen de tu marcador personalizado
+        const markerImage = '/logo.png';  // Actualiza esta ruta si tu imagen está en una subcarpeta de `static`
+
+        // Crear el marcador con la imagen personalizada
+        const marker = new google.maps.Marker({
+          position,
+          map: this.map,
+          title: item.destinatario,  // O cualquier dato relevante del punto
+          icon: {
+            url: markerImage,  // Usar la imagen personalizada como marcador
+            scaledSize: new google.maps.Size(40, 40),  // Ajustar el tamaño del marcador
+          },
+          label: null  // Asegúrate de que esto esté en null para que no aparezcan letras
+        });
+
+        this.markers.push(marker); // Guardar el marcador en el array para referencia futura
+      });
+    }
+
+    ,
+
+
+    toggleMarker(item) {
+      // Alterna la selección del elemento
+      if (this.selected[item.id]) {
+        delete this.selected[item.id];
+      } else {
+        this.$set(this.selected, item.id, true);
+      }
+
+      const selectedItems = Object.keys(this.selected)
+        .map(id => this.list.find(m => m.id == id))
+        .filter(item => item && this.isCoordinates(item.direccion_d));
+
+      // Recalcula la ruta cada vez que se seleccionan elementos
+      this.calculateRouteWithWaypoints(selectedItems);
+    },
+
+    // Método para calcular la ruta
+    calculateRouteWithWaypoints(selectedItems, travelMode = google.maps.TravelMode.DRIVING) {
+    if (!this.userLocation) {
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Error de ubicación',
+        text: 'No se ha podido obtener la ubicación actual.',
+      });
+      return;
+    }
+
+    const waypoints = selectedItems.length > 1
+      ? selectedItems.slice(1).map(item => ({
+          location: new google.maps.LatLng(
+            parseFloat(item.direccion_d.split(',')[0]),
+            parseFloat(item.direccion_d.split(',')[1])
+          ),
+          stopover: true,
+        }))
+      : [];
+
+    const destination = new google.maps.LatLng(
+      parseFloat(selectedItems[0].direccion_d.split(',')[0]),
+      parseFloat(selectedItems[0].direccion_d.split(',')[1])
+    );
+
+    const request = {
+      origin: this.userLocation,
+      destination: destination,
+      waypoints: waypoints,
+      travelMode: travelMode, // Usar el modo de transporte seleccionado
+      optimizeWaypoints: selectedItems.length > 1,
+    };
+
+    // Llamada a la API DirectionsService de Google
+    this.directionsService.route(request, (result, status) => {
+      if (status === google.maps.DirectionsStatus.OK) {
+        this.directionsRenderer.setDirections(result);
+
+        // Sumar los tiempos de cada tramo (legs)
+        let totalTimeSeconds = 0; // Tiempo total en segundos
+        let totalDistance = 0; // Distancia total en metros
+
+        result.routes[0].legs.forEach(leg => {
+          totalTimeSeconds += leg.duration.value; // Sumar el tiempo de cada tramo (en segundos)
+          totalDistance += leg.distance.value; // Sumar la distancia de cada tramo (en metros)
+        });
+
+        // Convertir los segundos a minutos y horas
+        const totalTimeMinutes = Math.floor(totalTimeSeconds / 60); // Convertir segundos a minutos
+        const hours = Math.floor(totalTimeMinutes / 60); // Horas
+        const minutes = totalTimeMinutes % 60; // Minutos restantes
+
+        const totalDistanceKm = (totalDistance / 1000).toFixed(2); // Convertir metros a kilómetros
+
+        // Mostrar el tiempo total estimado y la distancia
+        this.$swal.fire({
+          icon: 'info',
+          title: 'Tiempo Total Estimado',
+          text: `Tiempo estimado: ${hours} horas y ${minutes} minutos (${totalDistanceKm} km)`,
+        });
+      } else {
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error al calcular la ruta',
+          text: 'No se ha podido calcular la ruta.',
+        });
+        console.error('Error al calcular la ruta:', status);
+      }
+    });
+  },
+
+
+    addMarkersForAllPoints(selectedItems) {
+      this.clearAllMarkers(); // Limpiar marcadores anteriores
+
+      selectedItems.forEach(item => {
+        const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
+        const position = { lat, lng };
+
+        const marker = new google.maps.Marker({
+          position,
+          map: this.map,
+          title: item.destinatario,
+        });
+
+        this.markers.push(marker);
+      });
+    },
+    showCoordinatesError() {
+      this.$swal.fire({
+        icon: 'warning',
+        title: 'Coordenadas no disponibles',
+        text: 'Este registro no tiene latitud y longitud para mostrar en el mapa.',
+      });
+    },
+    calculateRoute(destination) {
+      if (!this.userLocation) {
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error de ubicación',
+          text: 'No se ha podido obtener la ubicación actual.',
+        });
+        return;
+      }
+
       const request = {
         origin: this.userLocation,
-        destination: new google.maps.LatLng(distances[0].destination.lat, distances[0].destination.lng),
-        waypoints: waypoints,
+        destination: { lat: destination.lat, lng: destination.lng },
         travelMode: google.maps.TravelMode.DRIVING,
-        optimizeWaypoints: true, // Optimiza la ruta si hay múltiples waypoints.
       };
 
       this.directionsService.route(request, (result, status) => {
@@ -310,243 +591,59 @@ export default {
           console.error('Error al calcular la ruta:', status);
         }
       });
-    }
-  );
-},
-
-    initializeMap() {
-  if (window.google && window.google.maps) {
-    const mapOptions = {
-      center: { lat: -16.5000, lng: -68.1500 }, // Coordenadas de La Paz, Bolivia
-      zoom: 12,
-    };
-    const mapElement = document.getElementById('map');
-    this.map = new google.maps.Map(mapElement, mapOptions);
-
-    // Configurar los servicios de direcciones
-    this.directionsService = new google.maps.DirectionsService();
-    this.directionsRenderer = new google.maps.DirectionsRenderer();
-    this.directionsRenderer.setMap(this.map);
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          this.userLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          this.map.setCenter(this.userLocation);
-
-          new google.maps.Marker({
-            position: this.userLocation,
-            map: this.map,
-            title: 'Mi Ubicación',
-            icon: {
-              url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-            },
-          });
-
-          this.addMarkersToMap();
-        },
-        (error) => {
-          console.error('Error al obtener la ubicación del usuario:', error);
-          this.addMarkersToMap();
-        }
-      );
-    } else {
-      this.addMarkersToMap();
-    }
-  } else {
-    console.error('Google Maps no está cargado correctamente.');
-  }
-},
-    addMarkersToMap() {
-      const selectedItems = this.list.filter(item => this.selected[item.id]);
-      selectedItems.forEach(item => {
-        let position;
-        if (this.isCoordinates(item.direccion_d)) {
-          const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
-          position = { lat, lng };
-        } else {
-          // Si no hay coordenadas, usa una posición por defecto
-          position = { lat: -16.5000, lng: -68.1500 };
-        }
-
-        new google.maps.Marker({
-          position,
-          map: this.map,
-          title: item.destinatario,
-        });
-      });
     },
-    toggleMarker(item) {
-  // Alterna la selección del elemento
-  if (this.selected[item.id]) {
-    delete this.selected[item.id];
-  } else {
-    this.$set(this.selected, item.id, true);
-  }
-
-  const selectedItems = Object.keys(this.selected)
-    .map(id => this.list.find(m => m.id == id))
-    .filter(item => item && this.isCoordinates(item.direccion_d));
-
-  // Recalcula la ruta cada vez que se seleccionan elementos
-  this.calculateRouteWithWaypoints(selectedItems);
-},
-
-calculateRouteWithWaypoints(selectedItems) {
-  if (!this.userLocation) {
-    this.$swal.fire({
-      icon: 'error',
-      title: 'Error de ubicación',
-      text: 'No se ha podido obtener la ubicación actual.',
-    });
-    return;
-  }
-
-  // Verifica si hay más de un punto seleccionado para optimizar la ruta.
-  const waypoints = selectedItems.length > 1
-    ? selectedItems.slice(1).map(item => ({
-        location: new google.maps.LatLng(
-          parseFloat(item.direccion_d.split(',')[0]),
-          parseFloat(item.direccion_d.split(',')[1])
-        ),
-        stopover: true,
-      }))
-    : [];
-
-  const destination = new google.maps.LatLng(
-    parseFloat(selectedItems[0].direccion_d.split(',')[0]),
-    parseFloat(selectedItems[0].direccion_d.split(',')[1])
-  );
-
-  const request = {
-    origin: this.userLocation,
-    destination: destination,
-    waypoints: waypoints,
-    travelMode: google.maps.TravelMode.DRIVING,
-    optimizeWaypoints: selectedItems.length > 1, // Solo optimiza si hay más de un punto.
-  };
-
-  this.directionsService.route(request, (result, status) => {
-    if (status === google.maps.DirectionsStatus.OK) {
-      this.directionsRenderer.setDirections(result);
-    } else {
-      this.$swal.fire({
-        icon: 'error',
-        title: 'Error al calcular la ruta',
-        text: 'No se ha podido calcular la ruta.',
-      });
-      console.error('Error al calcular la ruta:', status);
-    }
-  });
-},
-
-  addMarkersForAllPoints(selectedItems) {
-    this.clearAllMarkers(); // Limpiar marcadores anteriores
-
-    selectedItems.forEach(item => {
-      const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
-      const position = { lat, lng };
-
-      const marker = new google.maps.Marker({
-        position,
-        map: this.map,
-        title: item.destinatario,
-      });
-
-      this.markers.push(marker);
-    });
-  },
-    showCoordinatesError() {
-      this.$swal.fire({
-        icon: 'warning',
-        title: 'Coordenadas no disponibles',
-        text: 'Este registro no tiene latitud y longitud para mostrar en el mapa.',
-      });
+    clearAllMarkers() {
+      // Verificar si markers está definido y es un array antes de usar forEach
+      if (this.markers && Array.isArray(this.markers)) {
+        this.markers.forEach(marker => marker.setMap(null));
+        this.markers = [];
+      }
     },
-    calculateRoute(destination) {
-    if (!this.userLocation) {
-      this.$swal.fire({
-        icon: 'error',
-        title: 'Error de ubicación',
-        text: 'No se ha podido obtener la ubicación actual.',
-      });
-      return;
-    }
-
-    const request = {
-      origin: this.userLocation,
-      destination: { lat: destination.lat, lng: destination.lng },
-      travelMode: google.maps.TravelMode.DRIVING,
-    };
-
-    this.directionsService.route(request, (result, status) => {
-      if (status === google.maps.DirectionsStatus.OK) {
-        this.directionsRenderer.setDirections(result);
-      } else {
+    updateMapWithSelectedPoints(selectedItems) {
+      if (!this.userLocation) {
         this.$swal.fire({
           icon: 'error',
-          title: 'Error al calcular la ruta',
-          text: 'No se ha podido calcular la ruta.',
+          title: 'Error de ubicación',
+          text: 'No se ha podido obtener la ubicación actual.',
         });
-        console.error('Error al calcular la ruta:', status);
+        return;
       }
-    });
-  },
-  clearAllMarkers() {
-    // Verificar si markers está definido y es un array antes de usar forEach
-    if (this.markers && Array.isArray(this.markers)) {
-      this.markers.forEach(marker => marker.setMap(null));
-      this.markers = [];
-    }
-  },
-  updateMapWithSelectedPoints(selectedItems) {
-    if (!this.userLocation) {
-      this.$swal.fire({
-        icon: 'error',
-        title: 'Error de ubicación',
-        text: 'No se ha podido obtener la ubicación actual.',
-      });
-      return;
-    }
 
-    // Limpiar marcadores anteriores y ruta
-    this.clearAllMarkers();
-    this.directionsRenderer.set('directions', null);
+      // Limpiar marcadores anteriores y ruta
+      this.clearAllMarkers();
+      this.directionsRenderer.set('directions', null);
 
-    // Añadir un marcador para la ubicación del usuario
-    const userMarker = new google.maps.Marker({
-      position: this.userLocation,
-      map: this.map,
-      title: 'Mi Ubicación',
-      icon: {
-        url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-      },
-    });
-    this.markers.push(userMarker);
-
-    // Añadir marcadores para cada punto seleccionado
-    selectedItems.forEach((item, index) => {
-      const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
-      const position = { lat, lng };
-
-      const marker = new google.maps.Marker({
-        position,
+      // Añadir un marcador para la ubicación del usuario
+      const userMarker = new google.maps.Marker({
+        position: this.userLocation,
         map: this.map,
-        title: `Punto ${String.fromCharCode(65 + index)}`, // A, B, C, ...
-        label: String.fromCharCode(65 + index), // Añade etiquetas A, B, C, etc.
+        title: 'Mi Ubicación',
+        icon: {
+          url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+        },
+      });
+      this.markers.push(userMarker);
+
+      // Añadir marcadores para cada punto seleccionado
+      selectedItems.forEach((item, index) => {
+        const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
+        const position = { lat, lng };
+
+        const marker = new google.maps.Marker({
+          position,
+          map: this.map,
+          title: `Punto ${String.fromCharCode(65 + index)}`, // A, B, C, ...
+          label: String.fromCharCode(65 + index), // Añade etiquetas A, B, C, etc.
+        });
+
+        this.markers.push(marker);
       });
 
-      this.markers.push(marker);
-    });
-
-    // Si hay más de un punto, calcula la ruta
-    if (selectedItems.length > 0) {
-      this.calculateRouteWithWaypoints(selectedItems);
-    }
-  },
+      // Si hay más de un punto, calcula la ruta
+      if (selectedItems.length > 0) {
+        this.calculateRouteWithWaypoints(selectedItems);
+      }
+    },
 
 
 
@@ -1086,5 +1183,21 @@ calculateRouteWithWaypoints(selectedItems) {
 #map {
   width: 100%;
   height: 100vh;
+}
+
+.transportation-options {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.transportation-options .btn {
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+}
+
+.transportation-options .btn:hover {
+  background-color: #e0e0e0;
 }
 </style>
