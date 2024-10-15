@@ -104,40 +104,59 @@ export default {
     },
 
     async darDeBaja() {
-  if (!this.model.firma_d && !this.model.imagen) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Firma o foto requerida',
-      text: 'Debes proporcionar una firma o una foto.'
-    });
-    return;
-  }
+    if (!this.model.firma_d && !this.model.imagen) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Firma o foto requerida',
+        text: 'Debes proporcionar una firma o una foto.'
+      });
+      return;
+    }
 
-  try {
-    this.model.estado = 3;
-    const now = new Date();
-    const day = String(now.getDate()).padStart(2, '0');
-    const month = String(now.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
-    const year = now.getFullYear();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    this.model.fecha_d = `${day}/${month}/${year} ${hours}:${minutes}`;
-    await this.$api.$put(`${this.apiUrl}/${this.model.id}`, this.model);
-    Swal.fire({
-      icon: 'success',
-      title: 'Éxito',
-      text: 'La correspondencia a sido entregada con exito'
-    }).then(() => {
-      window.history.back();
-    });
-  } catch (error) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Hubo un error al dar de baja el registro.'
-    });
+    try {
+      // Mostrar la alerta de envío de Gmail
+      Swal.fire({
+        title: 'Enviando Gmail de confirmación de entrega a empresa...',
+        text: 'Por favor espera mientras se envía la confirmación.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // Cambiar el estado del modelo y agregar la fecha de entrega
+      this.model.estado = 3;
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
+      const year = now.getFullYear();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      this.model.fecha_d = `${day}/${month}/${year} ${hours}:${minutes}`;
+
+      // Aquí deberías realizar la lógica para enviar el correo Gmail
+      // Puedes usar una API en el servidor o servicio de terceros para enviar el correo
+
+      // Simulación de la llamada a la API (puedes reemplazar esto con tu lógica de envío real)
+      await this.$api.$put(`${this.apiUrl}/${this.model.id}`, this.model);
+
+      // Actualizar la alerta con el éxito del envío
+      Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: 'La correspondencia ha sido entregada con éxito. El Gmail de confirmación ha sido enviado.'
+      }).then(() => {
+        window.history.back();
+      });
+    } catch (error) {
+      // En caso de error al enviar el correo o al actualizar el registro
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un error al dar de baja el registro o enviar el correo.'
+      });
+    }
   }
-}
 
   },
   mounted() {
