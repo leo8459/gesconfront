@@ -442,7 +442,7 @@ this.directionsRenderer.setMap(this.map);
       title: item.destinatario,  // O cualquier dato relevante del punto
       icon: {
         url: markerImage,  // Usar la imagen personalizada como marcador
-        scaledSize: new google.maps.Size(40, 40),  // Ajustar el tamaño si es necesario
+        scaledSize: new google.maps.Size(80, 80),  // Ajustar el tamaño si es necesario
       },
       label: null  // Evitar que aparezcan letras (A, B, C)
     });
@@ -557,7 +557,7 @@ this.directionsRenderer.setMap(this.map);
           title: leg.end_address,
           icon: {
             url: markerImage,
-            scaledSize: new google.maps.Size(40, 40),
+            scaledSize: new google.maps.Size(80, 80),
           },
         });
         this.markers.push(marker);
@@ -678,7 +678,7 @@ this.directionsRenderer.setMap(this.map);
   title: 'Mi Ubicación',
   icon: {
     url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png', // Icono azul estándar
-    scaledSize: new google.maps.Size(40, 40),
+    scaledSize: new google.maps.Size(80, 80),
   },
 });
 this.markers.push(userMarker);
