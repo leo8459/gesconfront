@@ -161,98 +161,109 @@ export default {
   },
   mounted() {
     this.$nextTick(async () => {
-    try {
-      const routeData = await this.GET_DATA(this.apiUrl + '/' + this.$route.params.id);
-      this.model = routeData;
-      this.sucursales = await this.GET_DATA('sucursales');
-    } catch (e) {
-      console.log(e);
-    } finally {
-      this.load = false;
-    }
-
-    // Código relacionado con la firma (sin cambios)
-    var canvas2 = document.getElementById('canvas2');
-    var signaturePad2 = new SignaturePad(canvas2);
-    var clearButton2 = document.getElementById('limpiar2');
-    var generateButton2 = document.getElementById('guardar2');
-
-    clearButton2.addEventListener('click', () => {
-      signaturePad2.clear();
-      this.model.firma_d = "";
-    });
-
-    generateButton2.addEventListener('click', () => {
-      var firma2 = signaturePad2.toDataURL();
-      this.model.firma_d = firma2;
-      Swal.fire({
-        icon: 'success',
-        title: 'Firma registrada',
-        text: 'Firma registrada exitosamente.'
-      });
-    });
-
-    // Manejo de la captura de foto con límite de tamaño muy bajo
-    var fileInput = document.getElementById('capturephoto');
-
-    fileInput.addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            // Definir una resolución baja
-            const maxWidth = 1750; // Ancho máximo
-            const maxHeight = 1750; // Alto máximo
-
-            let width = img.width;
-            let height = img.height;
-
-            // Escalar la imagen a las dimensiones más pequeñas posibles
-            if (width > height) {
-              if (width > maxWidth) {
-                height *= maxWidth / width;
-                width = maxWidth;
-              }
-            } else {
-              if (height > maxHeight) {
-                width *= maxHeight / height;
-                height = maxHeight;
-              }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(img, 0, 0, width, height);
-
-            // Comprimir la imagen en formato WebP lo máximo posible
-            let quality = 0.4; // Calidad baja
-            let dataurl = canvas.toDataURL('image/webp', quality);
-
-            // Intentar reducir el tamaño por debajo de 1 KB
-            while (dataurl.length > 100000 && quality > 0.01) {
-              quality -= 0.01;
-              dataurl = canvas.toDataURL('image/webp', quality);
-            }
-
-            this.model.imagen = dataurl; // Guardar la imagen comprimida en el modelo
-
-            // Mostrar alerta cuando se sube una foto
-            Swal.fire({
-              icon: 'success',
-              title: 'Foto registrada',
-              text: 'La foto se ha subido exitosamente.'
-            });
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+      try {
+        // Obtener los datos de la solicitud a editar
+        const routeData = await this.GET_DATA(this.apiUrl + '/' + this.$route.params.id);
+        this.model = routeData;
+        // Obtener la lista de sucursales
+        this.sucursales = await this.GET_DATA('sucursales');
+      } catch (e) {
+        console.log(e);
+      } finally {
+        this.load = false; // Indicar que la carga ha terminado
       }
-    });
+
+      // --- Configuración de la firma digital ---
+
+      // Obtener el elemento canvas para la firma
+      var canvas2 = document.getElementById('canvas2');
+      // Crear una instancia de SignaturePad asociada al canvas
+      var signaturePad2 = new SignaturePad(canvas2);
+      // Obtener los botones de limpiar y guardar
+      var clearButton2 = document.getElementById('limpiar2');
+      var generateButton2 = document.getElementById('guardar2');
+
+      // Evento para limpiar el canvas (borrar la firma)
+      clearButton2.addEventListener('click', () => {
+        signaturePad2.clear(); // Limpiar el canvas
+        this.model.firma_d = ""; // Limpiar la firma en el modelo
+      });
+
+      // Evento para guardar la firma
+      generateButton2.addEventListener('click', () => {
+        var firma2 = signaturePad2.toDataURL(); // Convertir la firma a una imagen en formato DataURL
+        this.model.firma_d = firma2; // Guardar la firma en el modelo
+        Swal.fire({
+          icon: 'success',
+          title: 'Firma registrada',
+          text: 'Firma registrada exitosamente.'
+        });
+      });
+
+      // --- Manejo de la captura de foto ---
+
+      // Obtener el input de archivo para capturar la foto
+      var fileInput = document.getElementById('capturephoto');
+
+      // Evento que se dispara cuando se selecciona una foto
+      fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0]; // Obtener el archivo seleccionado
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+
+              // Definir dimensiones máximas para redimensionar la imagen
+              const maxWidth = 1750; // Ancho máximo
+              const maxHeight = 1750; // Alto máximo
+
+              let width = img.width;
+              let height = img.height;
+
+              // Redimensionar la imagen manteniendo la proporción
+              if (width > height) {
+                if (width > maxWidth) {
+                  height *= maxWidth / width;
+                  width = maxWidth;
+                }
+              } else {
+                if (height > maxHeight) {
+                  width *= maxHeight / height;
+                  height = maxHeight;
+                }
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+              ctx.drawImage(img, 0, 0, width, height); // Dibujar la imagen en el canvas redimensionado
+
+              // Comprimir la imagen en formato WebP con calidad baja
+              let quality = 0.4; // Calidad inicial
+              let dataurl = canvas.toDataURL('image/webp', quality);
+
+              // Reducir la calidad si el tamaño supera 100 KB
+              while (dataurl.length > 100000 && quality > 0.01) {
+                quality -= 0.01;
+                dataurl = canvas.toDataURL('image/webp', quality);
+              }
+
+              this.model.imagen = dataurl; // Guardar la imagen comprimida en el modelo
+
+              // Mostrar alerta indicando que la foto se ha registrado
+              Swal.fire({
+                icon: 'success',
+                title: 'Foto registrada',
+                text: 'La foto se ha subido exitosamente.'
+              });
+            };
+            img.src = e.target.result; // Cargar la imagen en el objeto Image
+          };
+          reader.readAsDataURL(file); // Leer el archivo como DataURL
+        }
+      });
 
     });
   }

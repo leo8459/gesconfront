@@ -500,8 +500,8 @@ this.directionsRenderer.setMap(this.map);
     }
   },
 
-    // Método para calcular la ruta
-    calculateRouteWithWaypoints(selectedItems, travelMode = google.maps.TravelMode.DRIVING) {
+  calculateRouteWithWaypoints(selectedItems, travelMode = google.maps.TravelMode.DRIVING) {
+  // Verificar si la ubicación del usuario está disponible
   if (!this.userLocation) {
     this.$swal.fire({
       icon: 'error',
@@ -511,78 +511,85 @@ this.directionsRenderer.setMap(this.map);
     return;
   }
 
+  // Preparar los waypoints para la ruta
+  // Si hay más de un elemento seleccionado, los usamos como waypoints (excluyendo el primero)
   const waypoints = selectedItems.length > 1
     ? selectedItems.slice(1).map(item => ({
         location: new google.maps.LatLng(
           parseFloat(item.direccion_d.split(',')[0]),
           parseFloat(item.direccion_d.split(',')[1])
         ),
-        stopover: true,
+        stopover: true, // Indica que es un punto de parada
       }))
     : [];
 
+  // Establecer el destino como la ubicación del primer elemento seleccionado
   const destination = new google.maps.LatLng(
     parseFloat(selectedItems[0].direccion_d.split(',')[0]),
     parseFloat(selectedItems[0].direccion_d.split(',')[1])
   );
 
+  // Crear el objeto de solicitud para DirectionsService
   const request = {
-    origin: this.userLocation,
-    destination: destination,
-    waypoints: waypoints,
-    travelMode: travelMode,
-    optimizeWaypoints: selectedItems.length > 1,
+    origin: this.userLocation, // Punto de inicio (ubicación del usuario)
+    destination: destination,  // Punto final (primer elemento seleccionado)
+    waypoints: waypoints,      // Puntos intermedios a visitar
+    travelMode: travelMode,    // Modo de viaje (ej. DRIVING, WALKING)
+    optimizeWaypoints: selectedItems.length > 1, // Optimiza el orden de los waypoints
   };
 
+  // Llamar a DirectionsService para calcular la ruta
   this.directionsService.route(request, (result, status) => {
     if (status === google.maps.DirectionsStatus.OK) {
+      // Si la ruta se calculó exitosamente, la mostramos en el mapa
       this.directionsRenderer.setDirections(result);
 
-      // Limpiar marcadores existentes
+      // Limpiar cualquier marcador existente en el mapa
       this.clearAllMarkers();
 
-      const markerImage = '/logo.png'; // Asegúrate de que esta ruta es correcta
+      const markerImage = '/logo.png'; // Ruta de la imagen personalizada para el marcador
 
-      // No agregamos un marcador en la ubicación del usuario
-
-      // Obtener la ruta
+      // Obtener la ruta calculada
       const route = result.routes[0];
 
-      // Agregar marcadores en cada ubicación (waypoints y destino)
+      // Agregar marcadores en cada tramo (leg) de la ruta
       route.legs.forEach((leg, index) => {
-        // Agregar marcador personalizado en el punto de destino de cada tramo (leg)
+        // Crear un marcador en la ubicación final de cada tramo
         const marker = new google.maps.Marker({
           position: leg.end_location,
           map: this.map,
           title: leg.end_address,
           icon: {
-            url: markerImage,
-            scaledSize: new google.maps.Size(80, 80),
+            url: markerImage, // Usar la imagen personalizada para el marcador
+            scaledSize: new google.maps.Size(80, 80), // Ajustar el tamaño de la imagen
           },
         });
+        // Almacenar el marcador para referencia futura
         this.markers.push(marker);
       });
 
-      // **Cálculo del tiempo y distancia total**
+      // Calcular la duración y distancia total de la ruta
       let totalDuration = 0;
       let totalDistance = 0;
 
+      // Sumar la duración y distancia de cada tramo de la ruta
       route.legs.forEach(leg => {
-        totalDuration += leg.duration.value; // en segundos
-        totalDistance += leg.distance.value; // en metros
+        totalDuration += leg.duration.value; // Duración en segundos
+        totalDistance += leg.distance.value; // Distancia en metros
       });
 
-      // Formatear el tiempo y distancia
+      // Formatear la duración y distancia total para mostrar
       const totalDurationText = this.formatDuration(totalDuration);
       const totalDistanceText = this.formatDistance(totalDistance);
 
-      // Mostrar un mensaje con el tiempo y distancia total
+      // Mostrar una alerta con el tiempo y distancia total
       this.$swal.fire({
         icon: 'info',
         title: 'Ruta calculada',
         html: `Tiempo total: ${totalDurationText}<br>Distancia total: ${totalDistanceText}`,
       });
     } else {
+      // Si hubo un error al calcular la ruta, mostrar un mensaje de error
       this.$swal.fire({
         icon: 'error',
         title: 'Error al calcular la ruta',
