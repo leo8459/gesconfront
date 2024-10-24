@@ -6,7 +6,7 @@
         <div class="row justify-content-end">
           <div class="col-md-2">
             <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class=""></i> Crear direccion para sucursal
+              <i class=""></i> Registrar direccion para sucursal
             </nuxtLink>
           </div>
           <div class="col-12">

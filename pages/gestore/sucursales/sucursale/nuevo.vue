@@ -14,127 +14,136 @@
                 <CrudCreate1002 :model="model" :apiUrl="apiUrl">
                   <div slot="body" class="row">
                     <div class="row">
-  <div class="form-group col-md-6">
-    <label for="empresa">Empresa</label>
-    <v-select :options="empresas" v-model="model.empresa_id" label="nombre"
-      :reduce="empresa => empresa.id" placeholder="Buscar empresa...">
-      <template #option="option">
-        <div>{{ option.nombre }}</div>
-      </template>
-      <template #selected-option="option">
-        <div>{{ option.nombre }}</div>
-      </template>
-    </v-select>
-  </div>
+                      <div class="form-group col-md-6">
+                        <label for="empresa">Empresa</label>
+                        <v-select :options="empresas" v-model="model.empresa_id" label="nombre"
+                          :reduce="empresa => empresa.id" placeholder="Buscar empresa...">
+                          <template #option="option">
+                            <div>{{ option.nombre }}</div>
+                          </template>
+                          <template #selected-option="option">
+                            <div>{{ option.nombre }}</div>
+                          </template>
+                        </v-select>
+                      </div>
 
-  <div class="form-group col-md-6">
-    <label for="">Nombre de sucursal *</label>
-    <input type="text" v-model="model.nombre" class="form-control" id="">
-  </div>
-</div>
+                      <div class="form-group col-md-6">
+                        <label for="">Nombre de sucursal *</label>
+                        <input type="text" v-model="model.nombre" class="form-control" id="">
+                      </div>
+                    </div>
 
-<div class="row">
-  <div class="form-group col-md-6">
-    <label for="">Sigla *</label>
-    <input type="text" v-model="model.sigla" class="form-control" id="">
-  </div>
+                    <div class="row">
+                      <div class="form-group col-md-6">
+                        <label for="">Sigla *</label>
+                        <input type="text" v-model="model.sigla" class="form-control" id="">
+                      </div>
 
-  <div class="form-group col-md-6">
-    <label for="">Numero de contrato</label>
-    <input type="text" v-model="model.n_contrato" class="form-control" id="">
-  </div>
-</div>
+                      <div class="form-group col-md-6">
+                        <label for="">Numero de contrato</label>
+                        <input type="text" v-model="model.n_contrato" class="form-control" id="">
+                      </div>
+                    </div>
 
-<div class="row">
-  <div class="form-group col-md-6">
-    <label for="origen">Departamento de la sucursal*</label>
-    <select v-model="model.origen" class="form-control" id="origen">
-      <option value="LPB">La Paz (LPB)</option>
-      <option value="SRZ">Santa Cruz (SRZ)</option>
-      <option value="CBB">Cochabamba (CBB)</option>
-      <option value="ORU">Oruro (ORU)</option>
-      <option value="PTI">Potosí (PTI)</option>
-      <option value="TJA">Tarija (TJA)</option>
-      <option value="SRE">Sucre (SRE)</option>
-      <option value="BEN">Trinidad (TDD)</option>
-      <option value="CIJ">Cobija (CIJ)</option>
-    </select>
-  </div>
+                    <div class="row">
+                      <div class="form-group col-md-6">
+                        <label for="origen">Departamento de la sucursal*</label>
+                        <select v-model="model.origen" class="form-control" id="origen">
+                          <option value="LPB">La Paz (LPB)</option>
+                          <option value="SRZ">Santa Cruz (SRZ)</option>
+                          <option value="CBB">Cochabamba (CBB)</option>
+                          <option value="ORU">Oruro (ORU)</option>
+                          <option value="PTI">Potosí (PTI)</option>
+                          <option value="TJA">Tarija (TJA)</option>
+                          <option value="SRE">Sucre (SRE)</option>
+                          <option value="BEN">Trinidad (TDD)</option>
+                          <option value="CIJ">Cobija (CIJ)</option>
+                        </select>
+                      </div>
 
-  <div class="form-group col-md-6">
-    <label for="acuerdo_contrato">Acuerdo contrato*</label>
-    <select v-model="model.acuerdo_contrato" class="form-control" id="acuerdo_contrato">
-      <option value="CONTRATO">CONTRATO</option>
-      <option value="CONVENIO">CONVENIO</option>
-      <option value="POSTPAGO">POSTPAGO</option>
-      <option value="TASITA RECONDUCCIÓN">TASITA RECONDUCCIÓN</option>
-    </select>
-  </div>
-</div>
+                      <div class="form-group col-md-6">
+                        <label for="acuerdo_contrato">Acuerdo contrato*</label>
+                        <select v-model="model.acuerdo_contrato" class="form-control" id="acuerdo_contrato">
+                          <option value="CONTRATO">CONTRATO</option>
+                          <option value="CONVENIO">CONVENIO</option>
+                          <option value="POSTPAGO">POSTPAGO</option>
+                          <option value="TASITA RECONDUCCIÓN">TASITA RECONDUCCIÓN</option>
+                        </select>
+                      </div>
+                    </div>
 
-<div class="row">
-  <div class="form-group col-md-6">
-    <label for="tipo_contrato">Tipo de contrato*</label>
-    <select v-model="model.tipo_contrato" class="form-control" id="tipo_contrato">
-      <option value="EMS">EMS</option>
-      <option value="ECA">ECA</option>
-      <option value="EMS Y ECA">EMS Y ECA</option>
-    </select>
-  </div>
+                    <div class="row">
+                      <div class="form-group col-md-6">
+                        <label for="tipo_contrato">Tipo de contrato*</label>
+                        <select v-model="model.tipo_contrato" class="form-control" id="tipo_contrato">
+                          <option value="EMS">EMS</option>
+                          <option value="ECA">ECA</option>
+                          <option value="EMS Y ECA">EMS Y ECA</option>
+                        </select>
+                      </div>
 
-  <div class="form-group col-md-6">
-    <label for="">Inicio de contrato*</label>
-    <input type="date" v-model="model.ini_vigencia" class="form-control" :min="ini_vigencia">
-  </div>
-</div>
+                      <div class="form-group col-md-6">
+                        <label for="">Inicio*</label>
+                        <input type="date" v-model="model.ini_vigencia" class="form-control" :min="ini_vigencia">
+                      </div>
+                    </div>
 
-<div class="row">
-  <div class="form-group col-md-6">
-    <label for="">Fin de contrato*</label>
-    <input type="date" v-model="model.fin_vigencia" class="form-control" :min="fin_vigencia">
-  </div>
+                    <div class="row">
+                      <div class="form-group col-md-6">
+                        <label for="">Fin*</label>
+                        <input type="date" v-model="model.fin_vigencia" class="form-control" :min="fin_vigencia">
+                      </div>
 
-  <div class="form-group col-md-6">
-    <label for="">Limite presupuestario</label>
-    <input type="text" v-model="model.limite" class="form-control" id="">
-  </div>
-</div>
+                      <div class="form-group col-md-6">
+                        <label for="">Limite presupuestario</label>
+                        <input type="text" v-model="model.limite" class="form-control" id="">
+                      </div>
+                    </div>
 
-<div class="row">
-  <div class="form-group col-md-6">
-    <label for="cobertura">Cobertura*</label>
-    <select v-model="model.cobertura" class="form-control" id="cobertura">
-      <option value="Internacional">Internacional</option>
-      <option value="Nacional">Nacional</option>
-      <option value="Local">Local</option>
-      <option value="Interprovincial">Interprovincial</option>
-    </select>
-  </div>
+                    <div class="row">
+                      <div class="form-group col-md-6">
+                        <label for="cobertura">Cobertura*</label>
+                        <select v-model="model.cobertura" class="form-control" id="cobertura">
+                          <option value="Internacional">Internacional</option>
+                          <option value="Nacional">Nacional</option>
+                          <option value="Local">Local</option>
+                          <option value="Interprovincial">Interprovincial</option>
+                        </select>
+                      </div>
 
-  <div class="form-group col-md-6">
-    <label for="">Acuerdo recojo*</label>
-    <input type="text" v-model="model.acuerdos" class="form-control" id="">
-  </div>
-</div>
+                      <div class="form-group col-md-6">
+                        <label for="">Acuerdo recojo*</label>
+                        <input type="text" v-model="model.acuerdos" class="form-control" id="">
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="form-group col-md-6">
+                        <label for="tipo_contrato">Quien pagara*</label>
+                        <select v-model="model.pagador" class="form-control" id="pagador">
+                          <option value="ENTIDAD CONTRATANTE">Entidad Contratante</option>
+                          <option value="PAGO PROPIO">Pago Propio</option>
+                        </select>
+                      </div>
+                    </div>
 
-<div class="row">
-  <div class="form-group col-md-6">
-    <label for="">Contacto Administrativo</label>
-    <input type="number" v-model="model.contacto_administrativo" class="form-control" id="">
-  </div>
+                    <div class="row">
+                      <div class="form-group col-md-6">
+                        <label for="">Contacto Administrativo</label>
+                        <input type="number" v-model="model.contacto_administrativo" class="form-control" id="">
+                      </div>
 
-  <div class="form-group col-md-6">
-    <label for="">Email*</label>
-    <input type="text" v-model="model.email" class="form-control" id="">
-  </div>
-</div>
+                      <div class="form-group col-md-6">
+                        <label for="">Email*</label>
+                        <input type="text" v-model="model.email" class="form-control" id="">
+                      </div>
+                    </div>
 
-<div class="row">
-  <div class="form-group col-md-6">
-    <label for="">Password*</label>
-    <input type="password" v-model="model.password" class="form-control" id="">
-  </div>
-</div>
+                    <div class="row">
+                      <div class="form-group col-md-6">
+                        <label for="">Password*</label>
+                        <input type="password" v-model="model.password" class="form-control" id="">
+                      </div>
+                    </div>
 
 
 
@@ -172,6 +181,7 @@ export default {
         empresa_id: '',
         tipo_contrato: '', // Este será llenado al recibir los datos del backend
         acuerdo_contrato: '', // Este será llenado al recibir los datos del backend
+        pagador : '', // Este será llenado al recibir los datos del backend
 
       },
       apiUrl: 'sucursales3',

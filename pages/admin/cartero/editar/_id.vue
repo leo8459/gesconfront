@@ -41,6 +41,10 @@
                     <input type="file" accept="image/*" id="capturephoto" capture="camera" class="d-none">
                   </label>
                 </div>
+                <div class="form-group col-12">
+                      <label for="">Recibido por</label>
+                      <input type="text" v-model="model.entrega_observacion" class="form-control" id="">
+                    </div>
                 <button class="btn btn-danger" @click="darDeBaja">Entregar Correspondencia</button>
               </div>
             </div>
@@ -87,6 +91,8 @@ export default {
         fecha_d: '',
         estado: '',
         imagen: '',
+        entrega_observacion: '',
+
       },
       apiUrl: "solicitudes",
       page: "solicitudes",

@@ -7,21 +7,28 @@
          <div class="text- mb-4">
           <h2>Bienvenidos al sistema Gescon</h2>
         </div>
-        <!-- Barra superior con botón de Agregar y Cerrar Sesión -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- Mensaje de advertencia si se excede el límite -->
+        <div v-if="limiteTotal > 0 && totalNombreD >= limiteTotal" class="alert alert-custom" role="alert">
+  Ha alcanzado o sobrepasado su límite presupuestario y no puede Solicitar nuevos envíos. Por favor, comuníquese con la Agencia Boliviana de Correos.
+</div>
+
+
+
+        <!-- Barra superior con botones de Agregar solo si no se ha excedido el límite -->
+        <div v-else class="d-flex justify-content-between align-items-center mb-4">
           <div class="d-flex align-items-center">
+            <!-- Botón para crear solicitud de Correspondencia -->
             <select @change="handleSelectChange" class="btn btn-dark btn-sm mr-3">
               <option value="" disabled selected>Crear solicitud de Correspondencia</option>
               <option value="url_nuevo2">Boleta Digital</option>
               <option value="url_nuevo">Boleta fisica</option>
             </select>
 
-
+            <!-- Botón de Correspondencia Internacional -->
             <a href="https://ips.correos.gob.bo/CDS.Web/Operational/andeclaration.aspx" class="btn btn-dark btn-sm mr-3"
               target="_blank">
               <i class=""></i> Crear solicitud de Correspondencia Internacional
             </a>
-
           </div>
         </div>
 
@@ -209,10 +216,14 @@ export default {
   name: "IndexPage",
   data() {
     return {
+      saldoRestante: null,
+    limiteTotal: null,
+    totalNombreD: null,
       user: {
         sucursale: {
           id: null
-        }
+        },
+      
       },
       variableInt: null,
       page: "Sucursal",
@@ -232,6 +243,17 @@ export default {
     };
   },
   methods: {
+    async fetchSaldoData() {
+  try {
+    const res = await this.$sucursales.$get('/restantesaldo2');
+    // Asigna los valores de la respuesta a las variables reactivas
+    this.saldoRestante = Number(res.saldo_restante);
+    this.limiteTotal = Number(res.limite_total);
+    this.totalNombreD = Number(res.total_nombre_d);
+  } catch (error) {
+    console.error('Error al obtener saldo:', error);
+  }
+},
     handleSelectChange(event) {
       const selectedValue = event.target.value;
       if (this[selectedValue]) {
@@ -268,14 +290,18 @@ export default {
     }
   },
   mounted() {
-    this.$nextTick(async () => {
-      this.load = true;
-      let user = localStorage.getItem('userAuth');
-      this.user = JSON.parse(user);
-      await this.fetchDashboardData();
-      this.load = false;
-    });
-  },
+  this.$nextTick(async () => {
+    this.load = true;
+    let user = localStorage.getItem('userAuth');
+    this.user = JSON.parse(user);
+    
+    // Llamar a la función para obtener los datos
+    await this.fetchSaldoData();
+    await this.fetchDashboardData();
+    this.load = false;
+  });
+},
+
 };
 </script>
 
@@ -386,6 +412,13 @@ select.btn option {
 
 select option[disabled] {
   display: none;
+}
+.alert-custom {
+  background-image: linear-gradient(to right, #fffb00de, #ddd905); /* Degradado de azul oscuro a dorado */
+  color: black; /* Color del texto */
+  border: 1px solid #b2954b; /* Borde dorado */
+  border-radius: 5px; /* Bordes redondeados */
+  padding: 15px;
 }
 
 </style>

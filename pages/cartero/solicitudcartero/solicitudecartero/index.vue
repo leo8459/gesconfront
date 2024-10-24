@@ -102,30 +102,46 @@
             </div>
           </div>
            <!-- Modal para mostrar seleccionados -->
-    <b-modal v-model="isSelectedModalVisible" title="Resultados de la Búsqueda" hide-backdrop hide-footer>
-      <div v-for="(item, index) in selectedItemsData" :key="item.id"
-        class="form-group d-flex justify-content-between align-items-center">
-        <label>{{ item.sucursale.nombre }} - {{ item.guia }}</label>
-        <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
-      </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-primary" @click="collectSelected">Recoger</button>
-        <button class="btn btn-secondary ml-2" @click="isSelectedModalVisible = false">Cancelar</button>
-      </div>
-    </b-modal>
+   <!-- Modal para mostrar seleccionados -->
+<b-modal v-model="isSelectedModalVisible" title="Resultados de la Búsqueda" hide-backdrop hide-footer>
+  <div v-for="(item, index) in selectedItemsData" :key="item.id" class="form-group">
+    <div class="d-flex justify-content-between align-items-center">
+      <label>{{ item.sucursale.nombre }} - {{ item.guia }}</label>
+      <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
+    </div>
+    <!-- Campo de texto para observaciones -->
+    <div class="form-group mt-2">
+      <label for="recojo_observacion">Observaciones para la guía {{ item.guia }}</label>
+      <textarea v-model="item.recojo_observacion" class="form-control" placeholder="Ingrese observaciones"></textarea>
+    </div>
+  </div>
+  <div class="d-flex justify-content-end">
+    <button class="btn btn-primary" @click="collectSelected">Recoger</button>
+    <button class="btn btn-secondary ml-2" @click="isSelectedModalVisible = false">Cancelar</button>
+  </div>
+</b-modal>
+
     <!-- Modal para mostrar seleccionados con checklist -->
-    <b-modal v-model="isSelectedSimpleModalVisible" title="Resultados de los seleccionados" hide-backdrop hide-footer>
-      <div v-for="(item, index) in selectedItemsData" :key="item.id"
-        class="form-group d-flex justify-content-between align-items-center">
-        <input type="checkbox" v-model="selectedForPickup" :value="item.id">
-        <label class="ml-2">{{ item.sucursale.nombre }} - {{ item.guia }}</label>
-        <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
-      </div>
-      <div class="d-flex justify-content-end">
-        <button class="btn btn-primary" @click="collectSelected">Recoger</button>
-        <button class="btn btn-secondary ml-2" @click="isSelectedSimpleModalVisible = false">Cancelar</button>
-      </div>
-    </b-modal>
+   <!-- Modal para mostrar seleccionados con checklist -->
+<b-modal v-model="isSelectedSimpleModalVisible" title="Resultados de los seleccionados" hide-backdrop hide-footer>
+  <div v-for="(item, index) in selectedItemsData" :key="item.id" class="form-group">
+    <div class="d-flex justify-content-between align-items-center">
+      <input type="checkbox" v-model="selectedForPickup" :value="item.id">
+      <label class="ml-2">{{ item.sucursale.nombre }} - {{ item.guia }}</label>
+      <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
+    </div>
+    <!-- Campo de texto para observaciones -->
+    <div class="form-group mt-2">
+      <label for="recojo_observacion">Observaciones para la guía {{ item.guia }}</label>
+      <textarea v-model="item.recojo_observacion" class="form-control" placeholder="Ingrese observaciones"></textarea>
+    </div>
+  </div>
+  <div class="d-flex justify-content-end">
+    <button class="btn btn-primary" @click="collectSelected">Recoger</button>
+    <button class="btn btn-secondary ml-2" @click="isSelectedSimpleModalVisible = false">Cancelar</button>
+  </div>
+</b-modal>
+
         </div>
       </div>
     </AdminTemplate>
@@ -321,63 +337,78 @@ export default {
       }
     },
     openSelectedModal() {
-      this.selectedItemsData = this.list.filter(item => this.selected[item.id]);
+    this.selectedItemsData = this.list
+      .filter(item => this.selected[item.id])
+      .map(item => ({
+        ...item,
+        recojo_observacion: item.recojo_observacion || '' // Asegura que cada elemento tenga la propiedad recojo_observacion
+      }));
 
-      if (this.selectedItemsData.length > 0) {
-        this.isSelectedSimpleModalVisible = true; // Abre el modal sin el botón de eliminar
-      } else {
-        this.$swal.fire({
-          icon: 'info',
-          title: 'No hay elementos seleccionados',
-          text: 'Selecciona al menos un elemento para continuar.',
-        });
-      }
-    },
+    if (this.selectedItemsData.length > 0) {
+      this.isSelectedModalVisible = true; // Abre el modal sin el botón de eliminar
+    } else {
+      this.$swal.fire({
+        icon: 'info',
+        title: 'No hay elementos seleccionados',
+        text: 'Selecciona al menos un elemento para continuar.',
+      });
+    }
+  },
 
-    async collectSelected() {
-      this.load = true;
-      try {
-        // Convertir this.user en un objeto plano
-        const plainUser = JSON.parse(JSON.stringify(this.user));
+// Similar en el otro modal
+openSelectedSimpleModal() {
+    this.selectedItemsData = this.list
+      .filter(item => this.selected[item.id])
+      .map(item => ({
+        ...item,
+        recojo_observacion: item.recojo_observacion || '' // Asegura que cada elemento tenga la propiedad recojo_observacion
+      }));
 
-        console.log('Verificando plainUser:', plainUser); // Log para verificar el estado de plainUser
+    if (this.selectedItemsData.length > 0) {
+      this.isSelectedSimpleModalVisible = true;
+    } else {
+      this.$swal.fire({
+        icon: 'info',
+        title: 'No hay elementos seleccionados',
+        text: 'Selecciona al menos un elemento para continuar.',
+      });
+    }
+  },
+  async collectSelected() {
+    this.load = true;
+    try {
+      const carteroId = this.user.id;
+      const itemsToCollect = this.selectedForPickup.length > 0 ? this.selectedForPickup : this.selectedItemsData.map(item => item.id);
 
-        if (!plainUser || !plainUser.id) {
-          console.error('Estado de plainUser en error:', plainUser); // Otro log si hay un error
-          throw new Error('El ID del cartero no está disponible.');
+      for (let item of this.selectedItemsData) {
+        if (itemsToCollect.includes(item.id)) {
+          await this.$api.$put(`marcarrecogido/${item.id}`, {
+            cartero_recogida_id: carteroId,
+            recojo_observacion: item.recojo_observacion // Enviar la observación junto con la recolección
+          });
         }
-
-        const carteroId = plainUser.id;
-
-        console.log('ID del cartero:', carteroId); // Log para verificar que el ID está disponible
-
-        // Si no hay ningún elemento seleccionado en el checklist, seleccionar todos los que están en el modal
-        const itemsToCollect = this.selectedForPickup.length > 0 ? this.selectedForPickup : this.selectedItemsData.map(item => item.id);
-
-        for (let itemId of itemsToCollect) {
-          await this.$api.$put(`marcarrecogido/${itemId}`, { cartero_recogida_id: carteroId });
-        }
-
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
-        this.$swal.fire({
-          icon: 'success',
-          title: 'Recogido',
-          text: 'Los elementos seleccionados han sido recogidos.',
-        });
-        this.isSelectedSimpleModalVisible = false;
-        this.selected = {}; // Limpiar la selección después de recoger
-        this.selectedForPickup = []; // Limpiar los elementos seleccionados para recoger
-      } catch (e) {
-        console.error(e); // Esto mostrará el error detallado en la consola del navegador
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: `Hubo un error al recoger los elementos seleccionados. Detalles: ${e.message}`,
-        });
-      } finally {
-        this.load = false;
       }
-    },
+
+      await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+      this.$swal.fire({
+        icon: 'success',
+        title: 'Recogido',
+        text: 'Los elementos seleccionados han sido recogidos.',
+      });
+      this.isSelectedModalVisible = false;
+      this.isSelectedSimpleModalVisible = false;
+      this.selected = {};
+      this.selectedForPickup = [];
+    } catch (e) {
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: `Hubo un error al recoger los elementos seleccionados. Detalles: ${e.message}`,
+      });
+    } finally {
+      this.load = false;
+    }
+  },
 
 
 

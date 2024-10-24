@@ -44,7 +44,7 @@
       };
     },
     methods: {
-        async Save() {
+      async Save() {
     // Validar que los campos requeridos estén llenos
     if (!this.model.guia) {
       this.showAlert('El campo "Número de Guía" es obligatorio.');
@@ -87,32 +87,32 @@
       return;
     }
 
-    // Si todas las validaciones pasan, continuar con el guardado
+    // Verificar si la sucursal ha alcanzado su límite
+    const limiteExcedido = await this.checkLimiteSucursales();
+    if (limiteExcedido) {
+      // Mostrar alerta si se ha alcanzado el límite
+      this.$swal.fire({
+        icon: 'warning',
+        title: 'Límite alcanzado',
+        text: 'Usted ha alcanzado el límite de solicitudes permitidas. No puede crear más solicitudes hasta que se actualice su límite.',
+        confirmButtonText: 'Entendido',
+      });
+      return; // Detener el proceso si el límite ha sido excedido
+    }
+
+    // Si no se ha excedido el límite, continuar con la lógica de guardado
     this.load = true;
     try {
       const res = await this.$sucursales.$post(this.apiUrl, this.model);
-      console.log('Respuesta completa del servidor:', res);
-
-      if (res) {
-        this.generatePDF(res);  // Pasa res directamente a generatePDF
-      } else {
-        console.error('No se recibieron datos desde el servidor.');
-      }
-
-      this.$swal
-        .fire({
-          title: "Guardado!",
-          showDenyButton: false,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        })
-        .then((result) => {
-          if (result.isConfirmed) {
-            this.$router.back();
-          }
-        });
+      this.generatePDF(res);
+      this.$swal.fire({
+        title: "Guardado!",
+        confirmButtonText: "Ok",
+      }).then(() => {
+        this.$router.back();
+      });
     } catch (e) {
-      console.log(e);
+      console.error(e);
     } finally {
       this.load = false;
     }
@@ -126,7 +126,20 @@
       showConfirmButton: true,
     });
   },
-  
+
+  async checkLimiteSucursales() {
+    try {
+      // Solicitar el estado actual de las solicitudes de la sucursal
+      const response = await this.$sucursales.$get(`/sucursales/${this.model.sucursale_id}`);
+      const sucursal = response.data;
+
+      // Comparar el número de solicitudes actuales con el límite
+      return sucursal.solicitudes_realizadas >= sucursal.limite_solicitudes;
+    } catch (error) {
+      console.error('Error al verificar el límite de solicitudes:', error);
+      return true; // Si ocurre un error, asumir que el límite se ha excedido para mayor seguridad
+    }
+  },
       generatePDF(data) {
     if (!data) {
       console.error('No data provided to generate the PDF');

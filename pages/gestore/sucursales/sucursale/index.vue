@@ -37,7 +37,7 @@
             <label for="startDate" class="form-label"> {{ }} </label>
 
             <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class=""></i> Crear Sucursal
+              <i class=""></i> Registrar Sucursal
             </nuxtLink>
           </div>
 
@@ -55,7 +55,7 @@
                       <th class="py-0 px-1">#</th>
                       <th class="py-0 px-1">Sucursal</th>
                       <th class="py-0 px-1">Sigla</th>
-                      <th class="py-0 px-1">Acuerdo contrato</th>
+                      <th class="py-0 px-1">Acuerdo Contrato</th>
                       <th class="py-0 px-1">Tipo de Contrato</th>
                       <th class="py-0 px-1">Departamento Origen</th>
                       <th class="py-0 px-1">Inicio Contrato</th>
@@ -65,6 +65,7 @@
                       <th class="py-0 px-1">Dirección</th>
                       <th class="py-0 px-1">Acuerdos</th>
                       <th class="py-0 px-1">Codigo Cliente</th>
+                      <th class="py-0 px-1">Entidad que Paga</th>
                       <th class="py-0 px-1">Numero de Contrato</th>
                       <th class="py-0 px-1">Contacto</th>
                       <th class="py-0 px-1"></th>
@@ -84,6 +85,7 @@
                         <td class="py-0 px-1">{{ m.direccion }}</td>
                         <td class="py-0 px-1">{{ m.acuerdos }}</td>
                         <td class="py-0 px-1">{{ m.codigo_cliente }}</td>
+                        <td class="py-0 px-1">{{ m.pagador }}</td>
                         <td class="py-0 px-1">{{ m.n_contrato }}</td>
                         <td class="py-0 px-1">{{ m.contacto_administrativo }}</td>
                         <td class="py-0 px-1">

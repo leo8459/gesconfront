@@ -82,7 +82,7 @@
                         <!-- Botón para abrir el modal de observación -->
                         <td class="py-0 px-1" data-label="Acción">
                           <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm w-100">
-                            <i class="fas fa-undo"></i> Devolver a destino
+                            <i class="fas fa-undo"></i> Devolver a Origen
                           </button>
                         </td>
                       </tr>

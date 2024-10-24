@@ -6,7 +6,7 @@
         <div class="row justify-content-end">
           <div class="col-2">
             <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class=""></i> Crear tarifas
+              <i class=""></i> Registrar variables
             </nuxtLink>
           </div>
           <div class="col-12">
@@ -19,7 +19,7 @@
                   <div class="card-body d-flex flex-column">
                     <p class="card-text">
                       <button class="btn btn-block" style="background-color: #B99C46; color: #FFFFFF;" @click="openModal(sucursal)">
-                        Ver tarifas de sucursal
+                        Ver variables de sucursal
                       </button>
                     </p>
                   </div>
@@ -36,7 +36,7 @@
   <div class="modal-dialog modal-dialog-scrollable modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Tarifas de la Sucursal: {{ selectedSucursal.nombre }}</h5>
+        <h5 class="modal-title" id="exampleModalLabel">Variables de la Sucursal: {{ selectedSucursal.nombre }}</h5>
         <button type="button" class="close" @click="closeModal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>

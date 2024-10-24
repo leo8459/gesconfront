@@ -88,7 +88,7 @@
                     <td class="py-0 px-1">{{ m.estado === 2 ? 'En camino' : m.estado }}</td>
                     <td class="py-0 px-1">
                       <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
-                        <i class="fas fa-undo"></i> Devolver a destino
+                        <i class="fas fa-undo"></i> Devolver a Origen
                       </button>
                     </td>
                   </tr>

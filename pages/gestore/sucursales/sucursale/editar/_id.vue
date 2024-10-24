@@ -7,7 +7,7 @@
           <div class="col-sm-8 col-12">
             <div class="card">
               <div class="card-header">
-                <h3>Actualizar Sucursal</h3>
+                <h3>Editar Sucursal</h3>
               </div>
               <div class="card-body">
                 <CrudUpdate4 :model="model" :apiUrl="apiUrl">
@@ -67,10 +67,14 @@
                       <label for="">Acuerdo Recojo</label>
                       <input type="text" v-model="model.acuerdos" class="form-control" id="">
                     </div>
-
-                    <div class="form-group col-12">
-                      <label for="">Direccion</label>
-                      <input type="text" v-model="model.direccion" class="form-control" id="">
+                    <div class="row">
+                      <div class="form-group col-md-6">
+                        <label for="tipo_contrato">Quien pagara*</label>
+                        <select v-model="model.pagador" class="form-control" id="pagador">
+                          <option value="ENTIDAD CONTRATANTE">Entidad Contratante</option>
+                          <option value="MISMA EMPRESA">Misma Empresa</option>
+                        </select>
+                      </div>
                     </div>
 
                     <div class="form-group col-12">
@@ -112,6 +116,7 @@ export default {
         email: '',
         password: '',
         empresa_id: '',
+        pagador: '',
       },
       apiUrl: "sucursales3",
       page: "sucursales",

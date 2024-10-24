@@ -72,8 +72,8 @@
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/admin/tarifas/tarifa">
-                  <span class="sidenav-mini-icon"> Tarifas </span>
-                  <span class="sidenav-normal full-width-text"> Tarifas </span>
+                  <span class="sidenav-mini-icon"> Variables </span>
+                  <span class="sidenav-normal full-width-text"> Variables </span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
@@ -380,7 +380,7 @@
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/gestore/empresas/empresa">
-                  <span class="sidenav-normal full-width-text"> Empresas </span>
+                  <span class="sidenav-normal full-width-text"> Entidad Contratante </span>
                 </nuxtLink>
               </li>
               <li class="nav-item">
@@ -427,6 +427,11 @@
                 </nuxtLink>
               </li>
               <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/contrato/pedientecontratos/pendientecontrato">
+                  <span class="sidenav-normal full-width-text"> Envios Pendientes </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/contrato/verificadoencargados/verificadoencargado">
                   <span class="sidenav-normal full-width-text"> Envios Verificados </span>
                 </nuxtLink>
@@ -439,7 +444,7 @@
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/contrato/tarifas/tarifa">
-                  <span class="sidenav-normal full-width-text"> Tarifas </span>
+                  <span class="sidenav-normal full-width-text"> Variables </span>
                 </nuxtLink>
               </li>
               <li class="nav-item">

@@ -6,7 +6,7 @@
         <div class="row justify-content-end mb-3">
           <div class="col-3" v-if="hasSelectedItems">
             <button @click="markSelectedAsVerified" class="btn btn-success btn-sm w-100">
-              <i class="fas fa-check"></i> Devolver a destino 
+              <i class="fas fa-check"></i> Devolver a Origen 
             </button>
           </div>
           <div class="col-3" v-if="hasSelectedItems">

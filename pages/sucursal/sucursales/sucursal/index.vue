@@ -3,17 +3,27 @@
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
-        <div class="row justify-content-end mb-3">
-          <div class="d-flex justify-content-between">
-           
-            <div class="d-flex align-items-center">
-              <!-- Updated select dropdown button -->
-              <select @change="handleSelectChange" class="btn btn-green btn-sm mr-3">
-                <option value="" disabled selected>Crear solicitud de Correspondencia</option>
-                <option value="url_nuevo2">Boleta Digital</option>
-                <option value="url_nuevo">Boleta fisica</option>
-              </select>
-            </div>
+      <!-- Mensaje de advertencia si se excede el límite -->
+      <div v-if="limiteTotal > 0 && totalNombreD >= limiteTotal" class="alert alert-custom" role="alert">
+  Ha alcanzado o sobrepasado su límite presupuestario y no puede Solicitar nuevos envíos. Por favor, comuníquese con la Agencia Boliviana de Correos.
+</div>
+
+
+        <!-- Barra superior con botones de Agregar solo si no se ha excedido el límite -->
+        <div v-else class="d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex align-items-center">
+            <!-- Botón para crear solicitud de Correspondencia -->
+            <select @change="handleSelectChange" class="btn btn-dark btn-sm mr-3">
+              <option value="" disabled selected>Crear solicitud de Correspondencia</option>
+              <option value="url_nuevo2">Boleta Digital</option>
+              <option value="url_nuevo">Boleta fisica</option>
+            </select>
+
+            <!-- Botón de Correspondencia Internacional -->
+            <a href="https://ips.correos.gob.bo/CDS.Web/Operational/andeclaration.aspx" class="btn btn-dark btn-sm mr-3"
+              target="_blank">
+              <i class=""></i> Crear solicitud de Correspondencia Internacional
+            </a>
           </div>
         </div>
 
@@ -158,7 +168,9 @@ export default {
       currentPage: 0,
       itemsPerPage: 10,
       direcciones: [], // Agregar aquí la propiedad para almacenar las direcciones
-
+      saldoRestante: null,
+    limiteTotal: null,
+    totalNombreD: null,
     };
   },
   computed: {
@@ -178,12 +190,22 @@ export default {
     }
   },
   methods: {
+    async fetchSaldoData() {
+  try {
+    const res = await this.$sucursales.$get('/restantesaldo2');
+    // Asigna los valores de la respuesta a las variables reactivas
+    this.saldoRestante = Number(res.saldo_restante);
+    this.limiteTotal = Number(res.limite_total);
+    this.totalNombreD = Number(res.total_nombre_d);
+  } catch (error) {
+    console.error('Error al obtener saldo:', error);
+  }
+},
     handleSelectChange(event) {
       const selectedValue = event.target.value;
       if (this[selectedValue]) {
         this.$router.push(this[selectedValue]);
       } else {
-        console.error('URL no definida para la opción seleccionada.');
       }
     },
     getDireccionLabel(direccion_id) {
@@ -284,39 +306,32 @@ export default {
     }
   },
   mounted() {
-    this.$nextTick(async () => {
-      let user = localStorage.getItem('userAuth');
-      this.user = JSON.parse(user);
-      try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
+  
+  this.$nextTick(async () => {
 
-        // Obtener tarifas para los nombres de tarifa
-        const tarifas = await this.GET_DATA('getTarifas2');
-        if (Array.isArray(tarifas)) {
-          this.tarifas = tarifas;
-        } else {
-          console.error('Las tarifas recuperadas no son un array:', tarifas);
-        }
+    let user = localStorage.getItem('userAuth');
+    this.user = JSON.parse(user);
 
-        // Obtener direcciones para los nombres de dirección
-        const direcciones = await this.GET_DATA('direcciones', { sucursale_id: this.user.user.id });
-        if (Array.isArray(direcciones)) {
-          this.direcciones = direcciones;
-        } else {
-          console.error('Las direcciones recuperadas no son un array:', direcciones);
-        }
-      } catch (e) {
-        console.error('Error al obtener los datos:', e);
-      } finally {
-        this.load = false;
+    try {
+      // Obtener el saldo restante y el total de nombre_d
+      const res = await this.$sucursales.$get('/restantesaldo2');
+      
+      this.saldoRestante = Number(res.saldo_restante || 0);
+      this.limiteTotal = Number(res.limite_total || 0);
+      this.totalNombreD = Number(res.total_nombre_d || 0);
+
+      
+
+      if (this.saldoRestante <= 0 || this.totalNombreD >= this.limiteTotal) {
+      } else {
       }
-    });
-  },
+    } catch (e) {
+      console.error('Error al obtener los datos:', e);
+    } finally {
+      this.load = false;
+    }
+  });
+},
 };
 </script>
 
@@ -427,5 +442,11 @@ select.btn option {
 select option[disabled] {
   display: none;
 }
-
+.alert-custom {
+  background-image: linear-gradient(to right, #fffb00de, #ddd905); /* Degradado de azul oscuro a dorado */
+  color: black; /* Color del texto */
+  border: 1px solid #b2954b; /* Borde dorado */
+  border-radius: 5px; /* Bordes redondeados */
+  padding: 15px;
+}
 </style>

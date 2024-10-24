@@ -4,11 +4,7 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end">
-          <div class="col-2">
-            <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-              <i class=""></i> Crear tarifas
-            </nuxtLink>
-          </div>
+         
           <div class="col-12">
             <div class="row">
               <div v-for="(sucursal, index) in sucursales" :key="index" class="col-12 col-sm-6 col-lg-4 mb-3">

@@ -8,7 +8,7 @@
           <div class="col-12">
             <div class="card">
               <nuxtLink :to="url_nuevo" class="btn btn-dark btn-sm w-100">
-                <i class=""></i> Crear empresa matriz
+                <i class=""></i> Registar entidad contratante
               </nuxtLink>
               <div class="card-body">
                 <!-- Campo de búsqueda -->
@@ -91,7 +91,7 @@ export default {
       url_editar: "/gestore/empresas/empresa/editar/",
       busqueda: "", // término de búsqueda
       resultados: [], // datos filtrados
-      headers: ['#', 'Nombre Empresa', 'NIT', 'Estado', ' '],
+      headers: ['#', 'Nombre entidad contratante', 'NIT', 'Estado', ' '],
       currentPage: 0,
       itemsPerPage: 10,
     };
