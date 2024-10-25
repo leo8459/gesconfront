@@ -5,7 +5,7 @@
       <div slot="body">
          <!-- Mensaje de bienvenida -->
          <div class="text- mb-4">
-          <h2>Bienvenidos al sistema Gescon</h2>
+          <h2>Bienvenidos al sistema GESCON</h2>
         </div>
         <!-- Mensaje de advertencia si se excede el límite -->
         <div v-if="limiteTotal > 0 && totalNombreD >= limiteTotal" class="alert alert-custom" role="alert">
