@@ -432,6 +432,11 @@
                 </nuxtLink>
               </li>
               <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/contrato/envioscontratos/envioscontrato">
+                  <span class="sidenav-normal full-width-text"> Envios </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/contrato/verificadoencargados/verificadoencargado">
                   <span class="sidenav-normal full-width-text"> Envios Verificados </span>
                 </nuxtLink>
