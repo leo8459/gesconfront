@@ -7,7 +7,8 @@
           <img ref="image" src="@/pages/admin/auth/img/contratos.webp" alt="Logo"
             class="img-fluid w-100 h-100 rounded shadow-lg">
         </div>
-        <!-- Formulario de inicio de sesión en la mitad derecha -->
+
+        <!-- Contenedor principal de formularios -->
         <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center">
           <div class="container">
             <div class="row justify-content-center">
@@ -19,7 +20,9 @@
                     </h3>
                     <p ref="typingSubtitle" class="mb-0 typing">Ingresa tu email y tu password para iniciar.</p>
                   </div>
-                  <div ref="formBody" class="card-body">
+
+                  <!-- Formulario de Inicio de Sesión -->
+                  <div v-if="!showChangePasswordForm" class="card-body fade-in">
                     <div role="form" class="text-start">
                       <label>Tipo de Usuario</label>
                       <label>Email</label>
@@ -28,28 +31,83 @@
                           placeholder="Email" aria-label="Email" />
                       </div>
                       <label>Password</label>
-                      <div class="mb-3" data-intro="Escribe tu contraseña aquí." data-step="2">
-                        <input type="password" v-model="model.password" class="form-control rounded shadow-sm"
-                          placeholder="Password" aria-label="Password" />
+                      <div class="mb-3 position-relative" data-intro="Escribe tu contraseña aquí." data-step="2">
+                        <input :type="showPassword ? 'text' : 'password'" v-model="model.password"
+                          class="form-control rounded shadow-sm" placeholder="Password" aria-label="Password" />
+                        <button type="button"
+                          class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2 icon-button"
+                          @click="togglePassword" aria-label="Mostrar/Ocultar contraseña">
+                          <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                        </button>
                       </div>
+
                       <div class="mb-3">
                         <div id="recaptcha" class="g-recaptcha"></div>
                       </div>
                       <div class="text-center">
                         <!-- Botón para iniciar sesión -->
-                        <button ref="loginButton" type="button"
-                          class="btn bg-gradient-info w-100 mt-4 mb-0 rounded shadow" @click="Login()">
+                        <button ref="loginButton" type="button" class="btn btn-custom-gradient w-100 mt-4 mb-0"
+                          @click="Login()">
                           Ingresar
                         </button>
 
-
-                        <!-- Nuevo botón para mostrar el tutorial manualmente -->
+                        <!-- Botón para mostrar el tutorial manualmente -->
                         <button type="button" class="btn btn-outline-secondary w-100 mt-4 mb-0" @click="showTutorial">
                           Mostrar Tutorial
                         </button>
+
+
+                        <button type="button" class="btn btn-custom-password w-100 mt-3"
+                          @click="toggleChangePasswordForm">
+                          Cambiar Contraseña
+                        </button>
+
                       </div>
                     </div>
                   </div>
+
+                  <!-- Formulario de Cambio de Contraseña -->
+                  <div v-if="showChangePasswordForm" class="card-body fade-in mt-5">
+                    <h5>Cambiar Contraseña</h5>
+                    <label>Email</label>
+                    <div class="mb-3">
+                      <input type="text" v-model="changePasswordModel.email" class="form-control rounded shadow-sm"
+                        placeholder="Email" aria-label="Email" />
+                    </div>
+                    <label>Nueva Contraseña</label>
+                    <div class="mb-3 position-relative">
+                      <input :type="showNewPassword ? 'text' : 'password'" v-model="changePasswordModel.newPassword"
+                        class="form-control rounded shadow-sm" placeholder="Nueva Contraseña"
+                        aria-label="Nueva Contraseña" />
+                      <button type="button"
+                        class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2 icon-button"
+                        @click="toggleNewPassword" aria-label="Mostrar/Ocultar nueva contraseña">
+                        <i :class="showNewPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                      </button>
+                    </div>
+                    <label>Confirmar Nueva Contraseña</label>
+                    <div class="mb-3 position-relative">
+                      <input :type="showConfirmPassword ? 'text' : 'password'"
+                        v-model="changePasswordModel.newPassword_confirmation" class="form-control rounded shadow-sm"
+                        placeholder="Confirmar Nueva Contraseña" aria-label="Confirmar Nueva Contraseña" />
+                      <button type="button"
+                        class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2 icon-button"
+                        @click="toggleConfirmPassword" aria-label="Mostrar/Ocultar confirmación de contraseña">
+                        <i :class="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                      </button>
+                    </div>
+
+                    <button type="button" class="btn btn-custom-password w-100 mt-3" @click="changePassword">
+                      Cambiar Contraseña
+                    </button>
+
+                    <!-- Botón para volver al formulario de inicio de sesión -->
+                    <button type="button" class="btn btn-outline-secondary w-100 mt-3"
+                      @click="toggleChangePasswordForm">
+                      Volver al Inicio de Sesión
+                    </button>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -82,9 +140,19 @@ export default {
         password: '',
         userType: '' // Valor por defecto
       },
+      changePasswordModel: {
+        email: '',
+        newPassword: '',
+        newPassword_confirmation: ''
+      },
       isPaused: false, // Controla el estado de la animación
       animationImage: null,
-      animationText: null
+      animationText: null,
+      showPassword: false, // Estado para mostrar/ocultar contraseña
+      showNewPassword: false, // Controla visibilidad de Nueva Contraseña
+      showConfirmPassword: false, // Controla visibilidad de Confirmar Nueva Contraseña
+      showChangePasswordForm: false, // Controla la visibilidad del formulario de cambio de contraseña
+
     }
   },
 
@@ -99,6 +167,67 @@ export default {
 
   },
   methods: {
+    async changePassword() {
+      try {
+        const { email, newPassword, newPassword_confirmation } = this.changePasswordModel;
+
+        // Validar que todos los campos estén llenos
+        if (!email || !newPassword || !newPassword_confirmation) {
+          this.$swal.fire({
+            title: "Por favor, completa todos los campos",
+            confirmButtonText: "Ok",
+          });
+          return;
+        }
+
+        // Validar que las contraseñas coincidan
+        if (newPassword !== newPassword_confirmation) {
+          this.$swal.fire({
+            title: "Las contraseñas no coinciden",
+            text: "Por favor, asegúrate de que ambas contraseñas sean iguales",
+            confirmButtonText: "Ok",
+          });
+          return;
+        }
+
+        // Petición al endpoint de cambio de contraseña
+        const response = await this.$sucursales.post('/sucursales/change-password', {
+          email: email,
+          newPassword: newPassword,
+          newPassword_confirmation: newPassword_confirmation
+        });
+
+        // Notificación de éxito
+        this.$swal.fire({
+          title: response.data.message || "Contraseña actualizada correctamente",
+          confirmButtonText: "Ok",
+        });
+
+        // Limpia los campos después de actualizar la contraseña
+        this.changePasswordModel.email = '';
+        this.changePasswordModel.newPassword = '';
+        this.changePasswordModel.newPassword_confirmation = '';
+      } catch (error) {
+        console.error(error);
+        this.$swal.fire({
+          title: "Error al cambiar la contraseña",
+          text: error.response?.data?.message || "Hubo un problema al actualizar la contraseña",
+          confirmButtonText: "Ok",
+        });
+      }
+    },
+    toggleChangePasswordForm() {
+      this.showChangePasswordForm = !this.showChangePasswordForm;
+    },
+    toggleNewPassword() {
+      this.showNewPassword = !this.showNewPassword;
+    },
+    toggleConfirmPassword() {
+      this.showConfirmPassword = !this.showConfirmPassword;
+    },
+    togglePassword() {
+      this.showPassword = !this.showPassword;
+    },
     startIntro() {
       if (!localStorage.getItem('introShown')) {
         introJs().start();
@@ -342,16 +471,24 @@ body {
 
 .main-content {
   min-height: 100vh;
-  /* Permite que el contenido crezca más allá de la pantalla */
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
   overflow-y: auto;
-  /* Asegura que el contenido sea desplazable si es más alto que la pantalla */
 }
 
 .page-header {
   display: flex;
   width: 100%;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  /* Centra verticalmente */
+}
+
+.col-12.col-lg-6.d-flex.align-items-center.justify-content-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .img-fluid {
@@ -359,7 +496,12 @@ body {
   border-radius: 15px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   max-height: 40vh;
-  /* Reduce la altura de la imagen en móviles */
+}
+
+.card {
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .typing {
@@ -475,5 +617,85 @@ body {
   .pause-play-btn:hover {
     transform: scale(1.1);
   }
+}
+
+/* Estilos adicionales para el icono de mostrar/ocultar contraseña */
+.position-relative {
+  position: relative;
+}
+
+.position-absolute {
+  position: absolute;
+}
+
+.top-50 {
+  top: 50%;
+}
+
+.end-0 {
+  right: 0;
+}
+
+.translate-middle-y {
+  transform: translateY(-50%);
+}
+
+.icon-button i {
+  font-size: 1rem;
+  /* Ajusta el tamaño del icono aquí */
+}
+
+.fade-in {
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.fade-in-enter-active,
+.fade-in-leave-active {
+  opacity: 1;
+}
+
+.btn-custom-password {
+  background: linear-gradient(135deg, #1e3c72, #a28c5f);
+  /* Gradiente azul a dorado */
+  color: #ffffff;
+  /* Color de texto blanco */
+  border: none;
+  /* Sin borde */
+  border-radius: 25px;
+  /* Bordes redondeados */
+  padding: 10px 20px;
+  font-weight: bold;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* Animación suave */
+}
+
+.btn-custom-password:hover {
+  transform: scale(1.05);
+  /* Efecto de agrandamiento al pasar el mouse */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  /* Sombra al pasar el mouse */
+}
+
+.btn-custom-gradient {
+  background: linear-gradient(135deg, #1e3c72, #a28c5f);
+  /* Gradiente azul a dorado */
+  color: #ffffff;
+  /* Color de texto blanco */
+  border: none;
+  /* Sin borde */
+  border-radius: 25px;
+  /* Bordes redondeados */
+  padding: 10px 20px;
+  font-weight: bold;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* Animación suave */
+}
+
+.btn-custom-gradient:hover {
+  transform: scale(1.05);
+  /* Efecto de agrandamiento al pasar el mouse */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  /* Sombra al pasar el mouse */
 }
 </style>

@@ -63,7 +63,6 @@
                         <th class="py-0 px-1">Dirección Destinatario maps</th>
                         <th class="py-0 px-1">Dirección Destinatario</th>
                         <th class="py-0 px-1">Ciudad/Departamento</th>
-                        <th class="py-0 px-1">Tarifa</th>
                         <th class="py-0 px-1"></th>
                       </tr>
                     </thead>
@@ -101,7 +100,6 @@
                         </td>
                         <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
                         <td class="py-0 px-1">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1">{{ getTarifaLabel(m.tarifa_id) }}</td>
                         <td class="py-0 px-1">
                           <div class="btn-group">
                             <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
@@ -217,8 +215,12 @@ export default {
     },
 
     async GET_DATA(path) {
-      const res = await this.$sucursales.$get(path);
-      return res;
+      try {
+        const res = await this.$sucursales.$get(path);
+        return res;
+      } catch (error) {
+        return [];
+      }
     },
     async EliminarItem(id) {
       this.load = true;
@@ -306,32 +308,34 @@ export default {
     }
   },
   mounted() {
-  
   this.$nextTick(async () => {
-
     let user = localStorage.getItem('userAuth');
     this.user = JSON.parse(user);
 
+    // Parte 1: Obtener el saldo restante y el total de nombre_d
     try {
-      // Obtener el saldo restante y el total de nombre_d
       const res = await this.$sucursales.$get('/restantesaldo2');
       
       this.saldoRestante = Number(res.saldo_restante || 0);
       this.limiteTotal = Number(res.limite_total || 0);
       this.totalNombreD = Number(res.total_nombre_d || 0);
 
-      
-
       if (this.saldoRestante <= 0 || this.totalNombreD >= this.limiteTotal) {
-      } else {
+        // Aquí puedes manejar el caso en que se exceda el límite si es necesario
       }
     } catch (e) {
-      console.error('Error al obtener los datos:', e);
+    }
+
+    // Parte 2: Obtener la lista de solicitudes pendientes
+    try {
+      const data = await this.GET_DATA(this.apiUrl); // Llama a GET_DATA para recuperar los datos
+      this.list = data; // Asigna los datos a this.list para que se muestren en la tabla
+    } catch (e) {
     } finally {
       this.load = false;
     }
   });
-},
+}
 };
 </script>
 

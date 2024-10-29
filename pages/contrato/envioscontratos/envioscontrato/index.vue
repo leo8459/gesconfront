@@ -8,6 +8,15 @@
             <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
           </div>
         </div>
+        <!-- Botón Mostrar Detalles Hoy -->
+        <div class="row mb-3">
+          <div class="col-md-2">
+            <button @click="mostrarModal" class="btn btn-primary btn-block">
+              Mostrar Detalles Hoy
+            </button>
+          </div>
+        </div>
+
         <!-- Filtros en una sola línea -->
         <div class="row mb-3">
           <div class="col-md-2">
@@ -106,15 +115,11 @@
                         <th class="py-0 px-1">Guia</th>
                         <th class="py-0 px-1">Servicio</th>
 
-                        <th class="py-0 px-1">Peso Correos (Kg)</th>
 
-                        <th class="py-0 px-1">Contenido</th>
-                        <th class="py-0 px-1">Fecha</th>
-                        <th class="py-0 px-1">Fecha Recojo Cliente</th>
-                        <th class="py-0 px-1">Fecha Envío Regional</th>
-                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Fecha de Solicitud</th>
+                        <th class="py-0 px-1">Fecha Recojo Cartero</th>
+                        <th class="py-0 px-1">Fecha Entrega</th>
 
-                        <th class="py-0 px-1">Precio (Bs)</th>
                         <th class="py-0 px-1">Estado</th> <!-- Columna para el estado -->
 
                       </tr>
@@ -125,17 +130,13 @@
                         <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
 
                         <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.tarifa.servicio }}</td>
+                        <td class="py-0 px-1">{{ m.tarifa ? m.tarifa.servicio : 'N/A' }}</td>
 
-                        <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
 
-                        <td class="py-0 px-1">{{ m.contenido }}</td>
                         <td class="py-0 px-1">{{ m.fecha }}</td>
                         <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
-                        <td class="py-0 px-1">{{ m.fecha_envio_regional }}</td>
-                        <td class="py-0 px-1">{{ m.destinatario }}</td>
+                        <td class="py-0 px-1">{{ m.fecha_d }}</td>
 
-                        <td class="py-0 px-1">{{ m.nombre_d }}</td>
                         <td class="py-0 px-1">{{ getEstado(m.estado) }}</td> <!-- Mostrar el estado -->
 
                       </tr>
@@ -159,6 +160,88 @@
                 </li>
               </ul>
             </div>
+            <!-- Modal para mostrar las solicitudes -->
+            <b-modal v-model="isModalVisible" title="Detalles de Solicitudes" size="lg">
+              <b-tabs>
+                <!-- Tab para Solicitadas Hoy -->
+                <b-tab title="Solicitadas Hoy">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-hover">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Guía</th>
+                          <th>Fecha</th>
+                          <th>Fecha Recojo Cliente</th>
+                          <th>Fecha Envío Regional</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(m, i) in solicitadasHoy" :key="m.id">
+                          <td>{{ i + 1 }}</td>
+                          <td>{{ m.guia }}</td>
+                          <td>{{ m.fecha }}</td>
+                          <td>{{ m.fecha_recojo_c }}</td>
+                          <td>{{ m.fecha_envio_regional }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </b-tab>
+
+                <!-- Tab para Recogidas Hoy -->
+                <b-tab title="Recogidas Hoy">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-hover">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Guía</th>
+                          <th>Fecha</th>
+                          <th>Fecha Recojo Cliente</th>
+                          <th>Fecha Envío Regional</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(m, i) in recogidasHoy" :key="m.id">
+                          <td>{{ i + 1 }}</td>
+                          <td>{{ m.guia }}</td>
+                          <td>{{ m.fecha }}</td>
+                          <td>{{ m.fecha_recojo_c }}</td>
+                          <td>{{ m.fecha_envio_regional }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </b-tab>
+
+                <!-- Tab para Entregadas Hoy -->
+                <b-tab title="Entregadas Hoy">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-hover">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Guía</th>
+                          <th>Fecha</th>
+                          <th>Fecha Recojo Cliente</th>
+                          <th>Fecha Envío Regional</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(m, i) in entregadasHoy" :key="m.id">
+                          <td>{{ i + 1 }}</td>
+                          <td>{{ m.guia }}</td>
+                          <td>{{ m.fecha }}</td>
+                          <td>{{ m.fecha_recojo_c }}</td>
+                          <td>{{ m.fecha_envio_regional }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </b-tab>
+              </b-tabs>
+            </b-modal>
           </div>
         </div>
       </div>
@@ -168,7 +251,6 @@
 
 
 <script>
-import { BCollapse, BModal } from 'bootstrap-vue';
 import ExcelJS from 'exceljs';
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
@@ -176,12 +258,15 @@ import 'jspdf-autotable';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
+import { BCollapse, BModal, BTabs, BTab } from 'bootstrap-vue';
 
 export default {
   name: "IndexPage",
   components: {
     BCollapse,
-    BModal
+    BModal,
+    BTabs,
+    BTab
   },
   data() {
     return {
@@ -213,6 +298,12 @@ export default {
       origenes: ['Origen 1', 'Origen 2', 'Origen 3'], // Ejemplo de datos para Origen
       departamentos: ['Departamento 1', 'Departamento 2', 'Departamento 3'], // Ejemplo de datos para Departamento
       selectedEstado: '', // Filtro de estado seleccionado
+      selectedFilter: '', // Nuevo filtro seleccionado
+      isModalVisible: false, // Controla la visibilidad del modal
+      solicitadasHoy: [],
+      recogidasHoy: [],
+      entregadasHoy: [],
+
 
     };
   },
@@ -245,7 +336,7 @@ export default {
           const datesToCheck = [];
           if (item.fecha) datesToCheck.push(new Date(item.fecha));
           if (item.fecha_recojo_c) datesToCheck.push(new Date(item.fecha_recojo_c));
-          if (item.fecha_envio_regional) datesToCheck.push(new Date(item.fecha_envio_regional));
+          if (item.fecha_d) datesToCheck.push(new Date(item.fecha_d));
 
           isWithinDateRange = datesToCheck.some(date => {
             if (startDate && endDate) return date >= startDate && date <= endDate;
@@ -281,16 +372,82 @@ export default {
     }
   },
   methods: {
+    async fetchDataHoy() {
+      const path = '/solicitudes/filtro';
+      try {
+        const response = await this.$contratos.$get(path);
+        // Asignar los datos a cada categoría
+        this.solicitadasHoy = response.solicitadas_hoy || [];
+        this.recogidasHoy = response.recogidas_hoy || [];
+        this.entregadasHoy = response.entregadas_hoy || [];
+      } catch (error) {
+        console.error('Error al obtener los datos:', error);
+      }
+    },
+    async fetchFilteredData() {
+      if (!this.selectedFilter) {
+        // Si no hay filtro seleccionado, restablecer la lista completa
+        await this.GET_DATA(this.apiUrl);
+        this.mostrarTablas = false;
+        return;
+      }
+
+      if (this.selectedFilter === 'hoy') {
+        // Usar la ruta que devuelve las tres categorías
+        const path = '/solicitudes/filtro';
+        try {
+          const response = await this.$contratos.$get(path);
+          // Asignar los datos a cada categoría
+          this.solicitadasHoy = response.solicitadas_hoy || [];
+          this.recogidasHoy = response.recogidas_hoy || [];
+          this.entregadasHoy = response.entregadas_hoy || [];
+          this.mostrarTablas = true;
+        } catch (error) {
+          console.error('Error al obtener los datos:', error);
+          this.mostrarTablas = false;
+        }
+      } else {
+        // Si selecciona otra opción o "Sin filtro"
+        await this.GET_DATA(this.apiUrl);
+        this.mostrarTablas = false;
+      }
+    },
+
+    mostrarModal() {
+      this.fetchDataHoy();
+      this.isModalVisible = true;
+    },
+
+
+
     getEstado(estado) {
       // Unir los estados 2 y 4 bajo "ENTREGADO"
       switch (estado) {
+        case 1:
+        return 'Solicitud de Recojo de Paquetes';
+        case 2:
+        return 'En camino';
+        case 6:
+        return 'Rechazado';
+        case 8:
+        return 'Despacho de envio a regional';
+        case 9:
+        return 'Envio en camino';
+        case 10:
+        return 'Recibir envío en oficina de entrega';
+        case 11:
+        return 'Devolver a remitente';
+        case 12:
+        return 'Reencaminar a regional';
+        case 13:
+        return 'Recibir envío reencaminado en oficinas';
         case 3:
         case 4:
-          return 'ENTREGADO';
+          return 'Entregado';
         case 5:
-          return 'RECOGIDO';
+          return 'Recogido';
         case 7:
-          return 'DEVUELTO';
+          return 'Entregado a remitente';
         default:
           return 'DESCONOCIDO';
       }
@@ -685,7 +842,7 @@ export default {
 
       console.log('Usuario cargado:', this.user);
       console.log('Datos cargados después de montaje:', this.list);
-      this.list = this.list.filter(item => item.estado === 3 || item.estado === 4 || item.estado === 5 || item.estado === 7); // Cambia aquí los estados a 8 y 9
+      this.list = this.list.filter(item => item.estado === 1 ||item.estado === 2 ||item.estado === 3 || item.estado === 4 || item.estado === 5 ||item.estado === 6 || item.estado === 7|| item.estado === 8 ||item.estado === 9 ||item.estado === 10 ||item.estado === 11 ||item.estado === 12 ||item.estado === 13); // Cambia aquí los estados a 8 y 9
 
       console.log('Datos después del filtrado inicial:', this.list);
     });

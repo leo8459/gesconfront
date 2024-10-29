@@ -3,211 +3,36 @@
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
-        <div class="row">
-
-          <!-- Tarjetas para las solicitudes totales por estado -->
-          <div class="row">
-            <!-- Tarjeta para solicitudes en estado 1 -->
-            <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-              <div class="card">
-                <div class="card-body p-3">
-                  <div class="row">
-                    <div class="col-8">
-                      <div class="numbers">
-                        <p class="text-sm mb-0 text-capitalize">
-                          <strong>Correspondencias Solicitadas</strong>
-                        </p>
-                        <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado1 }}
-                        </h6>
-                      </div>
-                    </div>
-                    <div class="col-4 text-end">
-                      <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                        <i class="fas fa-info-circle text-lg opacity-10" aria-hidden="true"></i>
-                      </div>
+        <!-- Sección de las tarjetas de resumen -->
+        <div class="row mb-4">
+          <!-- Tarjeta para Correspondencias Solicitadas -->
+          <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4" v-for="(card, index) in resumenTarjetas" :key="index">
+            <div class="card">
+              <div class="card-body p-3">
+                <div class="row">
+                  <div class="col-8">
+                    <div class="numbers">
+                      <p class="text-sm mb-0 text-capitalize">
+                        <strong>{{ card.titulo }}</strong>
+                      </p>
+                      <h6 class="text-center text-lg font-weight-bolder text-black">
+                        {{ card.total }}
+                      </h6>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-            <!-- Tarjeta para solicitudes en estado 5 -->
-            <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-              <div class="card">
-                <div class="card-body p-3">
-                  <div class="row">
-                    <div class="col-8">
-                      <div class="numbers">
-                        <p class="text-sm mb-0 text-capitalize">
-                          <strong>Correspondencias Recogidas</strong>
-                        </p>
-                        <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado5 }}
-                        </h6>
-                      </div>
-                    </div>
-                    <div class="col-4 text-end">
-                      <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                        <i class="fas fa-info-circle text-lg opacity-10" aria-hidden="true"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- Tarjeta para solicitudes en estado 2 -->
-            <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-              <div class="card">
-                <div class="card-body p-3">
-                  <div class="row">
-                    <div class="col-8">
-                      <div class="numbers">
-                        <p class="text-sm mb-0 text-capitalize">
-                          <strong>Correspondencias en camino</strong>
-                        </p>
-                        <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado2 }}
-                        </h6>
-                      </div>
-                    </div>
-                    <div class="col-4 text-end">
-                      <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                        <i class="fas fa-info-circle text-lg opacity-10" aria-hidden="true"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tarjeta para solicitudes en estado 3 -->
-            <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-              <div class="card">
-                <div class="card-body p-3">
-                  <div class="row">
-                    <div class="col-8">
-                      <div class="numbers">
-                        <p class="text-sm mb-0 text-capitalize">
-                          <strong>Correspondencias Entregadas</strong>
-                        </p>
-                        <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado3 }}
-                        </h6>
-                      </div>
-                    </div>
-                    <div class="col-4 text-end">
-                      <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                        <i class="fas fa-info-circle text-lg opacity-10" aria-hidden="true"></i>
-                      </div>
+                  <div class="col-4 text-end">
+                    <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                      <i :class="card.icono" class="text-lg opacity-10" aria-hidden="true"></i>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- Tarjetas para las solicitudes de hoy por estado -->
-          <div class="row mt-4">
-            <!-- Tarjeta para solicitudes de hoy en estado 1 -->
-            <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-              <div class="card bg-light">
-                <div class="card-body p-3">
-                  <div class="row">
-                    <div class="col-8">
-                      <div class="numbers">
-                        <p class="text-sm mb-0 text-capitalize">
-                          <strong>Correspondencias solicitadas hoy</strong>
-                        </p>
-                        <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado1Hoy }}
-                        </h6>
-                      </div>
-                    </div>
-                    <div class="col-4 text-end">
-                      <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
-                        <i class="fas fa-calendar-day text-lg opacity-10" aria-hidden="true"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- Tarjeta para solicitudes de hoy en estado 5 -->
-            <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-              <div class="card bg-light">
-                <div class="card-body p-3">
-                  <div class="row">
-                    <div class="col-8">
-                      <div class="numbers">
-                        <p class="text-sm mb-0 text-capitalize">
-                          <strong>Correspondencias recogidas hoy</strong>
-                        </p>
-                        <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado5Hoy }}
-                        </h6>
-                      </div>
-                    </div>
-                    <div class="col-4 text-end">
-                      <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
-                        <i class="fas fa-calendar-day text-lg opacity-10" aria-hidden="true"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- Tarjeta para solicitudes de hoy en estado 2 -->
-            <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-              <div class="card bg-light">
-                <div class="card-body p-3">
-                  <div class="row">
-                    <div class="col-8">
-                      <div class="numbers">
-                        <p class="text-sm mb-0 text-capitalize">
-                          <strong>Correspondencias en camino hoy</strong>
-                        </p>
-                        <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado2Hoy }}
-                        </h6>
-                      </div>
-                    </div>
-                    <div class="col-4 text-end">
-                      <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
-                        <i class="fas fa-calendar-day text-lg opacity-10" aria-hidden="true"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tarjeta para solicitudes de hoy en estado 3 -->
-            <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-              <div class="card bg-light">
-                <div class="card-body p-3">
-                  <div class="row">
-                    <div class="col-8">
-                      <div class="numbers">
-                        <p class="text-sm mb-0 text-capitalize">
-                          <strong>Correspondencias entregadas hoy</strong>
-                        </p>
-                        <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado3Hoy }}
-                        </h6>
-                      </div>
-                    </div>
-                    <div class="col-4 text-end">
-                      <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
-                        <i class="fas fa-calendar-day text-lg opacity-10" aria-hidden="true"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
+
+       
+
       </div>
     </AdminTemplate>
   </div>
@@ -221,46 +46,65 @@ export default {
       page: "Dashboard",
       modulo: "Dashboard",
       load: false,
-      dashboard: {
-        totalSolicitudesEstado1: 0,
-        totalSolicitudesEstado2: 0,
-        totalSolicitudesEstado3: 0,
-        totalSolicitudesEstado5: 0,
-        totalSolicitudesEstado1Hoy: 0,
-        totalSolicitudesEstado2Hoy: 0,
-        totalSolicitudesEstado3Hoy: 0,
-        totalSolicitudesEstado5Hoy: 0,
-      },
+      // Datos para las solicitudes por categoría
+      solicitadasHoy: [],
+      recogidasHoy: [],
+      entregadasHoy: [],
+      // Datos para las tarjetas de resumen
+      resumenTarjetas: [
+        {
+          titulo: 'Correspondencias Solicitadas Hoy',
+          total: 0,
+          icono: 'fas fa-info-circle',
+        },
+        {
+          titulo: 'Correspondencias Recogidas Hoy',
+          total: 0,
+          icono: 'fas fa-info-circle',
+        },
+        {
+          titulo: 'Correspondencias Entregadas Hoy',
+          total: 0,
+          icono: 'fas fa-info-circle',
+        },
+      ],
     };
   },
   methods: {
-    async GET_DATA(path) {
-      const res = await this.$contratos.$get(path);
-      return res;
-    },
     async fetchDashboardData() {
       try {
-        const totalSolicitudesEstado1 = await this.GET_DATA('/Esolicitudes-estado-1');
-        const totalSolicitudesEstado2 = await this.GET_DATA('/Esolicitudes-estado-2');
-        const totalSolicitudesEstado3 = await this.GET_DATA('/Esolicitudes-estado-3');
-        const totalSolicitudesEstado5 = await this.GET_DATA('/Esolicitudes-estado-5');
-        const totalSolicitudesEstado1Hoy = await this.GET_DATA('/Esolicitudes-estado-1-hoy');
-        const totalSolicitudesEstado2Hoy = await this.GET_DATA('/Esolicitudes-estado-2-hoy');
-        const totalSolicitudesEstado3Hoy = await this.GET_DATA('/Esolicitudes-estado-3-hoy');
-        const totalSolicitudesEstado5Hoy = await this.GET_DATA('/Esolicitudes-estado-5-hoy');
+        const response = await this.$contratos.$get('/solicitudes/filtro');
 
-        this.dashboard.totalSolicitudesEstado1 = totalSolicitudesEstado1.total;
-        this.dashboard.totalSolicitudesEstado2 = totalSolicitudesEstado2.total;
-        this.dashboard.totalSolicitudesEstado3 = totalSolicitudesEstado3.total;
-        this.dashboard.totalSolicitudesEstado5 = totalSolicitudesEstado5.total;
-        this.dashboard.totalSolicitudesEstado1Hoy = totalSolicitudesEstado1Hoy.total;
-        this.dashboard.totalSolicitudesEstado2Hoy = totalSolicitudesEstado2Hoy.total;
-        this.dashboard.totalSolicitudesEstado3Hoy = totalSolicitudesEstado3Hoy.total;
-        this.dashboard.totalSolicitudesEstado5Hoy = totalSolicitudesEstado5Hoy.total;
+        // Asignar los datos a cada categoría
+        this.solicitadasHoy = response.solicitadas_hoy || [];
+        this.recogidasHoy = response.recogidas_hoy || [];
+        this.entregadasHoy = response.entregadas_hoy || [];
+
+        // Actualizar los totales en las tarjetas de resumen
+        this.resumenTarjetas[0].total = this.solicitadasHoy.length;
+        this.resumenTarjetas[1].total = this.recogidasHoy.length;
+        this.resumenTarjetas[2].total = this.entregadasHoy.length;
       } catch (error) {
         console.error('Error al actualizar el dashboard:', error);
       }
-    }
+    },
+    getEstado(estado) {
+      switch (estado) {
+        case 1:
+          return 'SOLICITADA';
+        case 2:
+          return 'EN CAMINO';
+        case 3:
+        case 4:
+          return 'ENTREGADA';
+        case 5:
+          return 'RECOGIDA';
+        case 7:
+          return 'DEVUELTA';
+        default:
+          return 'DESCONOCIDO';
+      }
+    },
   },
   mounted() {
     this.$nextTick(async () => {
@@ -273,23 +117,35 @@ export default {
 </script>
 
 <style scoped>
-.logo-image {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
+.card.border-rounded {
+  border-radius: 15px;
+  border: 1px solid #dee2e6;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
 }
-
-.text-color-ganadores {
-  color: #FFA500;
+.card-header {
+  background-color: #34447C;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-transform: uppercase;
 }
-
-.fs-4 {
-  font-size: 1.5rem;
+.table-responsive {
+  max-width: 100%;
+  overflow-x: auto;
 }
-
-.ganador-image {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
+.icon.icon-shape {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  color: #fff;
+}
+.bg-gradient-primary {
+  background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important;
+}
+.bg-gradient-info {
+  background: linear-gradient(87deg, #11cdef 0, #1171ef 100%) !important;
 }
 </style>

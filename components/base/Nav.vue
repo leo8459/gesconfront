@@ -5,34 +5,7 @@
     <div class="container-fluid py-1 px-3 d-flex align-items-center justify-content-between">
       <nav aria-label="breadcrumb" class="d-flex align-items-center">
         <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-          <li class="breadcrumb-item text-sm">
-            <a class="opacity-3 text-dark" href="javascript:;">
-              <svg width="12px" height="12px" class="mb-1" viewBox="0 0 45 40" version="1.1"
-                xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                <title>shop</title>
-                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                  <g transform="translate(-1716.000000, -439.000000)" fill="#252f40" fill-rule="nonzero">
-                    <g transform="translate(1716.000000, 291.000000)">
-                      <g transform="translate(0.000000, 148.000000)">
-                        <path
-                          d="M46.7199583,10.7414583 L40.8449583,0.949791667 C40.4909749,0.360605034 39.8540131,0 39.1666667,0 L7.83333333,0 C7.1459869,0 6.50902508,0.360605034 6.15504167,0.949791667 L0.280041667,10.7414583 C0.0969176761,11.0460037 -1.23209662e-05,11.3946378 -1.23209662e-05,11.75 C-0.00758042603,16.0663731 3.48367543,19.5725301 7.80004167,19.5833333 L7.81570833,19.5833333 C9.75003686,19.5882688 11.6168794,18.8726691 13.0522917,17.5760417 C16.0171492,20.2556967 20.5292675,20.2556967 23.494125,17.5760417 C26.4604562,20.2616016 30.9794188,20.2616016 33.94575,17.5760417 C36.2421905,19.6477597 39.5441143,20.1708521 42.3684437,18.9103691 C45.1927731,17.649886 47.0084685,14.8428276 47.0000295,11.75 C47.0000295,11.3946378 46.9030823,11.0460037 46.7199583,10.7414583 Z">
-                        </path>
-                        <path
-                          d="M39.198,22.4912623 C37.3776246,22.4928106 35.5817531,22.0149171 33.951625,21.0951667 L33.92225,21.1107282 C31.1430221,22.6838032 27.9255001,22.9318916 24.9844167,21.7998837 C24.4750389,21.605469 23.9777983,21.3722567 23.4960833,21.1018359 L23.4745417,21.1129513 C20.6961809,22.6871153 17.4786145,22.9344611 14.5386667,21.7998837 C14.029926,21.6054643 13.533337,21.3722507 13.0522917,21.1018359 C11.4250962,22.0190609 9.63246555,22.4947009 7.81570833,22.4912623 C7.16510551,22.4842162 6.51607673,22.4173045 5.875,22.2911849 L5.875,44.7220845 C5.875,45.9498589 6.7517757,46.9451667 7.83333333,46.9451667 L19.5833333,46.9451667 L19.5833333,33.6066734 L27.4166667,33.6066734 L27.4166667,46.9451667 L39.1666667,46.9451667 C40.2482243,46.9451667 41.125,45.9498589 41.125,44.7220845 L41.125,22.2822926 C40.4887822,22.4116582 39.8442868,22.4815492 39.198,22.4912623 Z">
-                        </path>
-                      </g>
-                    </g>
-                  </g>
-                </g>
-              </svg>
-            </a>
-          </li>
-          <li class="breadcrumb-item text-sm">
-            <a class="opacity-5 text-dark" href="javascript:void(0);">{{ page }}</a>
-          </li>
-          <li class="breadcrumb-item text-sm text-dark active" aria-current="page">
-            {{ modulo }}
-          </li>
+          <!-- Resto del breadcrumb -->
         </ol>
         <h6 class="font-weight-bolder mb-0">{{ modulo }}</h6>
       </nav>
@@ -49,11 +22,17 @@
         </span>
       </div>
 
-      <ul class="navbar-nav justify-content-end flex-row">
-        <li class="nav-item d-flex align-items-center">
-          <a href="javascript:void(0)" class="nav-link text-body font-weight-bold px-0" @click="Logout()">
+      <!-- Opciones de Usuario (Cambiar Contraseña y Cerrar Sesión) -->
+      <ul class="navbar-nav justify-content-end flex-row align-items-center gap-3">
+        <li class="nav-item">
+          <a href="javascript:void(0);" @click="togglePasswordModal" class="nav-link text-body font-weight-bold px-0 change-password-link">
+            Cambiar Contraseña
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0);" class="nav-link text-body font-weight-bold px-0" @click="Logout()">
             <i class="fa fa-user me-sm-1"></i>
-            <span class="d-sm-inline d-none">Cerrar session</span>
+            <span class="d-sm-inline d-none">Cerrar sesión</span>
           </a>
         </li>
         <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
@@ -72,9 +51,49 @@
           </a>
         </li>
       </ul>
+
+      <!-- Modal Cambiar Contraseña -->
+      <div v-if="showPasswordModal" class="modal-overlay">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Cambiar Contraseña</h5>
+            <button type="button" class="close" @click="togglePasswordModal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <label>Email</label>
+            <input type="text" v-model="changePasswordModel.email" class="form-control mb-3" placeholder="Email" />
+
+            <label>Nueva Contraseña</label>
+            <div class="mb-3 position-relative">
+              <input :type="showNewPassword ? 'text' : 'password'" v-model="changePasswordModel.newPassword"
+                class="form-control" placeholder="Nueva Contraseña" />
+              <button type="button" class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2"
+                @click="toggleNewPassword">
+                <i :class="showNewPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+              </button>
+            </div>
+
+            <label>Confirmar Nueva Contraseña</label>
+            <div class="mb-3 position-relative">
+              <input :type="showConfirmPassword ? 'text' : 'password'" v-model="changePasswordModel.newPassword_confirmation"
+                class="form-control" placeholder="Confirmar Nueva Contraseña" />
+              <button type="button" class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2"
+                @click="toggleConfirmPassword">
+                <i :class="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <button type="button" class="btn btn-custom-gradient" @click="changePassword">Cambiar Contraseña</button>
+            <button type="button" class="btn btn-secondary" @click="togglePasswordModal">Cerrar</button>
+          </div>
+        </div>
+      </div>
     </div>
   </nav>
 </template>
+
 
 <script>
 export default {
@@ -93,10 +112,79 @@ export default {
       theme: 'light-version',
       user: {},
       token: '',
-      userType: ''
+      userType: '',
+      showPasswordModal: false, // Controla la visibilidad del modal
+    changePasswordModel: {
+      email: '',
+      newPassword: '',
+      newPassword_confirmation: ''
+    },
+    showNewPassword: false,
+    showConfirmPassword: false
     }
   },
   methods: {
+    togglePasswordModal() {
+    this.showPasswordModal = !this.showPasswordModal;
+  },
+  toggleNewPassword() {
+    this.showNewPassword = !this.showNewPassword;
+  },
+  toggleConfirmPassword() {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  },
+  async changePassword() {
+    try {
+      const { email, newPassword, newPassword_confirmation } = this.changePasswordModel;
+
+      // Validación de campos
+      if (!email || !newPassword || !newPassword_confirmation) {
+        this.$swal.fire({
+          title: "Campos incompletos",
+          text: "Por favor, completa todos los campos.",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
+        return;
+      }
+
+      if (newPassword !== newPassword_confirmation) {
+        this.$swal.fire({
+          title: "Error",
+          text: "Las contraseñas no coinciden. Por favor, asegúrate de que ambas contraseñas sean iguales.",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
+        return;
+      }
+
+      // Llamada a la API para cambiar la contraseña usando this.$sucursales
+      const response = await this.$sucursales.post('/sucursales/change-password', {
+        email: email,
+        newPassword: newPassword,
+        newPassword_confirmation: newPassword_confirmation
+      });
+
+      // Mostrar mensaje de éxito con SweetAlert2
+      this.$swal.fire({
+        title: "Éxito",
+        text: response.data.message || "Contraseña actualizada correctamente.",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      });
+
+      this.togglePasswordModal(); // Cerrar el modal
+    } catch (error) {
+      // Mostrar mensaje de error con SweetAlert2
+      this.$swal.fire({
+        title: "Error",
+        text: error.response?.data?.message || "Hubo un problema al actualizar la contraseña.",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
+      console.error(error);
+    }
+  },
     getUserInfo() {
       // Recuperar el objeto del usuario desde el localStorage o API
       let userData = JSON.parse(localStorage.getItem('userAuth'));
@@ -219,5 +307,91 @@ export default {
   white-space: nowrap; /* Evita que el texto se rompa en varias líneas */
   text-align: center;
 }
+.change-password-link a {
+  color: #1e3c72; /* Color del enlace */
+  font-weight: bold;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.3s;
+}
 
+.change-password-link a:hover {
+  color: #a28c5f; /* Color en hover */
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.modal-title {
+  margin: 0;
+}
+
+.modal-body {
+  padding-top: 10px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+.close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.btn-custom-gradient {
+  background: linear-gradient(135deg, #1e3c72, #a28c5f);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-custom-gradient:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary {
+  background-color: #ddd;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+}
 </style>

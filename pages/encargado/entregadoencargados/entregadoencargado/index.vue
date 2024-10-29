@@ -165,27 +165,31 @@ export default {
   },
   computed: {
     filteredData() {
-  const searchTerm = this.searchTerm.toLowerCase();
+    const searchTerm = this.searchTerm.toLowerCase();
 
-  // Verificar si estamos en el navegador antes de acceder a localStorage
-  if (typeof window !== 'undefined' && localStorage.getItem('userAuth')) {
-    const user = JSON.parse(localStorage.getItem('userAuth'));
-    const userDepartment = user && user.user ? user.user.departamento : null;
+    if (typeof window !== 'undefined' && localStorage.getItem('userAuth')) {
+      const user = JSON.parse(localStorage.getItem('userAuth'));
+      const userDepartment = user && user.user ? user.user.departamento : null;
 
-    return this.list.filter(item =>
-      (item.estado === 3 || item.estado === 10) &&
-      item.cartero_entrega && // Asegurarse de que existe cartero_entrega
-      item.cartero_entrega.departamento_cartero === userDepartment && // Filtrar por departamento
-      Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm)
-      )
-    );
-  }
 
-  // Si no estamos en el navegador o no hay usuario autenticado, devolver un array vacío
-  return [];
-},
+      const filteredList = this.list.filter(item => {
+        const isEstadoValid = item.estado === 3 || item.estado === 10;
+        const hasCarteroEntrega = item.cartero_entrega;
+        const isDepartmentMatch = hasCarteroEntrega && item.cartero_entrega.departamento_cartero === userDepartment;
+        const isSearchTermMatch = Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        );
 
+       
+        // Devuelve verdadero solo si todos los criterios se cumplen
+        return isEstadoValid && isDepartmentMatch && isSearchTermMatch;
+      });
+
+      return filteredList;
+    }
+
+    return [];
+  },
 
     paginatedData() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -226,10 +230,8 @@ export default {
         if (Array.isArray(res)) {
           this.list = res;
         } else {
-          console.error('Los datos recuperados no son un array:', res);
         }
       } catch (e) {
-        console.error('Error al obtener los datos:', e);
       }
     },
 
@@ -239,30 +241,39 @@ export default {
 
 
     async markSelectedAsVerified() {
-      this.load = true;
-      try {
+    this.load = true;
+    
+    try {
         const selectedIds = Object.keys(this.selected).filter(key => this.selected[key]);
+
         for (let id of selectedIds) {
-          await this.$encargados.$put(`verificarsolicitudes5/${id}`);
+
+            // Pasar el encargado_id como parte del payload
+            const response = await this.$encargados.$put(`verificarsolicitudes5/${id}`, { encargado_id: this.user.user.id });
+            
         }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+
+        await this.GET_DATA(this.apiUrl);
+
         this.$swal.fire({
-          icon: 'success',
-          title: 'Solicitudes verificadas',
-          text: 'Todas las solicitudes seleccionadas han sido marcadas como verificadas.',
+            icon: 'success',
+            title: 'Solicitudes verificadas',
+            text: 'Todas las solicitudes seleccionadas han sido marcadas como verificadas.',
         });
-        this.selected = {}; // Limpiar la selección después de verificar
-      } catch (e) {
-        console.error(e);
+
+        this.selected = {};
+
+    } catch (e) {
         this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un error al verificar las solicitudes.',
+            icon: 'error',
+            title: 'Error',
+            text: 'Hubo un error al verificar las solicitudes.',
         });
-      } finally {
+    } finally {
         this.load = false;
-      }
-    },
+    }
+}
+,
     selectAll(event, group) {
       const isChecked = event.target.checked;
       group.forEach(item => {
@@ -280,7 +291,6 @@ export default {
       if (user) {
         this.user = JSON.parse(user);
       } else {
-        console.error('No se encontró el usuario en el almacenamiento local');
         this.user = { cartero: null };
       }
     }
@@ -290,10 +300,8 @@ export default {
       if (Array.isArray(data)) {
         this.list = data;
       } else {
-        console.error('Los datos recuperados no son un array:', data);
       }
     } catch (e) {
-      console.error('Error al obtener los datos:', e);
     } finally {
       this.load = false;
     }

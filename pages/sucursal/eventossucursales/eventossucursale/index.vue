@@ -22,8 +22,6 @@
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Guia</th>
                         <th class="py-0 px-1">Accion</th>
-                        <th class="py-0 px-1">Descripcion</th>
-                        <th class="py-0 px-1">Usuario</th>
                         <th class="py-0 px-1">Fecha</th>
                       </tr>
                     </thead>
@@ -31,16 +29,7 @@
                       <tr v-for="(m, i) in paginatedData" :key="i">
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="py-0 px-1">{{ m.codigo }}</td>
-                        <td class="py-0 px-1">{{ m.accion }}</td>
-                        <td class="py-0 px-1">{{ m.descripcion }}</td>
-                        <td class="py-0 px-1">
-                          {{
-                            (m.sucursale && m.sucursale.nombre) ||
-                            (m.cartero && `${m.cartero.nombre} `) ||
-                            (m.encargado && `${m.encargado.nombre}`) ||
-                            'Sin responsable'
-                          }}
-                        </td>
+                        <td class="py-0 px-1">{{ m.accion === "Recojo" ? "En camino" : m.accion }}</td>
                         <td class="py-0 px-1">{{ m.fecha_hora }}</td>
                       </tr>
                     </tbody>
@@ -107,11 +96,14 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'eventos',
+      apiUrl: 'eventos2',
       page: 'Eventos',
       modulo: 'AGBC',
       currentPage: 0,
       itemsPerPage: 10,
+      user: {
+        sucursale: []
+      },
     };
   },
   computed: {
@@ -119,11 +111,13 @@ export default {
       return this.list
         .filter(item => {
           const searchTerm = this.searchTerm.toLowerCase();
+          const accionesFiltradas = ["Solicitud", "Recojo", "Entregado"];
           return (
-            item.codigo.toLowerCase().includes(searchTerm) ||
-            item.accion.toLowerCase().includes(searchTerm) ||
-            item.descripcion.toLowerCase().includes(searchTerm) ||
-            item.fecha_hora.toLowerCase().includes(searchTerm)
+            accionesFiltradas.includes(item.accion) &&
+            (item.codigo.toLowerCase().includes(searchTerm) ||
+              item.accion.toLowerCase().includes(searchTerm) ||
+              item.descripcion.toLowerCase().includes(searchTerm) ||
+              item.fecha_hora.toLowerCase().includes(searchTerm))
           );
         })
         .sort((a, b) => new Date(b.fecha_hora) - new Date(a.fecha_hora));
@@ -157,7 +151,7 @@ export default {
   },
   methods: {
     async GET_DATA(path) {
-      const res = await this.$api.$get(path);
+      const res = await this.$sucursales.$get(path);
       return res;
     },
     nextPage() {
@@ -176,12 +170,17 @@ export default {
   },
   mounted() {
     this.$nextTick(async () => {
+      let user = localStorage.getItem('userAuth');
+      this.user = JSON.parse(user);
       try {
-        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0]; // Almacenar la lista completa
-        });
+        const data = await this.GET_DATA(this.apiUrl);
+        if (Array.isArray(data)) {
+          this.list = data;
+        } else {
+          console.error('Los datos recuperados no son un array:', data);
+        }
       } catch (e) {
-        console.log(e);
+        console.error('Error al obtener los datos:', e);
       } finally {
         this.load = false;
       }

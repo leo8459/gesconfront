@@ -235,6 +235,11 @@
                   <span class="sidenav-normal full-width-text">Devoluciones</span>
                 </nuxtLink>
               </li>
+              <li class="nav-item" v-if="isSucursale">
+                <nuxtLink class="nav-link full-width-link" to="/sucursal/eventossucursales/eventossucursale">
+                  <span class="sidenav-normal full-width-text">Tracking</span>
+                </nuxtLink>
+              </li>
             </ul>
           </div>
         </li>
@@ -426,11 +431,11 @@
                   <span class="sidenav-normal full-width-text"> Envios Observados </span>
                 </nuxtLink>
               </li>
-              <li class="nav-item">
+              <!-- <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/contrato/pedientecontratos/pendientecontrato">
                   <span class="sidenav-normal full-width-text"> Envios Pendientes </span>
                 </nuxtLink>
-              </li>
+              </li> -->
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/contrato/envioscontratos/envioscontrato">
                   <span class="sidenav-normal full-width-text"> Envios </span>

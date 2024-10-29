@@ -58,28 +58,49 @@
 
         </div>
 
-        <!-- Paginación -->
-        <div class="row justify-content-center">
-          <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-between">
-              <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                <button class="page-link" @click="previousPage" :disabled="currentPage === 0">
-                  &lt;
-                </button>
-              </li>
-              <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page - 1 }">
-                <button class="page-link" @click="goToPage(page - 1)">
-                  {{ page }}
-                </button>
-              </li>
-              <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
-                <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">
-                  &gt;
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
+       <!-- Paginación -->
+<div class="row justify-content-center">
+  <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-between">
+      <li class="page-item" :class="{ disabled: currentPage === 0 }">
+        <button class="page-link" @click="previousPage" :disabled="currentPage === 0">
+          &lt;
+        </button>
+      </li>
+
+      <!-- Mostrar las primeras páginas -->
+      <li v-for="page in pagesToShow" :key="page" :class="{ active: currentPage === page - 1 }" class="page-item">
+        <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+      </li>
+
+      <!-- Puntos suspensivos si hay más páginas -->
+      <li v-if="showDotsBefore" class="page-item disabled">
+        <span class="page-link">...</span>
+      </li>
+
+      <!-- Mostrar páginas cercanas a la página actual -->
+      <li v-for="page in middlePages" :key="page" :class="{ active: currentPage === page - 1 }" class="page-item">
+        <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+      </li>
+
+      <!-- Puntos suspensivos si hay más páginas -->
+      <li v-if="showDotsAfter" class="page-item disabled">
+        <span class="page-link">...</span>
+      </li>
+
+      <!-- Mostrar las últimas páginas -->
+      <li v-for="page in lastPagesToShow" :key="page" :class="{ active: currentPage === page - 1 }" class="page-item">
+        <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+      </li>
+
+      <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
+        <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">
+          &gt;
+        </button>
+      </li>
+    </ul>
+  </nav>
+</div>
       </div>
     </AdminTemplate>
   </div>
@@ -111,7 +132,11 @@ export default {
           item.descripcion.toLowerCase().includes(searchTerm) ||
           item.fecha_hora.toLowerCase().includes(searchTerm)
         );
-      });
+      })
+      .sort((a, b) => {
+          // Ordenar por fecha_hora de más reciente a más antiguo
+          return new Date(b.fecha_hora) - new Date(a.fecha_hora);
+        });
     },
     paginatedData() {
       // Datos paginados
@@ -122,6 +147,27 @@ export default {
     totalPages() {
       return Math.ceil(this.filteredList.length / this.itemsPerPage);
     },
+    pagesToShow() {
+    const firstPages = [1, 2, 3];
+    return firstPages;
+  },
+  middlePages() {
+    // Muestra las páginas alrededor de la página actual si está en medio
+    if (this.currentPage > 3 && this.currentPage < this.totalPages - 3) {
+      return [this.currentPage, this.currentPage + 1, this.currentPage + 2];
+    }
+    return [];
+  },
+  lastPagesToShow() {
+    const lastPages = [this.totalPages - 2, this.totalPages - 1, this.totalPages];
+    return lastPages;
+  },
+  showDotsBefore() {
+    return this.currentPage > 3;
+  },
+  showDotsAfter() {
+    return this.currentPage < this.totalPages - 3;
+  }
   },
   methods: {
     async GET_DATA(path) {
@@ -218,4 +264,30 @@ export default {
 .table .btn-primary:hover {
   background-color: #293963;
 }
+.page-item .page-link {
+  color: #34447C; /* Color de texto principal */
+  background-color: #f4f6f9; /* Fondo más claro */
+  border: 1px solid #ddd; /* Borde sutil */
+  border-radius: 50%;
+  font-weight: bold;
+  padding: 8px 12px;
+}
+
+.page-item .page-link:hover {
+  background-color: #d1d9e6; /* Fondo al pasar el mouse */
+  color: #34447C;
+}
+
+.page-item.active .page-link {
+  background-color: #5c6bc0; /* Color activo más suave */
+  color: #fff; /* Texto blanco para contraste */
+  border-color: #5c6bc0;
+}
+
+.page-item.disabled .page-link {
+  color: #bbb; /* Color deshabilitado más sutil */
+  background-color: transparent;
+  cursor: not-allowed;
+}
+
 </style>

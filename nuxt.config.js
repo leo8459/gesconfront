@@ -24,6 +24,7 @@ export default {
       { rel: 'stylesheet', href: '/assets/css/nucleo-svg.css' },
       { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700' },
       { rel: 'stylesheet', href: '/assets/css/soft-ui-dashboard.min.css' },
+      { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css' }, // Aquí agregamos Bootstrap Icons
     ],
     script: [
       { src: "https://kit.fontawesome.com/a95fc26abb.js" },

@@ -4,7 +4,6 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end">
-          
           <!-- Input de búsqueda -->
           <div class="col-12 mb-3">
             <input
@@ -55,7 +54,6 @@
               </div>
             </div>
           </div>
-
         </div>
 
         <!-- Paginación -->
@@ -67,11 +65,32 @@
                   &lt;
                 </button>
               </li>
-              <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page - 1 }">
-                <button class="page-link" @click="goToPage(page - 1)">
-                  {{ page }}
-                </button>
+
+              <!-- Mostrar primeras páginas -->
+              <li v-for="page in pagesToShow" :key="page" :class="{ active: currentPage === page - 1 }" class="page-item">
+                <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
               </li>
+
+              <!-- Puntos suspensivos si hay más páginas antes de las páginas centrales -->
+              <li v-if="showDotsBefore" class="page-item disabled">
+                <span class="page-link">...</span>
+              </li>
+
+              <!-- Páginas centrales -->
+              <li v-for="page in middlePages" :key="page" :class="{ active: currentPage === page - 1 }" class="page-item">
+                <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+              </li>
+
+              <!-- Puntos suspensivos si hay más páginas después de las páginas centrales -->
+              <li v-if="showDotsAfter" class="page-item disabled">
+                <span class="page-link">...</span>
+              </li>
+
+              <!-- Mostrar últimas páginas -->
+              <li v-for="page in lastPagesToShow" :key="page" :class="{ active: currentPage === page - 1 }" class="page-item">
+                <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+              </li>
+
               <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
                 <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">
                   &gt;
@@ -91,18 +110,22 @@ export default {
   data() {
     return {
       load: true,
-      list: [], // Aquí estarán los datos completos
-      searchTerm: '', // Término de búsqueda
+      list: [],
+      searchTerm: '',
       apiUrl: 'eventos4',
       page: 'Eventos',
       modulo: 'AGBC',
-      currentPage: 0, // Página actual
-      itemsPerPage: 10, // Elementos por página
+      currentPage: 0,
+      itemsPerPage: 10,
     };
+  },
+  watch: {
+    searchTerm() {
+      this.currentPage = 0;
+    },
   },
   computed: {
     filteredList() {
-      // Filtrar la lista según el término de búsqueda y ordenarla por fecha de más nuevo a más antiguo
       return this.list
         .filter(item => {
           const searchTerm = this.searchTerm.toLowerCase();
@@ -113,19 +136,33 @@ export default {
             item.fecha_hora.toLowerCase().includes(searchTerm)
           );
         })
-        .sort((a, b) => {
-          // Ordenar por fecha_hora de más reciente a más antiguo
-          return new Date(b.fecha_hora) - new Date(a.fecha_hora);
-        });
+        .sort((a, b) => new Date(b.fecha_hora) - new Date(a.fecha_hora));
     },
     paginatedData() {
-      // Datos paginados
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
       return this.filteredList.slice(start, end);
     },
     totalPages() {
       return Math.ceil(this.filteredList.length / this.itemsPerPage);
+    },
+    pagesToShow() {
+      return [1, 2, 3];
+    },
+    middlePages() {
+      if (this.currentPage > 3 && this.currentPage < this.totalPages - 3) {
+        return [this.currentPage, this.currentPage + 1, this.currentPage + 2];
+      }
+      return [];
+    },
+    lastPagesToShow() {
+      return [this.totalPages - 2, this.totalPages - 1, this.totalPages];
+    },
+    showDotsBefore() {
+      return this.currentPage > 3;
+    },
+    showDotsAfter() {
+      return this.currentPage < this.totalPages - 3;
     },
   },
   methods: {
@@ -151,7 +188,7 @@ export default {
     this.$nextTick(async () => {
       try {
         await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0]; // Almacenar la lista completa
+          this.list = v[0];
         });
       } catch (e) {
         console.log(e);
@@ -191,9 +228,9 @@ export default {
 }
 
 .table th, .table td {
-  font-size: 18px; /* Ajuste de tamaño de fuente para hacerla más grande */
+  font-size: 18px;
   text-align: center;
-  padding: 12px; /* Aumenta el padding para darle más espacio a las celdas */
+  padding: 12px;
   border: 1px solid #dee2e6;
 }
 
@@ -213,14 +250,29 @@ export default {
   background-color: #f2f2f2;
 }
 
-.table .btn-primary {
-  background-color: #34447C;
-  border-color: #34447C;
-  font-size: 12px;
-  padding: 5px 10px;
+.page-item .page-link {
+  color: #34447C;
+  background-color: #f4f6f9;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  font-weight: bold;
+  padding: 8px 12px;
 }
 
-.table .btn-primary:hover {
-  background-color: #293963;
+.page-item .page-link:hover {
+  background-color: #d1d9e6;
+  color: #34447C;
+}
+
+.page-item.active .page-link {
+  background-color: #5c6bc0;
+  color: #fff;
+  border-color: #5c6bc0;
+}
+
+.page-item.disabled .page-link {
+  color: #bbb;
+  background-color: transparent;
+  cursor: not-allowed;
 }
 </style>
