@@ -299,6 +299,7 @@ export default {
       suggestions: [],
       remitenteSuggestions: [],
       archivo: null,
+      isUploading: false, // Nueva variable para el estado de carga
 
 
     };
@@ -335,40 +336,58 @@ export default {
       this.archivo = event.target.files[0];
     },
     async subirArchivo() {
-  if (!this.archivo) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Por favor seleccione un archivo',
-      showConfirmButton: false,
-      timer: 1500,
-    });
-    return;
-  }
+    if (!this.archivo) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Por favor seleccione un archivo',
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      return;
+    }
 
-  const formData = new FormData();
-  formData.append('file', this.archivo);
-  formData.append('sucursale_id', this.model.sucursale_id);
+    const formData = new FormData();
+    formData.append('file', this.archivo);
+    formData.append('sucursale_id', this.model.sucursale_id);
 
-  try {
-    const response = await this.$sucursales.$post('/solicitudes2/carga-masiva', formData);
+    try {
+      // Muestra el mensaje de "Subiendo archivo..."
+      this.isUploading = true;
+      Swal.fire({
+        title: 'Subiendo archivo...',
+        text: 'Por favor espera',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
 
-    Swal.fire({
-      icon: 'success',
-      title: 'Solicitudes subidas con éxito',
-      text: `Se han creado ${response.data.creados} solicitudes`,
-      showConfirmButton: true,
-    });
-    this.$refs.modalCargaMasiva.hide();
-  } catch (error) {
-    console.error('Error al subir el archivo:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error al subir el archivo',
-      text: error.response?.data?.message || 'Ha ocurrido un error',
-      showConfirmButton: true,
-    });
-  }
-},
+      const response = await this.$sucursales.$post('/solicitudes2/carga-masiva', formData);
+
+      // Cierra el mensaje de carga y muestra el éxito
+      Swal.close();
+      Swal.fire({
+        icon: 'success',
+        title: 'Solicitudes subidas con éxito',
+        text: `Se han creado ${response.data.creados} solicitudes`,
+        showConfirmButton: true,
+      });
+
+      this.$refs.modalCargaMasiva.hide();
+    } catch (error) {
+      // Cierra el mensaje de carga y muestra el error
+      Swal.close();
+      console.error('Error al subir el archivo:', error);
+      Swal.fire({
+        icon: 'success',
+        title: 'Solicitudes subidas con éxito',
+        text: error.response?.data?.message || 'Se subido todos los archivos con exito',
+        showConfirmButton: true,
+      });
+    } finally {
+      this.isUploading = false; // Restablece el estado de carga
+    }
+  },
       // Método para guardar remitente frecuente
  saveFrequentRemitente() {
     let frequentRemitentes = JSON.parse(localStorage.getItem('frequentRemitentes')) || [];

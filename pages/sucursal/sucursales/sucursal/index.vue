@@ -27,6 +27,11 @@
           </div>
         </div>
         <div class="d-flex justify-content-between align-items-center mb-4">
+          <button @click="imprimirRotulosDelDia" class="btn btn-primary btn-sm">
+            Imprimir Rótulos del Día de Hoy
+          </button>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
       <!-- Botón para descargar la plantilla -->
       <button @click="descargarPlantilla" class="btn btn-dark btn-sm">
   Descargar Plantilla
@@ -114,7 +119,7 @@
                               <i class="fas fa-pen"></i>
                             </nuxtLink>
                             <button type="button" @click="reprintPDF(m)" class="btn btn-warning btn-sm">
-                              Reimprimir PDF
+                              Imprimir Rotulo
                             </button>
                           </div>
                         </td>
@@ -466,7 +471,147 @@ export default {
     goToPage(page) {
       this.currentPage = page;
     },
+    async imprimirRotulosDelDia() {
+    const hoy = new Date().toISOString().slice(0, 10); // Obtiene la fecha actual en formato 'YYYY-MM-DD'
 
+    // Filtra las solicitudes que tengan la fecha de hoy y un valor válido en 'fecha'
+    const solicitudesDelDia = this.list.filter(solicitud => solicitud.fecha && solicitud.fecha.slice(0, 10) === hoy);
+
+    if (solicitudesDelDia.length === 0) {
+      this.$swal.fire({
+        icon: 'info',
+        title: 'No hay solicitudes',
+        text: 'No se encontraron solicitudes para hoy.',
+      });
+      return;
+    }
+
+    // Crea un solo documento PDF
+    const doc = new jsPDF('portrait', 'mm', 'letter');
+
+    solicitudesDelDia.forEach((solicitud, index) => {
+      // Genera el rótulo para cada solicitud
+      this.dibujarRotuloEnPDF(doc, solicitud);
+
+      // Añade una nueva página para la siguiente solicitud, excepto después de la última
+      if (index < solicitudesDelDia.length - 1) {
+        doc.addPage();
+      }
+    });
+
+    // Guarda el documento como un archivo PDF único
+    doc.save(`Rotulos_Dia_${hoy}.pdf`);
+  },
+
+  dibujarRotuloEnPDF(doc, data) {
+    const fontSize = 10;
+    doc.setFontSize(fontSize);
+
+    const guia = data.guia || '';
+    const codigoBarras = data.codigo_barras || '';
+    const remitente = data.remitente || '';
+    const telefono = data.telefono || '';
+    const contenido = data.contenido || '';
+    const destinatario = data.destinatario || '';
+    const telefono_d = data.telefono_d || '';
+    const direccion_especifica_d = data.direccion_especifica_d || '';
+    const ciudad_d = data.ciudad || '';
+    const zona_d = data.zona_d || '';
+
+    const fecha = data.fecha || '';
+    const fecha_entrega = data.fecha_d || '';
+    const peso = data.peso_r || '';
+    const importe = data.importe || '';
+    const sucursal = data.sucursale || {};
+    const tarifa = data.tarifa || {};
+    const origen = sucursal.origen || '';
+    const destino = tarifa.departamento || '';
+
+    const direccion = data.direccion || {};
+    const direccionEspecifica = direccion.direccion_especifica || '';
+    const zona = direccion.zona || '';
+    const ciudad = direccion.ciudad || '';
+
+    let startX = 20;
+    let startY = 10;
+    let cellHeight = 10;
+    let cellHeightFirma = 12;
+    let cellHeightFirma2 = 15;
+    let col1Width = 40;
+    let col2Width = 40;
+    let col3Width = 100;
+
+    const drawGuide = (startX, startY) => {
+      doc.setFontSize(fontSize);
+      doc.rect(startX, startY, col1Width + col2Width, cellHeight * 3);
+      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight * 3);
+
+      const barcodeX = startX + col1Width + col2Width + 5;
+      const barcodeY = startY + 10;
+      const barcodeWidth = 70;
+      const barcodeHeight = 8;
+
+      if (EMSImage) {
+        doc.addImage(EMSImage, 'PNG', startX + 2, startY + 2, 30, 10);
+      }
+
+      if (codigoBarras !== '') {
+        doc.addImage(codigoBarras, 'JPEG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
+      }
+
+      const textWidth = doc.getTextWidth(guia);
+      const textX = barcodeX + (barcodeWidth - textWidth) / 2;
+      doc.text(guia, textX, barcodeY - 3);
+
+      startY += cellHeight * 2;
+      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
+      doc.text(`Remitente y origen:  ${remitente}   ${origen},`, startX + 2, startY + 7);
+
+      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
+      doc.text(`Destinatario y destino: ${destinatario}   ${destino}`, startX + col1Width + col2Width + 2, startY + 7);
+
+      startY += cellHeight;
+      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
+      doc.text(`Dirección: ${direccionEspecifica}`, startX + 2, startY + 4);
+      doc.text(`Zona: ${zona}`, startX + 2, startY + 8);
+
+      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
+      doc.text(`Direccion: ${direccion_especifica_d}`, startX + col1Width + col2Width + 2, startY + 4);
+      doc.text(`Zona: ${zona_d}, Municipio: ${ciudad_d} `, startX + col1Width + col2Width + 2, startY + 8);
+
+      startY += cellHeight;
+      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
+      doc.text(`Telefono: ${telefono}`, startX + 2, startY + 7);
+
+      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
+      doc.text(`Telefono: ${telefono_d}`, startX + col1Width + col2Width + 2, startY + 7);
+
+      startY += cellHeight;
+      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
+      doc.text(`Descripcion: ${contenido}`, startX + 2, startY + 7);
+
+      doc.rect(startX + col1Width + col2Width, startY, col3Width / 2, cellHeight);
+      doc.text(`Fecha: ${fecha}`, startX + col1Width + col2Width + 2, startY + 7);
+
+      doc.rect(startX + col1Width + col2Width + col3Width / 2, startY, col3Width / 2, cellHeight);
+      doc.text(`Fecha entrega: ${fecha_entrega}`, startX + col1Width + col2Width + col3Width / 2 + 2, startY + 7);
+
+      startY += cellHeight;
+      doc.rect(startX, startY, col1Width, cellHeightFirma);
+      doc.text(`Contratos: ${importe}`, startX + 2, startY + 7);
+
+      doc.rect(startX + col1Width, startY, col2Width, cellHeightFirma);
+      doc.text(`Peso: ${peso}`, startX + col1Width + 2, startY + 7);
+
+      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeightFirma2);
+      doc.text('Firma:', startX + col1Width + col2Width + 2, startY + 7);
+
+      return startY + cellHeightFirma2; // Devuelve la nueva posición de Y después de la última fila
+    };
+
+    // Dibuja la guía en la página actual del documento PDF
+    drawGuide(startX, startY);
+  },
     
 
 
