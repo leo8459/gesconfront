@@ -26,7 +26,12 @@
             </a>
           </div>
         </div>
-
+        <div class="d-flex justify-content-between align-items-center mb-4">
+      <!-- Botón para descargar la plantilla -->
+      <button @click="descargarPlantilla" class="btn btn-dark btn-sm">
+  Descargar Plantilla
+</button>
+    </div>
         <!-- Campo para buscar por código de barras -->
         <div class="row mb-3">
           <div class="col-6">
@@ -174,6 +179,8 @@ export default {
       saldoRestante: null,
     limiteTotal: null,
     totalNombreD: null,
+    plantillaUrl: '', // URL para descargar la plantilla
+
     };
   },
   computed: {
@@ -193,6 +200,30 @@ export default {
     }
   },
   methods: {
+    async descargarPlantilla() {
+    try {
+        // Realiza la solicitud GET y especifica que la respuesta es de tipo blob
+        const response = await this.$sucursales.$get('/descargar-plantilla', { responseType: 'blob' });
+        
+        // Crear un objeto URL desde el blob recibido
+        const url = window.URL.createObjectURL(new Blob([response]));
+        
+        // Crear un enlace temporal para forzar la descarga
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'plantilla_solicitudes.xlsx'); // Nombre del archivo que se descargará
+        
+        // Añadir el enlace al documento y simular un clic
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpiar el enlace después de la descarga
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error('Error al descargar la plantilla:', error);
+    }
+}
+,
     reprintPDF(data) {
       const doc = new jsPDF('portrait', 'mm', 'letter');
     const fontSize = 10;
@@ -434,7 +465,12 @@ export default {
     },
     goToPage(page) {
       this.currentPage = page;
-    }
+    },
+
+    
+
+
+
   },
   mounted() {
   this.$nextTick(async () => {
@@ -464,6 +500,7 @@ export default {
       this.load = false;
     }
   });
+
 }
 };
 </script>
