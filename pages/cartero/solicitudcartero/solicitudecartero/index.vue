@@ -51,6 +51,8 @@
                         <th class="py-0 px-1">Fecha</th>
                         <th class="py-0 px-1">Departamento origen</th>
                         <th class="py-0 px-1">Departamento destino</th>
+                        <th class="py-0 px-1">Acciones</th>
+
                       </tr>
                     </thead>
                     <tbody>
@@ -79,6 +81,14 @@
                         <td class="py-0 px-1" data-label="Fecha">{{ m.fecha }}</td>
                         <td class="py-0 px-1" data-label="Departamento Origen">{{ m.sucursale.origen }}</td>
                         <td class="py-0 px-1" data-label="Departamento Destino">{{ m.tarifa.departamento }}</td>
+                        <td class="py-0 px-1">
+                          <div class="btn-group">
+                  
+                            <button type="button" @click="reprintPDF(m)" class="btn btn-warning btn-sm">
+                              Imprimir Rotulo
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -150,7 +160,8 @@
 
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
-
+import jsPDF from 'jspdf';
+import EMSImage from '@/pages/sucursal/sucursales/sucursal/img/EMS.png';
 export default {
   name: "IndexPage",
   components: {
@@ -232,6 +243,130 @@ export default {
     }
   },
   methods: {
+    reprintPDF(data) {
+      const doc = new jsPDF('portrait', 'mm', 'letter');
+    const fontSize = 10;
+    doc.setFontSize(fontSize);
+  
+    const guia = data.guia || '';
+    const codigoBarras = data.codigo_barras || '';
+    const remitente = data.remitente || '';
+    const telefono = data.telefono || '';
+    const contenido = data.contenido || '';
+    const destinatario = data.destinatario || '';
+    const telefono_d = data.telefono_d || '';
+    const direccion_especifica_d = data.direccion_especifica_d || '';
+    const ciudad_d = data.ciudad || '';
+    const zona_d = data.zona_d || '';
+  
+    const fecha = data.fecha || '';
+    const fecha_entrega = data.fecha_d || '';
+    const peso = data.peso_r || '';
+    const importe = data.importe || '';
+    const sucursal = data.sucursale || {};
+    const tarifa = data.tarifa || {};
+    const origen = sucursal.origen || '';
+    const destino = tarifa.departamento || '';
+  
+    const direccion = data.direccion || {};
+    const direccionEspecifica = direccion.direccion_especifica || '';
+    const zona = direccion.zona || '';
+    const ciudad = direccion.ciudad || '';
+  
+    let startX = 20;
+    let startY = 10;
+    let cellHeight = 10;
+    let cellHeightFirma = 12;
+    let cellHeightFirma2 = 15;
+    let col1Width = 40;
+    let col2Width = 40;
+    let col3Width = 100;
+  
+    const drawGuide = (startX, startY) => {
+      doc.setFontSize(fontSize);
+      doc.rect(startX, startY, col1Width + col2Width, cellHeight * 3);
+      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight * 3);
+  
+      const barcodeX = startX + col1Width + col2Width + 5;
+      const barcodeY = startY + 10;
+      const barcodeWidth = 70;
+      const barcodeHeight = 8;
+  
+      if (EMSImage) {
+        doc.addImage(EMSImage, 'PNG', startX + 2, startY + 2, 30, 10);
+      }
+  
+      if (codigoBarras !== '') {
+        doc.addImage(codigoBarras, 'JPEG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
+      }
+  
+      const textWidth = doc.getTextWidth(guia);
+      const textX = barcodeX + (barcodeWidth - textWidth) / 2;
+      doc.text(guia, textX, barcodeY - 3);
+  
+      startY += cellHeight * 2;
+      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
+      doc.text(`Remitente y origen:  ${remitente}   ${origen},`, startX + 2, startY + 7);
+  
+      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
+      doc.text(`Destinatario y destino: ${destinatario}   ${destino}`, startX + col1Width + col2Width + 2, startY + 7);
+  
+      startY += cellHeight;
+      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
+      doc.text(`Dirección: ${direccionEspecifica}`, startX + 2, startY + 4);
+      doc.text(`Zona: ${zona}`, startX + 2, startY + 8);
+  
+      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
+      doc.text(`Direccion: ${direccion_especifica_d}`, startX + col1Width + col2Width + 2, startY + 4);
+      doc.text(`Zona: ${zona_d}, Municipio: ${ciudad_d} `, startX + col1Width + col2Width + 2, startY + 8);
+  
+      startY += cellHeight;
+      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
+      doc.text(`Telefono: ${telefono}`, startX + 2, startY + 7);
+  
+      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
+      doc.text(`Telefono: ${telefono_d}`, startX + col1Width + col2Width + 2, startY + 7);
+  
+      startY += cellHeight;
+      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
+      doc.text(`Descripcion: ${contenido}`, startX + 2, startY + 7);
+  
+      doc.rect(startX + col1Width + col2Width, startY, col3Width / 2, cellHeight);
+      doc.text(`Fecha: ${fecha}`, startX + col1Width + col2Width + 2, startY + 7);
+  
+      doc.rect(startX + col1Width + col2Width + col3Width / 2, startY, col3Width / 2, cellHeight);
+      doc.text(`Fecha entrega: ${fecha_entrega}`, startX + col1Width + col2Width + col3Width / 2 + 2, startY + 7);
+  
+      startY += cellHeight;
+      doc.rect(startX, startY, col1Width, cellHeightFirma);
+      doc.text(`Contratos: ${importe}`, startX + 2, startY + 7);
+  
+      doc.rect(startX + col1Width, startY, col2Width, cellHeightFirma);
+      doc.text(`Peso: ${peso}`, startX + col1Width + 2, startY + 7);
+  
+      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeightFirma2);
+      doc.text('Firma:', startX + col1Width + col2Width + 2, startY + 7);
+  
+      return startY + cellHeightFirma2; // Devuelve la nueva posición de Y después de la última fila
+    };
+  
+    // Dibuja la primera guía y coloca la leyenda
+    let lastY = drawGuide(startX, startY);
+    doc.setFontSize(8);
+    doc.text('Esta guia debe ir en la correspondencia rotulada', startX + 2, lastY + 1); // Añade la leyenda justo debajo
+  
+    // Dibuja la segunda guía y coloca la leyenda
+    lastY = drawGuide(startX, startY + 90);
+    doc.setFontSize(8);
+    doc.text('Copia de guia', startX + 2, lastY + 1); // Añade la leyenda justo debajo
+  
+    // Dibuja la tercera guía y coloca la leyenda
+    lastY = drawGuide(startX, startY + 180);
+    doc.setFontSize(8);
+    doc.text('Copia de guia', startX + 2, lastY + 1); // Añade la leyenda justo debajo
+  
+    doc.save(`Solicitud-${guia}.pdf`);
+  },
     handleSucursalChange() {
       this.selectedItemsData = this.filteredData; // Actualiza los datos filtrados al cambiar de sucursal
       this.currentPage = 0; // Reinicia a la primera página

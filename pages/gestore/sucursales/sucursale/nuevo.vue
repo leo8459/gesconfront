@@ -144,7 +144,17 @@
                         <input type="password" v-model="model.password" class="form-control" id="">
                       </div>
                     </div>
-
+                    <div class="form-group col-12">
+                      <label class="border border-black rounded-2 w-100 bg-white pt-5 pb-5">
+                        <div class="d-flex justify-content-center">
+                          <div class="d-flex flex-column px-5 pt-4">
+                            <i class="fa-solid fa-image fa-bounce fa-5x" style="color: #74C0FC;"></i>
+                            <p>Sacar Foto</p>
+                          </div>
+                        </div>
+                        <input type="file" accept="image/*" id="capturephoto" capture="camera" class="d-none" />
+                      </label>
+                    </div>
 
 
                   </div>
@@ -182,6 +192,7 @@ export default {
         tipo_contrato: '', // Este será llenado al recibir los datos del backend
         acuerdo_contrato: '', // Este será llenado al recibir los datos del backend
         pagador : '', // Este será llenado al recibir los datos del backend
+        imagen: '', // Agregamos el campo para almacenar la imagen
 
       },
       apiUrl: 'sucursales3',
@@ -212,7 +223,64 @@ export default {
       } finally {
         this.load = false;
       }
+
+      // Funcionalidad de captura y compresión de foto
+      const fileInput = document.getElementById('capturephoto');
+      fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+
+              // Configuración de tamaño
+              const maxWidth = 1750;
+              const maxHeight = 1750;
+              let width = img.width;
+              let height = img.height;
+
+              if (width > height) {
+                if (width > maxWidth) {
+                  height *= maxWidth / width;
+                  width = maxWidth;
+                }
+              } else {
+                if (height > maxHeight) {
+                  width *= maxHeight / height;
+                  height = maxHeight;
+                }
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+              ctx.drawImage(img, 0, 0, width, height);
+
+              let quality = 0.4;
+              let dataurl = canvas.toDataURL('image/webp', quality);
+
+              // Intentar reducir el tamaño a menos de 100 KB
+              while (dataurl.length > 100000 && quality > 0.01) {
+                quality -= 0.01;
+                dataurl = canvas.toDataURL('image/webp', quality);
+              }
+
+              this.model.imagen = dataurl;
+
+              Swal.fire({
+                icon: 'success',
+                title: 'Foto registrada',
+                text: 'La foto se ha subido exitosamente.',
+              });
+            };
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
     });
   },
-}
+};
 </script>

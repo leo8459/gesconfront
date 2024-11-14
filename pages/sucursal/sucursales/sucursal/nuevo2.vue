@@ -8,18 +8,18 @@
             <div class="card">
               <div class="card-header">
                 <h3>Agregar Solicitud Digital</h3>
-                 <!-- Botón para subir masivamente -->
-    <div class="form-group col-12">
-      <button class="btn btn-primary" @click="mostrarModalCargaMasiva">Subir Masivamente</button>
-    </div>
+                <!-- Botón para subir masivamente -->
+                <div class="form-group col-12">
+                  <button class="btn btn-primary" @click="mostrarModalCargaMasiva">Subir Masivamente</button>
+                </div>
 
-    <!-- Modal para carga masiva -->
-    <b-modal ref="modalCargaMasiva" title="Subir Solicitudes Masivamente" hide-footer>
-      <div>
-        <input type="file" @change="procesarArchivo" accept=".xlsx, .xls, .csv" />
-        <button class="btn btn-primary mt-3" @click="subirArchivo">Subir Archivo</button>
-      </div>
-    </b-modal>
+                <!-- Modal para carga masiva -->
+                <b-modal ref="modalCargaMasiva" title="Subir Solicitudes Masivamente" hide-footer>
+                  <div>
+                    <input type="file" @change="procesarArchivo" accept=".xlsx, .xls, .csv" />
+                    <button class="btn btn-primary mt-3" @click="subirArchivo">Subir Archivo</button>
+                  </div>
+                </b-modal>
               </div>
 
               <div class="card-body">
@@ -37,16 +37,17 @@
                       <input type="text" id="sucursal" class="form-control" v-model="model.guia">
                     </div> -->
                     <div class="form-group col-12">
-  <label for="remitente">Remitente</label>
-  <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente"
-    @input="showRemitenteSuggestions" @blur="hideRemitenteSuggestions" placeholder="Ej: Juan Pérez">
-  <ul v-if="remitenteSuggestions.length" class="suggestions-list">
-    <li v-for="(suggestion, index) in remitenteSuggestions" :key="index" @click="applyFrequentRemitente(suggestion)">
-      {{ suggestion.remitente }} - {{ suggestion.direccion_r }}, Zona: {{ suggestion.zona_r }}
-      <button @click.stop="deleteFrequentRemitente(index)" class="delete-btn">X</button>
-    </li>
-  </ul>
-</div>
+                      <label for="remitente">Remitente</label>
+                      <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente"
+                        @input="showRemitenteSuggestions" @blur="hideRemitenteSuggestions" placeholder="Ej: Juan Pérez">
+                      <ul v-if="remitenteSuggestions.length" class="suggestions-list">
+                        <li v-for="(suggestion, index) in remitenteSuggestions" :key="index"
+                          @click="applyFrequentRemitente(suggestion)">
+                          {{ suggestion.remitente }} - {{ suggestion.direccion_r }}, Zona: {{ suggestion.zona_r }}
+                          <button @click.stop="deleteFrequentRemitente(index)" class="delete-btn">X</button>
+                        </li>
+                      </ul>
+                    </div>
 
                     <div class="form-group col-12">
                       <label for="telefono">Teléfono</label>
@@ -107,7 +108,9 @@
                       <label for="precios" class="underline-label">Precio Estimado</label>
                       <input type="text" id="precios" class="form-control" :value="precioSeleccionado" disabled
                         placeholder="Calculado automáticamente">
-                        <button type="button" class="btn btn-primary mt-2" @click="saveFrequentRemitente()">Guardar como Remitente Frecuente</button>
+                      <button type="button" class="btn btn-primary mt-2" @click="saveFrequentRemitente()">Guardar como
+                        Remitente
+                        Frecuente</button>
 
                     </div>
 
@@ -118,19 +121,22 @@
                       <h4>Destinatario</h4>
                     </div>
                     <div class="form-group col-12">
-  <label for="destinatario">Destinatario</label>
-  <input type="text" v-model.trim="model.destinatario" class="form-control" id="destinatario"
-    @input="showSuggestions" @blur="hideSuggestions" placeholder="Ej: María López">
-    <ul v-if="suggestions.length" class="suggestions-list">
-  <li v-for="(suggestion, index) in suggestions" :key="index" class="suggestion-item" @click="applyFrequentAddress(suggestion)">
-    <span>{{ suggestion.destinatario }} - {{ suggestion.direccion_especifica_d }}, Zona: {{ suggestion.zona_d }}</span>
-    <button @click.stop="deleteFrequentAddress(index)" class="delete-btn">X</button>
-  </li>
-</ul>
+                      <label for="destinatario">Destinatario</label>
+                      <input type="text" v-model.trim="model.destinatario" class="form-control" id="destinatario"
+                        @input="showSuggestions" @blur="hideSuggestions" placeholder="Ej: María López">
+                      <ul v-if="suggestions.length" class="suggestions-list">
+                        <li v-for="(suggestion, index) in suggestions" :key="index" class="suggestion-item"
+                          @click="applyFrequentAddress(suggestion)">
+                          <span>{{ suggestion.destinatario }} - {{ suggestion.direccion_especifica_d }}, Zona: {{
+                            suggestion.zona_d
+                            }}</span>
+                          <button @click.stop="deleteFrequentAddress(index)" class="delete-btn">X</button>
+                        </li>
+                      </ul>
 
 
 
-</div>
+                    </div>
 
 
                     <div class="form-group col-12">
@@ -187,28 +193,19 @@
     <b-modal ref="mapsModalD" title="Seleccionar Dirección en el Mapa" :footer="false" hide-backdrop hide-footer>
       <div>
         <div class="input-group mb-2">
-  <input
-    type="text"
-    v-model="searchQuery_d"
-    @input="showSuggestions"
-    placeholder="Buscar dirección"
-    class="form-control"
-  />
-  <div class="input-group-append">
-    <button class="btn btn-primary" type="button" @click="searchLocationD">
-      Buscar
-    </button>
-  </div>
-</div>
-<ul v-if="suggestions.length" class="suggestions-list">
-  <li
-    v-for="suggestion in suggestions"
-    :key="suggestion.display_name"
-    @click="selectSuggestionD(suggestion)"
-  >
-    {{ suggestion.display_name }}
-  </li>
-</ul>
+          <input type="text" v-model="searchQuery_d" @input="showSuggestions" placeholder="Buscar dirección"
+            class="form-control" />
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="button" @click="searchLocationD">
+              Buscar
+            </button>
+          </div>
+        </div>
+        <ul v-if="suggestions.length" class="suggestions-list">
+          <li v-for="suggestion in suggestions" :key="suggestion.display_name" @click="selectSuggestionD(suggestion)">
+            {{ suggestion.display_name }}
+          </li>
+        </ul>
 
         <div v-if="searching_d" class="overlay">
           <div class="alert alert-info" role="alert">
@@ -276,7 +273,7 @@ export default {
         ci_d: '',
         fecha_d: '',
         estado: '',
-        
+
 
       },
       apiUrl: 'solicitudes2',
@@ -306,8 +303,8 @@ export default {
   },
   computed: {
     direccionDisplay() {
-    return this.model.direccion_d || 'Seleccionar en el mapa';
-  },
+      return this.model.direccion_d || 'Seleccionar en el mapa';
+    },
     precioSeleccionado() {
       const tarifa = this.tarifas.find(t => t.id === this.model.tarifa_id);
       if (tarifa) {
@@ -336,172 +333,172 @@ export default {
       this.archivo = event.target.files[0];
     },
     async subirArchivo() {
-    if (!this.archivo) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Por favor seleccione un archivo',
-        showConfirmButton: false,
-        timer: 1500,
-      });
-      return;
-    }
+      if (!this.archivo) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Por favor seleccione un archivo',
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        return;
+      }
 
-    const formData = new FormData();
-    formData.append('file', this.archivo);
-    formData.append('sucursale_id', this.model.sucursale_id);
+      const formData = new FormData();
+      formData.append('file', this.archivo);
+      formData.append('sucursale_id', this.model.sucursale_id);
 
-    try {
-      // Muestra el mensaje de "Subiendo archivo..."
-      this.isUploading = true;
-      Swal.fire({
-        title: 'Subiendo archivo...',
-        text: 'Por favor espera',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
+      try {
+        // Muestra el mensaje de "Subiendo archivo..."
+        this.isUploading = true;
+        Swal.fire({
+          title: 'Subiendo archivo...',
+          text: 'Por favor espera',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
 
-      const response = await this.$sucursales.$post('/solicitudes2/carga-masiva', formData);
+        const response = await this.$sucursales.$post('/solicitudes2/carga-masiva', formData);
 
-      // Cierra el mensaje de carga y muestra el éxito
-      Swal.close();
-      Swal.fire({
-        icon: 'success',
-        title: 'Solicitudes subidas con éxito',
-        text: `Se han creado ${response.data.creados} solicitudes`,
-        showConfirmButton: true,
-      });
+        // Cierra el mensaje de carga y muestra el éxito
+        Swal.close();
+        Swal.fire({
+          icon: 'success',
+          title: 'Solicitudes subidas con éxito',
+          text: `Se han creado ${response.data.creados} solicitudes`,
+          showConfirmButton: true,
+        });
 
-      this.$refs.modalCargaMasiva.hide();
-    } catch (error) {
-      // Cierra el mensaje de carga y muestra el error
-      Swal.close();
-      console.error('Error al subir el archivo:', error);
-      Swal.fire({
-        icon: 'success',
-        title: 'Solicitudes subidas con éxito',
-        text: error.response?.data?.message || 'Se subido todos los archivos con exito',
-        showConfirmButton: true,
-      });
-    } finally {
-      this.isUploading = false; // Restablece el estado de carga
-    }
-  },
-      // Método para guardar remitente frecuente
- saveFrequentRemitente() {
-    let frequentRemitentes = JSON.parse(localStorage.getItem('frequentRemitentes')) || [];
-    const exists = frequentRemitentes.some(
-      remitente => remitente.remitente.toLowerCase() === this.model.remitente.toLowerCase()
-    );
+        this.$refs.modalCargaMasiva.hide();
+      } catch (error) {
+        // Cierra el mensaje de carga y muestra el error
+        Swal.close();
+        console.error('Error al subir el archivo:', error);
+        Swal.fire({
+          icon: 'success',
+          title: 'Solicitudes subidas con éxito',
+          text: error.response?.data?.message || 'Se subido todos los archivos con exito',
+          showConfirmButton: true,
+        });
+      } finally {
+        this.isUploading = false; // Restablece el estado de carga
+      }
+    },
+    // Método para guardar remitente frecuente
+    saveFrequentRemitente() {
+      let frequentRemitentes = JSON.parse(localStorage.getItem('frequentRemitentes')) || [];
+      const exists = frequentRemitentes.some(
+        remitente => remitente.remitente.toLowerCase() === this.model.remitente.toLowerCase()
+      );
 
-    if (!exists) {
-      const newRemitente = {
-        remitente: this.model.remitente,
-        telefono: this.model.telefono,
-        contenido: this.model.contenido,
-        tarifa_id: this.model.tarifa_id,
-        direccion_id: this.model.direccion_id,
-        peso_o: this.model.peso_o,
-        precio: this.precioSeleccionado,
-        direccion_r: this.direcciones.find(d => d.id === this.model.direccion_id)?.nombre || '',
-        zona_r: this.model.zona_r || '',
-        ciudad_r: this.model.ciudad || ''
-      };
-      frequentRemitentes.push(newRemitente);
+      if (!exists) {
+        const newRemitente = {
+          remitente: this.model.remitente,
+          telefono: this.model.telefono,
+          contenido: this.model.contenido,
+          tarifa_id: this.model.tarifa_id,
+          direccion_id: this.model.direccion_id,
+          peso_o: this.model.peso_o,
+          precio: this.precioSeleccionado,
+          direccion_r: this.direcciones.find(d => d.id === this.model.direccion_id)?.nombre || '',
+          zona_r: this.model.zona_r || '',
+          ciudad_r: this.model.ciudad || ''
+        };
+        frequentRemitentes.push(newRemitente);
+        localStorage.setItem('frequentRemitentes', JSON.stringify(frequentRemitentes));
+        Swal.fire({
+          icon: 'success',
+          title: 'Remitente guardado como frecuente',
+          showConfirmButton: false,
+          timer: 1500
+        });
+      } else {
+        Swal.fire({
+          icon: 'info',
+          title: 'El remitente ya está guardado',
+          showConfirmButton: false,
+          timer: 1500
+        });
+      }
+    },
+
+    // Método para mostrar sugerencias de remitentes
+    showRemitenteSuggestions() {
+      if (this.model.remitente) {
+        this.remitenteSuggestions = this.loadFrequentRemitentes(this.model.remitente);
+      } else {
+        this.remitenteSuggestions = [];
+      }
+    },
+
+    // Cargar remitentes frecuentes desde el almacenamiento local
+    loadFrequentRemitentes(query) {
+      const frequentRemitentes = JSON.parse(localStorage.getItem('frequentRemitentes')) || [];
+      return frequentRemitentes.filter(remitente =>
+        remitente.remitente.toLowerCase().includes(query.toLowerCase())
+      );
+    },
+
+    // Aplicar el remitente frecuente seleccionado
+    applyFrequentRemitente(remitente) {
+      this.model.remitente = remitente.remitente;
+      this.model.telefono = remitente.telefono;
+      this.model.contenido = remitente.contenido;
+      this.model.tarifa_id = remitente.tarifa_id;
+      this.model.direccion_id = remitente.direccion_id;
+      this.model.peso_o = remitente.peso_o;
+      this.precioSeleccionado = remitente.precio; // Asegúrate de que se muestre el precio
+
+      // Campos adicionales de dirección
+      this.model.direccion = remitente.direccion_r;
+      this.model.direccion_lat = remitente.direccion_r_lat;
+      this.model.direccion_lng = remitente.direccion_r_lng;
+      this.model.zona_r = remitente.zona_r;
+      this.model.ciudad = remitente.ciudad_r;
+
+      // Limpia las sugerencias después de seleccionar
+      this.remitenteSuggestions = [];
+    },
+
+    // Método para eliminar remitente frecuente
+    deleteFrequentRemitente(index) {
+      let frequentRemitentes = JSON.parse(localStorage.getItem('frequentRemitentes')) || [];
+      frequentRemitentes.splice(index, 1);
       localStorage.setItem('frequentRemitentes', JSON.stringify(frequentRemitentes));
+      this.remitenteSuggestions = this.loadFrequentRemitentes(this.model.remitente);
+
       Swal.fire({
         icon: 'success',
-        title: 'Remitente guardado como frecuente',
+        title: 'Remitente eliminado de las frecuentes',
         showConfirmButton: false,
         timer: 1500
       });
-    } else {
-      Swal.fire({
-        icon: 'info',
-        title: 'El remitente ya está guardado',
-        showConfirmButton: false,
-        timer: 1500
-      });
-    }
-  },
+    },
 
-  // Método para mostrar sugerencias de remitentes
-  showRemitenteSuggestions() {
-    if (this.model.remitente) {
-      this.remitenteSuggestions = this.loadFrequentRemitentes(this.model.remitente);
-    } else {
-      this.remitenteSuggestions = [];
-    }
-  },
-
-  // Cargar remitentes frecuentes desde el almacenamiento local
-  loadFrequentRemitentes(query) {
-    const frequentRemitentes = JSON.parse(localStorage.getItem('frequentRemitentes')) || [];
-    return frequentRemitentes.filter(remitente =>
-      remitente.remitente.toLowerCase().includes(query.toLowerCase())
-    );
-  },
-
-  // Aplicar el remitente frecuente seleccionado
-  applyFrequentRemitente(remitente) {
-    this.model.remitente = remitente.remitente;
-    this.model.telefono = remitente.telefono;
-    this.model.contenido = remitente.contenido;
-    this.model.tarifa_id = remitente.tarifa_id;
-    this.model.direccion_id = remitente.direccion_id;
-    this.model.peso_o = remitente.peso_o;
-    this.precioSeleccionado = remitente.precio; // Asegúrate de que se muestre el precio
-
-    // Campos adicionales de dirección
-    this.model.direccion = remitente.direccion_r;
-    this.model.direccion_lat = remitente.direccion_r_lat;
-    this.model.direccion_lng = remitente.direccion_r_lng;
-    this.model.zona_r = remitente.zona_r;
-    this.model.ciudad = remitente.ciudad_r;
-
-    // Limpia las sugerencias después de seleccionar
-    this.remitenteSuggestions = [];
-  },
-
-  // Método para eliminar remitente frecuente
-  deleteFrequentRemitente(index) {
-    let frequentRemitentes = JSON.parse(localStorage.getItem('frequentRemitentes')) || [];
-    frequentRemitentes.splice(index, 1);
-    localStorage.setItem('frequentRemitentes', JSON.stringify(frequentRemitentes));
-    this.remitenteSuggestions = this.loadFrequentRemitentes(this.model.remitente);
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Remitente eliminado de las frecuentes',
-      showConfirmButton: false,
-      timer: 1500
-    });
-  },
-
-  // Ocultar sugerencias de remitentes
-  hideRemitenteSuggestions() {
-    setTimeout(() => {
-      this.remitenteSuggestions = [];
-    }, 200);
-  },
+    // Ocultar sugerencias de remitentes
+    hideRemitenteSuggestions() {
+      setTimeout(() => {
+        this.remitenteSuggestions = [];
+      }, 200);
+    },
     deleteFrequentAddress(index) {
-    let frequentAddresses = JSON.parse(localStorage.getItem('frequentAddresses')) || [];
-    
-    // Elimina el elemento en el índice especificado
-    frequentAddresses.splice(index, 1);
+      let frequentAddresses = JSON.parse(localStorage.getItem('frequentAddresses')) || [];
 
-    // Actualiza el almacenamiento local y la lista de sugerencias
-    localStorage.setItem('frequentAddresses', JSON.stringify(frequentAddresses));
-    this.suggestions = this.loadFrequentAddresses(this.model.destinatario);
+      // Elimina el elemento en el índice especificado
+      frequentAddresses.splice(index, 1);
 
-    Swal.fire({
-      icon: 'success',
-      title: 'Dirección eliminada de las frecuentes',
-      showConfirmButton: false,
-      timer: 1500
-    });
-  },
+      // Actualiza el almacenamiento local y la lista de sugerencias
+      localStorage.setItem('frequentAddresses', JSON.stringify(frequentAddresses));
+      this.suggestions = this.loadFrequentAddresses(this.model.destinatario);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Dirección eliminada de las frecuentes',
+        showConfirmButton: false,
+        timer: 1500
+      });
+    },
     redirectToAddNewAddress() {
       this.$router.push(this.url_nuevo);
     },
@@ -528,20 +525,20 @@ export default {
       }
     },
     async createRequest() {
-  try {
-    // Asegúrate de que el modelo tenga las coordenadas antes de enviar
-    this.model.guia = await this.generateGuideNumber();
-    
-    const response = await this.$sucursales.$post(this.apiUrl, this.model);
+      try {
+        // Asegúrate de que el modelo tenga las coordenadas antes de enviar
+        this.model.guia = await this.generateGuideNumber();
 
-    // Verifica que la respuesta haya sido exitosa
-    this.onSuccess(response);
-    this.generatePDF();
-  } catch (error) {
-    console.error('Error al crear la solicitud:', error);
-    this.showSuccessAlert();
-  }
-},
+        const response = await this.$sucursales.$post(this.apiUrl, this.model);
+
+        // Verifica que la respuesta haya sido exitosa
+        this.onSuccess(response);
+        this.generatePDF();
+      } catch (error) {
+        console.error('Error al crear la solicitud:', error);
+        this.showSuccessAlert();
+      }
+    },
 
     onSuccess(response) {
       this.showSuccessAlert();
@@ -643,14 +640,14 @@ export default {
       this.$refs.mapsModalD.hide(); // Closes the modal without saving
     },
     handleOkD() {
-    // Guarda las coordenadas cuando el usuario confirma la selección
-    this.model.direccion_d_lat = this.currentLat_d;
-    this.model.direccion_d_lng = this.currentLng_d;
-    this.model.direccion_d = `${this.currentLat_d}, ${this.currentLng_d}`;
+      // Guarda las coordenadas cuando el usuario confirma la selección
+      this.model.direccion_d_lat = this.currentLat_d;
+      this.model.direccion_d_lng = this.currentLng_d;
+      this.model.direccion_d = `${this.currentLat_d}, ${this.currentLng_d}`;
 
-    // Cierra el modal después de confirmar
-    this.$refs.mapsModalD.hide();
-  },
+      // Cierra el modal después de confirmar
+      this.$refs.mapsModalD.hide();
+    },
     async searchLocationD() {
       if (this.searchQuery_d && this.currentLat_d && this.currentLng_d) {
         this.searching_d = true;
@@ -693,84 +690,84 @@ export default {
       }
     },
     selectSuggestionD(suggestion) {
-  this.searchQuery_d = suggestion.display_name;
-  this.suggestions = [];
-
-  const lat = parseFloat(suggestion.lat);
-  const lon = parseFloat(suggestion.lon);
-
-  // Solo actualiza los valores temporales
-  this.currentLat_d = lat;
-  this.currentLng_d = lon;
-  this.tempAddress = suggestion.display_name; // Almacena temporalmente la dirección
-
-  // Centrar el mapa y mover el marcador a la nueva ubicación
-  this.map_d.setView([lat, lon], 14);
-  this.marker_d.setLatLng([lat, lon]);
-}
-,
-saveFrequentAddress() {
-    let frequentAddresses = JSON.parse(localStorage.getItem('frequentAddresses')) || [];
-    const exists = frequentAddresses.some(
-      address => address.destinatario.toLowerCase() === this.model.destinatario.toLowerCase()
-    );
-
-    if (!exists) {
-      const newAddress = {
-        destinatario: this.model.destinatario,
-        telefono_d: this.model.telefono_d,
-        direccion_especifica_d: this.model.direccion_especifica_d,
-        direccion_d_lat: this.model.direccion_d_lat,
-        direccion_d_lng: this.model.direccion_d_lng,
-        zona_d: this.model.zona_d,
-        ciudad: this.model.ciudad,
-      };
-      frequentAddresses.push(newAddress);
-      localStorage.setItem('frequentAddresses', JSON.stringify(frequentAddresses));
-      Swal.fire({
-        icon: 'success',
-        title: 'Dirección guardada como frecuente',
-        showConfirmButton: false,
-        timer: 1500
-      });
-    } else {
-      Swal.fire({
-        icon: 'info',
-        title: 'La dirección ya está guardada',
-        showConfirmButton: false,
-        timer: 1500
-      });
-    }
-  },
- 
-  applyFrequentAddress(address) {
-    this.model.destinatario = address.destinatario;
-    this.model.telefono_d = address.telefono_d;
-    this.model.direccion_especifica_d = address.direccion_especifica_d;
-    this.model.direccion_d_lat = address.direccion_d_lat;
-    this.model.direccion_d_lng = address.direccion_d_lng;
-    this.model.zona_d = address.zona_d;
-    this.model.ciudad = address.ciudad;
-
-    // Asigna la dirección completa si es necesario
-    this.model.direccion_d = `${address.direccion_especifica_d}, Zona: ${address.zona_d}`;
-
-    // Limpia las sugerencias después de seleccionar
-    this.suggestions = [];
-  },
-  showSuggestions() {
-    if (this.model.destinatario) {
-      this.suggestions = this.loadFrequentAddresses(this.model.destinatario);
-    } else {
+      this.searchQuery_d = suggestion.display_name;
       this.suggestions = [];
+
+      const lat = parseFloat(suggestion.lat);
+      const lon = parseFloat(suggestion.lon);
+
+      // Solo actualiza los valores temporales
+      this.currentLat_d = lat;
+      this.currentLng_d = lon;
+      this.tempAddress = suggestion.display_name; // Almacena temporalmente la dirección
+
+      // Centrar el mapa y mover el marcador a la nueva ubicación
+      this.map_d.setView([lat, lon], 14);
+      this.marker_d.setLatLng([lat, lon]);
     }
-  },
-  loadFrequentAddresses(query) {
-    const frequentAddresses = JSON.parse(localStorage.getItem('frequentAddresses')) || [];
-    return frequentAddresses.filter(address =>
-      address.destinatario.toLowerCase().includes(query.toLowerCase())
-    );
-  },
+    ,
+    saveFrequentAddress() {
+      let frequentAddresses = JSON.parse(localStorage.getItem('frequentAddresses')) || [];
+      const exists = frequentAddresses.some(
+        address => address.destinatario.toLowerCase() === this.model.destinatario.toLowerCase()
+      );
+
+      if (!exists) {
+        const newAddress = {
+          destinatario: this.model.destinatario,
+          telefono_d: this.model.telefono_d,
+          direccion_especifica_d: this.model.direccion_especifica_d,
+          direccion_d_lat: this.model.direccion_d_lat,
+          direccion_d_lng: this.model.direccion_d_lng,
+          zona_d: this.model.zona_d,
+          ciudad: this.model.ciudad,
+        };
+        frequentAddresses.push(newAddress);
+        localStorage.setItem('frequentAddresses', JSON.stringify(frequentAddresses));
+        Swal.fire({
+          icon: 'success',
+          title: 'Dirección guardada como frecuente',
+          showConfirmButton: false,
+          timer: 1500
+        });
+      } else {
+        Swal.fire({
+          icon: 'info',
+          title: 'La dirección ya está guardada',
+          showConfirmButton: false,
+          timer: 1500
+        });
+      }
+    },
+
+    applyFrequentAddress(address) {
+      this.model.destinatario = address.destinatario;
+      this.model.telefono_d = address.telefono_d;
+      this.model.direccion_especifica_d = address.direccion_especifica_d;
+      this.model.direccion_d_lat = address.direccion_d_lat;
+      this.model.direccion_d_lng = address.direccion_d_lng;
+      this.model.zona_d = address.zona_d;
+      this.model.ciudad = address.ciudad;
+
+      // Asigna la dirección completa si es necesario
+      this.model.direccion_d = `${address.direccion_especifica_d}, Zona: ${address.zona_d}`;
+
+      // Limpia las sugerencias después de seleccionar
+      this.suggestions = [];
+    },
+    showSuggestions() {
+      if (this.model.destinatario) {
+        this.suggestions = this.loadFrequentAddresses(this.model.destinatario);
+      } else {
+        this.suggestions = [];
+      }
+    },
+    loadFrequentAddresses(query) {
+      const frequentAddresses = JSON.parse(localStorage.getItem('frequentAddresses')) || [];
+      return frequentAddresses.filter(address =>
+        address.destinatario.toLowerCase().includes(query.toLowerCase())
+      );
+    },
     getCurrentLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -783,7 +780,7 @@ saveFrequentAddress() {
           (error) => {
             console.error('Error obteniendo la ubicación:', error);
             // Usa una ubicación por defecto si hay un error
-           
+
           }
         );
       }
@@ -928,6 +925,7 @@ saveFrequentAddress() {
 .underline-label {
   text-decoration: underline;
 }
+
 .suggestions-list {
   list-style: none;
   padding: 0;
@@ -965,5 +963,4 @@ saveFrequentAddress() {
 .delete-btn:hover {
   background-color: #ff1a1a;
 }
-
 </style>

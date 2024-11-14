@@ -3,10 +3,11 @@
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
-      <!-- Mensaje de advertencia si se excede el límite -->
-      <div v-if="limiteTotal > 0 && totalNombreD >= limiteTotal" class="alert alert-custom" role="alert">
-  Ha alcanzado o sobrepasado su límite presupuestario y no puede Solicitar nuevos envíos. Por favor, comuníquese con la Agencia Boliviana de Correos.
-</div>
+        <!-- Mensaje de advertencia si se excede el límite -->
+        <div v-if="limiteTotal > 0 && totalNombreD >= limiteTotal" class="alert alert-custom" role="alert">
+          Ha alcanzado o sobrepasado su límite presupuestario y no puede Solicitar nuevos envíos. Por favor, comuníquese
+          con la Agencia Boliviana de Correos.
+        </div>
 
 
         <!-- Barra superior con botones de Agregar solo si no se ha excedido el límite -->
@@ -32,11 +33,11 @@
           </button>
         </div>
         <div class="d-flex justify-content-between align-items-center mb-4">
-      <!-- Botón para descargar la plantilla -->
-      <button @click="descargarPlantilla" class="btn btn-dark btn-sm">
-  Descargar Plantilla
-</button>
-    </div>
+          <!-- Botón para descargar la plantilla -->
+          <button @click="descargarPlantilla" class="btn btn-dark btn-sm">
+            Descargar Plantilla
+          </button>
+        </div>
         <!-- Campo para buscar por código de barras -->
         <div class="row mb-3">
           <div class="col-6">
@@ -83,16 +84,17 @@
                         <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : 'Sucursal no asignada' }}</td>
                         <td class="py-0 px-1">{{ m.guia }}</td>
                         <td class="py-0 px-1">{{ m.direccion ? m.direccion.nombre : 'Dirección no asignada' }}</td>
-                        <td class="py-0 px-1">{{ m.direccion ? m.direccion.direccion_especifica : 'No especificada' }}</td>
+                        <td class="py-0 px-1">{{ m.direccion ? m.direccion.direccion_especifica : 'No especificada' }}
+                        </td>
                         <td class="py-0 px-1">{{ m.direccion ? m.direccion.zona : 'Zona no asignada' }}</td>
                         <td class="py-0 px-1">
-  <a v-if="m.direccion && isCoordinates(m.direccion.direccion)"
-     :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-     target="_blank" class="btn btn-primary btn-sm">
-     Ver mapa
-  </a>
-  <span v-else>{{ m.direccion ? m.direccion.direccion : 'Dirección no disponible' }}</span>
-</td>
+                          <a v-if="m.direccion && isCoordinates(m.direccion.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion ? m.direccion.direccion : 'Dirección no disponible' }}</span>
+                        </td>
                         <td class="py-0 px-1">{{ m.peso_o }}</td>
                         <td class="py-0 px-1">{{ m.remitente }}</td>
                         <td class="py-0 px-1">{{ m.telefono }}</td>
@@ -182,9 +184,9 @@ export default {
       itemsPerPage: 10,
       direcciones: [], // Agregar aquí la propiedad para almacenar las direcciones
       saldoRestante: null,
-    limiteTotal: null,
-    totalNombreD: null,
-    plantillaUrl: '', // URL para descargar la plantilla
+      limiteTotal: null,
+      totalNombreD: null,
+      plantillaUrl: '', // URL para descargar la plantilla
 
     };
   },
@@ -206,164 +208,186 @@ export default {
   },
   methods: {
     async descargarPlantilla() {
-    try {
+      try {
         // Realiza la solicitud GET y especifica que la respuesta es de tipo blob
         const response = await this.$sucursales.$get('/descargar-plantilla', { responseType: 'blob' });
-        
+
         // Crear un objeto URL desde el blob recibido
         const url = window.URL.createObjectURL(new Blob([response]));
-        
+
         // Crear un enlace temporal para forzar la descarga
         const link = document.createElement('a');
         link.href = url;
         link.setAttribute('download', 'plantilla_solicitudes.xlsx'); // Nombre del archivo que se descargará
-        
+
         // Añadir el enlace al documento y simular un clic
         document.body.appendChild(link);
         link.click();
-        
+
         // Limpiar el enlace después de la descarga
         document.body.removeChild(link);
-    } catch (error) {
+      } catch (error) {
         console.error('Error al descargar la plantilla:', error);
+      }
     }
-}
-,
+    ,
     reprintPDF(data) {
-      const doc = new jsPDF('portrait', 'mm', 'letter');
-    const fontSize = 10;
-    doc.setFontSize(fontSize);
-  
-    const guia = data.guia || '';
-    const codigoBarras = data.codigo_barras || '';
-    const remitente = data.remitente || '';
-    const telefono = data.telefono || '';
-    const contenido = data.contenido || '';
-    const destinatario = data.destinatario || '';
-    const telefono_d = data.telefono_d || '';
-    const direccion_especifica_d = data.direccion_especifica_d || '';
-    const ciudad_d = data.ciudad || '';
-    const zona_d = data.zona_d || '';
-  
-    const fecha = data.fecha || '';
-    const fecha_entrega = data.fecha_d || '';
-    const peso = data.peso_r || '';
-    const importe = data.importe || '';
-    const sucursal = data.sucursale || {};
-    const tarifa = data.tarifa || {};
-    const origen = sucursal.origen || '';
-    const destino = tarifa.departamento || '';
-  
-    const direccion = data.direccion || {};
-    const direccionEspecifica = direccion.direccion_especifica || '';
-    const zona = direccion.zona || '';
-    const ciudad = direccion.ciudad || '';
-  
-    let startX = 20;
-    let startY = 10;
-    let cellHeight = 10;
-    let cellHeightFirma = 12;
-    let cellHeightFirma2 = 15;
-    let col1Width = 40;
-    let col2Width = 40;
-    let col3Width = 100;
-  
-    const drawGuide = (startX, startY) => {
-      doc.setFontSize(fontSize);
-      doc.rect(startX, startY, col1Width + col2Width, cellHeight * 3);
-      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight * 3);
-  
-      const barcodeX = startX + col1Width + col2Width + 5;
-      const barcodeY = startY + 10;
-      const barcodeWidth = 70;
-      const barcodeHeight = 8;
-  
-      if (EMSImage) {
-        doc.addImage(EMSImage, 'PNG', startX + 2, startY + 2, 30, 10);
-      }
-  
-      if (codigoBarras !== '') {
-        doc.addImage(codigoBarras, 'JPEG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
-      }
-  
-      const textWidth = doc.getTextWidth(guia);
-      const textX = barcodeX + (barcodeWidth - textWidth) / 2;
-      doc.text(guia, textX, barcodeY - 3);
-  
-      startY += cellHeight * 2;
-      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
-      doc.text(`Remitente y origen:  ${remitente}   ${origen},`, startX + 2, startY + 7);
-  
-      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
-      doc.text(`Destinatario y destino: ${destinatario}   ${destino}`, startX + col1Width + col2Width + 2, startY + 7);
-  
-      startY += cellHeight;
-      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
-      doc.text(`Dirección: ${direccionEspecifica}`, startX + 2, startY + 4);
-      doc.text(`Zona: ${zona}`, startX + 2, startY + 8);
-  
-      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
-      doc.text(`Direccion: ${direccion_especifica_d}`, startX + col1Width + col2Width + 2, startY + 4);
-      doc.text(`Zona: ${zona_d}, Municipio: ${ciudad_d} `, startX + col1Width + col2Width + 2, startY + 8);
-  
-      startY += cellHeight;
-      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
-      doc.text(`Telefono: ${telefono}`, startX + 2, startY + 7);
-  
-      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
-      doc.text(`Telefono: ${telefono_d}`, startX + col1Width + col2Width + 2, startY + 7);
-  
-      startY += cellHeight;
-      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
-      doc.text(`Descripcion: ${contenido}`, startX + 2, startY + 7);
-  
-      doc.rect(startX + col1Width + col2Width, startY, col3Width / 2, cellHeight);
-      doc.text(`Fecha: ${fecha}`, startX + col1Width + col2Width + 2, startY + 7);
-  
-      doc.rect(startX + col1Width + col2Width + col3Width / 2, startY, col3Width / 2, cellHeight);
-      doc.text(`Fecha entrega: ${fecha_entrega}`, startX + col1Width + col2Width + col3Width / 2 + 2, startY + 7);
-  
-      startY += cellHeight;
-      doc.rect(startX, startY, col1Width, cellHeightFirma);
-      doc.text(`Contratos: ${importe}`, startX + 2, startY + 7);
-  
-      doc.rect(startX + col1Width, startY, col2Width, cellHeightFirma);
-      doc.text(`Peso: ${peso}`, startX + col1Width + 2, startY + 7);
-  
-      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeightFirma2);
-      doc.text('Firma:', startX + col1Width + col2Width + 2, startY + 7);
-  
-      return startY + cellHeightFirma2; // Devuelve la nueva posición de Y después de la última fila
-    };
-  
-    // Dibuja la primera guía y coloca la leyenda
-    let lastY = drawGuide(startX, startY);
-    doc.setFontSize(8);
-    doc.text('Esta guia debe ir en la correspondencia rotulada', startX + 2, lastY + 1); // Añade la leyenda justo debajo
-  
-    // Dibuja la segunda guía y coloca la leyenda
-    lastY = drawGuide(startX, startY + 90);
-    doc.setFontSize(8);
-    doc.text('Copia de guia', startX + 2, lastY + 1); // Añade la leyenda justo debajo
-  
-    // Dibuja la tercera guía y coloca la leyenda
-    lastY = drawGuide(startX, startY + 180);
-    doc.setFontSize(8);
-    doc.text('Copia de guia', startX + 2, lastY + 1); // Añade la leyenda justo debajo
-  
-    doc.save(`Solicitud-${guia}.pdf`);
-  },
-    async fetchSaldoData() {
-  try {
-    const res = await this.$sucursales.$get('/restantesaldo2');
-    // Asigna los valores de la respuesta a las variables reactivas
-    this.saldoRestante = Number(res.saldo_restante);
-    this.limiteTotal = Number(res.limite_total);
-    this.totalNombreD = Number(res.total_nombre_d);
-  } catch (error) {
-    console.error('Error al obtener saldo:', error);
+      const doc = new jsPDF('landscape', 'mm', 'letter');
+      this.generatePDF(data, doc);
+      const guia = data.guia || 'Rotulo';
+      doc.save(`Solicitud-${guia}.pdf`);
+    },
+
+    generatePDF(data, doc) {
+  if (!data) {
+    console.error('No data provided to generate the PDF');
+    return;
   }
-},
+
+  const fontSize = 16; // Tamaño de letra aumentado
+  doc.setFontSize(fontSize);
+
+  const guia = data.guia || '';
+  const codigoBarras = data.codigo_barras || '';
+  const remitente = data.remitente || '';
+  const destinatario = data.destinatario || '';
+  const direccion_especifica_d = data.direccion_especifica_d || '';
+  const origen = data.sucursale ? data.sucursale.origen : '';
+  const destino = data.tarifa ? data.tarifa.departamento : '';
+  const direccionEspecifica = data.direccion ? data.direccion.direccion_especifica : '';
+  const telefono = data.telefono || '';
+  const telefono_d = data.telefono_d || '';
+  const imagenData = data.imagen || ''; // Se asume que `data.imagen` contiene la imagen en base64 o una URL válida.
+
+  let startX = 10;
+  let startY = 10;
+  let cellHeight = 15;
+  let cellWidth = 135;
+  const checkboxSize = 4;  // Tamaño del checkbox
+
+  // Sección de Remitente
+  doc.setFontSize(fontSize);
+  doc.rect(startX, startY, cellWidth, cellHeight);
+  doc.text(`REMITENTE: ${remitente}`, startX + 2, startY + 10);
+
+  const barcodeCellHeight = cellHeight * 3;
+  doc.rect(startX + cellWidth, startY, cellWidth, barcodeCellHeight);
+
+  if (codigoBarras) {
+    const barcodeX = startX + cellWidth + 15;
+    const barcodeY = startY + 18;
+    const barcodeWidth = 75;
+    const barcodeHeight = 10;
+    doc.addImage(codigoBarras, 'JPEG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
+    const textWidth = doc.getTextWidth(guia);
+    const textX = barcodeX + (barcodeWidth - textWidth) / 2;
+    doc.text(guia, textX, barcodeY + barcodeHeight + 5);
+  }
+
+  // Colocar la imagen desde la base de datos en el PDF
+  if (imagenData) {
+    const imageX = startX + cellWidth + 15;  // Ajusta la posición X según el diseño
+    const imageY = startY + 5;  // Ajusta la posición Y según el diseño
+    const imageWidth = 50;  // Ajusta el ancho de la imagen
+    const imageHeight = 50;  // Ajusta la altura de la imagen
+
+    // Usar addImage para colocar la imagen en el PDF, puede ser 'PNG' o 'JPEG' según el formato de `imagenData`
+    doc.addImage(imagenData, 'PNG', imageX, imageY, imageWidth, imageHeight);
+  } else {
+    console.error('No image data available');
+  }
+
+  // Continúa con el resto del contenido...
+  startY += cellHeight;
+  doc.rect(startX, startY, cellWidth, cellHeight);
+  doc.text(`TELEFONO: ${telefono}`, startX + 2, startY + 10);
+
+  startY += cellHeight;
+  doc.rect(startX, startY, cellWidth, cellHeight);
+  doc.text(`Direccion: ${direccionEspecifica}`, startX + 2, startY + 10);
+
+  startY += cellHeight;
+  doc.rect(startX, startY, cellWidth, cellHeight);
+  doc.text(`Departamento: ${origen}`, startX + 2, startY + 10);
+
+  startY += cellHeight;
+  doc.rect(startX, startY, cellWidth / 2, cellHeight * 2);
+  doc.text('DEVOLUCION', startX + 2, startY + 10);
+  doc.text('RETOUR', startX + 2, startY + 20);
+
+  doc.setFontSize(fontSize + 2); // Tamaño de letra más grande para "CN 15"
+  doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, cellHeight * 2);
+  doc.text('CN 15', startX + cellWidth / 2 + 10, startY + 15);
+  doc.setFontSize(fontSize); // Regresa al tamaño de letra base
+
+  doc.rect(startX + cellWidth, startY, cellWidth, cellHeight * 2);
+  doc.text(`DESTINATARIO: ${destinatario}`, startX + cellWidth + 10, startY + 10);
+
+  startY += cellHeight * 2;
+
+  // Celdas de la izquierda con checkbox
+  const leftCellTexts = [
+    { topText: 'Se Mudó', bottomText: 'Déménagé' },
+    { topText: 'Desconocido', bottomText: 'Inconnu' },
+    { topText: 'Direccion Insuficiente', bottomText: 'Adresse Insuffisante' }
+  ];
+
+  leftCellTexts.forEach(cell => {
+    doc.rect(startX, startY, cellWidth / 2, cellHeight);
+    doc.text(cell.topText, startX + 2, startY + 7);
+    doc.text(cell.bottomText, startX + 2, startY + 14);
+    doc.rect(startX + cellWidth / 2 - checkboxSize - 2, startY + (cellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
+    startY += cellHeight;
+  });
+
+  // Celdas de la derecha con checkbox
+  const rightCellTexts = [
+    { topText: 'No Reclamado', bottomText: 'Non Réclamé' },
+    { topText: 'Rechazado', bottomText: 'Refusé' },
+    { topText: 'Se Asentó', bottomText: 'Parti' }
+  ];
+
+  startY -= cellHeight * 3;
+  rightCellTexts.forEach(cell => {
+    doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, cellHeight);
+    doc.text(cell.topText, startX + cellWidth / 2 + 2, startY + 7);
+    doc.text(cell.bottomText, startX + cellWidth / 2 + 2, startY + 14);
+    doc.rect(startX + cellWidth - checkboxSize - 2, startY + (cellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
+    startY += cellHeight;
+  });
+
+  // Información del Destinatario
+  startY -= cellHeight * 3;
+  doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
+  doc.text(`TELEFONO DESTINATARIO: ${telefono_d}`, startX + cellWidth + 10, startY + 10);
+
+  startY += cellHeight;
+  doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
+  doc.text(`Direccion: ${direccion_especifica_d}`, startX + cellWidth + 10, startY + 10);
+
+  startY += cellHeight;
+  doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
+  doc.text(`Departamento: ${destino}`, startX + cellWidth + 10, startY + 10);
+
+  // Línea final de puntos en el Footer
+  startY += cellHeight;
+  doc.rect(startX, startY, cellWidth * 2, cellHeight);
+  doc.text('................................................................................................................', startX + 2, startY + 10);
+}
+
+,
+
+    async fetchSaldoData() {
+      try {
+        const res = await this.$sucursales.$get('/restantesaldo2');
+        // Asigna los valores de la respuesta a las variables reactivas
+        this.saldoRestante = Number(res.saldo_restante);
+        this.limiteTotal = Number(res.limite_total);
+        this.totalNombreD = Number(res.total_nombre_d);
+      } catch (error) {
+        console.error('Error al obtener saldo:', error);
+      }
+    },
     handleSelectChange(event) {
       const selectedValue = event.target.value;
       if (this[selectedValue]) {
@@ -472,181 +496,304 @@ export default {
       this.currentPage = page;
     },
     async imprimirRotulosDelDia() {
-    const hoy = new Date().toISOString().slice(0, 10); // Obtiene la fecha actual en formato 'YYYY-MM-DD'
+      const hoy = new Date().toISOString().slice(0, 10); // Obtiene la fecha actual en formato 'YYYY-MM-DD'
 
-    // Filtra las solicitudes que tengan la fecha de hoy y un valor válido en 'fecha'
-    const solicitudesDelDia = this.list.filter(solicitud => solicitud.fecha && solicitud.fecha.slice(0, 10) === hoy);
+      // Filtra las solicitudes que tengan la fecha de hoy y un valor válido en 'fecha'
+      const solicitudesDelDia = this.list.filter(solicitud => solicitud.fecha && solicitud.fecha.slice(0, 10) === hoy);
 
-    if (solicitudesDelDia.length === 0) {
-      this.$swal.fire({
-        icon: 'info',
-        title: 'No hay solicitudes',
-        text: 'No se encontraron solicitudes para hoy.',
+      if (solicitudesDelDia.length === 0) {
+        this.$swal.fire({
+          icon: 'info',
+          title: 'No hay solicitudes',
+          text: 'No se encontraron solicitudes para hoy.',
+        });
+        return;
+      }
+
+      // Crea un solo documento PDF
+      const doc = new jsPDF('landscape', 'mm', 'letter');
+
+      solicitudesDelDia.forEach((solicitud, index) => {
+        // Genera el rótulo para cada solicitud usando el diseño de `generatePDF`
+        this.generatePDF(solicitud, doc);
+
+        // Añade una nueva página para la siguiente solicitud, excepto después de la última
+        if (index < solicitudesDelDia.length - 1) {
+          doc.addPage();
+        }
       });
-      return;
-    }
 
-    // Crea un solo documento PDF
-    const doc = new jsPDF('portrait', 'mm', 'letter');
+      // Guarda el documento como un archivo PDF único
+      doc.save(`Rotulos_Dia_${hoy}.pdf`);
+    },
 
-    solicitudesDelDia.forEach((solicitud, index) => {
-      // Genera el rótulo para cada solicitud
-      this.dibujarRotuloEnPDF(doc, solicitud);
+    // generatePDF(data, doc) {
+    //   if (!data) {
+    //     console.error('No data provided to generate the PDF');
+    //     return;
+    //   }
 
-      // Añade una nueva página para la siguiente solicitud, excepto después de la última
-      if (index < solicitudesDelDia.length - 1) {
-        doc.addPage();
-      }
-    });
+    //   const fontSize = 16; // Tamaño de letra aumentado
+    //   doc.setFontSize(fontSize);
 
-    // Guarda el documento como un archivo PDF único
-    doc.save(`Rotulos_Dia_${hoy}.pdf`);
-  },
+    //   const guia = data.guia || '';
+    //   const codigoBarras = data.codigo_barras || '';
+    //   const remitente = data.remitente || '';
+    //   const destinatario = data.destinatario || '';
+    //   const direccion_especifica_d = data.direccion_especifica_d || '';
+    //   const origen = data.sucursale ? data.sucursale.origen : '';
+    //   const destino = data.tarifa ? data.tarifa.departamento : '';
+    //   const direccionEspecifica = data.direccion ? data.direccion.direccion_especifica : '';
+    //   const telefono = data.telefono || '';
+    //   const telefono_d = data.telefono_d || '';
 
-  dibujarRotuloEnPDF(doc, data) {
-    const fontSize = 10;
-    doc.setFontSize(fontSize);
+    //   let startX = 10;
+    //   let startY = 10;
+    //   let cellHeight = 15;
+    //   let cellWidth = 135;
+    //   const checkboxSize = 4;  // Tamaño del checkbox
 
-    const guia = data.guia || '';
-    const codigoBarras = data.codigo_barras || '';
-    const remitente = data.remitente || '';
-    const telefono = data.telefono || '';
-    const contenido = data.contenido || '';
-    const destinatario = data.destinatario || '';
-    const telefono_d = data.telefono_d || '';
-    const direccion_especifica_d = data.direccion_especifica_d || '';
-    const ciudad_d = data.ciudad || '';
-    const zona_d = data.zona_d || '';
+    //   // Sección de Remitente
+    //   doc.setFontSize(fontSize);
+    //   doc.rect(startX, startY, cellWidth, cellHeight);
+    //   doc.text(`REMITENTE: ${remitente}`, startX + 2, startY + 10);
 
-    const fecha = data.fecha || '';
-    const fecha_entrega = data.fecha_d || '';
-    const peso = data.peso_r || '';
-    const importe = data.importe || '';
-    const sucursal = data.sucursale || {};
-    const tarifa = data.tarifa || {};
-    const origen = sucursal.origen || '';
-    const destino = tarifa.departamento || '';
+    //   const barcodeCellHeight = cellHeight * 3;
+    //   doc.rect(startX + cellWidth, startY, cellWidth, barcodeCellHeight);
 
-    const direccion = data.direccion || {};
-    const direccionEspecifica = direccion.direccion_especifica || '';
-    const zona = direccion.zona || '';
-    const ciudad = direccion.ciudad || '';
+    //   if (codigoBarras) {
+    //     const barcodeX = startX + cellWidth + 15;
+    //     const barcodeY = startY + 18;
+    //     const barcodeWidth = 75;
+    //     const barcodeHeight = 10;
+    //     doc.addImage(codigoBarras, 'JPEG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
+    //     const textWidth = doc.getTextWidth(guia);
+    //     const textX = barcodeX + (barcodeWidth - textWidth) / 2;
+    //     doc.text(guia, textX, barcodeY + barcodeHeight + 5);
+    //   }
 
-    let startX = 20;
-    let startY = 10;
-    let cellHeight = 10;
-    let cellHeightFirma = 12;
-    let cellHeightFirma2 = 15;
-    let col1Width = 40;
-    let col2Width = 40;
-    let col3Width = 100;
+    //   startY += cellHeight;
+    //   doc.rect(startX, startY, cellWidth, cellHeight);
+    //   doc.text(`TELEFONO: ${telefono}`, startX + 2, startY + 10);
 
-    const drawGuide = (startX, startY) => {
+    //   startY += cellHeight;
+    //   doc.rect(startX, startY, cellWidth, cellHeight);
+    //   doc.text(`Direccion: ${direccionEspecifica}`, startX + 2, startY + 10);
+
+    //   startY += cellHeight;
+    //   doc.rect(startX, startY, cellWidth, cellHeight);
+    //   doc.text(`Departamento: ${origen}`, startX + 2, startY + 10);
+
+    //   startY += cellHeight;
+    //   doc.rect(startX, startY, cellWidth / 2, cellHeight * 2);
+    //   doc.text('DEVOLUCION', startX + 2, startY + 10);
+    //   doc.text('RETOUR', startX + 2, startY + 20);
+
+    //   doc.setFontSize(fontSize + 2); // Tamaño de letra más grande para "CN 15"
+    //   doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, cellHeight * 2);
+    //   doc.text('CN 15', startX + cellWidth / 2 + 10, startY + 15);
+    //   doc.setFontSize(fontSize); // Regresa al tamaño de letra base
+
+    //   doc.rect(startX + cellWidth, startY, cellWidth, cellHeight * 2);
+    //   doc.text(`DESTINATARIO: ${destinatario}`, startX + cellWidth + 10, startY + 10);
+
+    //   startY += cellHeight * 2;
+
+    //   // Celdas de la izquierda con checkbox
+    //   const leftCellTexts = [
+    //     { topText: 'Se Mudó', bottomText: 'Déménagé' },
+    //     { topText: 'Desconocido', bottomText: 'Inconnu' },
+    //     { topText: 'Direccion Insuficiente', bottomText: 'Adresse Insuffisante' }
+    //   ];
+
+    //   leftCellTexts.forEach(cell => {
+    //     doc.rect(startX, startY, cellWidth / 2, cellHeight);
+    //     doc.text(cell.topText, startX + 2, startY + 7);
+    //     doc.text(cell.bottomText, startX + 2, startY + 14);
+    //     doc.rect(startX + cellWidth / 2 - checkboxSize - 2, startY + (cellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
+    //     startY += cellHeight;
+    //   });
+
+    //   // Celdas de la derecha con checkbox
+    //   const rightCellTexts = [
+    //     { topText: 'No Reclamado', bottomText: 'Non Réclamé' },
+    //     { topText: 'Rechazado', bottomText: 'Refusé' },
+    //     { topText: 'Se Asentó', bottomText: 'Parti' }
+    //   ];
+
+    //   startY -= cellHeight * 3;
+    //   rightCellTexts.forEach(cell => {
+    //     doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, cellHeight);
+    //     doc.text(cell.topText, startX + cellWidth / 2 + 2, startY + 7);
+    //     doc.text(cell.bottomText, startX + cellWidth / 2 + 2, startY + 14);
+    //     doc.rect(startX + cellWidth - checkboxSize - 2, startY + (cellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
+    //     startY += cellHeight;
+    //   });
+
+    //   // Información del Destinatario
+    //   startY -= cellHeight * 3;
+    //   doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
+    //   doc.text(`TELEFONO DESTINATARIO: ${telefono_d}`, startX + cellWidth + 10, startY + 10);
+
+    //   startY += cellHeight;
+    //   doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
+    //   doc.text(`Direccion: ${direccion_especifica_d}`, startX + cellWidth + 10, startY + 10);
+
+    //   startY += cellHeight;
+    //   doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
+    //   doc.text(`Departamento: ${destino}`, startX + cellWidth + 10, startY + 10);
+
+    //   // Línea final de puntos en el Footer
+    //   startY += cellHeight;
+    //   doc.rect(startX, startY, cellWidth * 2, cellHeight);
+    //   doc.text('................................................................................................................', startX + 2, startY + 10);
+    // },
+
+
+    dibujarRotuloEnPDF(doc, data) {
+      const fontSize = 10;
       doc.setFontSize(fontSize);
-      doc.rect(startX, startY, col1Width + col2Width, cellHeight * 3);
-      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight * 3);
 
-      const barcodeX = startX + col1Width + col2Width + 5;
-      const barcodeY = startY + 10;
-      const barcodeWidth = 70;
-      const barcodeHeight = 8;
+      const guia = data.guia || '';
+      const codigoBarras = data.codigo_barras || '';
+      const remitente = data.remitente || '';
+      const telefono = data.telefono || '';
+      const contenido = data.contenido || '';
+      const destinatario = data.destinatario || '';
+      const telefono_d = data.telefono_d || '';
+      const direccion_especifica_d = data.direccion_especifica_d || '';
+      const ciudad_d = data.ciudad || '';
+      const zona_d = data.zona_d || '';
 
-      if (EMSImage) {
-        doc.addImage(EMSImage, 'PNG', startX + 2, startY + 2, 30, 10);
-      }
+      const fecha = data.fecha || '';
+      const fecha_entrega = data.fecha_d || '';
+      const peso = data.peso_r || '';
+      const importe = data.importe || '';
+      const sucursal = data.sucursale || {};
+      const tarifa = data.tarifa || {};
+      const origen = sucursal.origen || '';
+      const destino = tarifa.departamento || '';
 
-      if (codigoBarras !== '') {
-        doc.addImage(codigoBarras, 'JPEG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
-      }
+      const direccion = data.direccion || {};
+      const direccionEspecifica = direccion.direccion_especifica || '';
+      const zona = direccion.zona || '';
+      const ciudad = direccion.ciudad || '';
 
-      const textWidth = doc.getTextWidth(guia);
-      const textX = barcodeX + (barcodeWidth - textWidth) / 2;
-      doc.text(guia, textX, barcodeY - 3);
+      let startX = 20;
+      let startY = 10;
+      let cellHeight = 10;
+      let cellHeightFirma = 12;
+      let cellHeightFirma2 = 15;
+      let col1Width = 40;
+      let col2Width = 40;
+      let col3Width = 100;
 
-      startY += cellHeight * 2;
-      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
-      doc.text(`Remitente y origen:  ${remitente}   ${origen},`, startX + 2, startY + 7);
+      const drawGuide = (startX, startY) => {
+        doc.setFontSize(fontSize);
+        doc.rect(startX, startY, col1Width + col2Width, cellHeight * 3);
+        doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight * 3);
 
-      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
-      doc.text(`Destinatario y destino: ${destinatario}   ${destino}`, startX + col1Width + col2Width + 2, startY + 7);
+        const barcodeX = startX + col1Width + col2Width + 5;
+        const barcodeY = startY + 10;
+        const barcodeWidth = 70;
+        const barcodeHeight = 8;
 
-      startY += cellHeight;
-      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
-      doc.text(`Dirección: ${direccionEspecifica}`, startX + 2, startY + 4);
-      doc.text(`Zona: ${zona}`, startX + 2, startY + 8);
+        if (EMSImage) {
+          doc.addImage(EMSImage, 'PNG', startX + 2, startY + 2, 30, 10);
+        }
 
-      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
-      doc.text(`Direccion: ${direccion_especifica_d}`, startX + col1Width + col2Width + 2, startY + 4);
-      doc.text(`Zona: ${zona_d}, Municipio: ${ciudad_d} `, startX + col1Width + col2Width + 2, startY + 8);
+        if (codigoBarras !== '') {
+          doc.addImage(codigoBarras, 'JPEG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
+        }
 
-      startY += cellHeight;
-      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
-      doc.text(`Telefono: ${telefono}`, startX + 2, startY + 7);
+        const textWidth = doc.getTextWidth(guia);
+        const textX = barcodeX + (barcodeWidth - textWidth) / 2;
+        doc.text(guia, textX, barcodeY - 3);
 
-      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
-      doc.text(`Telefono: ${telefono_d}`, startX + col1Width + col2Width + 2, startY + 7);
+        startY += cellHeight * 2;
+        doc.rect(startX, startY, col1Width + col2Width, cellHeight);
+        doc.text(`Remitente y origen:  ${remitente}   ${origen},`, startX + 2, startY + 7);
 
-      startY += cellHeight;
-      doc.rect(startX, startY, col1Width + col2Width, cellHeight);
-      doc.text(`Descripcion: ${contenido}`, startX + 2, startY + 7);
+        doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
+        doc.text(`Destinatario y destino: ${destinatario}   ${destino}`, startX + col1Width + col2Width + 2, startY + 7);
 
-      doc.rect(startX + col1Width + col2Width, startY, col3Width / 2, cellHeight);
-      doc.text(`Fecha: ${fecha}`, startX + col1Width + col2Width + 2, startY + 7);
+        startY += cellHeight;
+        doc.rect(startX, startY, col1Width + col2Width, cellHeight);
+        doc.text(`Dirección: ${direccionEspecifica}`, startX + 2, startY + 4);
+        doc.text(`Zona: ${zona}`, startX + 2, startY + 8);
 
-      doc.rect(startX + col1Width + col2Width + col3Width / 2, startY, col3Width / 2, cellHeight);
-      doc.text(`Fecha entrega: ${fecha_entrega}`, startX + col1Width + col2Width + col3Width / 2 + 2, startY + 7);
+        doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
+        doc.text(`Direccion: ${direccion_especifica_d}`, startX + col1Width + col2Width + 2, startY + 4);
+        doc.text(`Zona: ${zona_d}, Municipio: ${ciudad_d} `, startX + col1Width + col2Width + 2, startY + 8);
 
-      startY += cellHeight;
-      doc.rect(startX, startY, col1Width, cellHeightFirma);
-      doc.text(`Contratos: ${importe}`, startX + 2, startY + 7);
+        startY += cellHeight;
+        doc.rect(startX, startY, col1Width + col2Width, cellHeight);
+        doc.text(`Telefono: ${telefono}`, startX + 2, startY + 7);
 
-      doc.rect(startX + col1Width, startY, col2Width, cellHeightFirma);
-      doc.text(`Peso: ${peso}`, startX + col1Width + 2, startY + 7);
+        doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
+        doc.text(`Telefono: ${telefono_d}`, startX + col1Width + col2Width + 2, startY + 7);
 
-      doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeightFirma2);
-      doc.text('Firma:', startX + col1Width + col2Width + 2, startY + 7);
+        startY += cellHeight;
+        doc.rect(startX, startY, col1Width + col2Width, cellHeight);
+        doc.text(`Descripcion: ${contenido}`, startX + 2, startY + 7);
 
-      return startY + cellHeightFirma2; // Devuelve la nueva posición de Y después de la última fila
-    };
+        doc.rect(startX + col1Width + col2Width, startY, col3Width / 2, cellHeight);
+        doc.text(`Fecha: ${fecha}`, startX + col1Width + col2Width + 2, startY + 7);
 
-    // Dibuja la guía en la página actual del documento PDF
-    drawGuide(startX, startY);
-  },
-    
+        doc.rect(startX + col1Width + col2Width + col3Width / 2, startY, col3Width / 2, cellHeight);
+        doc.text(`Fecha entrega: ${fecha_entrega}`, startX + col1Width + col2Width + col3Width / 2 + 2, startY + 7);
+
+        startY += cellHeight;
+        doc.rect(startX, startY, col1Width, cellHeightFirma);
+        doc.text(`Contratos: ${importe}`, startX + 2, startY + 7);
+
+        doc.rect(startX + col1Width, startY, col2Width, cellHeightFirma);
+        doc.text(`Peso: ${peso}`, startX + col1Width + 2, startY + 7);
+
+        doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeightFirma2);
+        doc.text('Firma:', startX + col1Width + col2Width + 2, startY + 7);
+
+        return startY + cellHeightFirma2; // Devuelve la nueva posición de Y después de la última fila
+      };
+
+      // Dibuja la guía en la página actual del documento PDF
+      drawGuide(startX, startY);
+    },
+
 
 
 
   },
   mounted() {
-  this.$nextTick(async () => {
-    let user = localStorage.getItem('userAuth');
-    this.user = JSON.parse(user);
+    this.$nextTick(async () => {
+      let user = localStorage.getItem('userAuth');
+      this.user = JSON.parse(user);
 
-    // Parte 1: Obtener el saldo restante y el total de nombre_d
-    try {
-      const res = await this.$sucursales.$get('/restantesaldo2');
-      
-      this.saldoRestante = Number(res.saldo_restante || 0);
-      this.limiteTotal = Number(res.limite_total || 0);
-      this.totalNombreD = Number(res.total_nombre_d || 0);
+      // Parte 1: Obtener el saldo restante y el total de nombre_d
+      try {
+        const res = await this.$sucursales.$get('/restantesaldo2');
 
-      if (this.saldoRestante <= 0 || this.totalNombreD >= this.limiteTotal) {
-        // Aquí puedes manejar el caso en que se exceda el límite si es necesario
+        this.saldoRestante = Number(res.saldo_restante || 0);
+        this.limiteTotal = Number(res.limite_total || 0);
+        this.totalNombreD = Number(res.total_nombre_d || 0);
+
+        if (this.saldoRestante <= 0 || this.totalNombreD >= this.limiteTotal) {
+          // Aquí puedes manejar el caso en que se exceda el límite si es necesario
+        }
+      } catch (e) {
       }
-    } catch (e) {
-    }
 
-    // Parte 2: Obtener la lista de solicitudes pendientes
-    try {
-      const data = await this.GET_DATA(this.apiUrl); // Llama a GET_DATA para recuperar los datos
-      this.list = data; // Asigna los datos a this.list para que se muestren en la tabla
-    } catch (e) {
-    } finally {
-      this.load = false;
-    }
-  });
+      // Parte 2: Obtener la lista de solicitudes pendientes
+      try {
+        const data = await this.GET_DATA(this.apiUrl); // Llama a GET_DATA para recuperar los datos
+        this.list = data; // Asigna los datos a this.list para que se muestren en la tabla
+      } catch (e) {
+      } finally {
+        this.load = false;
+      }
+    });
 
-}
+  }
 };
 </script>
 
@@ -723,8 +870,10 @@ export default {
   background-color: #343a40;
   border-color: #343a40;
 }
+
 .btn-green {
-  background-color: #22C55E; /* Green color */
+  background-color: #22C55E;
+  /* Green color */
   color: white;
   border-radius: 10px;
   padding: 10px 20px;
@@ -742,26 +891,34 @@ select.btn-green {
 
 
 select.btn {
-  background-color: #22C55E; /* Este es el color del botón principal */
+  background-color: #22C55E;
+  /* Este es el color del botón principal */
   color: white;
   padding: 20px 25px;
   border: none;
 }
 
 select.btn option {
-  background-color:  #ffffff; /* Elimina el fondo */
-  color: black; /* Cambia el color de las letras a negro */
+  background-color: #ffffff;
+  /* Elimina el fondo */
+  color: black;
+  /* Cambia el color de las letras a negro */
   font-weight: bold;
 }
 
 select option[disabled] {
   display: none;
 }
+
 .alert-custom {
-  background-image: linear-gradient(to right, #fffb00de, #ddd905); /* Degradado de azul oscuro a dorado */
-  color: black; /* Color del texto */
-  border: 1px solid #b2954b; /* Borde dorado */
-  border-radius: 5px; /* Bordes redondeados */
+  background-image: linear-gradient(to right, #fffb00de, #ddd905);
+  /* Degradado de azul oscuro a dorado */
+  color: black;
+  /* Color del texto */
+  border: 1px solid #b2954b;
+  /* Borde dorado */
+  border-radius: 5px;
+  /* Bordes redondeados */
   padding: 15px;
 }
 </style>

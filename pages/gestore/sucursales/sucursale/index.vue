@@ -68,6 +68,7 @@
                       <th class="py-0 px-1">Entidad que Paga</th>
                       <th class="py-0 px-1">Numero de Contrato</th>
                       <th class="py-0 px-1">Contacto</th>
+                      <th class="py-0 px-1">Imagen</th>
                       <th class="py-0 px-1"></th>
                     </thead>
                     <tbody>
@@ -88,6 +89,11 @@
                         <td class="py-0 px-1">{{ m.pagador }}</td>
                         <td class="py-0 px-1">{{ m.n_contrato }}</td>
                         <td class="py-0 px-1">{{ m.contacto_administrativo }}</td>
+                        <td class="py-0 px-1">
+                      
+                      <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                        class="btn btn-sm btn-primary mt-1">Descargar</button>
+                    </td>
                         <td class="py-0 px-1">
                           <div class="btn-group">
                             <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
@@ -534,6 +540,14 @@ export default {
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = 'Solicitudes_Verificadas.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
+    downloadImage(base64Image) {
+      const link = document.createElement('a');
+      link.href = base64Image; // Aquí estás usando la imagen original almacenada
+      link.download = 'imagen_capturada.jpg';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
