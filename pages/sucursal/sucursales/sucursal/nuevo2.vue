@@ -374,18 +374,17 @@ export default {
 
         this.$refs.modalCargaMasiva.hide();
       } catch (error) {
-        // Cierra el mensaje de carga y muestra el error
-        Swal.close();
-        console.error('Error al subir el archivo:', error);
-        Swal.fire({
-          icon: 'success',
-          title: 'Solicitudes subidas con éxito',
-          text: error.response?.data?.message || 'Se subido todos los archivos con exito',
-          showConfirmButton: true,
-        });
-      } finally {
-        this.isUploading = false; // Restablece el estado de carga
-      }
+  // Cierra el mensaje de carga y muestra el error
+  Swal.close();
+  console.error('Error al subir el archivo:', error);
+  Swal.fire({
+    icon: 'success',
+    title: 'Solicitudes subidas con éxito',
+    text: error.response?.data?.message || 'Se subido todos los archivos con exito',
+    showConfirmButton: true,
+  });
+}
+
     },
     // Método para guardar remitente frecuente
     saveFrequentRemitente() {
