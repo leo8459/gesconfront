@@ -220,6 +220,7 @@
         <button class="btn btn-primary mt-2" @click="handleOkD">Confirmar Dirección</button>
         <button class="btn btn-secondary mt-2" @click="goBack">Volver</button>
       </div>
+
     </b-modal>
   </div>
 </template>
@@ -305,6 +306,7 @@ export default {
     direccionDisplay() {
       return this.model.direccion_d || 'Seleccionar en el mapa';
     },
+
     precioSeleccionado() {
       const tarifa = this.tarifas.find(t => t.id === this.model.tarifa_id);
       if (tarifa) {
@@ -631,6 +633,7 @@ export default {
       this.model.direccion_d_lng = this.currentLng_d;
       this.searching_d = false;
     },
+
     goBack() {
       // Reset latitude and longitude so they are not saved
       this.model.direccion_d_lat = null;
@@ -640,44 +643,28 @@ export default {
       this.$refs.mapsModalD.hide(); // Closes the modal without saving
     },
     handleOkD() {
-      // Guarda las coordenadas cuando el usuario confirma la selección
+      // Keep the logic to save the coordinates when confirming
       this.model.direccion_d_lat = this.currentLat_d;
       this.model.direccion_d_lng = this.currentLng_d;
       this.model.direccion_d = `${this.currentLat_d}, ${this.currentLng_d}`;
 
-      // Cierra el modal después de confirmar
-      this.$refs.mapsModalD.hide();
+      this.$refs.mapsModalD.hide(); // Close the modal after confirming
     },
+
+
     async searchLocationD() {
       if (this.searchQuery_d && this.currentLat_d && this.currentLng_d) {
         this.searching_d = true;
-        try {
-          const lat = this.currentLat_d;
-          const lng = this.currentLng_d;
-
-          // Define un viewbox de 0.1 grados alrededor de la ubicación actual
-          const viewbox = `${lng - 0.1},${lat - 0.1},${lng + 0.1},${lat + 0.1}`;
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-              this.searchQuery_d
-            )}&addressdetails=1&limit=5&viewbox=${viewbox}&bounded=1`
-          );
-          const data = await response.json();
-
-          // Mapea los resultados para mostrar las sugerencias
-          this.suggestions = data.map(item => ({
-            display_name: item.display_name,
-            lat: item.lat,
-            lon: item.lon,
-          }));
-        } catch (error) {
-          console.error('Error al buscar la ubicación:', error);
-          this.suggestions = [];
-        } finally {
-          this.searching_d = false;
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${this.searchQuery_d}&limit=5&viewbox=${this.currentLng_d - 0.1},${this.currentLat_d + 0.1},${this.currentLng_d + 0.1},${this.currentLat_d - 0.1}`);
+        const data = await response.json();
+        if (data.length > 0) {
+          const closestMatch = data[0];
+          const { lat, lon } = closestMatch;
+          this.map_d.setView([lat, lon], 14);
+          this.marker_d.setLatLng([lat, lon]);
+          this.geocodePositionD({ lat, lng: lon });
         }
-      } else {
-        this.suggestions = [];
+        this.searching_d = false;
       }
     },
 
@@ -740,21 +727,38 @@ export default {
       }
     },
 
-    applyFrequentAddress(address) {
-      this.model.destinatario = address.destinatario;
-      this.model.telefono_d = address.telefono_d;
-      this.model.direccion_especifica_d = address.direccion_especifica_d;
-      this.model.direccion_d_lat = address.direccion_d_lat;
-      this.model.direccion_d_lng = address.direccion_d_lng;
-      this.model.zona_d = address.zona_d;
-      this.model.ciudad = address.ciudad;
+//     applyFrequentAddress(address) {
+//   this.model.destinatario = address.destinatario;
+//   this.model.telefono_d = address.telefono_d;
+//   this.model.direccion_especifica_d = address.direccion_especifica_d;
+//   this.model.direccion_d_lat = address.direccion_d_lat;
+//   this.model.direccion_d_lng = address.direccion_d_lng;
+//   this.model.zona_d = address.zona_d;
+//   this.model.ciudad = address.ciudad;
 
-      // Asigna la dirección completa si es necesario
-      this.model.direccion_d = `${address.direccion_especifica_d}, Zona: ${address.zona_d}`;
+//   // Formatear la dirección para mostrarla en direccion_d
+//   this.model.direccion_d = `${address.direccion_especifica_d}, Zona: ${address.zona_d}, Ciudad: ${address.ciudad}`;
 
-      // Limpia las sugerencias después de seleccionar
-      this.suggestions = [];
-    },
+//   // Limpia las sugerencias después de seleccionar
+//   this.suggestions = [];
+// },
+applyFrequentAddress(address) {
+  this.model.destinatario = address.destinatario;
+  this.model.telefono_d = address.telefono_d;
+  this.model.direccion_especifica_d = address.direccion_especifica_d;
+  this.model.direccion_d_lat = address.direccion_d_lat;
+  this.model.direccion_d_lng = address.direccion_d_lng;
+  this.model.zona_d = address.zona_d;
+  this.model.ciudad = address.ciudad;
+
+  // Formatear la dirección incluyendo las coordenadas
+  this.model.direccion_d = `${address.direccion_d_lat}, ${address.direccion_d_lng}`;
+
+  // Limpia las sugerencias después de seleccionar
+  this.suggestions = [];
+},
+
+
     showSuggestions() {
       if (this.model.destinatario) {
         this.suggestions = this.loadFrequentAddresses(this.model.destinatario);
