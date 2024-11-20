@@ -8,9 +8,9 @@ export default function ({ $axios, store, redirect }, inject) {
         }
       }
     });
-    // let url ='http://172.65.10.52:8450/contratos/'
+    let url ='http://172.65.10.52:8450/contratos/'
 
-    const url = 'http://localhost/backgescon2/public/contratos/';
+    // const url = 'http://localhost/backgescon2/public/contratos/';
     contratos.setBaseURL(url);
   
     contratos.interceptors.request.use(config => {
