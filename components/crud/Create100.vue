@@ -24,7 +24,7 @@
   </template>
   
   <script>
-  import jsPDF from 'jspdf';
+  // import jsPDF from 'jspdf';
   import EMSImage from '@/pages/sucursal/sucursales/sucursal/img/EMS.png';
   
   export default {
@@ -254,14 +254,16 @@
   //   doc.save(`Solicitud-${guia}.pdf`);
   // }
   
-  generatePDF(data) {
+  async generatePDF(data) {
+  if (typeof window !== 'undefined') {
+    const { jsPDF } = await import('jspdf');
     if (!data) {
-        console.error('No data provided to generate the PDF');
-        return;
+      console.error('No se proporcionaron datos para generar el PDF');
+      return;
     }
 
     const doc = new jsPDF('landscape', 'mm', 'letter');
-    const fontSize = 16; // Aumentar tamaño de letra a 12
+    const fontSize = 16;
     doc.setFontSize(fontSize);
 
     const guia = data.guia || '';
@@ -387,7 +389,9 @@
     doc.text('................................................................................................................', startX + 2, startY + 10);
 
     doc.save(`Solicitud-${guia}.pdf`);
-}
+  } else {
+    console.error('La generación de PDF solo se puede realizar en el cliente.');
+  }}
 
 
 
