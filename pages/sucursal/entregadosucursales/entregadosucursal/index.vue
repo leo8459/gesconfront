@@ -56,6 +56,7 @@
                         <th class="py-0 px-1">Fecha de Entrega</th>
                         <th class="py-0 px-1">Precio (Bs)</th>
                         <th class="py-0 px-1">Firma Destinatario</th>
+                        <th class="py-0 px-1">Recibido por</th>
                         <th class="py-0 px-1">Imagen</th>
                       </tr>
                     </thead>
@@ -87,6 +88,8 @@
                         <td class="py-0 px-1">
                           <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Origen" width="100" />
                         </td>
+                        <td class="py-0 px-1">{{ m.entrega_observacion }}</td>
+
                         <td class="py-0 px-1">
                           <div class="d-flex flex-column align-items-center">
                             <button v-if="m.imagen" @click="downloadImage(m.imagen)"

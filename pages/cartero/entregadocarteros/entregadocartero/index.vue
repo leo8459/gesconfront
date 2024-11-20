@@ -38,92 +38,95 @@
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Cartero</th>
-                    <th class="py-0 px-1">Guia</th>
-                    <th class="py-0 px-1">Peso</th>
-                    <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Sucursal</th>
+                        <th class="py-0 px-1">Cartero</th>
+                        <th class="py-0 px-1">Guia</th>
+                        <th class="py-0 px-1">Peso</th>
+                        <th class="py-0 px-1">Remitente</th>
 
-                    <!-- Nueva columna para la dirección específica -->
-                    <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha</th>
-                    <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono D</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Municipio/Provincia</th>
-                    <th class="py-0 px-1">Zona Destinatario</th>
-                    <th class="py-0 px-1">Firma Destinatario</th>
-                    <th class="py-0 px-1">Fecha Entrega</th>
-                    <th class="py-0 px-1">Imagen Capturada</th>
-                    <th class="py-0 px-1">Firma Devolucion</th>
-                    <th class="py-0 px-1">Imagen Devolucion</th>
+                        <!-- Nueva columna para la dirección específica -->
+                        <th class="py-0 px-1">Dirección maps</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Fecha</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Teléfono D</th>
+                        <th class="py-0 px-1">Dirección Destinatario</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th class="py-0 px-1">Zona Destinatario</th>
+                        <th class="py-0 px-1">Firma Destinatario</th>
+                        <th class="py-0 px-1">Recibido por</th>
+                        <th class="py-0 px-1">Fecha Entrega</th>
+                        <th class="py-0 px-1">Imagen Capturada</th>
+                        <th class="py-0 px-1">Firma Devolucion</th>
+                        <th class="py-0 px-1">Imagen Devolucion</th>
 
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
-                    </td>
-                    <td class="py-0 px-1">
-  <span v-if="m.fecha_devolucion">{{ m.fecha_devolucion }}</span>
-  <span v-else>{{ m.fecha_d }}</span>
-</td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="i">
+                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td class="p-1">{{ m.sucursale.nombre }}</td>
+                        <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
+                        <td class="py-0 px-1">{{ m.guia }}</td>
+                        <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
+                        <td class="py-0 px-1">{{ m.remitente }}</td>
+                        <!-- Mostrar la dirección específica -->
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion.direccion }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.telefono }}</td>
+                        <td class="py-0 px-1">{{ m.contenido }}</td>
+                        <td class="py-0 px-1">{{ m.fecha }}</td>
+                        <td class="py-0 px-1">{{ m.destinatario }}</td>
+                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
+                        <td class="py-0 px-1">
+                          <a v-if="isCoordinates(m.direccion_d)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                            class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>{{ m.direccion_d }}</span>
+                        </td>
+                        <td class="py-0 px-1">{{ m.ciudad }}</td>
+                        <td class="py-0 px-1">{{ m.zona_d }}</td>
+                        <td class="py-0 px-1">
+                          <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
+                        </td>
+                        <td class="py-0 px-1">{{ m.entrega_observacion }}</td>
+
+                        <td class="py-0 px-1">
+                          <span v-if="m.fecha_devolucion">{{ m.fecha_devolucion }}</span>
+                          <span v-else>{{ m.fecha_d }}</span>
+                        </td>
 
 
-                    <td class="py-0 px-1">
-                      
-                      <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                        class="btn btn-sm btn-primary mt-1">Descargar</button>
-                    </td>
-                    
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Destino" width="100" />
-                    </td>
-                    <td class="py-0 px-1">
-                      
-                      <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
-                        class="btn btn-sm btn-primary mt-1">Descargar</button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                        <td class="py-0 px-1">
+
+                          <button v-if="m.imagen" @click="downloadImage(m.imagen)"
+                            class="btn btn-sm btn-primary mt-1">Descargar</button>
+                        </td>
+
+                        <td class="py-0 px-1">
+                          <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Destino" width="100" />
+                        </td>
+                        <td class="py-0 px-1">
+
+                          <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
+                            class="btn btn-sm btn-primary mt-1">Descargar</button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
             <!-- Paginación -->
             <nav aria-label="Page navigation">
@@ -198,41 +201,41 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
+      const searchTerm = this.searchTerm.toLowerCase();
 
-    return this.list
-      .filter(item =>
-        (item.estado === 3 || item.estado === 4 || item.estado === 10 || item.estado === 7) &&
-        item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
-        Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
+      return this.list
+        .filter(item =>
+          (item.estado === 3 || item.estado === 4 || item.estado === 10 || item.estado === 7) &&
+          item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
+          Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchTerm)
+          )
         )
-      )
-      .sort((a, b) => {
-        // Usamos fecha_devolucion si existe, de lo contrario usamos fecha_d
-        const dateA = a.fecha_devolucion || a.fecha_d;
-        const dateB = b.fecha_devolucion || b.fecha_d;
+        .sort((a, b) => {
+          // Usamos fecha_devolucion si existe, de lo contrario usamos fecha_d
+          const dateA = a.fecha_devolucion || a.fecha_d;
+          const dateB = b.fecha_devolucion || b.fecha_d;
 
-        // Asegúrate de que ambas fechas existen y tienen el formato correcto
-        if (dateA && dateB) {
-          const [dayA, monthA, yearTimeA] = dateA.split('/');
-          const [dayB, monthB, yearTimeB] = dateB.split('/');
+          // Asegúrate de que ambas fechas existen y tienen el formato correcto
+          if (dateA && dateB) {
+            const [dayA, monthA, yearTimeA] = dateA.split('/');
+            const [dayB, monthB, yearTimeB] = dateB.split('/');
 
-          const [yearA, timeA] = yearTimeA.split(' ');
-          const [yearB, timeB] = yearTimeB.split(' ');
+            const [yearA, timeA] = yearTimeA.split(' ');
+            const [yearB, timeB] = yearTimeB.split(' ');
 
-          const [hoursA, minutesA] = timeA.split(':');
-          const [hoursB, minutesB] = timeB.split(':');
+            const [hoursA, minutesA] = timeA.split(':');
+            const [hoursB, minutesB] = timeB.split(':');
 
-          const dateObjA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA);
-          const dateObjB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB);
+            const dateObjA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA);
+            const dateObjB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB);
 
-          // Orden descendente (del más nuevo al más antiguo)
-          return dateObjB - dateObjA;
-        }
-        return 0;
-      });
-  },
+            // Orden descendente (del más nuevo al más antiguo)
+            return dateObjB - dateObjA;
+          }
+          return 0;
+        });
+    },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -271,41 +274,41 @@ export default {
       }
 
       // Filtrar los datos por el rango de fechas, estados 3, 4, o 7, y cartero logueado
-const filteredData = this.list.filter(m => {
-  // Verificar si el cartero corresponde al logueado
-  if (!m.cartero_entrega || m.cartero_entrega.id !== this.user.user.id) {
-    return false;
-  }
+      const filteredData = this.list.filter(m => {
+        // Verificar si el cartero corresponde al logueado
+        if (!m.cartero_entrega || m.cartero_entrega.id !== this.user.user.id) {
+          return false;
+        }
 
-  // Seleccionar la fecha a usar: si existe fecha_devolucion, usar esa; si no, usar fecha_d
-  const fechaUsar = m.fecha_devolucion ? m.fecha_devolucion : m.fecha_d;
+        // Seleccionar la fecha a usar: si existe fecha_devolucion, usar esa; si no, usar fecha_d
+        const fechaUsar = m.fecha_devolucion ? m.fecha_devolucion : m.fecha_d;
 
-  // Asegurarse de que la fecha no es nula
-  if (!fechaUsar) {
-    return false;
-  }
+        // Asegurarse de que la fecha no es nula
+        if (!fechaUsar) {
+          return false;
+        }
 
-  // Convertir la fecha al formato Date
-  const [day, month, yearTime] = fechaUsar.split('/');
-  if (!day || !month || !yearTime) {
-    return false; // Si el formato es incorrecto, ignorar el registro
-  }
+        // Convertir la fecha al formato Date
+        const [day, month, yearTime] = fechaUsar.split('/');
+        if (!day || !month || !yearTime) {
+          return false; // Si el formato es incorrecto, ignorar el registro
+        }
 
-  const [year, time] = yearTime.split(' ');
-  if (!year || !time) {
-    return false; // Si el formato es incorrecto, ignorar el registro
-  }
+        const [year, time] = yearTime.split(' ');
+        if (!year || !time) {
+          return false; // Si el formato es incorrecto, ignorar el registro
+        }
 
-  const [hours, minutes] = time.split(':');
-  if (!hours || !minutes) {
-    return false; // Si el formato es incorrecto, ignorar el registro
-  }
+        const [hours, minutes] = time.split(':');
+        if (!hours || !minutes) {
+          return false; // Si el formato es incorrecto, ignorar el registro
+        }
 
-  const fechaFinal = new Date(year, month - 1, day, hours, minutes);
+        const fechaFinal = new Date(year, month - 1, day, hours, minutes);
 
-  // Comparar si fechaFinal está entre start y end, y si el estado es 3, 4 o 7
-  return (m.estado === 3 || m.estado === 4 || m.estado === 7) && fechaFinal >= start && fechaFinal <= end;
-});
+        // Comparar si fechaFinal está entre start y end, y si el estado es 3, 4 o 7
+        return (m.estado === 3 || m.estado === 4 || m.estado === 7) && fechaFinal >= start && fechaFinal <= end;
+      });
 
       if (filteredData.length === 0) {
         Swal.fire({
