@@ -113,7 +113,7 @@
           </div>
            <!-- Modal para mostrar seleccionados -->
    <!-- Modal para mostrar seleccionados -->
-<b-modal v-model="isSelectedModalVisible" title="Resultados de la Búsqueda" hide-backdrop hide-footer>
+   <b-modal v-model="isSelectedModalVisible" title="Resultados de la Búsqueda" hide-backdrop hide-footer>
   <div v-for="(item, index) in selectedItemsData" :key="item.id" class="form-group">
     <div class="d-flex justify-content-between align-items-center">
       <label>{{ item.sucursale.nombre }} - {{ item.guia }}</label>
@@ -472,9 +472,7 @@ export default {
       }
     },
     openSelectedModal() {
-    this.selectedItemsData = this.list
-      .filter(item => this.selected[item.id])
-      .map(item => ({
+      this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => ({
         ...item,
         recojo_observacion: item.recojo_observacion || '' // Asegura que cada elemento tenga la propiedad recojo_observacion
       }));
