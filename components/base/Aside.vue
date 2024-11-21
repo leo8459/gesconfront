@@ -83,7 +83,7 @@
                 </nuxtLink>
               </li>
               <li class="nav-item">
-                <nuxtLink class="nav-link full-width-link" to="/admin/logs/log">
+                <nuxtLink class="nav-link full-width-link" to="/admin/verlogs/log">
                   <span class="sidenav-mini-icon"> Logs </span>
                   <span class="sidenav-normal full-width-text"> Logs </span>
                 </nuxtLink>
