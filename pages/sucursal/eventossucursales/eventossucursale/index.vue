@@ -5,83 +5,28 @@
       <div slot="body">
         <div class="row justify-content-end">
           <!-- Input de búsqueda -->
-          <div class="col-12 mb-3">
-            <input v-model="searchTerm" type="text" class="form-control" placeholder="Buscar..." />
+          <div class="col-12 mb-3 text-center">
+            <h3 class="animated-header">Búsqueda de Envío</h3>
+            <input v-model="searchTerm" type="text" class="form-control search-input mt-3" placeholder="Ingrese el número de guía..." />
           </div>
 
-          <div class="col-12">
-            <div class="card border-rounded">
-              <div class="card-header">
-                EVENTOS
-              </div>
-              <div class="card-body p-2">
-                <div class="table-responsive">
-                  <table class="table table-sm table-bordered table-hover">
-                    <thead class="bg-primary text-white">
-                      <tr>
-                        <th class="py-0 px-1">#</th>
-                        <th class="py-0 px-1">Guia</th>
-                        <th class="py-0 px-1">Accion</th>
-                        <th class="py-0 px-1">Fecha</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(m, i) in paginatedData" :key="i">
-                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="py-0 px-1">{{ m.codigo }}</td>
-                        <td class="py-0 px-1">{{ m.accion === "Recojo" ? "En camino" : m.accion }}</td>
-                        <td class="py-0 px-1">{{ m.fecha_hora }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+          <div class="col-12" v-if="searchTerm">
+            <div v-if="filteredList.length === 0" class="text-center no-results">
+              <p>No se encontraron eventos con los filtros aplicados.</p>
+            </div>
+
+            <div v-else class="timeline animated-timeline">
+              <div v-for="(event, index) in filteredList" :key="index" class="timeline-item">
+                <div class="timeline-icon animated-icon"></div>
+                <div class="timeline-content animated-content">
+                  <h5 class="animated-event-date">{{ event.fecha_hora }}</h5>
+                  <p class="animated-event-description">
+                    {{ event.codigo }} - {{ event.accion === "Recojo" ? "En camino" : event.accion }}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Paginación -->
-        <div class="row justify-content-center">
-          <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-between">
-              <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                <button class="page-link" @click="previousPage" :disabled="currentPage === 0">
-                  &lt;
-                </button>
-              </li>
-
-              <!-- Mostrar primeras páginas -->
-              <li v-for="page in pagesToShow" :key="page" :class="{ active: currentPage === page - 1 }" class="page-item">
-                <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
-              </li>
-
-              <!-- Puntos suspensivos si hay más páginas antes de las páginas centrales -->
-              <li v-if="showDotsBefore" class="page-item disabled">
-                <span class="page-link">...</span>
-              </li>
-
-              <!-- Páginas centrales -->
-              <li v-for="page in middlePages" :key="page" :class="{ active: currentPage === page - 1 }" class="page-item">
-                <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
-              </li>
-
-              <!-- Puntos suspensivos si hay más páginas después de las páginas centrales -->
-              <li v-if="showDotsAfter" class="page-item disabled">
-                <span class="page-link">...</span>
-              </li>
-
-              <!-- Mostrar últimas páginas -->
-              <li v-for="page in lastPagesToShow" :key="page" :class="{ active: currentPage === page - 1 }" class="page-item">
-                <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
-              </li>
-
-              <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
-                <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">
-                  &gt;
-                </button>
-              </li>
-            </ul>
-          </nav>
         </div>
       </div>
     </AdminTemplate>
@@ -120,52 +65,13 @@ export default {
               item.fecha_hora.toLowerCase().includes(searchTerm))
           );
         })
-        .sort((a, b) => new Date(b.fecha_hora) - new Date(a.fecha_hora));
-    },
-    paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredList.slice(start, end);
-    },
-    totalPages() {
-      return Math.ceil(this.filteredList.length / this.itemsPerPage);
-    },
-    pagesToShow() {
-      return [1, 2, 3];
-    },
-    middlePages() {
-      if (this.currentPage > 3 && this.currentPage < this.totalPages - 3) {
-        return [this.currentPage, this.currentPage + 1, this.currentPage + 2];
-      }
-      return [];
-    },
-    lastPagesToShow() {
-      return [this.totalPages - 2, this.totalPages - 1, this.totalPages];
-    },
-    showDotsBefore() {
-      return this.currentPage > 3;
-    },
-    showDotsAfter() {
-      return this.currentPage < this.totalPages - 3;
+        .sort((a, b) => new Date(a.fecha_hora) - new Date(b.fecha_hora));
     },
   },
   methods: {
     async GET_DATA(path) {
       const res = await this.$sucursales.$get(path);
       return res;
-    },
-    nextPage() {
-      if (this.currentPage < this.totalPages - 1) {
-        this.currentPage++;
-      }
-    },
-    previousPage() {
-      if (this.currentPage > 0) {
-        this.currentPage--;
-      }
-    },
-    goToPage(page) {
-      this.currentPage = page;
     },
   },
   mounted() {
@@ -205,64 +111,130 @@ export default {
   text-align: center;
 }
 
-.table-responsive {
-  max-width: 100%;
-  overflow-x: auto;
-}
-
-.table {
-  text-align: center;
-  vertical-align: middle;
-  border-collapse: collapse;
-}
-
-.table th,
-.table td {
-  font-size: 18px;
-  text-align: center;
-  padding: 12px;
-  border: 1px solid #dee2e6;
-}
-
-.table th {
-  background-color: #34447C;
-  color: #FFFFFF;
-  white-space: nowrap;
-}
-
-.table td {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-
-.table-hover tbody tr:hover {
-  background-color: #f2f2f2;
-}
-
-.page-item .page-link {
-  color: #34447C;
-  background-color: #f4f6f9;
-  border: 1px solid #ddd;
-  border-radius: 50%;
+.animated-header {
+  font-size: 1.75rem;
   font-weight: bold;
-  padding: 8px 12px;
-}
-
-.page-item .page-link:hover {
-  background-color: #d1d9e6;
   color: #34447C;
+  animation: fadeIn 2s ease-in-out;
 }
 
-.page-item.active .page-link {
+.search-input {
+  max-width: 500px;
+  margin: 0 auto;
+  animation: slideIn 1.5s ease-out;
+}
+
+.no-results {
+  font-size: 1.25rem;
+  color: #999;
+  animation: fadeIn 1.5s ease-in-out;
+}
+
+.timeline {
+  position: relative;
+  padding: 20px 0;
+  margin: 20px 0;
+  border-left: 3px solid #34447C;
+}
+
+.animated-timeline {
+  animation: fadeInUp 1.5s ease;
+}
+
+.timeline-item {
+  position: relative;
+  padding: 10px 0 20px 30px;
+  margin-bottom: 10px;
+  animation: slideInTimeline 1s ease;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-icon {
+  position: absolute;
+  left: -12px;
+  top: 10px;
+  width: 20px;
+  height: 20px;
   background-color: #5c6bc0;
-  color: #fff;
-  border-color: #5c6bc0;
+  border-radius: 50%;
 }
 
-.page-item.disabled .page-link {
-  color: #bbb;
-  background-color: transparent;
-  cursor: not-allowed;
+.animated-icon {
+  animation: bounce 2s infinite;
+}
+
+.timeline-content {
+  background: #f4f6f9;
+  padding: 10px 15px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  animation: fadeInContent 1.2s ease-in;
+}
+
+.animated-content {
+  animation: pulse 1.5s infinite;
+}
+
+.timeline-content h5 {
+  margin: 0 0 5px;
+  color: #34447C;
+  animation: fadeInText 1s ease;
+}
+
+.animated-event-date {
+  animation: fadeInText 1s ease;
+}
+
+.timeline-content p {
+  margin: 0;
+  animation: fadeInText 1.5s ease;
+}
+
+.animated-event-description {
+  animation: fadeInText 1.5s ease;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideIn {
+  0% { transform: translateY(-20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInTimeline {
+  0% { transform: translateX(-30px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeInContent {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes fadeInText {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 </style>
