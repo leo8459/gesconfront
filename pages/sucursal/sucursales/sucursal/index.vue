@@ -31,12 +31,13 @@
           <button @click="imprimirRotulosDelDia" class="btn btn-primary btn-sm">
             Imprimir Rótulos del Día de Hoy
           </button>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <!-- Botón para descargar la plantilla -->
           <button @click="descargarPlantilla" class="btn btn-dark btn-sm">
             Descargar Plantilla
           </button>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <!-- Botón para descargar la plantilla -->
+         
         </div>
         <!-- Campo para buscar por código de barras -->
         <div class="row mb-3">

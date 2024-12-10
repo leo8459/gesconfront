@@ -158,38 +158,42 @@ export default {
   },
   computed: {
     filteredData() {
-  const searchTerm = this.searchTerm ? this.searchTerm.toLowerCase() : '';
-  
-  // Verificar si estamos en un entorno de navegador
-  if (typeof window !== 'undefined' && localStorage.getItem('userAuth')) {
-    const user = JSON.parse(localStorage.getItem('userAuth'));
-    const userDepartment = user && user.user ? user.user.departamento : null;
+    const searchTerm = this.searchTerm ? this.searchTerm.toLowerCase() : '';
 
-    if (!userDepartment) {
-      return [];
-    }
+    if (typeof window !== 'undefined' && localStorage.getItem('userAuth')) {
+      const user = JSON.parse(localStorage.getItem('userAuth'));
+      const userDepartment = user && user.user ? user.user.departamento : null;
 
-    const filtered = this.list.filter(item => {
-      if (!item.cartero_entrega || !item.cartero_entrega.departamento_cartero) {
-        return false;
+      if (!userDepartment) {
+        return [];
       }
 
-      const matchesDepartment = item.cartero_entrega.departamento_cartero === userDepartment;
-      const matchesEstado = item.estado === 4;
+      const filtered = this.list.filter(item => {
+        if (!item.cartero_entrega || !item.cartero_entrega.departamento_cartero) {
+          return false;
+        }
 
-      const matchesSearchTerm = Object.values(item).some(value => {
-        return String(value).toLowerCase().includes(searchTerm);
+        const matchesDepartment = item.cartero_entrega.departamento_cartero === userDepartment;
+        const matchesEstado = item.estado === 4;
+
+        const matchesSearchTerm = Object.values(item).some(value => {
+          return String(value).toLowerCase().includes(searchTerm);
+        });
+
+        return matchesDepartment && matchesEstado && matchesSearchTerm;
       });
 
-      return matchesDepartment && matchesEstado && matchesSearchTerm;
-    });
+      // Ordenar por fecha_d de la más nueva a la más antigua
+      return filtered.sort((a, b) => {
+        const dateA = new Date(a.fecha_d);
+        const dateB = new Date(b.fecha_d);
+        return dateB - dateA; // Orden descendente
+      });
+    }
 
-    return filtered;
-  }
-
-  // Si no hay acceso a `localStorage`, devolver un array vacío (SSR o no autenticado)
-  return [];
-},
+    // Si no hay acceso a `localStorage`, devolver un array vacío (SSR o no autenticado)
+    return [];
+  },
 
 
 

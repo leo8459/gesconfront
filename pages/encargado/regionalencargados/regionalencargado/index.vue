@@ -67,7 +67,7 @@
                         </td>
                         <td class="py-0 px-1">{{ m.telefono }}</td>
                         <td class="py-0 px-1">{{ m.contenido }}</td>
-                        <td class="py-0 px-1">{{ m.fecha }}</td>
+                        <td class="py-0 px-1">{{ m.fecha_envio_regional }}</td>
                         <td class="py-0 px-1">{{ m.destinatario }}</td>
                         <td class="py-0 px-1">{{ m.telefono_d }}</td>
                         <td class="py-0 px-1">
@@ -212,14 +212,16 @@ export default {
       return 'Asignar Peso Correos (Kg)';
     },
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      const departamento = this.user?.user?.departamento;
+    const searchTerm = this.searchTerm.toLowerCase();
+    const departamento = this.user?.user?.departamento;
 
-      if (!departamento) {
-        return [];
-      }
+    if (!departamento) {
+      return [];
+    }
 
-      return this.list.filter(item => {
+    // Filtrado y ordenación
+    return this.list
+      .filter(item => {
         const matchesReencaminamiento = item.reencaminamiento && item.reencaminamiento === departamento;
         const matchesDepartamento = item.tarifa?.departamento === departamento;
 
@@ -228,8 +230,13 @@ export default {
         );
 
         return (matchesReencaminamiento || matchesDepartamento) && matchesSearchTerm && (item.estado === 8 || item.estado === 12);
+      })
+      .sort((a, b) => {
+        const dateA = new Date(a.fecha_envio_regional);
+        const dateB = new Date(b.fecha_envio_regional);
+        return dateB - dateA; // Orden descendente
       });
-    },
+  },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;

@@ -192,8 +192,10 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item => {
+    const searchTerm = this.searchTerm.toLowerCase();
+
+    return this.list
+      .filter(item => {
         // Filtrar por estado (6 o 13)
         const isCorrectState = item.estado === 6 || item.estado === 13;
 
@@ -208,8 +210,14 @@ export default {
           : true; // Si no hay sucursal seleccionada, mostrar todas
 
         return isCorrectState && matchesSearchTerm && matchesSucursal;
+      })
+      .sort((a, b) => {
+        // Ordenar por `fecha_recojo_c` de forma descendente
+        const dateA = new Date(a.fecha_recojo_c);
+        const dateB = new Date(b.fecha_recojo_c);
+        return dateB - dateA; // Orden descendente
       });
-    },
+  },
 
     uniqueSucursalesInTable() {
       const sucursalIds = new Set();

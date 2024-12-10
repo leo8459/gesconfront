@@ -190,22 +190,23 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list
-        .filter(item =>
-          item.estado === 2 &&
-          item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
-          (
-            (item.guia && item.guia.toLowerCase().includes(searchTerm)) ||
-            (item.sucursale && item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)) ||
-            (item.remitente && item.remitente.toLowerCase().includes(searchTerm)) ||
-            (item.direccion_especifica_d && item.direccion_especifica_d.toLowerCase().includes(searchTerm)) ||
-            (item.ciudad && item.ciudad.toLowerCase().includes(searchTerm)) ||
-            (item.zona_d && item.zona_d.toLowerCase().includes(searchTerm))
-          )
+    const searchTerm = this.searchTerm.toLowerCase();
+    return this.list
+      .filter(item =>
+        item.estado === 2 &&
+        item.cartero_entrega &&
+        item.cartero_entrega.id === this.user.user.id &&
+        (
+          (item.guia && item.guia.toLowerCase().includes(searchTerm)) ||
+          (item.sucursale && item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)) ||
+          (item.remitente && item.remitente.toLowerCase().includes(searchTerm)) ||
+          (item.direccion_especifica_d && item.direccion_especifica_d.toLowerCase().includes(searchTerm)) ||
+          (item.ciudad && item.ciudad.toLowerCase().includes(searchTerm)) ||
+          (item.zona_d && item.zona_d.toLowerCase().includes(searchTerm))
         )
-        .sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordena del más reciente al más antiguo
-    },
+      )
+      .sort((a, b) => new Date(b.fecha_recojo_c) - new Date(a.fecha_recojo_c)); // Ordena por fecha_recojo_c
+  },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;

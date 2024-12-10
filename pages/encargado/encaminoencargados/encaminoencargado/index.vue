@@ -155,14 +155,23 @@ export default {
   },
   computed: {
     filteredData() {
-  const searchTerm = this.searchTerm.toLowerCase();
-  return this.list.filter(item =>
-    (item.estado === 2 || item.estado === 9) && // Filtrar por estado 2 o 9
-    Object.values(item).some(value =>
-      String(value).toLowerCase().includes(searchTerm)
-    )
-  );
-},
+    const searchTerm = this.searchTerm.toLowerCase();
+
+    // Filtrar los datos por estado y término de búsqueda
+    const filtered = this.list.filter(item =>
+      (item.estado === 2 || item.estado === 9) && // Filtrar por estado 2 o 9
+      Object.values(item).some(value =>
+        String(value).toLowerCase().includes(searchTerm)
+      )
+    );
+
+    // Ordenar por fecha de la más nueva a la más antigua
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.fecha);
+      const dateB = new Date(b.fecha);
+      return dateB - dateA; // Orden descendente
+    });
+  },
 
     paginatedData() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
