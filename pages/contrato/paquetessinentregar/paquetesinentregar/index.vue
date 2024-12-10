@@ -147,14 +147,26 @@
                   <button class="btn btn-secondary" :disabled="currentPage === totalPages"
                     @click="nextPage">Siguiente</button>
                 </div>
-                <div class="pagination-controls">
-                  <ul class="pagination">
-                    <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray"
-                      :key="pageNumber">
-                      <button class="page-link" @click="goToPage(pageNumber)">{{ pageNumber }}</button>
-                    </li>
-                  </ul>
-                </div>
+                <div class="pagination-controls d-flex justify-content-center mt-3">
+  <ul class="pagination">
+    <li
+      v-for="pageNumber in totalPagesArray"
+      :key="pageNumber"
+      :class="['page-item', { active: currentPage === pageNumber }]"
+    >
+      <button
+        v-if="pageNumber !== '...'"
+        class="page-link"
+        @click="goToPage(pageNumber)"
+      >
+        {{ pageNumber }}
+      </button>
+      <span v-else class="page-link disabled">...</span>
+    </li>
+  </ul>
+</div>
+
+
               </div>
             </div>
           </div>
@@ -205,112 +217,145 @@ export default {
   },
   computed: {
     filteredData() {
-  const searchTerm = this.searchTerm.toLowerCase();
+      const searchTerm = this.searchTerm.toLowerCase();
 
-  // Verificar si `this.list` es un array, de lo contrario, devolver un array vacío.
-  if (!Array.isArray(this.list)) {
-    return [];
-  }
+      // Verificar si `this.list` es un array, de lo contrario, devolver un array vacío.
+      if (!Array.isArray(this.list)) {
+        return [];
+      }
 
-  return this.list.filter(item => {
-    // Excluir registros donde `fecha_recojo_c` esté vacío.
-    if (!item.fecha_recojo_c) {
-      return false;
-    }
+      return this.list.filter(item => {
+        // Excluir registros donde `fecha_recojo_c` esté vacío.
+        if (!item.fecha_recojo_c) {
+          return false;
+        }
 
-    const servicio = item.tarifa.servicio;
-    let fechaLimite;
+        const servicio = item.tarifa.servicio;
+        let fechaLimite;
 
-    // Definir los servicios que se calculan por días.
-    const serviciosPorDias = [
-      "SERVICIO COURIER NACIONAL (Normal)",
-      "SERVICIO COURIER LOCAL (Normal)",
-      "SERVICIO DE PROVINCIAS A NIVEL NACIONAL"
-    ];
+        // Definir los servicios que se calculan por días.
+        const serviciosPorDias = [
+          "SERVICIO COURIER NACIONAL (Normal)",
+          "SERVICIO COURIER LOCAL (Normal)",
+          "SERVICIO DE PROVINCIAS A NIVEL NACIONAL"
+        ];
 
-    // Definir los servicios que se calculan por horas.
-    const serviciosPorHoras = [
-      "SERVICIO COURIER NACIONAL (Expreso)",
-      "SERVICIO COURIER LOCAL (Expreso)"
-    ];
+        // Definir los servicios que se calculan por horas.
+        const serviciosPorHoras = [
+          "SERVICIO COURIER NACIONAL (Expreso)",
+          "SERVICIO COURIER LOCAL (Expreso)"
+        ];
 
-    const recojoDate = new Date(item.fecha_recojo_c);
+        const recojoDate = new Date(item.fecha_recojo_c);
 
-    // Verificar si la fecha de recogida es válida.
-    if (isNaN(recojoDate.getTime())) {
-      return false;
-    }
+        // Verificar si la fecha de recogida es válida.
+        if (isNaN(recojoDate.getTime())) {
+          return false;
+        }
 
-    // Calcular la fecha límite para los servicios que se calculan por días.
-    if (serviciosPorDias.includes(servicio)) {
-      const diasEntrega = item.tarifa.dias_entrega / 24; // Convertir el tiempo de entrega a días.
-      fechaLimite = this.addBusinessDays(recojoDate, diasEntrega); // Añadir días hábiles.
-      fechaLimite.setHours(20, 0, 0, 0); // Establecer la hora límite a las 8 PM.
-    } else if (serviciosPorHoras.includes(servicio)) {
-      // Calcular la fecha límite para los servicios que se calculan por horas.
-      fechaLimite = new Date(recojoDate);
+        // Calcular la fecha límite para los servicios que se calculan por días.
+        if (serviciosPorDias.includes(servicio)) {
+          const diasEntrega = item.tarifa.dias_entrega / 24; // Convertir el tiempo de entrega a días.
+          fechaLimite = this.addBusinessDays(recojoDate, diasEntrega); // Añadir días hábiles.
+          fechaLimite.setHours(20, 0, 0, 0); // Establecer la hora límite a las 8 PM.
+        } else if (serviciosPorHoras.includes(servicio)) {
+          // Calcular la fecha límite para los servicios que se calculan por horas.
+          fechaLimite = new Date(recojoDate);
 
-      if (recojoDate.getDay() === 5 && recojoDate.getHours() >= 17) {
-        // Si es viernes después de las 5 PM, mover la fecha límite al siguiente lunes a las 10 AM.
-        fechaLimite = this.addBusinessDays(recojoDate, 1);
-        fechaLimite.setHours(9, 30, 0, 0);
-      } else if (recojoDate.getHours() >= 8 && recojoDate.getHours() < 10) {
-        // Si es entre las 8 AM y las 10 AM, la fecha límite es el mismo día a las 8 PM.
-        fechaLimite.setHours(19, 0, 0, 0);
-      } else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 23) {
-        // Si es entre las 5 PM y las 7 PM, la fecha límite es el día siguiente a las 10 AM.
-        fechaLimite = this.addBusinessDays(recojoDate, 1);
-        fechaLimite.setHours(9, 30, 0, 0);
-      } else {
-        // Para otros horarios, añadir el tiempo de entrega en horas a la fecha de recogida.
-        fechaLimite = new Date(recojoDate.getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000);
-        if (fechaLimite.getDay() === 6) {
-          // Si la fecha límite cae en sábado, moverla al lunes a las 10 AM.
-          fechaLimite = this.addBusinessDays(fechaLimite, 2);
-          fechaLimite.setHours(10, 0, 0, 0);
-        } else if (fechaLimite.getDay() === 0) {
-          // Si la fecha límite cae en domingo, moverla al lunes a las 10 AM.
-          fechaLimite = this.addBusinessDays(fechaLimite, 1);
-          fechaLimite.setHours(10, 0, 0, 0);
+          if (recojoDate.getDay() === 5 && recojoDate.getHours() >= 17) {
+            // Si es viernes después de las 5 PM, mover la fecha límite al siguiente lunes a las 10 AM.
+            fechaLimite = this.addBusinessDays(recojoDate, 1);
+            fechaLimite.setHours(9, 30, 0, 0);
+          } else if (recojoDate.getHours() >= 8 && recojoDate.getHours() < 10) {
+            // Si es entre las 8 AM y las 10 AM, la fecha límite es el mismo día a las 8 PM.
+            fechaLimite.setHours(19, 0, 0, 0);
+          } else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 23) {
+            // Si es entre las 5 PM y las 7 PM, la fecha límite es el día siguiente a las 10 AM.
+            fechaLimite = this.addBusinessDays(recojoDate, 1);
+            fechaLimite.setHours(9, 30, 0, 0);
+          } else {
+            // Para otros horarios, añadir el tiempo de entrega en horas a la fecha de recogida.
+            fechaLimite = new Date(recojoDate.getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000);
+            if (fechaLimite.getDay() === 6) {
+              // Si la fecha límite cae en sábado, moverla al lunes a las 10 AM.
+              fechaLimite = this.addBusinessDays(fechaLimite, 2);
+              fechaLimite.setHours(10, 0, 0, 0);
+            } else if (fechaLimite.getDay() === 0) {
+              // Si la fecha límite cae en domingo, moverla al lunes a las 10 AM.
+              fechaLimite = this.addBusinessDays(fechaLimite, 1);
+              fechaLimite.setHours(10, 0, 0, 0);
+            }
+          }
+        } else {
+          // Si el servicio no está en ninguna de las categorías, excluir el registro.
+          return false;
+        }
+
+        // Verificar si la fecha límite ha sido superada.
+        const isLate = new Date() > fechaLimite;
+        // Verificar si el estado es válido (1, 2, o 5).
+        const isValidState = [1, 2, 5, 8, 9].includes(item.estado);
+
+        // Retornar true si el registro es tardío, está en un estado válido, y coincide con el término de búsqueda.
+        return isLate && isValidState && Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
+      });
+    },
+
+
+    paginatedData() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+
+      return this.filteredData.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+    },
+
+    totalPagesArray() {
+      const totalPages = this.totalPages;
+      const currentPage = this.currentPage;
+      const visiblePages = 3; // Número de páginas visibles al principio y al final
+
+      const pages = [];
+
+      // Mostrar las primeras 'visiblePages' páginas
+      for (let i = 1; i <= visiblePages && i <= totalPages; i++) {
+        pages.push(i);
+      }
+
+      // Agregar puntos suspensivos si hay un hueco
+      if (totalPages > visiblePages + visiblePages) {
+        if (currentPage > visiblePages + 1) {
+          pages.push('...');
+        }
+
+        // Agregar las páginas cerca de la página actual si no están cerca del principio
+        const start = Math.max(visiblePages + 1, currentPage - 1);
+        const end = Math.min(totalPages - visiblePages, currentPage + 1);
+
+        for (let i = start; i <= end; i++) {
+          pages.push(i);
+        }
+
+        if (currentPage < totalPages - visiblePages) {
+          pages.push('...');
         }
       }
-    } else {
-      // Si el servicio no está en ninguna de las categorías, excluir el registro.
-      return false;
-    }
 
-    // Verificar si la fecha límite ha sido superada.
-    const isLate = new Date() > fechaLimite;
-    // Verificar si el estado es válido (1, 2, o 5).
-    const isValidState = [1, 2, 5, 8, 9].includes(item.estado);
+      // Mostrar las últimas 'visiblePages' páginas
+      for (let i = Math.max(totalPages - visiblePages + 1, visiblePages + 1); i <= totalPages; i++) {
+        pages.push(i);
+      }
 
-    // Retornar true si el registro es tardío, está en un estado válido, y coincide con el término de búsqueda.
-    return isLate && isValidState && Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
-  });
-},
-
-
-  paginatedData() {
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-
-    // Asegurarse de que filteredData sea siempre un array
-    return this.filteredData.slice(start, end);
-  },
-
-  totalPages() {
-    return Math.ceil(this.filteredData.length / this.itemsPerPage);
-  },
-
-  totalPagesArray() {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
-  },
+      return pages;
+    },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
     }
   },
   methods: {
-   
+
     translateStatus(status) {
       switch (status) {
         case 1:
@@ -389,7 +434,9 @@ export default {
       }
     },
     goToPage(pageNumber) {
-      this.currentPage = pageNumber;
+      if (pageNumber !== '...') {
+        this.currentPage = pageNumber;
+      }
     },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
@@ -593,138 +640,138 @@ export default {
 
 
     addBusinessDays(date, days) {
-    let count = 0;
-    const result = new Date(date);
-    while (count < days) {
-      result.setDate(result.getDate() + 1);
-      // Solo contar días hábiles (lunes a viernes)
-      if (result.getDay() !== 0 && result.getDay() !== 6) {
-        count++;
+      let count = 0;
+      const result = new Date(date);
+      while (count < days) {
+        result.setDate(result.getDate() + 1);
+        // Solo contar días hábiles (lunes a viernes)
+        if (result.getDay() !== 0 && result.getDay() !== 6) {
+          count++;
+        }
       }
+      return result;
+    },
+
+    checkForPendingDeliveries() {
+      const today = new Date();
+      console.log(`Fecha y hora actual: ${today.toLocaleDateString()} ${today.toLocaleTimeString()}`);
+
+      // Filtrar solo los elementos visibles en la tabla
+      const visibleItems = this.paginatedData; // Asumiendo que `paginatedData` contiene los datos visibles en la tabla
+
+      const pendingDeliveries = visibleItems.filter(item => {
+        const servicio = item.tarifa.servicio; // Obtener el servicio del item
+        let fechaLimite;
+
+        // Servicios que se calculan por días
+        const serviciosPorDias = [
+          "SERVICIO COURIER NACIONAL (Normal)",
+          "SERVICIO COURIER LOCAL (Normal)",
+          "SERVICIO DE PROVINCIAS A NIVEL NACIONAL"
+        ];
+
+        // Servicios que se calculan por horas
+        const serviciosPorHoras = [
+          "SERVICIO COURIER NACIONAL (Expreso)",
+          "SERVICIO COURIER LOCAL (Expreso)"
+        ];
+
+        // Parsear la fecha de recojo
+        const recojoDate = new Date(item.fecha_recojo_c);
+        console.log(`Fecha de recojo para la guía ${item.guia}: ${recojoDate.toLocaleDateString()} ${recojoDate.toLocaleTimeString()}`);
+
+        if (isNaN(recojoDate.getTime())) {
+          console.error('Fecha de recojo inválida:', item.fecha_recojo_c);
+          return false;
+        }
+
+        if (serviciosPorDias.includes(servicio)) {
+          const diasEntrega = item.tarifa.dias_entrega / 24;
+          fechaLimite = this.addBusinessDays(recojoDate, diasEntrega);
+
+          // Ajustar la hora límite a las 8 PM (20:00)
+          fechaLimite.setHours(20, 0, 0, 0);
+        } else if (serviciosPorHoras.includes(servicio)) {
+          fechaLimite = new Date(recojoDate);
+
+          if (recojoDate.getDay() === 5 && recojoDate.getHours() >= 17) {
+            fechaLimite = this.addBusinessDays(recojoDate, 1);
+            fechaLimite.setHours(10, 0, 0, 0);
+          } else if (recojoDate.getHours() >= 8 && recojoDate.getHours() < 10) {
+            fechaLimite.setHours(20, 0, 0, 0);
+          } else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 19) {
+            fechaLimite = this.addBusinessDays(recojoDate, 1);
+            fechaLimite.setHours(10, 0, 0, 0);
+          } else {
+            fechaLimite = new Date(recojoDate.getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000);
+            if (fechaLimite.getDay() === 6) {
+              fechaLimite = this.addBusinessDays(fechaLimite, 2);
+              fechaLimite.setHours(10, 0, 0, 0);
+            } else if (fechaLimite.getDay() === 0) {
+              fechaLimite = this.addBusinessDays(fechaLimite, 1);
+              fechaLimite.setHours(10, 0, 0, 0);
+            }
+          }
+        } else {
+          console.error('Servicio no reconocido:', servicio);
+          return false;
+        }
+
+        console.log(`Fecha límite para la guía ${item.guia}: ${fechaLimite.toLocaleDateString()} ${fechaLimite.toLocaleTimeString()}`);
+
+        const isLate = today > fechaLimite;
+        console.log(`Comparación para la guía ${item.guia}: Hoy (${today.toLocaleDateString()} ${today.toLocaleTimeString()}) ${isLate ? 'es mayor' : 'no es mayor'} que la fecha límite (${fechaLimite.toLocaleDateString()} ${fechaLimite.toLocaleTimeString()})`);
+
+        return isLate;
+      });
+
+
     }
-    return result;
   },
 
-  checkForPendingDeliveries() {
-    const today = new Date();
-    console.log(`Fecha y hora actual: ${today.toLocaleDateString()} ${today.toLocaleTimeString()}`);
 
-    // Filtrar solo los elementos visibles en la tabla
-    const visibleItems = this.paginatedData; // Asumiendo que `paginatedData` contiene los datos visibles en la tabla
 
-    const pendingDeliveries = visibleItems.filter(item => {
-      const servicio = item.tarifa.servicio; // Obtener el servicio del item
-      let fechaLimite;
 
-      // Servicios que se calculan por días
-      const serviciosPorDias = [
-        "SERVICIO COURIER NACIONAL (Normal)",
-        "SERVICIO COURIER LOCAL (Normal)",
-        "SERVICIO DE PROVINCIAS A NIVEL NACIONAL"
-      ];
+  mounted() {
+    this.$nextTick(async () => {
+      try {
+        // Cargar sucursales
+        await this.fetchSucursales();
 
-      // Servicios que se calculan por horas
-      const serviciosPorHoras = [
-        "SERVICIO COURIER NACIONAL (Expreso)",
-        "SERVICIO COURIER LOCAL (Expreso)"
-      ];
+        // Cargar datos existentes
+        const data = await this.GET_DATA(this.apiUrl);
 
-      // Parsear la fecha de recojo
-      const recojoDate = new Date(item.fecha_recojo_c);
-      console.log(`Fecha de recojo para la guía ${item.guia}: ${recojoDate.toLocaleDateString()} ${recojoDate.toLocaleTimeString()}`);
+        // Registrar la respuesta completa de la API en la consola
+        console.log('Respuesta completa de la API:', data);
 
-      if (isNaN(recojoDate.getTime())) {
-        console.error('Fecha de recojo inválida:', item.fecha_recojo_c);
-        return false;
-      }
+        // Verificar si data contiene un array en alguna propiedad
+        if (Array.isArray(data)) {
+          this.list = data;
+        } else if (typeof data === 'object' && data !== null) {
+          // Si la respuesta es un objeto, busca si contiene un array
+          const keys = Object.keys(data);
+          for (let key of keys) {
+            if (Array.isArray(data[key])) {
+              this.list = data[key];
+              console.log(`Datos cargados desde la propiedad '${key}':`, this.list);
+              break;
+            }
+          }
+        }
 
-      if (serviciosPorDias.includes(servicio)) {
-        const diasEntrega = item.tarifa.dias_entrega / 24;
-        fechaLimite = this.addBusinessDays(recojoDate, diasEntrega);
-
-        // Ajustar la hora límite a las 8 PM (20:00)
-        fechaLimite.setHours(20, 0, 0, 0);
-      } else if (serviciosPorHoras.includes(servicio)) {
-        fechaLimite = new Date(recojoDate);
-
-        if (recojoDate.getDay() === 5 && recojoDate.getHours() >= 17) {
-          fechaLimite = this.addBusinessDays(recojoDate, 1);
-          fechaLimite.setHours(10, 0, 0, 0);
-        } else if (recojoDate.getHours() >= 8 && recojoDate.getHours() < 10) {
-          fechaLimite.setHours(20, 0, 0, 0);
-        } else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 19) {
-          fechaLimite = this.addBusinessDays(recojoDate, 1);
-          fechaLimite.setHours(10, 0, 0, 0);
+        // Si this.list tiene datos, continuar con la lógica de verificación
+        if (this.list.length > 0) {
+          this.checkForPendingDeliveries();
         } else {
-          fechaLimite = new Date(recojoDate.getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000);
-          if (fechaLimite.getDay() === 6) {
-            fechaLimite = this.addBusinessDays(fechaLimite, 2);
-            fechaLimite.setHours(10, 0, 0, 0);
-          } else if (fechaLimite.getDay() === 0) {
-            fechaLimite = this.addBusinessDays(fechaLimite, 1);
-            fechaLimite.setHours(10, 0, 0, 0);
-          }
+          console.error('No se encontraron datos válidos en la respuesta de la API.');
         }
-      } else {
-        console.error('Servicio no reconocido:', servicio);
-        return false;
+      } catch (error) {
+        console.error('Error durante la carga de datos:', error);
+      } finally {
+        this.load = false;
       }
-
-      console.log(`Fecha límite para la guía ${item.guia}: ${fechaLimite.toLocaleDateString()} ${fechaLimite.toLocaleTimeString()}`);
-
-      const isLate = today > fechaLimite;
-      console.log(`Comparación para la guía ${item.guia}: Hoy (${today.toLocaleDateString()} ${today.toLocaleTimeString()}) ${isLate ? 'es mayor' : 'no es mayor'} que la fecha límite (${fechaLimite.toLocaleDateString()} ${fechaLimite.toLocaleTimeString()})`);
-
-      return isLate;
     });
-
-   
-  }
-},
-
-
-
-
-mounted() {
-  this.$nextTick(async () => {
-    try {
-      // Cargar sucursales
-      await this.fetchSucursales(); 
-
-      // Cargar datos existentes
-      const data = await this.GET_DATA(this.apiUrl);
-
-      // Registrar la respuesta completa de la API en la consola
-      console.log('Respuesta completa de la API:', data);
-
-      // Verificar si data contiene un array en alguna propiedad
-      if (Array.isArray(data)) {
-        this.list = data;
-      } else if (typeof data === 'object' && data !== null) {
-        // Si la respuesta es un objeto, busca si contiene un array
-        const keys = Object.keys(data);
-        for (let key of keys) {
-          if (Array.isArray(data[key])) {
-            this.list = data[key];
-            console.log(`Datos cargados desde la propiedad '${key}':`, this.list);
-            break;
-          }
-        }
-      }
-
-      // Si this.list tiene datos, continuar con la lógica de verificación
-      if (this.list.length > 0) {
-        this.checkForPendingDeliveries();
-      } else {
-        console.error('No se encontraron datos válidos en la respuesta de la API.');
-      }
-    } catch (error) {
-      console.error('Error durante la carga de datos:', error);
-    } finally {
-      this.load = false;
-    }
-  });
-},
+  },
 
 };
 </script>
@@ -766,7 +813,7 @@ mounted() {
 
 .pagination-controls .page-item.active .page-link {
   font-weight: bold;
-  background-color: #007bff;
+  background-color: #34447C;
   color: white;
 }
 </style>

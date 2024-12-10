@@ -152,14 +152,26 @@
               <button class="btn btn-secondary" :disabled="currentPage === totalPages"
                 @click="nextPage">Siguiente</button>
             </div>
-            <div class="pagination-controls">
-              <ul class="pagination">
-                <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray"
-                  :key="pageNumber">
-                  <button class="page-link" @click="goToPage(pageNumber)">{{ pageNumber }}</button>
-                </li>
-              </ul>
-            </div>
+            <div class="pagination-controls d-flex justify-content-center mt-3">
+  <ul class="pagination">
+    <li
+      v-for="pageNumber in totalPagesArray"
+      :key="pageNumber"
+      :class="['page-item', { active: currentPage === pageNumber }]"
+    >
+      <button
+        v-if="pageNumber !== '...'"
+        class="page-link"
+        @click="goToPage(pageNumber)"
+      >
+        {{ pageNumber }}
+      </button>
+      <span v-else class="page-link disabled">...</span>
+    </li>
+  </ul>
+</div>
+
+
             <!-- Modal para mostrar las solicitudes -->
             <b-modal v-model="isModalVisible" title="Detalles de Solicitudes" size="lg">
               <b-tabs>
@@ -368,8 +380,44 @@ export default {
       return Math.ceil(this.filteredData.length / this.itemsPerPage);
     },
     totalPagesArray() {
-      return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    const totalPages = this.totalPages;
+    const currentPage = this.currentPage;
+    const visiblePages = 3; // Número de páginas visibles al principio y al final
+
+    const pages = [];
+
+    // Mostrar las primeras 'visiblePages' páginas
+    for (let i = 1; i <= visiblePages && i <= totalPages; i++) {
+      pages.push(i);
     }
+
+    // Agregar puntos suspensivos si hay un hueco
+    if (totalPages > visiblePages + visiblePages) {
+      if (currentPage > visiblePages + 1) {
+        pages.push('...');
+      }
+
+      // Agregar las páginas cerca de la página actual si no están cerca del principio
+      const start = Math.max(visiblePages + 1, currentPage - 1);
+      const end = Math.min(totalPages - visiblePages, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (currentPage < totalPages - visiblePages) {
+        pages.push('...');
+      }
+    }
+
+    // Mostrar las últimas 'visiblePages' páginas
+    for (let i = Math.max(totalPages - visiblePages + 1, visiblePages + 1); i <= totalPages; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  },
+
   },
   methods: {
     async fetchDataHoy() {
@@ -608,8 +656,10 @@ export default {
       }
     },
     goToPage(pageNumber) {
+    if (pageNumber !== '...') {
       this.currentPage = pageNumber;
-    },
+    }
+  },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
@@ -888,7 +938,7 @@ export default {
 
 .pagination-controls .page-item.active .page-link {
   font-weight: bold;
-  background-color: #007bff;
+  background-color: #34447C;
   color: white;
 }
 </style>

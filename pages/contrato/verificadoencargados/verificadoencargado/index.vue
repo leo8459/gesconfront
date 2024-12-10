@@ -228,14 +228,25 @@
               <button class="btn btn-secondary" :disabled="currentPage === totalPages"
                 @click="nextPage">Siguiente</button>
             </div>
-            <div class="pagination-controls">
-              <ul class="pagination">
-                <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray"
-                  :key="pageNumber">
-                  <button class="page-link" @click="goToPage(pageNumber)">{{ pageNumber }}</button>
-                </li>
-              </ul>
-            </div>
+            <div class="pagination-controls d-flex justify-content-center mt-3">
+  <ul class="pagination">
+    <li
+      v-for="pageNumber in totalPagesArray"
+      :key="pageNumber"
+      :class="['page-item', { active: currentPage === pageNumber }]"
+    >
+      <button
+        v-if="pageNumber !== '...'"
+        class="page-link"
+        @click="goToPage(pageNumber)"
+      >
+        {{ pageNumber }}
+      </button>
+      <span v-else class="page-link disabled">...</span>
+    </li>
+  </ul>
+</div>
+
           </div>
         </div>
 
@@ -404,8 +415,42 @@ export default {
       return Math.ceil(this.filteredData.length / this.itemsPerPage);
     },
     totalPagesArray() {
-      return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    const totalPages = this.totalPages;
+    const currentPage = this.currentPage;
+    const maxPagesToShow = 3; // Número de páginas iniciales y finales visibles
+
+    const pages = [];
+    // Agregar los primeros n números
+    for (let i = 1; i <= Math.min(maxPagesToShow, totalPages); i++) {
+      pages.push(i);
     }
+
+    // Agregar los puntos suspensivos si corresponde
+    if (currentPage > maxPagesToShow + 1) {
+      pages.push('...');
+    }
+
+    // Agregar los números alrededor de la página actual
+    const startPage = Math.max(currentPage - 1, maxPagesToShow + 1);
+    const endPage = Math.min(currentPage + 1, totalPages - maxPagesToShow);
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    // Agregar los puntos suspensivos si corresponde
+    if (currentPage < totalPages - maxPagesToShow) {
+      pages.push('...');
+    }
+
+    // Agregar los últimos n números
+    for (let i = Math.max(totalPages - maxPagesToShow + 1, endPage + 1); i <= totalPages; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  },
+
   },
   methods: {
     downloadPDF(pdfDataUrl) {
@@ -2058,7 +2103,7 @@ const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img
 
 .pagination-controls .page-item.active .page-link {
   font-weight: bold;
-  background-color: #007bff;
+  background-color: #34447C;
   color: white;
 }
 </style>
