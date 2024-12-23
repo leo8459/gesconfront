@@ -104,20 +104,27 @@
                 </div>
                 <!-- Paginación -->
                 <nav aria-label="Page navigation">
-                  <ul class="pagination justify-content-between">
-                    <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                      <button class="page-link" @click="previousPage" :disabled="currentPage === 0">&lt;</button>
-                    </li>
-                    <li class="page-item" v-for="page in totalPages" :key="page"
-                      :class="{ active: currentPage === page - 1 }">
-                      <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
-                    </li>
-                    <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
-                      <button class="page-link" @click="nextPage"
-                        :disabled="currentPage >= totalPages - 1">&gt;</button>
-                    </li>
-                  </ul>
-                </nav>
+  <ul class="pagination justify-content-between">
+    <!-- Botón de página anterior -->
+    <li class="page-item" :class="{ disabled: currentPage === 0 }">
+      <button class="page-link" @click="goToPage(currentPage - 1)" :disabled="currentPage === 0">&lt;</button>
+    </li>
+
+    <!-- Páginas dinámicas -->
+    <li v-for="page in totalPagesArray" :key="page" :class="['page-item', { active: page === currentPage + 1 }]">
+      <button v-if="page !== '...'" class="page-link" @click="goToPage(page - 1)">
+        {{ page }}
+      </button>
+      <span v-else class="page-link">...</span>
+    </li>
+
+    <!-- Botón de página siguiente -->
+    <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
+      <button class="page-link" @click="goToPage(currentPage + 1)" :disabled="currentPage >= totalPages - 1">&gt;</button>
+    </li>
+  </ul>
+</nav>
+
               </div>
             </div>
           </div>
@@ -161,6 +168,43 @@ export default {
     };
   },
   computed: {
+    totalPagesArray() {
+    const totalPages = this.totalPages;
+    const currentPage = this.currentPage + 1; // Índice basado en 1 para mostrar
+    const maxPagesToShow = 3;
+
+    const pages = [];
+
+    // Mostrar los primeros 3 números
+    for (let i = 1; i <= Math.min(maxPagesToShow, totalPages); i++) {
+      pages.push(i);
+    }
+
+    // Mostrar puntos suspensivos si hay un salto entre las primeras y las páginas actuales
+    if (currentPage > maxPagesToShow + 1) {
+      pages.push('...');
+    }
+
+    // Mostrar las páginas cercanas a la actual
+    const startPage = Math.max(currentPage - 1, maxPagesToShow + 1);
+    const endPage = Math.min(currentPage + 1, totalPages - maxPagesToShow);
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    // Mostrar puntos suspensivos si hay un salto entre las páginas actuales y las últimas
+    if (currentPage < totalPages - maxPagesToShow) {
+      pages.push('...');
+    }
+
+    // Mostrar los últimos 3 números
+    for (let i = Math.max(totalPages - maxPagesToShow + 1, endPage + 1); i <= totalPages; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  },
     filteredList() {
       const searchTerm = this.searchTerm.toLowerCase();
       return this.list.filter(item => {
@@ -538,19 +582,21 @@ const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
-    nextPage() {
-      if (this.currentPage < this.totalPages - 1) {
-        this.currentPage++;
-      }
-    },
-    previousPage() {
-      if (this.currentPage > 0) {
-        this.currentPage--;
-      }
-    },
     goToPage(page) {
+    if (page >= 0 && page < this.totalPages) {
       this.currentPage = page;
     }
+  },
+  nextPage() {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+    }
+  },
+  previousPage() {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+    }
+  },
   },
   mounted() {
     this.$nextTick(async () => {
@@ -659,4 +705,20 @@ const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
 .w-100 {
   width: 100%;
 }
+.pagination .page-item.active .page-link {
+  background-color: #34447C;
+  color: white;
+  border-color: #34447C;
+}
+
+.pagination .page-item .page-link {
+  color: #343a40;
+  cursor: pointer;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #6c757d;
+  pointer-events: none;
+}
+
 </style>
