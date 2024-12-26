@@ -9,11 +9,12 @@
             <button @click="mostrarSaldoRestanteManual" class="btn btn-warning w-100">
               Ver Sucursales con Saldo Bajo
             </button>
+            <!-- {{ user.user }} -->
           </div>
           <div class="col-md-2 d-flex align-items-end">
             <button @click="elegirTipoDeReporte" class="btn btn-success btn-sm w-100">
-  <i class="fas fa-file-excel"></i> Generar Reporte en Excel
-</button>
+              <i class="fas fa-file-excel"></i> Generar Reporte en Excel
+            </button>
           </div>
           <div class="col-md-2">
             <button @click="mostrarResumen = !mostrarResumen" class="btn btn-primary w-100">
@@ -229,23 +230,16 @@
                 @click="nextPage">Siguiente</button>
             </div>
             <div class="pagination-controls d-flex justify-content-center mt-3">
-  <ul class="pagination">
-    <li
-      v-for="pageNumber in totalPagesArray"
-      :key="pageNumber"
-      :class="['page-item', { active: currentPage === pageNumber }]"
-    >
-      <button
-        v-if="pageNumber !== '...'"
-        class="page-link"
-        @click="goToPage(pageNumber)"
-      >
-        {{ pageNumber }}
-      </button>
-      <span v-else class="page-link disabled">...</span>
-    </li>
-  </ul>
-</div>
+              <ul class="pagination">
+                <li v-for="pageNumber in totalPagesArray" :key="pageNumber"
+                  :class="['page-item', { active: currentPage === pageNumber }]">
+                  <button v-if="pageNumber !== '...'" class="page-link" @click="goToPage(pageNumber)">
+                    {{ pageNumber }}
+                  </button>
+                  <span v-else class="page-link disabled">...</span>
+                </li>
+              </ul>
+            </div>
 
           </div>
         </div>
@@ -415,41 +409,41 @@ export default {
       return Math.ceil(this.filteredData.length / this.itemsPerPage);
     },
     totalPagesArray() {
-    const totalPages = this.totalPages;
-    const currentPage = this.currentPage;
-    const maxPagesToShow = 3; // Número de páginas iniciales y finales visibles
+      const totalPages = this.totalPages;
+      const currentPage = this.currentPage;
+      const maxPagesToShow = 3; // Número de páginas iniciales y finales visibles
 
-    const pages = [];
-    // Agregar los primeros n números
-    for (let i = 1; i <= Math.min(maxPagesToShow, totalPages); i++) {
-      pages.push(i);
-    }
+      const pages = [];
+      // Agregar los primeros n números
+      for (let i = 1; i <= Math.min(maxPagesToShow, totalPages); i++) {
+        pages.push(i);
+      }
 
-    // Agregar los puntos suspensivos si corresponde
-    if (currentPage > maxPagesToShow + 1) {
-      pages.push('...');
-    }
+      // Agregar los puntos suspensivos si corresponde
+      if (currentPage > maxPagesToShow + 1) {
+        pages.push('...');
+      }
 
-    // Agregar los números alrededor de la página actual
-    const startPage = Math.max(currentPage - 1, maxPagesToShow + 1);
-    const endPage = Math.min(currentPage + 1, totalPages - maxPagesToShow);
+      // Agregar los números alrededor de la página actual
+      const startPage = Math.max(currentPage - 1, maxPagesToShow + 1);
+      const endPage = Math.min(currentPage + 1, totalPages - maxPagesToShow);
 
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
 
-    // Agregar los puntos suspensivos si corresponde
-    if (currentPage < totalPages - maxPagesToShow) {
-      pages.push('...');
-    }
+      // Agregar los puntos suspensivos si corresponde
+      if (currentPage < totalPages - maxPagesToShow) {
+        pages.push('...');
+      }
 
-    // Agregar los últimos n números
-    for (let i = Math.max(totalPages - maxPagesToShow + 1, endPage + 1); i <= totalPages; i++) {
-      pages.push(i);
-    }
+      // Agregar los últimos n números
+      for (let i = Math.max(totalPages - maxPagesToShow + 1, endPage + 1); i <= totalPages; i++) {
+        pages.push(i);
+      }
 
-    return pages;
-  },
+      return pages;
+    },
 
   },
   methods: {
@@ -705,63 +699,779 @@ export default {
       }
     },
     async elegirTipoDeReporte() {
-    const { value: tipoReporte } = await Swal.fire({
-      title: 'Selecciona el tipo de reporte',
-      input: 'radio',
-      inputOptions: {
-        'detallado': 'Generar Reporte Detallado',
-        'resumido': 'Generar Reporte Resumido'
-      },
-      inputValidator: (value) => {
-        if (!value) {
-          return 'Debes seleccionar una opción!';
-        }
-      },
-      confirmButtonText: 'Generar',
-      showCancelButton: true,
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (tipoReporte) {
-      if (tipoReporte === 'detallado') {
-        await this.generarReporteMultiplesSucursales(); // Generar reporte detallado
-      } else if (tipoReporte === 'resumido') {
-        await this.generarReporteResumido(); // Generar reporte resumido
-      }
-    }
-  },
-  
-  async generarReporteResumido() {
-    const workbook = new ExcelJS.Workbook();
-    const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
-    
-    // Filtrar los datos según las sucursales seleccionadas
-    const filteredData = this.filteredData.filter(item => this.selectedSucursales.includes(item.sucursale?.id));
-
-    if (filteredData.length === 0) {
-      await Swal.fire({
-        icon: 'info',
-        title: 'Sin datos',
-        text: 'No hay datos disponibles para los criterios seleccionados.',
+      const { value: tipoReporte } = await Swal.fire({
+        title: 'Selecciona el tipo de reporte',
+        input: 'radio',
+        inputOptions: {
+          'detallado': 'Generar Reporte Detallado',
+          'resumido': 'Generar Reporte Resumido'
+        },
+        inputValidator: (value) => {
+          if (!value) {
+            return 'Debes seleccionar una opción!';
+          }
+        },
+        confirmButtonText: 'Generar',
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar'
       });
-      return;
+
+      if (tipoReporte) {
+        if (tipoReporte === 'detallado') {
+          await this.generarReporteMultiplesSucursales(); // Generar reporte detallado
+        } else if (tipoReporte === 'resumido') {
+          await this.generarReporteResumido(); // Generar reporte resumido
+        }
+      }
+    },
+
+    async generarReporteResumido() {
+      const workbook = new ExcelJS.Workbook();
+      const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
+
+      // Filtrar los datos según las sucursales seleccionadas
+      const filteredData = this.filteredData.filter(item => this.selectedSucursales.includes(item.sucursale?.id));
+
+      if (filteredData.length === 0) {
+        await Swal.fire({
+          icon: 'info',
+          title: 'Sin datos',
+          text: 'No hay datos disponibles para los criterios seleccionados.',
+        });
+        return;
+      }
+
+      // Generar hojas por cada sucursal seleccionada
+      for (let sucursalId of this.selectedSucursales) {
+        const sucursalData = filteredData.filter(item => item.sucursale?.id === sucursalId);
+        if (sucursalData.length === 0) continue;
+
+        const sucursalName = sucursalData[0].sucursale.nombre || 'Sucursal';
+        const worksheet = workbook.addWorksheet(sucursalName);
+
+        const imageId = workbook.addImage({
+          base64: base64Image,
+          extension: 'png',
+        });
+        worksheet.addImage(imageId, {
+          tl: { col: 0, row: 0 },
+          ext: { width: 500, height: 100 },
+        });
+
+        // Espacio para el logo
+        for (let i = 0; i < 10; i++) {
+          worksheet.addRow([]);
+        }
+
+        worksheet.mergeCells('A11:B11');
+        worksheet.getCell('A11').value = 'ORIGEN:';
+        worksheet.getCell('C11').value = sucursalData[0].sucursale.origen || 'S/N';
+
+        worksheet.mergeCells('A12:B12');
+        worksheet.getCell('A12').value = 'SERVICIO:';
+        worksheet.getCell('C12').value = sucursalData[0].tarifa?.servicio || 'S/N';
+
+        worksheet.mergeCells('A13:B13');
+        worksheet.getCell('A13').value = 'CLIENTE:';
+        worksheet.getCell('C13').value = 'EBA LA PAZ';
+
+        worksheet.mergeCells('A14:B14');
+        worksheet.getCell('A14').value = 'PERIODO:';
+        worksheet.getCell('C14').value = `${this.startDate} - ${this.endDate}`;
+
+        // Añadir los encabezados de las columnas en la fila 17
+        const headerRow = worksheet.getRow(17);
+        headerRow.values = [
+          '#', 'Fecha de Envío', 'Número de Envío', 'Sucursal Origen', 'Dirección', 'Local',
+          'Servicio', 'Ciudad', 'Zona', 'Contenido', 'Peso (Kg)', 'Precio (Bs)', 'Observaciones'
+        ];
+
+        headerRow.eachCell((cell) => {
+          cell.font = { bold: true };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+          // Aplicar colores de fondo a los encabezados
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FF9BBB59' } // Verde claro
+          };
+        });
+
+        // Definir las columnas del reporte resumido
+        worksheet.columns = [
+          { key: 'index', width: 5 },
+          { key: 'fecha', width: 20 },
+          { key: 'guia', width: 20 },
+          { key: 'sucursal_origen', width: 20 },
+          { key: 'direccion', width: 15 },
+          { key: 'local', width: 10 },
+          { key: 'servicio', width: 15 },
+          { key: 'ciudad', width: 10 },
+          { key: 'zona', width: 15 },
+          { key: 'contenido', width: 20 },
+          { key: 'peso', width: 10 },
+          { key: 'precio', width: 10 },
+          { key: 'observacion', width: 25 },
+        ];
+
+        // Añadir los datos
+        sucursalData.forEach((m, index) => {
+          const peso = m.peso_r ? parseFloat(m.peso_r) : (m.peso_v ? parseFloat(m.peso_v) : 0);
+          const precio = m.nombre_d ? parseFloat(m.nombre_d) : 0;
+
+          worksheet.addRow({
+            index: index + 1,
+            fecha: m.fecha_d || 'S/N',
+            guia: m.guia || 'S/N',
+            sucursal_origen: m.sucursale?.origen || 'S/N',
+            direccion: m.direccion_especifica ? 'X' : 'S/N',
+            local: m.direccion && m.direccion.zona ? 'X' : 'S/N',
+            servicio: m.tarifa?.departamento || 'S/N',
+            ciudad: m.ciudad ? 'X' : 'S/N',
+            zona: m.zona_d ? 'X' : 'S/N',
+            contenido: m.contenido || 'S/N',
+            peso: peso.toFixed(3),
+            precio: precio.toFixed(2),
+            observacion: m.observacion || 'S/N',
+          });
+        });
+      }
+
+      // Crear la hoja resumen
+      const resumenSheet = workbook.addWorksheet('Resumen');
+
+      // Agregar el logo en el resumen
+      const imageId = workbook.addImage({
+        base64: base64Image,
+        extension: 'png',
+      });
+      resumenSheet.addImage(imageId, {
+        tl: { col: 2, row: 4 },
+        ext: { width: 500, height: 100 },
+      });
+
+      resumenSheet.mergeCells('B1:F1');
+      resumenSheet.getCell('B1').value = 'Resumen';
+      resumenSheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle' };
+      resumenSheet.getCell('B1').font = { bold: true, size: 14 };
+      resumenSheet.getCell('B1').fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFD700' } // Amarillo
+      };
+
+      resumenSheet.mergeCells('B11:F11');
+      resumenSheet.getCell('B11').value = `Mes ${new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date())}`;
+      resumenSheet.getCell('B11').alignment = { horizontal: 'center', vertical: 'middle' };
+      resumenSheet.getCell('B11').font = { bold: true };
+
+      // Agregar columnas del resumen
+      resumenSheet.columns = [
+        { key: 'index', width: 5 },
+        { key: 'sucursal', width: 30 },
+        { key: 'peso_total', width: 15 },
+        { key: 'total_guias', width: 15 },
+        { key: 'subtotal', width: 20 }
+      ];
+
+      const headerRowResumen = resumenSheet.getRow(13);
+      headerRowResumen.values = ['#', 'Sucursal', 'Peso Total (Kg)', 'Total Guías', 'Subtotal (Bs)'];
+      headerRowResumen.eachCell((cell) => {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF9BBB59' } // Verde claro
+        };
+      });
+
+      let totalPeso = 0;
+      let totalGuias = 0;
+      let totalSubtotal = 0;
+
+      const sucursalesMap = {};
+      filteredData.forEach(item => {
+        const sucursalId = item.sucursale.id;
+        const sucursalNombre = item.sucursale.nombre;
+        const peso = item.peso_r ? parseFloat(item.peso_r) : parseFloat(item.peso_v) || 0;
+        const subtotal = parseFloat(item.nombre_d) || 0;
+
+        if (!sucursalesMap[sucursalId]) {
+          sucursalesMap[sucursalId] = {
+            nombre: sucursalNombre,
+            peso: 0,
+            totalGuias: 0,
+            subtotal: 0
+          };
+        }
+
+        sucursalesMap[sucursalId].peso += peso;
+        sucursalesMap[sucursalId].totalGuias += 1;
+        sucursalesMap[sucursalId].subtotal += subtotal;
+      });
+
+      Object.values(sucursalesMap).forEach((sucursal, index) => {
+        totalPeso += sucursal.peso;
+        totalGuias += sucursal.totalGuias;
+        totalSubtotal += sucursal.subtotal;
+
+        const row = resumenSheet.addRow({
+          index: index + 1,
+          sucursal: sucursal.nombre,
+          peso_total: sucursal.peso.toFixed(3),
+          total_guias: sucursal.totalGuias,
+          subtotal: sucursal.subtotal.toFixed(2)
+        });
+
+        row.eachCell((cell) => {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+      });
+
+      // Fila de totales
+      const totalRow = resumenSheet.addRow({
+        sucursal: 'TOTAL',
+        peso_total: totalPeso.toFixed(3),
+        total_guias: totalGuias,
+        subtotal: totalSubtotal.toFixed(2)
+      });
+
+      totalRow.eachCell({ includeEmpty: true }, (cell) => {
+        cell.font = { bold: true };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFD700' } // Amarillo para totales
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+
+      // Añadir espacio para firmas
+      for (let i = 0; i < 5; i++) {
+        resumenSheet.addRow([]);
+      }
+
+      // FIRMAS
+      const firmaRow = resumenSheet.addRow([]);
+
+      // Aquí reemplazamos por el nombre y apellido del usuario logueado
+      resumenSheet.mergeCells(`B${firmaRow.number}:C${firmaRow.number}`);
+      resumenSheet.getCell(`B${firmaRow.number}`).value = `${this.user.user.nombre} ${this.user.user.apellidos}`;
+      resumenSheet.getCell(`B${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
+      resumenSheet.getCell(`B${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`B${firmaRow.number + 1}:C${firmaRow.number + 1}`);
+      resumenSheet.getCell(`B${firmaRow.number + 1}`).value = 'AUX. DE CONTRATOS';
+      resumenSheet.getCell(`B${firmaRow.number + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`B${firmaRow.number + 2}:C${firmaRow.number + 2}`);
+      resumenSheet.getCell(`B${firmaRow.number + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS';
+      resumenSheet.getCell(`B${firmaRow.number + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      // Resto de firma (sin cambios)
+      resumenSheet.mergeCells(`E${firmaRow.number}:F${firmaRow.number}`);
+      resumenSheet.getCell(`E${firmaRow.number}`).value = 'Williams David Chavez Ticona';
+      resumenSheet.getCell(`E${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
+      resumenSheet.getCell(`E${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`E${firmaRow.number + 1}:F${firmaRow.number + 1}`);
+      resumenSheet.getCell(`E${firmaRow.number + 1}`).value = 'ENCARGADO DE CONTRATOS';
+      resumenSheet.getCell(`E${firmaRow.number + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`E${firmaRow.number + 2}:F${firmaRow.number + 2}`);
+      resumenSheet.getCell(`E${firmaRow.number + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS';
+      resumenSheet.getCell(`E${firmaRow.number + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      // Guardar el archivo Excel
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'Reporte_Multiples_Sucursales_Resumido.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
-    // Generar hojas por cada sucursal seleccionada
-    for (let sucursalId of this.selectedSucursales) {
-      const sucursalData = filteredData.filter(item => item.sucursale?.id === sucursalId);
-      if (sucursalData.length === 0) continue;
 
+
+
+
+    ,
+
+
+
+    async generarReporte() {
+      if (this.selectedSucursales.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Sin sucursales seleccionadas',
+          text: 'Por favor, seleccione al menos una sucursal para generar el reporte.',
+        });
+        return;
+      }
+
+      if (this.selectedSucursales.length === 1) {
+        // Generar reporte para una sola sucursal
+        await this.exportToExcel();
+      } else if (this.selectedSucursales.length > 1) {
+        // Generar reporte para múltiples sucursales
+        await this.generarReporteMultiplesSucursales();
+      }
+    },
+
+
+
+
+    async generarReporteMultiplesSucursales() {
+      const workbook = new ExcelJS.Workbook();
+
+      // Función para cargar la imagen en base64
+      async function loadImageAsBase64(path) {
+        const response = await fetch(path);
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
+      // Formatear las fechas de inicio y fin del periodo
+      const formatDate = (date) => {
+        if (!date) return 'S/N';
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+      };
+
+      const startDate = this.startDate ? new Date(this.startDate) : new Date();
+      const endDateAdjusted = this.endDate ? new Date(this.endDate) : new Date();
+      endDateAdjusted.setDate(endDateAdjusted.getDate() + 1);
+
+      const formattedStartDate = formatDate(startDate);
+      const formattedEndDateAdjusted = formatDate(endDateAdjusted);
+
+      // Obtener el mes en texto a partir de la fecha de inicio
+      const selectedMonth = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(startDate);
+
+      // Filtrar los datos según las sucursales seleccionadas
+      const filteredData = this.filteredData.filter(item => this.selectedSucursales.includes(item.sucursale?.id));
+
+      if (filteredData.length === 0) {
+        await Swal.fire({
+          icon: 'info',
+          title: 'Sin datos',
+          text: 'No hay datos disponibles para los criterios seleccionados.',
+        });
+        return;
+      }
+
+      // Generar hojas por cada sucursal seleccionada
+      for (let sucursalId of this.selectedSucursales) {
+        const sucursalData = filteredData.filter(item => item.sucursale?.id === sucursalId);
+        if (sucursalData.length === 0) continue;
+
+        const sucursalName = sucursalData[0].sucursale.nombre || 'Sucursal';
+
+        // Crear una nueva hoja para cada sucursal
+        const worksheet = workbook.addWorksheet(sucursalName);
+
+        // Agregar el logo e información de la sucursal
+        const imageId = workbook.addImage({
+          base64: base64Image,
+          extension: 'png',
+        });
+        worksheet.addImage(imageId, {
+          tl: { col: 0, row: 0 },
+          ext: { width: 500, height: 100 }, // Ajustar el tamaño si es necesario
+        });
+
+        // Insertar filas vacías debajo de la imagen para separar el contenido
+        for (let i = 0; i < 10; i++) {
+          worksheet.addRow([]);
+        }
+
+        // Añadir información de origen, servicio y cliente
+        worksheet.mergeCells('A11:B11');
+        worksheet.getCell('A11').value = 'ORIGEN:';
+        worksheet.getCell('C11').value = sucursalData[0].sucursale.origen || 'S/N';
+
+        worksheet.mergeCells('A12:B12');
+        worksheet.getCell('A12').value = 'SERVICIO:';
+        worksheet.getCell('C12').value = sucursalData[0].tarifa?.servicio || 'S/N';
+
+        worksheet.mergeCells('A13:B13');
+        worksheet.getCell('A13').value = 'CLIENTE:';
+        worksheet.getCell('C13').value = 'EBA LA PAZ';
+
+        // Añadir periodo
+        worksheet.mergeCells('A14:B14');
+        worksheet.getCell('A14').value = 'PERIODO:';
+        worksheet.getCell('C14').value = `${formattedStartDate} - ${formattedEndDateAdjusted}`;
+
+        // Definir las columnas del reporte
+        worksheet.columns = [
+          { header: '#', key: 'index', width: 5 },
+          { header: 'Fecha de Envío', key: 'fecha', width: 20 },
+          { header: 'Número de Envío', key: 'guia', width: 20 },
+          { header: 'Sucursal Origen', key: 'sucursal_origen', width: 20 },
+          { header: 'Dirección', key: 'direccion', width: 15 },
+          { header: 'Local', key: 'local', width: 10 },
+          { header: 'Servicio', key: 'servicio', width: 15 },
+          { header: 'Ciudad', key: 'ciudad', width: 10 },
+          { header: 'Zona', key: 'zona', width: 15 },
+          { header: 'Contenido', key: 'contenido', width: 20 },
+          { header: 'Peso (Kg)', key: 'peso', width: 10 },
+          { header: 'Precio (Bs)', key: 'precio', width: 10 },
+          { header: 'Servicio T.', key: 'servicioT', width: 15 },
+          { header: 'Fecha y Hora Entrega', key: 'fecha_entrega', width: 20 },
+          { header: 'Destinatario', key: 'destinatario', width: 20 },
+          { header: 'Cartero', key: 'cartero', width: 20 },
+          { header: 'Observaciones', key: 'observacion', width: 25 },
+        ];
+
+        // Encabezados agrupados para "Envío" y "Entrega"
+        worksheet.mergeCells('A16:M16');
+        worksheet.getCell('A16').value = 'Envío';
+        worksheet.getCell('A16').alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getCell('A16').font = { bold: true, size: 14 };
+        worksheet.getCell('A16').fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF9BBB59' } // Color verde
+        };
+
+        worksheet.mergeCells('N16:R16');
+        worksheet.getCell('N16').value = 'Entrega';
+        worksheet.getCell('N16').alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getCell('N16').font = { bold: true, size: 14 };
+        worksheet.getCell('N16').fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFC0504D' } // Color rojo
+        };
+
+        // Añadir los encabezados de las columnas en la fila 17
+        const headerRow = worksheet.getRow(17);
+        headerRow.values = [
+          '#', 'Fecha de Envío', 'Número de Envío', 'Sucursal Origen', 'Dirección', 'Local',
+          'Servicio', 'Ciudad', 'Zona', 'Contenido', 'Peso (Kg)', 'Precio (Bs)', 'Servicio T.',
+          'Fecha y Hora Entrega', 'Destinatario', 'Cartero', 'Observaciones'
+        ];
+
+        // Procesar y añadir los datos de cada sucursal
+        sucursalData.forEach((m, index) => {
+          const peso = m.peso_r ? parseFloat(m.peso_r) : (m.peso_v ? parseFloat(m.peso_v) : 0);
+          const precio = m.nombre_d ? parseFloat(m.nombre_d) : 0;
+
+          worksheet.addRow({
+            index: index + 1,
+            fecha: m.fecha_d || 'S/N',
+            guia: m.guia || 'S/N',
+            sucursal_origen: m.sucursale?.origen || 'S/N',
+            direccion: m.direccion_especifica ? 'X' : 'S/N',
+            local: m.direccion && m.direccion.zona ? 'X' : 'S/N',
+            servicio: m.tarifa?.departamento || 'S/N',
+            ciudad: m.ciudad ? 'X' : 'S/N',
+            zona: m.zona_d ? 'X' : 'S/N',
+            contenido: m.contenido || 'S/N',
+            peso: peso.toFixed(3),
+            precio: precio.toFixed(2),
+            servicioT: m.tarifa?.servicio || 'S/N',
+            fecha_entrega: m.fecha_d || 'S/N',
+            destinatario: m.destinatario || 'S/N',
+            cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
+            observacion: m.observacion || 'S/N',
+          });
+        });
+      }
+
+      // Crear la hoja resumen final
+      const resumenSheet = workbook.addWorksheet('Resumen');
+
+      // Agregar el logo en el resumen
+      const imageId = workbook.addImage({
+        base64: base64Image,
+        extension: 'png',
+      });
+      resumenSheet.addImage(imageId, {
+        tl: { col: 2, row: 4 }, // Ajustamos la imagen como en el ejemplo
+        ext: { width: 500, height: 100 }, // Ajustar el tamaño si es necesario
+      });
+
+      // Título "Resumen"
+      resumenSheet.mergeCells('B1:F1');
+      resumenSheet.getCell('B1').value = 'Resumen';
+      resumenSheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle' };
+      resumenSheet.getCell('B1').font = { bold: true, size: 14 };
+      resumenSheet.getCell('B1').fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFD700' } // Color amarillo como en la imagen
+      };
+
+      // Campo del Mes
+      resumenSheet.mergeCells('B11:F11');
+      resumenSheet.getCell('B11').value = `Mes ${selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1)}`;
+      resumenSheet.getCell('B11').alignment = { horizontal: 'center', vertical: 'middle' };
+      resumenSheet.getCell('B11').font = { bold: true };
+
+      // Agregar las columnas del resumen
+      resumenSheet.columns = [
+        { key: 'index', width: 5 },
+        { key: 'sucursal', width: 30 },
+        { key: 'peso_total', width: 15 },
+        { key: 'total_guias', width: 15 },
+        { key: 'subtotal', width: 20 }
+      ];
+
+      // Añadir encabezados
+      const headerRow = resumenSheet.getRow(13); // Colocado después de las filas vacías
+      headerRow.values = ['#', 'Sucursal', 'Peso Total (Kg)', 'Total Guías', 'Subtotal (Bs)'];
+      headerRow.eachCell((cell) => {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF9BBB59' } // Color verde claro como en la imagen
+        };
+      });
+
+      let totalPeso = 0;
+      let totalGuias = 0;
+      let totalSubtotal = 0;
+
+      // Agrupar los datos por sucursal y añadir las filas
+      const sucursalesMap = {};
+      filteredData.forEach(item => {
+        const sucursalId = item.sucursale.id;
+        const sucursalNombre = item.sucursale.nombre;
+        const peso = item.peso_r ? parseFloat(item.peso_r) : parseFloat(item.peso_v) || 0;
+        const subtotal = parseFloat(item.nombre_d) || 0;
+
+        if (!sucursalesMap[sucursalId]) {
+          sucursalesMap[sucursalId] = {
+            nombre: sucursalNombre,
+            peso: 0,
+            totalGuias: 0,
+            subtotal: 0
+          };
+        }
+
+        sucursalesMap[sucursalId].peso += peso;
+        sucursalesMap[sucursalId].totalGuias += 1;
+        sucursalesMap[sucursalId].subtotal += subtotal;
+      });
+
+      // Añadir filas al resumen
+      Object.values(sucursalesMap).forEach((sucursal, index) => {
+        totalPeso += sucursal.peso;
+        totalGuias += sucursal.totalGuias;
+        totalSubtotal += sucursal.subtotal;
+
+        const row = resumenSheet.addRow({
+          index: index + 1,
+          sucursal: sucursal.nombre,
+          peso_total: sucursal.peso.toFixed(3),
+          total_guias: sucursal.totalGuias,
+          subtotal: sucursal.subtotal.toFixed(2)
+        });
+
+        row.eachCell((cell) => {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+      });
+
+      // Fila de totales
+      const totalRow = resumenSheet.addRow({
+        sucursal: 'TOTAL',
+        peso_total: totalPeso.toFixed(3),
+        total_guias: totalGuias,
+        subtotal: totalSubtotal.toFixed(2)
+      });
+
+      totalRow.eachCell({ includeEmpty: true }, (cell) => {
+        cell.font = { bold: true };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFD700' } // Color amarillo claro como en la imagen para los totales
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+
+      // Añadir 5 filas vacías antes de las firmas
+      for (let i = 0; i < 5; i++) {
+        resumenSheet.addRow([]);
+      }
+
+      // Añadir espacio para firmas en la hoja de resumen
+      const firmaRow = resumenSheet.addRow([]);
+
+      resumenSheet.mergeCells(`B${firmaRow.number}:C${firmaRow.number}`);
+      resumenSheet.getCell(`B${firmaRow.number}`).value = `${this.user.user.nombre} ${this.user.user.apellidos}`;
+      resumenSheet.getCell(`B${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
+      resumenSheet.getCell(`B${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`B${firmaRow.number + 1}:C${firmaRow.number + 1}`);
+      resumenSheet.getCell(`B${firmaRow.number + 1}`).value = 'AUX. DE CONTRATOS';
+      resumenSheet.getCell(`B${firmaRow.number + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`B${firmaRow.number + 2}:C${firmaRow.number + 2}`);
+      resumenSheet.getCell(`B${firmaRow.number + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS';
+      resumenSheet.getCell(`B${firmaRow.number + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`E${firmaRow.number}:F${firmaRow.number}`);
+      resumenSheet.getCell(`E${firmaRow.number}`).value = 'Williams David Chavez Ticona';
+      resumenSheet.getCell(`E${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
+      resumenSheet.getCell(`E${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`E${firmaRow.number + 1}:F${firmaRow.number + 1}`);
+      resumenSheet.getCell(`E${firmaRow.number + 1}`).value = 'ENCARGADO DE CONTRATOS';
+      resumenSheet.getCell(`E${firmaRow.number + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`E${firmaRow.number + 2}:F${firmaRow.number + 2}`);
+      resumenSheet.getCell(`E${firmaRow.number + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS';
+      resumenSheet.getCell(`E${firmaRow.number + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      // Guardar el archivo Excel
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'Reporte_Multiples_Sucursales_Resumen.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+
+
+
+
+
+    ,
+
+    async convertirNumeroALetras(num) {
+      const unidades = ['CERO', 'UNO', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+      const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+      const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISEIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
+
+      if (num < 10) return unidades[num];
+      if (num < 20) return especiales[num - 10];
+      if (num < 100) return decenas[Math.floor(num / 10)] + (num % 10 === 0 ? '' : ' Y ' + unidades[num % 10]);
+
+      if (num < 1000) {
+        if (num === 100) return 'CIEN';
+        return unidades[Math.floor(num / 100)] + ' CIENTO ' + await this.convertirNumeroALetras(num % 100);
+      }
+
+      if (num < 1000000) {
+        if (Math.floor(num / 1000) === 1) {
+          return 'MIL ' + await this.convertirNumeroALetras(num % 1000);
+        } else {
+          return await this.convertirNumeroALetras(Math.floor(num / 1000)) + ' MIL ' + await this.convertirNumeroALetras(num % 1000);
+        }
+      }
+
+      return 'NUMERO DEMASIADO GRANDE';
+    },
+
+
+
+
+    async elegirTipoDeReporteUnicaSucursal() {
+      const { value: tipoReporte } = await Swal.fire({
+        title: 'Selecciona el tipo de reporte',
+        input: 'radio',
+        inputOptions: {
+          'detallado': 'Generar Reporte Detallado',
+          'resumido': 'Generar Reporte Resumido'
+        },
+        inputValidator: (value) => {
+          if (!value) {
+            return 'Debes seleccionar una opción!';
+          }
+        },
+        confirmButtonText: 'Generar',
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (tipoReporte) {
+        if (tipoReporte === 'detallado') {
+          await this.generarReporteUnicaSucursalDetallado(); // Generar reporte detallado
+        } else if (tipoReporte === 'resumido') {
+          await this.generarReporteUnicaSucursalResumido(); // Generar reporte resumido
+        }
+      }
+    },
+
+    async generarReporteUnicaSucursalDetallado() {
+      const workbook = new ExcelJS.Workbook();
+      const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
+
+      // Filtrar los datos para la única sucursal seleccionada
+      const filteredData = this.filteredData.filter(item => this.selectedSucursales.includes(item.sucursale?.id));
+
+      if (filteredData.length === 0) {
+        await Swal.fire({
+          icon: 'info',
+          title: 'Sin datos',
+          text: 'No hay datos disponibles para los criterios seleccionados.',
+        });
+        return;
+      }
+
+      const sucursalData = filteredData; // La única sucursal seleccionada
       const sucursalName = sucursalData[0].sucursale.nombre || 'Sucursal';
+
+      // Crear una hoja para la sucursal seleccionada
       const worksheet = workbook.addWorksheet(sucursalName);
 
+      // Añadir el logo y algunos datos
       const imageId = workbook.addImage({
         base64: base64Image,
         extension: 'png',
       });
       worksheet.addImage(imageId, {
         tl: { col: 0, row: 0 },
-        ext: { width: 500, height: 100 }, 
+        ext: { width: 500, height: 100 },
       });
 
       for (let i = 0; i < 10; i++) {
@@ -800,7 +1510,6 @@ export default {
           bottom: { style: 'thin' },
           right: { style: 'thin' }
         };
-        // Aplicar colores de fondo a los encabezados
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
@@ -808,7 +1517,7 @@ export default {
         };
       });
 
-      // Definir las columnas del reporte resumido
+      // Definir las columnas del reporte detallado
       worksheet.columns = [
         { key: 'index', width: 5 },
         { key: 'fecha', width: 20 },
@@ -846,96 +1555,68 @@ export default {
           observacion: m.observacion || 'S/N',
         });
       });
-    }
 
-    // Crear la hoja resumen
-    const resumenSheet = workbook.addWorksheet('Resumen');
+      // Crear el resumen al final
+      const resumenSheet = workbook.addWorksheet('Resumen');
 
-    // Agregar el logo en el resumen
-    const imageId = workbook.addImage({
-      base64: base64Image,
-      extension: 'png',
-    });
-    resumenSheet.addImage(imageId, {
-      tl: { col: 2, row: 4 }, 
-      ext: { width: 500, height: 100 }, 
-    });
-
-    resumenSheet.mergeCells('B1:F1');
-    resumenSheet.getCell('B1').value = 'Resumen';
-    resumenSheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle' };
-    resumenSheet.getCell('B1').font = { bold: true, size: 14 };
-    resumenSheet.getCell('B1').fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFFFD700' } // Color amarillo
-    };
-
-    resumenSheet.mergeCells('B11:F11');
-    resumenSheet.getCell('B11').value = `Mes ${new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date())}`;
-    resumenSheet.getCell('B11').alignment = { horizontal: 'center', vertical: 'middle' };
-    resumenSheet.getCell('B11').font = { bold: true };
-
-    // Agregar las columnas del resumen
-    resumenSheet.columns = [
-      { key: 'index', width: 5 },
-      { key: 'sucursal', width: 30 },
-      { key: 'peso_total', width: 15 },
-      { key: 'total_guias', width: 15 },
-      { key: 'subtotal', width: 20 }
-    ];
-
-    const headerRowResumen = resumenSheet.getRow(13);
-    headerRowResumen.values = ['#', 'Sucursal', 'Peso Total (Kg)', 'Total Guías', 'Subtotal (Bs)'];
-    headerRowResumen.eachCell((cell) => {
-      cell.font = { bold: true };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FF9BBB59' } // Color verde claro para los encabezados
-      };
-    });
-
-    let totalPeso = 0;
-    let totalGuias = 0;
-    let totalSubtotal = 0;
-
-    const sucursalesMap = {};
-    filteredData.forEach(item => {
-      const sucursalId = item.sucursale.id;
-      const sucursalNombre = item.sucursale.nombre;
-      const peso = item.peso_r ? parseFloat(item.peso_r) : parseFloat(item.peso_v) || 0;
-      const subtotal = parseFloat(item.nombre_d) || 0;
-
-      if (!sucursalesMap[sucursalId]) {
-        sucursalesMap[sucursalId] = {
-          nombre: sucursalNombre,
-          peso: 0,
-          totalGuias: 0,
-          subtotal: 0
-        };
-      }
-
-      sucursalesMap[sucursalId].peso += peso;
-      sucursalesMap[sucursalId].totalGuias += 1;
-      sucursalesMap[sucursalId].subtotal += subtotal;
-    });
-
-    Object.values(sucursalesMap).forEach((sucursal, index) => {
-      totalPeso += sucursal.peso;
-      totalGuias += sucursal.totalGuias;
-      totalSubtotal += sucursal.subtotal;
-
-      const row = resumenSheet.addRow({
-        index: index + 1,
-        sucursal: sucursal.nombre,
-        peso_total: sucursal.peso.toFixed(3),
-        total_guias: sucursal.totalGuias,
-        subtotal: sucursal.subtotal.toFixed(2)
+      // Agregar el logo en el resumen
+      const imageIdResumen = workbook.addImage({
+        base64: base64Image,
+        extension: 'png',
+      });
+      resumenSheet.addImage(imageIdResumen, {
+        tl: { col: 2, row: 4 },
+        ext: { width: 500, height: 100 },
       });
 
-      row.eachCell((cell) => {
+      resumenSheet.mergeCells('B1:F1');
+      resumenSheet.getCell('B1').value = 'Resumen';
+      resumenSheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle' };
+      resumenSheet.getCell('B1').font = { bold: true, size: 14 };
+      resumenSheet.getCell('B1').fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFD700' } // Color amarillo
+      };
+
+      resumenSheet.mergeCells('B11:F11');
+      resumenSheet.getCell('B11').value = `Mes ${new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date())}`;
+      resumenSheet.getCell('B11').alignment = { horizontal: 'center', vertical: 'middle' };
+      resumenSheet.getCell('B11').font = { bold: true };
+
+      resumenSheet.columns = [
+        { key: 'index', width: 5 },
+        { key: 'sucursal', width: 30 },
+        { key: 'peso_total', width: 15 },
+        { key: 'total_guias', width: 15 },
+        { key: 'subtotal', width: 20 }
+      ];
+
+      const headerRowResumen = resumenSheet.getRow(13);
+      headerRowResumen.values = ['#', 'Sucursal', 'Peso Total (Kg)', 'Total Guías', 'Subtotal (Bs)'];
+      headerRowResumen.eachCell((cell) => {
+        cell.font = { bold: true };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF9BBB59' } // Color verde claro para los encabezados
+        };
+      });
+
+      const pesoTotal = sucursalData.reduce((total, item) => total + (item.peso_r || item.peso_v || 0), 0);
+      const totalGuias = sucursalData.length;
+      const totalSubtotal = sucursalData.reduce((total, item) => total + (parseFloat(item.nombre_d) || 0), 0);
+
+      const resumenRow = resumenSheet.addRow({
+        index: 1,
+        sucursal: sucursalName,
+        peso_total: pesoTotal.toFixed(3),
+        total_guias: totalGuias,
+        subtotal: totalSubtotal.toFixed(2)
+      });
+
+      resumenRow.eachCell((cell) => {
         cell.alignment = { horizontal: 'center', vertical: 'middle' };
         cell.border = {
           top: { style: 'thin' },
@@ -944,751 +1625,73 @@ export default {
           right: { style: 'thin' }
         };
       });
-    });
 
-    // Fila de totales
-    const totalRow = resumenSheet.addRow({
-      sucursal: 'TOTAL',
-      peso_total: totalPeso.toFixed(3),
-      total_guias: totalGuias,
-      subtotal: totalSubtotal.toFixed(2)
-    });
+      const totalRow = resumenSheet.addRow({
+        sucursal: 'TOTAL',
+        peso_total: pesoTotal.toFixed(3),
+        total_guias: totalGuias,
+        subtotal: totalSubtotal.toFixed(2)
+      });
 
-    totalRow.eachCell({ includeEmpty: true }, (cell) => {
-      cell.font = { bold: true };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFFFD700' } // Color amarillo para totales
-      };
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      };
-    });
+      totalRow.eachCell({ includeEmpty: true }, (cell) => {
+        cell.font = { bold: true };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFD700' } // Color amarillo para totales
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
 
-    // Añadir espacio para firmas
-    for (let i = 0; i < 5; i++) {
-      resumenSheet.addRow([]);
-    }
-
-    const firmaRow = resumenSheet.addRow([]);
-    resumenSheet.mergeCells(`B${firmaRow.number}:C${firmaRow.number}`);
-    resumenSheet.getCell(`B${firmaRow.number}`).value = 'Rodrigo L. Alquez Chavez';
-    resumenSheet.getCell(`B${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
-    resumenSheet.getCell(`B${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    resumenSheet.mergeCells(`B${firmaRow.number + 1}:C${firmaRow.number + 1}`);
-    resumenSheet.getCell(`B${firmaRow.number + 1}`).value = 'AUX. DE CONTRATOS';
-    resumenSheet.getCell(`B${firmaRow.number + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    resumenSheet.mergeCells(`B${firmaRow.number + 2}:C${firmaRow.number + 2}`);
-    resumenSheet.getCell(`B${firmaRow.number + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS';
-    resumenSheet.getCell(`B${firmaRow.number + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    resumenSheet.mergeCells(`E${firmaRow.number}:F${firmaRow.number}`);
-    resumenSheet.getCell(`E${firmaRow.number}`).value = 'Williams David Chavez Ticona';
-    resumenSheet.getCell(`E${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
-    resumenSheet.getCell(`E${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    resumenSheet.mergeCells(`E${firmaRow.number + 1}:F${firmaRow.number + 1}`);
-    resumenSheet.getCell(`E${firmaRow.number + 1}`).value = 'ENCARGADO DE CONTRATOS';
-    resumenSheet.getCell(`E${firmaRow.number + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    resumenSheet.mergeCells(`E${firmaRow.number + 2}:F${firmaRow.number + 2}`);
-    resumenSheet.getCell(`E${firmaRow.number + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS';
-    resumenSheet.getCell(`E${firmaRow.number + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    // Guardar el archivo Excel
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'Reporte_Multiples_Sucursales_Resumido.xlsx';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-
-  
-  ,
-
-
-
-    async generarReporte() {
-      if (this.selectedSucursales.length === 0) {
-        Swal.fire({
-          icon: 'info',
-          title: 'Sin sucursales seleccionadas',
-          text: 'Por favor, seleccione al menos una sucursal para generar el reporte.',
-        });
-        return;
+      // Añadir las firmas
+      for (let i = 0; i < 5; i++) {
+        resumenSheet.addRow([]);
       }
 
-      if (this.selectedSucursales.length === 1) {
-        // Generar reporte para una sola sucursal
-        await this.exportToExcel();
-      } else if (this.selectedSucursales.length > 1) {
-        // Generar reporte para múltiples sucursales
-        await this.generarReporteMultiplesSucursales();
-      }
+      const firmaRow = resumenSheet.addRow([]);
+      // En la sección de firmas, se reemplaza el nombre fijo por los datos del usuario logueado
+      resumenSheet.mergeCells(`B${firmaRow.number}:C${firmaRow.number}`);
+      resumenSheet.getCell(`B${firmaRow.number}`).value = `${this.user.user.nombre} ${this.user.user.apellidos}`; // Cambiado por el nombre y apellidos del usuario logueado
+      resumenSheet.getCell(`B${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
+      resumenSheet.getCell(`B${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+
+      resumenSheet.mergeCells(`B${firmaRow.number + 1}:C${firmaRow.number + 1}`);
+      resumenSheet.getCell(`B${firmaRow.number + 1}`).value = 'AUX. DE CONTRATOS';
+      resumenSheet.getCell(`B${firmaRow.number + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`B${firmaRow.number + 2}:C${firmaRow.number + 2}`);
+      resumenSheet.getCell(`B${firmaRow.number + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS';
+      resumenSheet.getCell(`B${firmaRow.number + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`E${firmaRow.number}:F${firmaRow.number}`);
+      resumenSheet.getCell(`E${firmaRow.number}`).value = 'Williams David Chavez Ticona';
+      resumenSheet.getCell(`E${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
+      resumenSheet.getCell(`E${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`E${firmaRow.number + 1}:F${firmaRow.number + 1}`);
+      resumenSheet.getCell(`E${firmaRow.number + 1}`).value = 'ENCARGADO DE CONTRATOS';
+      resumenSheet.getCell(`E${firmaRow.number + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      resumenSheet.mergeCells(`E${firmaRow.number + 2}:F${firmaRow.number + 2}`);
+      resumenSheet.getCell(`E${firmaRow.number + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS';
+      resumenSheet.getCell(`E${firmaRow.number + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
+
+      // Guardar el archivo Excel
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Reporte_Sucursal_${sucursalName}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     },
-
-
-
-
-async generarReporteMultiplesSucursales() {
-  const workbook = new ExcelJS.Workbook();
-
-  // Función para cargar la imagen en base64
-  async function loadImageAsBase64(path) {
-    const response = await fetch(path);
-    const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  }
-
-const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
-  // Formatear las fechas de inicio y fin del periodo
-  const formatDate = (date) => {
-    if (!date) return 'S/N';
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
-  const startDate = this.startDate ? new Date(this.startDate) : new Date();
-  const endDateAdjusted = this.endDate ? new Date(this.endDate) : new Date();
-  endDateAdjusted.setDate(endDateAdjusted.getDate() + 1);
-
-  const formattedStartDate = formatDate(startDate);
-  const formattedEndDateAdjusted = formatDate(endDateAdjusted);
-
-  // Obtener el mes en texto a partir de la fecha de inicio
-  const selectedMonth = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(startDate);
-
-  // Filtrar los datos según las sucursales seleccionadas
-  const filteredData = this.filteredData.filter(item => this.selectedSucursales.includes(item.sucursale?.id));
-
-  if (filteredData.length === 0) {
-    await Swal.fire({
-      icon: 'info',
-      title: 'Sin datos',
-      text: 'No hay datos disponibles para los criterios seleccionados.',
-    });
-    return;
-  }
-
-  // Generar hojas por cada sucursal seleccionada
-  for (let sucursalId of this.selectedSucursales) {
-    const sucursalData = filteredData.filter(item => item.sucursale?.id === sucursalId);
-    if (sucursalData.length === 0) continue;
-
-    const sucursalName = sucursalData[0].sucursale.nombre || 'Sucursal';
-
-    // Crear una nueva hoja para cada sucursal
-    const worksheet = workbook.addWorksheet(sucursalName);
-
-    // Agregar el logo e información de la sucursal
-    const imageId = workbook.addImage({
-      base64: base64Image,
-      extension: 'png',
-    });
-    worksheet.addImage(imageId, {
-      tl: { col: 0, row: 0 },
-      ext: { width: 500, height: 100 }, // Ajustar el tamaño si es necesario
-    });
-
-    // Insertar filas vacías debajo de la imagen para separar el contenido
-    for (let i = 0; i < 10; i++) {
-      worksheet.addRow([]);
-    }
-
-    // Añadir información de origen, servicio y cliente
-    worksheet.mergeCells('A11:B11');
-    worksheet.getCell('A11').value = 'ORIGEN:';
-    worksheet.getCell('C11').value = sucursalData[0].sucursale.origen || 'S/N';
-
-    worksheet.mergeCells('A12:B12');
-    worksheet.getCell('A12').value = 'SERVICIO:';
-    worksheet.getCell('C12').value = sucursalData[0].tarifa?.servicio || 'S/N';
-
-    worksheet.mergeCells('A13:B13');
-    worksheet.getCell('A13').value = 'CLIENTE:';
-    worksheet.getCell('C13').value = 'EBA LA PAZ';
-
-    // Añadir periodo
-    worksheet.mergeCells('A14:B14');
-    worksheet.getCell('A14').value = 'PERIODO:';
-    worksheet.getCell('C14').value = `${formattedStartDate} - ${formattedEndDateAdjusted}`;
-
-    // Definir las columnas del reporte
-    worksheet.columns = [
-      { header: '#', key: 'index', width: 5 },
-      { header: 'Fecha de Envío', key: 'fecha', width: 20 },
-      { header: 'Número de Envío', key: 'guia', width: 20 },
-      { header: 'Sucursal Origen', key: 'sucursal_origen', width: 20 },
-      { header: 'Dirección', key: 'direccion', width: 15 },
-      { header: 'Local', key: 'local', width: 10 },
-      { header: 'Servicio', key: 'servicio', width: 15 },
-      { header: 'Ciudad', key: 'ciudad', width: 10 },
-      { header: 'Zona', key: 'zona', width: 15 },
-      { header: 'Contenido', key: 'contenido', width: 20 },
-      { header: 'Peso (Kg)', key: 'peso', width: 10 },
-      { header: 'Precio (Bs)', key: 'precio', width: 10 },
-      { header: 'Servicio T.', key: 'servicioT', width: 15 },
-      { header: 'Fecha y Hora Entrega', key: 'fecha_entrega', width: 20 },
-      { header: 'Destinatario', key: 'destinatario', width: 20 },
-      { header: 'Cartero', key: 'cartero', width: 20 },
-      { header: 'Observaciones', key: 'observacion', width: 25 },
-    ];
-
-    // Encabezados agrupados para "Envío" y "Entrega"
-    worksheet.mergeCells('A16:M16');
-    worksheet.getCell('A16').value = 'Envío';
-    worksheet.getCell('A16').alignment = { horizontal: 'center', vertical: 'middle' };
-    worksheet.getCell('A16').font = { bold: true, size: 14 };
-    worksheet.getCell('A16').fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF9BBB59' } // Color verde
-    };
-
-    worksheet.mergeCells('N16:R16');
-    worksheet.getCell('N16').value = 'Entrega';
-    worksheet.getCell('N16').alignment = { horizontal: 'center', vertical: 'middle' };
-    worksheet.getCell('N16').font = { bold: true, size: 14 };
-    worksheet.getCell('N16').fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFC0504D' } // Color rojo
-    };
-
-    // Añadir los encabezados de las columnas en la fila 17
-    const headerRow = worksheet.getRow(17);
-    headerRow.values = [
-      '#', 'Fecha de Envío', 'Número de Envío', 'Sucursal Origen', 'Dirección', 'Local',
-      'Servicio', 'Ciudad', 'Zona', 'Contenido', 'Peso (Kg)', 'Precio (Bs)', 'Servicio T.',
-      'Fecha y Hora Entrega', 'Destinatario', 'Cartero', 'Observaciones'
-    ];
-
-    // Procesar y añadir los datos de cada sucursal
-    sucursalData.forEach((m, index) => {
-      const peso = m.peso_r ? parseFloat(m.peso_r) : (m.peso_v ? parseFloat(m.peso_v) : 0);
-      const precio = m.nombre_d ? parseFloat(m.nombre_d) : 0;
-
-      worksheet.addRow({
-        index: index + 1,
-        fecha: m.fecha_d || 'S/N',
-        guia: m.guia || 'S/N',
-        sucursal_origen: m.sucursale?.origen || 'S/N',
-        direccion: m.direccion_especifica ? 'X' : 'S/N',
-        local: m.direccion && m.direccion.zona ? 'X' : 'S/N',
-        servicio: m.tarifa?.departamento || 'S/N',
-        ciudad: m.ciudad ? 'X' : 'S/N',
-        zona: m.zona_d ? 'X' : 'S/N',
-        contenido: m.contenido || 'S/N',
-        peso: peso.toFixed(3),
-        precio: precio.toFixed(2),
-        servicioT: m.tarifa?.servicio || 'S/N',
-        fecha_entrega: m.fecha_d || 'S/N',
-        destinatario: m.destinatario || 'S/N',
-        cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
-        observacion: m.observacion || 'S/N',
-      });
-    });
-  }
-
-  // Crear la hoja resumen final
-  const resumenSheet = workbook.addWorksheet('Resumen');
-
-  // Agregar el logo en el resumen
-  const imageId = workbook.addImage({
-    base64: base64Image,
-    extension: 'png',
-  });
-  resumenSheet.addImage(imageId, {
-    tl: { col: 2, row: 4 }, // Ajustamos la imagen como en el ejemplo
-    ext: { width: 500, height: 100 }, // Ajustar el tamaño si es necesario
-  });
-
-  // Título "Resumen"
-  resumenSheet.mergeCells('B1:F1');
-  resumenSheet.getCell('B1').value = 'Resumen';
-  resumenSheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle' };
-  resumenSheet.getCell('B1').font = { bold: true, size: 14 };
-  resumenSheet.getCell('B1').fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FFFFD700' } // Color amarillo como en la imagen
-  };
-
-  // Campo del Mes
-  resumenSheet.mergeCells('B11:F11');
-  resumenSheet.getCell('B11').value = `Mes ${selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1)}`;
-  resumenSheet.getCell('B11').alignment = { horizontal: 'center', vertical: 'middle' };
-  resumenSheet.getCell('B11').font = { bold: true };
-
-  // Agregar las columnas del resumen
-  resumenSheet.columns = [
-    { key: 'index', width: 5 },
-    { key: 'sucursal', width: 30 },
-    { key: 'peso_total', width: 15 },
-    { key: 'total_guias', width: 15 },
-    { key: 'subtotal', width: 20 }
-  ];
-
-  // Añadir encabezados
-  const headerRow = resumenSheet.getRow(13); // Colocado después de las filas vacías
-  headerRow.values = ['#', 'Sucursal', 'Peso Total (Kg)', 'Total Guías', 'Subtotal (Bs)'];
-  headerRow.eachCell((cell) => {
-    cell.font = { bold: true };
-    cell.alignment = { horizontal: 'center', vertical: 'middle' };
-    cell.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF9BBB59' } // Color verde claro como en la imagen
-    };
-  });
-
-  let totalPeso = 0;
-  let totalGuias = 0;
-  let totalSubtotal = 0;
-
-  // Agrupar los datos por sucursal y añadir las filas
-  const sucursalesMap = {};
-  filteredData.forEach(item => {
-    const sucursalId = item.sucursale.id;
-    const sucursalNombre = item.sucursale.nombre;
-    const peso = item.peso_r ? parseFloat(item.peso_r) : parseFloat(item.peso_v) || 0;
-    const subtotal = parseFloat(item.nombre_d) || 0;
-
-    if (!sucursalesMap[sucursalId]) {
-      sucursalesMap[sucursalId] = {
-        nombre: sucursalNombre,
-        peso: 0,
-        totalGuias: 0,
-        subtotal: 0
-      };
-    }
-
-    sucursalesMap[sucursalId].peso += peso;
-    sucursalesMap[sucursalId].totalGuias += 1;
-    sucursalesMap[sucursalId].subtotal += subtotal;
-  });
-
-  // Añadir filas al resumen
-  Object.values(sucursalesMap).forEach((sucursal, index) => {
-    totalPeso += sucursal.peso;
-    totalGuias += sucursal.totalGuias;
-    totalSubtotal += sucursal.subtotal;
-
-    const row = resumenSheet.addRow({
-      index: index + 1,
-      sucursal: sucursal.nombre,
-      peso_total: sucursal.peso.toFixed(3),
-      total_guias: sucursal.totalGuias,
-      subtotal: sucursal.subtotal.toFixed(2)
-    });
-
-    row.eachCell((cell) => {
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      };
-    });
-  });
-
-  // Fila de totales
-  const totalRow = resumenSheet.addRow({
-    sucursal: 'TOTAL',
-    peso_total: totalPeso.toFixed(3),
-    total_guias: totalGuias,
-    subtotal: totalSubtotal.toFixed(2)
-  });
-
-  totalRow.eachCell({ includeEmpty: true }, (cell) => {
-    cell.font = { bold: true };
-    cell.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFFFD700' } // Color amarillo claro como en la imagen para los totales
-    };
-    cell.border = {
-      top: { style: 'thin' },
-      left: { style: 'thin' },
-      bottom: { style: 'thin' },
-      right: { style: 'thin' }
-    };
-  });
-
-  // Añadir 5 filas vacías antes de las firmas
-  for (let i = 0; i < 5; i++) {
-    resumenSheet.addRow([]);
-  }
-
-  // Añadir espacio para firmas en la hoja de resumen
-  const firmaRow = resumenSheet.addRow([]);
-
-  resumenSheet.mergeCells(`B${firmaRow.number}:C${firmaRow.number}`);
-  resumenSheet.getCell(`B${firmaRow.number}`).value = 'Rodrigo L. Alquez Chavez';
-  resumenSheet.getCell(`B${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
-  resumenSheet.getCell(`B${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-  resumenSheet.mergeCells(`B${firmaRow.number + 1}:C${firmaRow.number + 1}`);
-  resumenSheet.getCell(`B${firmaRow.number + 1}`).value = 'AUX. DE CONTRATOS';
-  resumenSheet.getCell(`B${firmaRow.number + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-  resumenSheet.mergeCells(`B${firmaRow.number + 2}:C${firmaRow.number + 2}`);
-  resumenSheet.getCell(`B${firmaRow.number + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS';
-  resumenSheet.getCell(`B${firmaRow.number + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-  resumenSheet.mergeCells(`E${firmaRow.number}:F${firmaRow.number}`);
-  resumenSheet.getCell(`E${firmaRow.number}`).value = 'Williams David Chavez Ticona';
-  resumenSheet.getCell(`E${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
-  resumenSheet.getCell(`E${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-  resumenSheet.mergeCells(`E${firmaRow.number + 1}:F${firmaRow.number + 1}`);
-  resumenSheet.getCell(`E${firmaRow.number + 1}`).value = 'ENCARGADO DE CONTRATOS';
-  resumenSheet.getCell(`E${firmaRow.number + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-  resumenSheet.mergeCells(`E${firmaRow.number + 2}:F${firmaRow.number + 2}`);
-  resumenSheet.getCell(`E${firmaRow.number + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS';
-  resumenSheet.getCell(`E${firmaRow.number + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-  // Guardar el archivo Excel
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'Reporte_Multiples_Sucursales_Resumen.xlsx';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-
-
-
-
-
-,
-
-    async convertirNumeroALetras(num) {
-      const unidades = ['CERO', 'UNO', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
-      const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
-      const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISEIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
-
-      if (num < 10) return unidades[num];
-      if (num < 20) return especiales[num - 10];
-      if (num < 100) return decenas[Math.floor(num / 10)] + (num % 10 === 0 ? '' : ' Y ' + unidades[num % 10]);
-
-      if (num < 1000) {
-        if (num === 100) return 'CIEN';
-        return unidades[Math.floor(num / 100)] + ' CIENTO ' + await this.convertirNumeroALetras(num % 100);
-      }
-
-      if (num < 1000000) {
-        if (Math.floor(num / 1000) === 1) {
-          return 'MIL ' + await this.convertirNumeroALetras(num % 1000);
-        } else {
-          return await this.convertirNumeroALetras(Math.floor(num / 1000)) + ' MIL ' + await this.convertirNumeroALetras(num % 1000);
-        }
-      }
-
-      return 'NUMERO DEMASIADO GRANDE';
-    },
-
-
-
-
-    async elegirTipoDeReporteUnicaSucursal() {
-    const { value: tipoReporte } = await Swal.fire({
-      title: 'Selecciona el tipo de reporte',
-      input: 'radio',
-      inputOptions: {
-        'detallado': 'Generar Reporte Detallado',
-        'resumido': 'Generar Reporte Resumido'
-      },
-      inputValidator: (value) => {
-        if (!value) {
-          return 'Debes seleccionar una opción!';
-        }
-      },
-      confirmButtonText: 'Generar',
-      showCancelButton: true,
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (tipoReporte) {
-      if (tipoReporte === 'detallado') {
-        await this.generarReporteUnicaSucursalDetallado(); // Generar reporte detallado
-      } else if (tipoReporte === 'resumido') {
-        await this.generarReporteUnicaSucursalResumido(); // Generar reporte resumido
-      }
-    }
-  },
-  
-  async generarReporteUnicaSucursalDetallado() {
-    const workbook = new ExcelJS.Workbook();
-    const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
-
-    // Filtrar los datos para la única sucursal seleccionada
-    const filteredData = this.filteredData.filter(item => this.selectedSucursales.includes(item.sucursale?.id));
-
-    if (filteredData.length === 0) {
-      await Swal.fire({
-        icon: 'info',
-        title: 'Sin datos',
-        text: 'No hay datos disponibles para los criterios seleccionados.',
-      });
-      return;
-    }
-
-    const sucursalData = filteredData; // La única sucursal seleccionada
-    const sucursalName = sucursalData[0].sucursale.nombre || 'Sucursal';
-
-    // Crear una hoja para la sucursal seleccionada
-    const worksheet = workbook.addWorksheet(sucursalName);
-
-    // Añadir el logo y algunos datos
-    const imageId = workbook.addImage({
-      base64: base64Image,
-      extension: 'png',
-    });
-    worksheet.addImage(imageId, {
-      tl: { col: 0, row: 0 },
-      ext: { width: 500, height: 100 }, 
-    });
-
-    for (let i = 0; i < 10; i++) {
-      worksheet.addRow([]);
-    }
-
-    worksheet.mergeCells('A11:B11');
-    worksheet.getCell('A11').value = 'ORIGEN:';
-    worksheet.getCell('C11').value = sucursalData[0].sucursale.origen || 'S/N';
-
-    worksheet.mergeCells('A12:B12');
-    worksheet.getCell('A12').value = 'SERVICIO:';
-    worksheet.getCell('C12').value = sucursalData[0].tarifa?.servicio || 'S/N';
-
-    worksheet.mergeCells('A13:B13');
-    worksheet.getCell('A13').value = 'CLIENTE:';
-    worksheet.getCell('C13').value = 'EBA LA PAZ';
-
-    worksheet.mergeCells('A14:B14');
-    worksheet.getCell('A14').value = 'PERIODO:';
-    worksheet.getCell('C14').value = `${this.startDate} - ${this.endDate}`;
-
-    // Añadir los encabezados de las columnas en la fila 17
-    const headerRow = worksheet.getRow(17);
-    headerRow.values = [
-      '#', 'Fecha de Envío', 'Número de Envío', 'Sucursal Origen', 'Dirección', 'Local',
-      'Servicio', 'Ciudad', 'Zona', 'Contenido', 'Peso (Kg)', 'Precio (Bs)', 'Observaciones'
-    ];
-
-    headerRow.eachCell((cell, colNumber) => {
-      cell.font = { bold: true };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FF9BBB59' } // Color verde claro para los encabezados
-      };
-    });
-
-    // Definir las columnas del reporte detallado
-    worksheet.columns = [
-      { key: 'index', width: 5 },
-      { key: 'fecha', width: 20 },
-      { key: 'guia', width: 20 },
-      { key: 'sucursal_origen', width: 20 },
-      { key: 'direccion', width: 15 },
-      { key: 'local', width: 10 },
-      { key: 'servicio', width: 15 },
-      { key: 'ciudad', width: 10 },
-      { key: 'zona', width: 15 },
-      { key: 'contenido', width: 20 },
-      { key: 'peso', width: 10 },
-      { key: 'precio', width: 10 },
-      { key: 'observacion', width: 25 },
-    ];
-
-    // Añadir los datos
-    sucursalData.forEach((m, index) => {
-      const peso = m.peso_r ? parseFloat(m.peso_r) : (m.peso_v ? parseFloat(m.peso_v) : 0);
-      const precio = m.nombre_d ? parseFloat(m.nombre_d) : 0;
-
-      worksheet.addRow({
-        index: index + 1,
-        fecha: m.fecha_d || 'S/N',
-        guia: m.guia || 'S/N',
-        sucursal_origen: m.sucursale?.origen || 'S/N',
-        direccion: m.direccion_especifica ? 'X' : 'S/N',
-        local: m.direccion && m.direccion.zona ? 'X' : 'S/N',
-        servicio: m.tarifa?.departamento || 'S/N',
-        ciudad: m.ciudad ? 'X' : 'S/N',
-        zona: m.zona_d ? 'X' : 'S/N',
-        contenido: m.contenido || 'S/N',
-        peso: peso.toFixed(3),
-        precio: precio.toFixed(2),
-        observacion: m.observacion || 'S/N',
-      });
-    });
-
-    // Crear el resumen al final
-    const resumenSheet = workbook.addWorksheet('Resumen');
-
-    // Agregar el logo en el resumen
-    const imageIdResumen = workbook.addImage({
-      base64: base64Image,
-      extension: 'png',
-    });
-    resumenSheet.addImage(imageIdResumen, {
-      tl: { col: 2, row: 4 }, 
-      ext: { width: 500, height: 100 }, 
-    });
-
-    resumenSheet.mergeCells('B1:F1');
-    resumenSheet.getCell('B1').value = 'Resumen';
-    resumenSheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle' };
-    resumenSheet.getCell('B1').font = { bold: true, size: 14 };
-    resumenSheet.getCell('B1').fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFFFD700' } // Color amarillo
-    };
-
-    resumenSheet.mergeCells('B11:F11');
-    resumenSheet.getCell('B11').value = `Mes ${new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date())}`;
-    resumenSheet.getCell('B11').alignment = { horizontal: 'center', vertical: 'middle' };
-    resumenSheet.getCell('B11').font = { bold: true };
-
-    resumenSheet.columns = [
-      { key: 'index', width: 5 },
-      { key: 'sucursal', width: 30 },
-      { key: 'peso_total', width: 15 },
-      { key: 'total_guias', width: 15 },
-      { key: 'subtotal', width: 20 }
-    ];
-
-    const headerRowResumen = resumenSheet.getRow(13);
-    headerRowResumen.values = ['#', 'Sucursal', 'Peso Total (Kg)', 'Total Guías', 'Subtotal (Bs)'];
-    headerRowResumen.eachCell((cell) => {
-      cell.font = { bold: true };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FF9BBB59' } // Color verde claro para los encabezados
-      };
-    });
-
-    const pesoTotal = sucursalData.reduce((total, item) => total + (item.peso_r || item.peso_v || 0), 0);
-    const totalGuias = sucursalData.length;
-    const totalSubtotal = sucursalData.reduce((total, item) => total + (parseFloat(item.nombre_d) || 0), 0);
-
-    const resumenRow = resumenSheet.addRow({
-      index: 1,
-      sucursal: sucursalName,
-      peso_total: pesoTotal.toFixed(3),
-      total_guias: totalGuias,
-      subtotal: totalSubtotal.toFixed(2)
-    });
-
-    resumenRow.eachCell((cell) => {
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      };
-    });
-
-    const totalRow = resumenSheet.addRow({
-      sucursal: 'TOTAL',
-      peso_total: pesoTotal.toFixed(3),
-      total_guias: totalGuias,
-      subtotal: totalSubtotal.toFixed(2)
-    });
-
-    totalRow.eachCell({ includeEmpty: true }, (cell) => {
-      cell.font = { bold: true };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFFFD700' } // Color amarillo para totales
-      };
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
-      };
-    });
-
-    // Añadir las firmas
-    for (let i = 0; i < 5; i++) {
-      resumenSheet.addRow([]);
-    }
-
-    const firmaRow = resumenSheet.addRow([]);
-    resumenSheet.mergeCells(`B${firmaRow.number}:C${firmaRow.number}`);
-    resumenSheet.getCell(`B${firmaRow.number}`).value = 'Rodrigo L. Alquez Chavez';
-    resumenSheet.getCell(`B${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
-    resumenSheet.getCell(`B${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    resumenSheet.mergeCells(`B${firmaRow.number + 1}:C${firmaRow.number + 1}`);
-    resumenSheet.getCell(`B${firmaRow.number + 1}`).value = 'AUX. DE CONTRATOS';
-    resumenSheet.getCell(`B${firmaRow.number + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    resumenSheet.mergeCells(`B${firmaRow.number + 2}:C${firmaRow.number + 2}`);
-    resumenSheet.getCell(`B${firmaRow.number + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS';
-    resumenSheet.getCell(`B${firmaRow.number + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    resumenSheet.mergeCells(`E${firmaRow.number}:F${firmaRow.number}`);
-    resumenSheet.getCell(`E${firmaRow.number}`).value = 'Williams David Chavez Ticona';
-    resumenSheet.getCell(`E${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
-    resumenSheet.getCell(`E${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    resumenSheet.mergeCells(`E${firmaRow.number + 1}:F${firmaRow.number + 1}`);
-    resumenSheet.getCell(`E${firmaRow.number + 1}`).value = 'ENCARGADO DE CONTRATOS';
-    resumenSheet.getCell(`E${firmaRow.number + 1}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    resumenSheet.mergeCells(`E${firmaRow.number + 2}:F${firmaRow.number + 2}`);
-    resumenSheet.getCell(`E${firmaRow.number + 2}`).value = 'AGENCIA BOLIVIANA DE CORREOS';
-    resumenSheet.getCell(`E${firmaRow.number + 2}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    // Guardar el archivo Excel
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `Reporte_Sucursal_${sucursalName}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  },
 
 
     async exportToExcel() {
@@ -2033,6 +2036,8 @@ const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img
 
   mounted() {
     this.$nextTick(async () => {
+      let user = localStorage.getItem('userAuth');
+      this.user = JSON.parse(user);
       // Inicialmente cargar el saldo restante, sucursales y datos
       await this.obtenerSaldoRestanteTodasSucursales();
       await this.fetchSucursales();
