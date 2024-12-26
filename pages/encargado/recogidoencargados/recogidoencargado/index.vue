@@ -102,16 +102,30 @@
           </button>
 
           <!-- Modal para ingresar el nombre -->
+          <!-- Modal para ingresar el nombre y el departamento -->
           <b-modal v-model="isModalNameVisible" title="Generar CN-33" hide-footer>
             <div class="form-group">
               <label for="nombreGenerador">Nombre de la persona que genera el CN-33</label>
               <input v-model="nombreGenerador" type="text" class="form-control" placeholder="Escribe tu nombre..." />
             </div>
-            <div class="d-flex justify-content-end">
+
+            <div class="form-group mt-3">
+              <label for="departamentoSeleccionado">Departamento destino</label>
+              <select v-model="departamentoSeleccionado" class="form-control">
+                <option disabled value="">Seleccione un departamento</option>
+                <option value="LPB">LPB</option>
+                <option value="SRZ">SRZ</option>
+                <option value="CBB">CBB</option>
+
+              </select>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
               <button class="btn btn-secondary" @click="isModalNameVisible = false">Cancelar</button>
               <button class="btn btn-primary ml-2" @click="confirmNameAndGenerate">Generar Reporte</button>
             </div>
           </b-modal>
+
 
         </div>
         <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
@@ -221,28 +235,75 @@ export default {
       selectedForAssign: [],     // Paquetes seleccionados
       selectedForDelivery: [],   // Paquetes para enviar
       load: true,                // Controla la carga
+      departamentoSeleccionado: '',  // <-- NUEVO 
+
     };
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
+  const searchTerm = this.searchTerm.toLowerCase();
+  // Verificar si `this.user` y `this.user.user` están definidos antes de acceder a `departamento`
+  const departamentoCartero = this.user && this.user.user 
+    ? this.user.user.departamento 
+    : null;
 
-      // Verificar si `this.user` y `this.user.user` están definidos antes de acceder a `departamento`
-      const departamentoCartero = this.user && this.user.user ? this.user.user.departamento : null;
-
-      return this.list.filter(item =>
+  return this.list
+    .filter(item => {
+      // -------- LÓGICA PARA ESTADO 5 (ya existente) --------
+      const cumpleEstado5 = (
         item.estado === 5 &&
-        item.sucursale && // Asegurarse de que la sucursal exista
-        departamentoCartero && item.sucursale.origen === departamentoCartero && // Filtrar por el origen de la sucursal y el departamento del usuario
-        (
-          (this.selectedSucursal ? item.sucursale.id === this.selectedSucursal : true) && // Filtrar por sucursal seleccionada
-          (Object.values(item).some(value =>
-            String(value).toLowerCase().includes(searchTerm)
-          ) ||
-            (item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)))
-        )
-      ).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-    },
+        item.sucursale &&                 // Existe sucursal
+        departamentoCartero &&
+        item.sucursale.origen === departamentoCartero
+      );
+
+      // -------- LÓGICA PARA ESTADO 10 --------
+      const cumpleEstado10 = (
+        item.estado === 10 &&
+        departamentoCartero &&
+        item.reencaminamiento === departamentoCartero
+      );
+
+      // -------- LÓGICA PARA ESTADO 11 --------
+      const cumpleEstado11 = (
+        item.estado === 11 &&
+        departamentoCartero &&
+        item.reencaminamiento === departamentoCartero
+      );
+
+      // -------- LÓGICA PARA ESTADO 13 --------
+      const cumpleEstado13 = (
+        item.estado === 13 &&
+        departamentoCartero &&
+        item.reencaminamiento === departamentoCartero
+      );
+
+      // -------- LÓGICA DE BÚSQUEDA Y SUCURSAL (igual a antes) --------
+      const coincideBusqueda =
+        Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        ) ||
+        (item.sucursale &&
+         item.sucursale.nombre &&
+         item.sucursale.nombre.toLowerCase().includes(searchTerm));
+
+      const coincideSucursal = this.selectedSucursal
+        ? item.sucursale.id === this.selectedSucursal
+        : true;
+
+      // Al final, unimos ambas lógicas:
+      //  ( estado5 O estado10 O estado11 O estado13 ) && (coincideSucursal, coincideBusqueda )
+      return (
+        (cumpleEstado5 || cumpleEstado10 || cumpleEstado11 || cumpleEstado13) &&
+        coincideSucursal &&
+        coincideBusqueda
+      );
+    })
+    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+},
+
+
+
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -402,12 +463,18 @@ export default {
         }));
 
         for (let item of this.selectedForAssign) {
+          // Asigna al item un reencaminamiento (ej: LPZ o SRZ)
+          // Suponiendo que guardaste la elección del usuario en `this.departamentoSeleccionado`
+          item.reencaminamiento = this.departamentoSeleccionado;
+
+          // PUT al backend
           await this.$encargados.$put(`solicitudesregional5/${item.id}`, {
             encargado_id: carteroId,
             peso_v: item.peso_v,
             fecha_envio_regional: item.fecha_envio_regional,
             precio: item.precio,
-            nombre_d: item.nombre_d
+            nombre_d: item.nombre_d,
+            reencaminamiento: item.reencaminamiento, // Importante enviarlo al backend
           });
         }
 
@@ -494,9 +561,11 @@ export default {
         worksheet.mergeCells('A6:C6');
         worksheet.getCell('A6').value = 'office of destination';
         worksheet.getCell('A6').style = headerStyle;
-
+        let reencaminamientos = [
+          ...new Set(this.selectedForAssign.map(item => item.reencaminamiento || ''))
+        ].join(', ');
         worksheet.mergeCells('A7:C7');
-        worksheet.getCell('A7').value = `${firstPackage.tarifa}`; // Usar la tarifa/departamento del primer paquete
+        worksheet.getCell('A7').value = reencaminamientos;  // <--- En vez de la tarifa
         worksheet.getCell('A7').style = headerStyle;
 
         // Aquí agregamos la imagen sin subdivisiones de celdas
@@ -606,12 +675,12 @@ export default {
           let peso = parseFloat(item.peso_v); // Convertir peso a número con punto decimal
           worksheet.getCell(`A${currentRow}`).value = item.guia;
           worksheet.getCell(`B${currentRow}`).value = item.sucursale.origen;
-          worksheet.getCell(`C${currentRow}`).value = item.tarifa;
+          worksheet.getCell(`C${currentRow}`).value = item.reencaminamiento;
           worksheet.getCell(`D${currentRow}`).value = 1; // Cantidad
           worksheet.getCell(`F${currentRow}`).value = peso; // Asignar peso como número
           worksheet.getCell(`G${currentRow}`).value = item.sucursale.nombre;
           worksheet.mergeCells(`J${currentRow}:M${currentRow}`);
-  worksheet.getCell(`J${currentRow}`).value = item.observacion || ''; // Asignar observación
+          worksheet.getCell(`J${currentRow}`).value = item.observacion || ''; // Asignar observación
 
           worksheet.getRow(currentRow).eachCell((cell) => {
             cell.style = {

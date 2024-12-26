@@ -244,29 +244,52 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
+  // Convertimos el término de búsqueda a minúsculas
+  const searchTerm = this.searchTerm.toLowerCase();
 
-      // Asegúrate de que this.user y this.user.user existen
-      if (!this.user || !this.user.user || !this.user.user.departamento_cartero) {
-        return [];  // Retornar un array vacío si no existe el departamento_cartero
-      }
+  // Si no hay usuario o departamento, no filtramos nada
+  if (!this.user || !this.user.user) {
+    return [];
+  }
 
-      const departamentoCartero = this.user.user.departamento_cartero;
+  // Obtenemos el departamento del cartero
+  const departamentoCartero = this.user.user.departamento_cartero;
+  if (!departamentoCartero) {
+    return [];
+  }
 
-      const filtered = this.list
-        .filter(item => 
-          item.estado === 5 && 
-          item.sucursale.origen === departamentoCartero &&
-          Object.values(item).some(value => 
-            String(value).toLowerCase().includes(searchTerm)
-          )
-        )
-        .sort((a, b) => {
-          return new Date(b.fecha_recojo_c) - new Date(a.fecha_recojo_c);
-        });
+  // Filtramos la lista con la lógica combinada
+  const filtered = this.list.filter((item) => {
+    // 1) Lógica para estado 5: (estado=5 y sucursale.origen=departamentoCartero)
+    const cumpleEstado5 =
+      item.estado === 5 &&
+      item.sucursale?.origen === departamentoCartero;
 
-      return filtered;
-    },
+    // 2) Lógica para estados 10, 11, 13: (estado ∈ {10, 11, 13} y reencaminamiento=departamentoCartero)
+    const cumpleEstado10_11_13 =
+      [10, 11, 13].includes(item.estado) &&
+      item.reencaminamiento === departamentoCartero;
+
+    // 3) Coincide con término de búsqueda
+    const coincideBusqueda =
+      Object.values(item).some((value) =>
+        String(value).toLowerCase().includes(searchTerm)
+      ) ||
+      (item.sucursale?.nombre &&
+        item.sucursale.nombre.toLowerCase().includes(searchTerm));
+
+    // Retornamos true si (cumpleEstado5 O cumpleEstado10_11_13) y coincide con búsqueda
+    return (cumpleEstado5 || cumpleEstado10_11_13) && coincideBusqueda;
+  });
+
+  // Ordenamos por fecha_recojo_c de forma descendente
+  filtered.sort((a, b) => {
+    return new Date(b.fecha_recojo_c) - new Date(a.fecha_recojo_c);
+  });
+
+  return filtered;
+},
+
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
