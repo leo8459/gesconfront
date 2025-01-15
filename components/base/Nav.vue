@@ -235,7 +235,7 @@ export default {
     },
     Logout() {
       localStorage.removeItem('userAuth');
-      this.$router.push('/admin/auth/login');
+      this.$router.push('/');
     }
   },
   mounted() {
