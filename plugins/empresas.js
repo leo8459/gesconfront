@@ -8,8 +8,8 @@ export default function ({ $axios, store, redirect }, inject) {
         }
       }
     });
-      // let url ='http://172.65.10.52:8450/empresas/'
-      let url ='http://172.65.10.33:8459/empresas/'
+      let url ='http://172.65.10.52:8450/empresas/'
+      // let url ='http://172.65.10.33:8459/empresas/'
 
     // const url = 'http://localhost/backgescon2/public/empresas/';
     empresas.setBaseURL(url);
