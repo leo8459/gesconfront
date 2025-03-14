@@ -7,6 +7,7 @@
 
             <!-- Tarjetas para las solicitudes totales por estado -->
             <div class="row">
+              
               <!-- Tarjeta para solicitudes en estado 1 -->
               <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
                 <div class="card">
@@ -230,6 +231,8 @@ export default {
       variableInt: null,
       page: "Menu Principal",
       modulo: "Menu Principal",
+      url_nuevo: '/sucursal/sucursales/sucursal/nuevo',
+      url_nuevo2: '/sucursal/sucursales/sucursal/nuevo2',
       load: false,
       dashboard: {
         alquileres: 10,

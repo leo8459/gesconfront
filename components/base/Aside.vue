@@ -83,6 +83,12 @@
                 </nuxtLink>
               </li>
               <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/admin/codigos/codigo">
+                  <span class="sidenav-mini-icon"> Codigos Manuales </span>
+                  <span class="sidenav-normal full-width-text"> Codigos Manuales </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/admin/verlogs/log">
                   <span class="sidenav-mini-icon"> Logs </span>
                   <span class="sidenav-normal full-width-text"> Logs </span>

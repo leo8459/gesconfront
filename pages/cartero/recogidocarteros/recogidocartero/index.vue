@@ -7,13 +7,18 @@
           <div class="col-12 col-md-3 search-input-container">
             <div class="col-12 col-md-3 search-input-container">
               <div class="position-relative">
-                <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control search-input"
-                  placeholder="Buscar..." />
+                <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text"
+                  class="form-control search-input" placeholder="Buscar..." />
                 <i class="fas fa-search search-icon" @click="handleSearchEnter"></i>
               </div>
             </div>
           </div>
         </div>
+        <button @click="goToNuevo2" style="background-color: #0056B3; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer;">
+  Boleta Digital
+</button>
+
+
 
         <div class="row">
           <div class="col-12">
@@ -54,7 +59,8 @@
                         <td class="py-0 px-1" data-label="Guía">{{ m.peso_o }}</td>
 
                         <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
-                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica }}</td>
+                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica }}
+                        </td>
                         <td class="py-0 px-1" data-label="Zona">{{ m.direccion.zona }}</td>
                         <td class="py-0 px-1" data-label="Dirección maps">
                           <a v-if="isCoordinates(m.direccion.direccion)"
@@ -100,7 +106,8 @@
                       <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
                     </li>
                     <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
-                      <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
+                      <button class="page-link" @click="nextPage"
+                        :disabled="currentPage >= totalPages - 1">&gt;</button>
                     </li>
                   </ul>
                 </nav>
@@ -154,7 +161,8 @@
     </AdminTemplate>
 
     <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer @shown="focusPesoInput">
+    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer
+      @shown="focusPesoInput">
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
         <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
 
@@ -177,7 +185,8 @@
     <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop hide-footer>
       <div class="form-group">
         <label for="observacion">Observación</label>
-        <textarea id="observacion" v-model="observacion" class="form-control" rows="3" placeholder="Ingrese la observación..."></textarea>
+        <textarea id="observacion" v-model="observacion" class="form-control" rows="3"
+          placeholder="Ingrese la observación..."></textarea>
       </div>
       <div class="form-group">
         <label for="capturephoto">Subir Foto</label>
@@ -222,6 +231,8 @@ export default {
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
       url_editar: '/admin/solicitudescartero/solicitudecartero/editar/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',
+      url_nuevo2: '/cartero/recogidocarteros/recogidocartero/nuevo2',
+
       tarifas: [], // Inicializamos tarifas como un array vacío
       collapseState: {},
       isModalVisible: false,
@@ -244,51 +255,51 @@ export default {
   },
   computed: {
     filteredData() {
-  // Convertimos el término de búsqueda a minúsculas
-  const searchTerm = this.searchTerm.toLowerCase();
+      // Convertimos el término de búsqueda a minúsculas
+      const searchTerm = this.searchTerm.toLowerCase();
 
-  // Si no hay usuario o departamento, no filtramos nada
-  if (!this.user || !this.user.user) {
-    return [];
-  }
+      // Si no hay usuario o departamento, no filtramos nada
+      if (!this.user || !this.user.user) {
+        return [];
+      }
 
-  // Obtenemos el departamento del cartero
-  const departamentoCartero = this.user.user.departamento_cartero;
-  if (!departamentoCartero) {
-    return [];
-  }
+      // Obtenemos el departamento del cartero
+      const departamentoCartero = this.user.user.departamento_cartero;
+      if (!departamentoCartero) {
+        return [];
+      }
 
-  // Filtramos la lista con la lógica combinada
-  const filtered = this.list.filter((item) => {
-    // 1) Lógica para estado 5: (estado=5 y sucursale.origen=departamentoCartero)
-    const cumpleEstado5 =
-      item.estado === 5 &&
-      item.sucursale?.origen === departamentoCartero;
+      // Filtramos la lista con la lógica combinada
+      const filtered = this.list.filter((item) => {
+        // 1) Lógica para estado 5: (estado=5 y sucursale.origen=departamentoCartero)
+        const cumpleEstado5 =
+          item.estado === 5 &&
+          item.sucursale?.origen === departamentoCartero;
 
-    // 2) Lógica para estados 10, 11, 13: (estado ∈ {10, 11, 13} y reencaminamiento=departamentoCartero)
-    const cumpleEstado10_11_13 =
-      [10, 11, 13].includes(item.estado) &&
-      item.reencaminamiento === departamentoCartero;
+        // 2) Lógica para estados 10, 11, 13: (estado ∈ {10, 11, 13} y reencaminamiento=departamentoCartero)
+        const cumpleEstado10_11_13 =
+          [10, 11, 13].includes(item.estado) &&
+          item.reencaminamiento === departamentoCartero;
 
-    // 3) Coincide con término de búsqueda
-    const coincideBusqueda =
-      Object.values(item).some((value) =>
-        String(value).toLowerCase().includes(searchTerm)
-      ) ||
-      (item.sucursale?.nombre &&
-        item.sucursale.nombre.toLowerCase().includes(searchTerm));
+        // 3) Coincide con término de búsqueda
+        const coincideBusqueda =
+          Object.values(item).some((value) =>
+            String(value).toLowerCase().includes(searchTerm)
+          ) ||
+          (item.sucursale?.nombre &&
+            item.sucursale.nombre.toLowerCase().includes(searchTerm));
 
-    // Retornamos true si (cumpleEstado5 O cumpleEstado10_11_13) y coincide con búsqueda
-    return (cumpleEstado5 || cumpleEstado10_11_13) && coincideBusqueda;
-  });
+        // Retornamos true si (cumpleEstado5 O cumpleEstado10_11_13) y coincide con búsqueda
+        return (cumpleEstado5 || cumpleEstado10_11_13) && coincideBusqueda;
+      });
 
-  // Ordenamos por fecha_recojo_c de forma descendente
-  filtered.sort((a, b) => {
-    return new Date(b.fecha_recojo_c) - new Date(a.fecha_recojo_c);
-  });
+      // Ordenamos por fecha_recojo_c de forma descendente
+      filtered.sort((a, b) => {
+        return new Date(b.fecha_recojo_c) - new Date(a.fecha_recojo_c);
+      });
 
-  return filtered;
-},
+      return filtered;
+    },
 
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
@@ -303,6 +314,9 @@ export default {
     }
   },
   methods: {
+    goToNuevo2() {
+    window.location.href = this.url_nuevo2;
+  },
     focusPesoInput() {
       this.$refs.pesoInput[0].focus(); // Asegúrate de que el campo de entrada esté enfocado
     },
@@ -517,16 +531,16 @@ export default {
         item.nombre_d = item.precio; // Asegúrate de que nombre_d tenga el mismo valor que precio
         return item;
       })];
-      
+
       // Actualizar la lista de paquetes para entregar
       this.selectedForDelivery = [...this.selectedForAssign];
-      
+
       // Remover los elementos seleccionados de la lista original (tabla de arriba)
       this.list = this.list.filter(item => !this.selectedForAssign.some(selectedItem => selectedItem.id === item.id));
-    
+
       this.isModalVisible = false;
       this.selected = {}; // Limpiar la selección después de asignar
-    
+
       // Limpiar el campo de búsqueda
       this.searchTerm = '';
     },
@@ -587,10 +601,10 @@ export default {
   mounted() {
     this.$nextTick(async () => {
       let user = localStorage.getItem('userAuth');
-      
+
       if (user) {
         this.user = JSON.parse(user);
-        
+
         if (this.user.user.departamento_cartero) {
           // Lógica adicional si es necesario
         } else {
@@ -599,7 +613,7 @@ export default {
       } else {
         // Manejar el caso en que no hay usuario
       }
-  
+
       try {
         const data = await this.GET_DATA(this.apiUrl);
         if (Array.isArray(data)) {
@@ -607,7 +621,7 @@ export default {
         } else {
           // Manejar el caso en que los datos no son un array
         }
-        
+
         // Obtener tarifas para los nombres de tarifa
         const tarifas = await this.GET_DATA('getTarifas');
         if (Array.isArray(tarifas)) {
@@ -648,8 +662,10 @@ export default {
 /* Estilos generales de la tabla */
 .table-responsive {
   max-width: 100%;
-  overflow-x: auto !important; /* Asegura el scroll horizontal */
-  white-space: nowrap; /* Mantiene el texto en una línea */
+  overflow-x: auto !important;
+  /* Asegura el scroll horizontal */
+  white-space: nowrap;
+  /* Mantiene el texto en una línea */
 }
 
 .table {
@@ -759,6 +775,7 @@ export default {
     width: 100%;
   }
 }
+
 /* Ajuste para pantallas aún más pequeñas */
 @media (max-width: 360px) {
   .table td {
@@ -783,9 +800,11 @@ export default {
     width: 100%;
   }
 }
+
 .search-input-container {
   position: relative;
 }
+
 /* Contenedor de la búsqueda */
 .search-input-container {
   position: relative;
@@ -795,14 +814,16 @@ export default {
 .search-input {
   background-color: transparent;
   border: 1px solid #ccc;
-  padding-right: 35px; /* Espacio para el ícono dentro del input */
+  padding-right: 35px;
+  /* Espacio para el ícono dentro del input */
 }
 
 /* Estilos para el ícono de lupa */
 .search-icon {
   position: absolute;
   top: 50%;
-  right: 10px; /* Ajusta la posición del ícono dentro del campo */
+  right: 10px;
+  /* Ajusta la posición del ícono dentro del campo */
   transform: translateY(-50%);
   cursor: pointer;
   color: #34447C;
@@ -812,6 +833,4 @@ export default {
 .search-icon:hover {
   color: #6c7a89;
 }
-
 </style>
-

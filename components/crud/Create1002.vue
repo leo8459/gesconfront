@@ -45,32 +45,32 @@ export default {
             let missingField = '';
 
             // Validamos cada campo y asignamos el mensaje correspondiente si falta uno
-            if (!this.model.nombre) {
-                missingField = 'Nombre de la sucursal';
-            } else if (!this.model.sigla) {
-                missingField = 'Sigla';
-            } else if (!this.model.empresa_id) {
-                missingField = 'Empresa';
-            } else if (!this.model.origen) {
-                missingField = 'Departamento de la sucursal';
-            } else if (!this.model.acuerdo_contrato) {
-                missingField = 'Acuerdo contrato';
-            } else if (!this.model.tipo_contrato) {
-                missingField = 'Tipo de contrato';
-            } else if (!this.model.ini_vigencia) {
-                missingField = 'Inicio de contrato';
-            } else if (!this.model.fin_vigencia) {
-                missingField = 'Fin de contrato';
-            }
-            else if (!this.model.cobertura) {
-                missingField = 'Cobertura';
-            } else if (!this.model.acuerdos) {
-                missingField = 'Acuerdo';
-            } else if (!this.model.email) {
-                missingField = 'Email';
-            } else if (!this.model.password) {
-                missingField = 'Password';
-            }
+            // if (!this.model.nombre) {
+            //     missingField = 'Nombre de la sucursal';
+            // } else if (!this.model.sigla) {
+            //     missingField = 'Sigla';
+            // } else if (!this.model.empresa_id) {
+            //     missingField = 'Empresa';
+            // } else if (!this.model.origen) {
+            //     missingField = 'Departamento de la sucursal';
+            // } else if (!this.model.acuerdo_contrato) {
+            //     missingField = 'Acuerdo contrato';
+            // } else if (!this.model.tipo_contrato) {
+            //     missingField = 'Tipo de contrato';
+            // } else if (!this.model.ini_vigencia) {
+            //     missingField = 'Inicio de contrato';
+            // } else if (!this.model.fin_vigencia) {
+            //     missingField = 'Fin de contrato';
+            // }
+            // else if (!this.model.cobertura) {
+            //     missingField = 'Cobertura';
+            // } else if (!this.model.acuerdos) {
+            //     missingField = 'Acuerdo';
+            // } else if (!this.model.email) {
+            //     missingField = 'Email';
+            // } else if (!this.model.password) {
+            //     missingField = 'Password';
+            // }
 
             // Si falta un campo, mostramos una alerta específica
             if (missingField) {
