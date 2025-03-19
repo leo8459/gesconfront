@@ -122,71 +122,70 @@ export default {
     },
 
     async descargarPdf() {
-    const doc = new jsPDF({
+      const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'pt',
         format: 'legal'
-    });
+      });
 
-    const marginLeft = 0; // Sin márgenes laterales
-    const marginTop = 30;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
+      const marginLeft = 30;
+      const marginTop = 30;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
 
-    const imgWidth = 170.1; // 1 cm de ancho
-    const imgHeight =  28.35; // 6 cm de largo
-    const rowHeight = imgHeight + 40; // Espaciado entre filas
-    const codesPerRow = 4;
-    
-    // Se ajusta el espaciado horizontal para aprovechar todo el ancho de la hoja
-    const colSpacing = (pageWidth - (imgWidth * codesPerRow)) / (codesPerRow - 1);
-    const textOffset = 20;
+      const imgWidth = 170;
+      const imgHeight = 28;
+      const rowHeight = 70;
+      const colSpacing = 23;
+      const codesPerRow = 3;
+      const lineOffset = 10;
 
-    let xPos = marginLeft;
-    let yPos = marginTop;
+      let xPos = marginLeft;
+      let yPos = marginTop;
 
-    let repeatedBarcodes = [];
-    this.barcodes.forEach(barcode => {
+      let repeatedBarcodes = [];
+      this.barcodes.forEach(barcode => {
         for (let i = 0; i < 4; i++) {
-            repeatedBarcodes.push(barcode);
+          repeatedBarcodes.push(barcode);
         }
-    });
+      });
 
-    for (let i = 0; i < repeatedBarcodes.length; i++) {
+      for (let i = 0; i < repeatedBarcodes.length; i++) {
         const colIndex = i % codesPerRow;
-
-        // Ajuste de posición sin márgenes laterales
         xPos = marginLeft + (colIndex * (imgWidth + colSpacing));
 
         const { base64, code } = repeatedBarcodes[i];
         const dataUrl = `data:image/png;base64,${base64}`;
 
-        // Agregar código de barras
         doc.addImage(dataUrl, 'PNG', xPos, yPos, imgWidth, imgHeight);
+        doc.setFontSize(12);
+        doc.text(code, xPos + (imgWidth / 2) - (doc.getTextWidth(code) / 2), yPos + imgHeight + 15);
 
-        // Agregar texto debajo del código de barras
-        doc.setFontSize(10);
-        doc.text(code, xPos + (imgWidth / 2) - (doc.getTextWidth(code) / 2), yPos + imgHeight + textOffset);
-
-        // Salto de fila
-        if (colIndex === codesPerRow - 1 || i === repeatedBarcodes.length - 1) {
-            yPos += rowHeight;
-
-            // Salto de página si la fila siguiente no cabe
-            if (yPos + rowHeight > pageHeight) {
-                doc.addPage();
-                yPos = marginTop;
-            }
+        if (i < repeatedBarcodes.length - codesPerRow) {
+          doc.setLineDash([5, 3]);
+          doc.line(marginLeft, yPos + rowHeight - lineOffset, pageWidth - marginLeft, yPos + rowHeight - lineOffset);
+          doc.setLineDash([]);
         }
+
+        if (colIndex < codesPerRow - 1) {
+          let xLine = xPos + imgWidth + (colSpacing / 2);
+          doc.setLineDash([5, 3]);
+          doc.line(xLine, yPos, xLine, yPos + rowHeight);
+          doc.setLineDash([]);
+        }
+
+        if (colIndex === codesPerRow - 1 || i === repeatedBarcodes.length - 1) {
+          yPos += rowHeight;
+
+          if (yPos + rowHeight > pageHeight) {
+            doc.addPage();
+            yPos = marginTop;
+          }
+        }
+      }
+
+      doc.save('barcodes.pdf');
     }
-
-    doc.save('barcodes.pdf');
-}
-
-
-
-
-
   },
 
   mounted() {
