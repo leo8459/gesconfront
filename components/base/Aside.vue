@@ -235,6 +235,11 @@
                   <span class="sidenav-normal full-width-text">Devoluciones</span>
                 </nuxtLink>
               </li>
+              <li class="nav-item" v-if="isSucursale">
+                <nuxtLink class="nav-link full-width-link" to="/sucursal/eventossucursales/eventossucursale">
+                  <span class="sidenav-normal full-width-text">Eventos</span>
+                </nuxtLink>
+              </li>
             </ul>
           </div>
         </li>
