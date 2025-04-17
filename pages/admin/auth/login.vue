@@ -71,8 +71,9 @@ import administradorApi from '@/plugins/administrador';
 import gestoresApi from '@/plugins/gestores'; // Importar el plugin gestores
 import contratosApi from '@/plugins/contratos'; // Importar el plugin contratos
 const anime = require('animejs/lib/anime.js'); // Usando la versión CommonJS de anime.js
-// import introJs from 'introjs';
-// import 'introjs/introjs.css';
+import introJs from 'intro.js';
+import 'intro.js/introjs.css';
+
 
 export default {
   data() {
@@ -95,16 +96,16 @@ export default {
     this.animateImage();
     this.animateText();
     this.loadRecaptcha();
-    // this.startIntro();  // El tour solo se mostrará si no se ha mostrado antes
+    this.startIntro();  // El tour solo se mostrará si no se ha mostrado antes
 
   },
   methods: {
-    // startIntro() {
-    //   if (!localStorage.getItem('introShown')) {
-    //     introJs().start();
-    //     localStorage.setItem('introShown', 'true');
-    //   }
-    // },
+    startIntro() {
+      if (!localStorage.getItem('introShown')) {
+        introJs().start();
+        localStorage.setItem('introShown', 'true');
+      }
+    },
     toggleAnimation() {
       // Pausar o reanudar la animación
       this.isPaused = !this.isPaused;
@@ -135,71 +136,71 @@ export default {
         autoplay: true // Se reproduce automáticamente
       });
     },
-    // showTutorial() {
-    //   const intro = introJs();
+    showTutorial() {
+      const intro = introJs();
 
-    //   intro.onchange((targetElement) => {
-    //     // Simula la escritura del email cuando el tutorial apunta al campo de email
-    //     if (targetElement.querySelector('input[type="text"]')) {
-    //       this.typeText('email', 'bnblp@gmail.com'); // Simula la escritura en el campo de email
-    //     }
+      intro.onchange((targetElement) => {
+        // Simula la escritura del email cuando el tutorial apunta al campo de email
+        if (targetElement.querySelector('input[type="text"]')) {
+          this.typeText('email', 'bnblp@gmail.com'); // Simula la escritura en el campo de email
+        }
 
-    //     // Simula la escritura de la contraseña cuando el tutorial apunta al campo de password
-    //     if (targetElement.querySelector('input[type="password"]')) {
-    //       this.typeText('password', '12345678'); // Simula la escritura en el campo de password
-    //     }
-    //   });
+        // Simula la escritura de la contraseña cuando el tutorial apunta al campo de password
+        if (targetElement.querySelector('input[type="password"]')) {
+          this.typeText('password', '12345678'); // Simula la escritura en el campo de password
+        }
+      });
 
-    //   intro.oncomplete(() => {
-    //     // Simula el clic en el botón de ingresar después de finalizar el tutorial
-    //     this.simulateClick('loginButton');  // Simula el clic en el botón de Ingresar
-    //   });
+      intro.oncomplete(() => {
+        // Simula el clic en el botón de ingresar después de finalizar el tutorial
+        this.simulateClick('loginButton');  // Simula el clic en el botón de Ingresar
+      });
 
-    //   intro.start();  // Inicia el tutorial de Intro.js
-    // },
+      intro.start();  // Inicia el tutorial de Intro.js
+    },
 
     // Función que simula el clic en un botón por su referencia
-    // simulateClick(buttonRef) {
-    //   const button = this.$refs[buttonRef];
-    //   if (button) {
-    //     button.click();  // Simula un clic en el botón de Ingresar
-    //   }
-    // },
+    simulateClick(buttonRef) {
+      const button = this.$refs[buttonRef];
+      if (button) {
+        button.click();  // Simula un clic en el botón de Ingresar
+      }
+    },
 
-    // // Función que simula la animación de escritura letra por letra
-    // typeText(field, text) {
-    //   let i = 0;
-    //   this.model[field] = '';  // Limpiamos el campo antes de empezar a escribir
-    //   const interval = setInterval(() => {
-    //     if (i < text.length) {
-    //       this.model[field] += text.charAt(i);  // Agrega una letra por vez
-    //       i++;
-    //     } else {
-    //       clearInterval(interval);  // Detiene la animación cuando el texto está completo
-    //     }
-    //   }, 100);  // Velocidad de la animación (100 ms entre letras)
-    // },
+    // Función que simula la animación de escritura letra por letra
+    typeText(field, text) {
+      let i = 0;
+      this.model[field] = '';  // Limpiamos el campo antes de empezar a escribir
+      const interval = setInterval(() => {
+        if (i < text.length) {
+          this.model[field] += text.charAt(i);  // Agrega una letra por vez
+          i++;
+        } else {
+          clearInterval(interval);  // Detiene la animación cuando el texto está completo
+        }
+      }, 100);  // Velocidad de la animación (100 ms entre letras)
+    },
 
-    // // Función que simula el clic en un botón por su referencia
-    // simulateClick(buttonRef) {
-    //   const button = this.$refs[buttonRef];
-    //   if (button) {
-    //     button.click();  // Simula un clic en el botón de Ingresar
-    //   }
-    // },
+    // Función que simula el clic en un botón por su referencia
+    simulateClick(buttonRef) {
+      const button = this.$refs[buttonRef];
+      if (button) {
+        button.click();  // Simula un clic en el botón de Ingresar
+      }
+    },
 
-    // // Función que simula la animación de escritura letra por letra
-    // typeText(field, text) {
-    //   let i = 0;
-    //   const interval = setInterval(() => {
-    //     if (i < text.length) {
-    //       this.model[field] += text.charAt(i);  // Agrega una letra por vez
-    //       i++;
-    //     } else {
-    //       clearInterval(interval);  // Detiene la animación cuando el texto está completo
-    //     }
-    //   }, 100);  // Velocidad de la animación (100 ms entre letras)
-    // },
+    // Función que simula la animación de escritura letra por letra
+    typeText(field, text) {
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < text.length) {
+          this.model[field] += text.charAt(i);  // Agrega una letra por vez
+          i++;
+        } else {
+          clearInterval(interval);  // Detiene la animación cuando el texto está completo
+        }
+      }, 100);  // Velocidad de la animación (100 ms entre letras)
+    },
 
     regresarBienvenida() {
       this.$router.push('/auth/welcome');
