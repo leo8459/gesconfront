@@ -132,7 +132,7 @@
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/cartero/eventocarteros/eventocartero">
-                  <span class="sidenav-normal"> Eventos</span>
+                  <span class="sidenav-normal"> Rastreo</span>
                 </nuxtLink>
               </li>
             </ul>
@@ -237,7 +237,7 @@
               </li>
               <li class="nav-item" v-if="isSucursale">
                 <nuxtLink class="nav-link full-width-link" to="/sucursal/eventossucursales/eventossucursale">
-                  <span class="sidenav-normal full-width-text">Eventos</span>
+                  <span class="sidenav-normal full-width-text">Rastreo</span>
                 </nuxtLink>
               </li>
             </ul>
@@ -449,7 +449,7 @@
               </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/contrato/eventocontratos/eventocontrato">
-                  <span class="sidenav-normal"> Eventos</span>
+                  <span class="sidenav-normal"> Rastreo</span>
                 </nuxtLink>
               </li>
             </ul>

@@ -228,15 +228,16 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item =>
-        item.estado === 2 &&
-        item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
-        Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        )
-      );
-    },
+  const searchTerm = this.searchTerm.toLowerCase();
+  return this.list.filter(item =>
+    (item.estado === 2 || item.estado === 9) &&
+    item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
+    Object.values(item).some(value =>
+      String(value).toLowerCase().includes(searchTerm)
+    )
+  );
+},
+
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;

@@ -30,7 +30,7 @@
                         placeholder="Ej: Juan Pérez">
                     </div>
                     <div class="form-group col-12">
-                      <label for="codigo_paquete">Código del Paquete y Casilla</label>
+                      <label for="codigo_paquete">Correspondencia de la Casilla</label>
                       <v-select :options="paquetes" v-model="model.alquiler_id" label="display"
                         :reduce="paquete => paquete.codigo" placeholder="Seleccionar paquete...">
                         <template #option="option">

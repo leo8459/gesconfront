@@ -358,7 +358,7 @@ const end = this.endDate ? new Date(this.endDate + 'T23:59:59') : null;
       { header: 'Peso (Kg)', key: 'peso', width: 15 },
       { header: 'Fecha de Entrega', key: 'fecha_entrega', width: 20 },
       { header: 'Precio (Bs)', key: 'precio', width: 15 },
-      { header: 'Firma (Bs)', key: '', width: 20 },
+      { header: 'Firma', key: '', width: 20 },
 
 
     ];
