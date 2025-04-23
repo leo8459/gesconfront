@@ -82,6 +82,12 @@
                   <span class="sidenav-normal full-width-text"> Solicitudes </span>
                 </nuxtLink>
               </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/admin/verlogs/log">
+                  <span class="sidenav-mini-icon"> Logs </span>
+                  <span class="sidenav-normal full-width-text"> Logs </span>
+                </nuxtLink>
+              </li>
               <!-- Añadir más elementos de navegación como este -->
             </ul>
           </div>
