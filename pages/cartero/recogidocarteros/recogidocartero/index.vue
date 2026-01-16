@@ -59,7 +59,7 @@
                         <td class="py-0 px-1" data-label="Guía">{{ m.peso_o }}</td>
 
                         <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
-                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica }}
+                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica_d }}
                         </td>
                         <td class="py-0 px-1" data-label="Zona">{{ m.direccion.zona }}</td>
                         <td class="py-0 px-1" data-label="Dirección maps">
