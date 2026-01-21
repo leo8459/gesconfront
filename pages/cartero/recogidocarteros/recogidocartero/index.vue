@@ -14,9 +14,11 @@
             </div>
           </div>
         </div>
-        <button @click="goToNuevo2" style="background-color: #0056B3; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer;">
-  Boleta Digital
-</button>
+        
+        <button @click="openManualModal"
+          style="background-color:#F39C12; color:white; padding:10px 15px; border:none; border-radius:5px; cursor:pointer; margin-left:10px;">
+          Registro Manual
+        </button>
 
 
 
@@ -46,45 +48,89 @@
                         <th class="py-0 px-1">Teléfono D</th>
                         <th class="py-0 px-1">Dirección Destinatario</th>
                         <th class="py-0 px-1">Municipio/Provincia</th>
-                        <th class="py-0 px-1">Zona Destinatario</th>
+                        
                         <!-- Nueva columna para la acción -->
                         <th class="py-0 px-1">Acción</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i">
-                        <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="p-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
-                        <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
-                        <td class="py-0 px-1" data-label="Guía">{{ m.peso_o }}</td>
+                                                <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
 
-                        <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
-                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica_d }}
+                        <td class="p-1" data-label="Sucursal">
+                          {{ showNull(m?.sucursale?.nombre) }}
                         </td>
-                        <td class="py-0 px-1" data-label="Zona">{{ m.direccion.zona }}</td>
+
+                        <td class="py-0 px-1" data-label="Guía">
+                          {{ showNull(m?.guia) }}
+                        </td>
+
+                        <td class="py-0 px-1" data-label="Peso">
+                          {{ showNull(m?.peso_o) }}
+                        </td>
+
+                        <td class="py-0 px-1" data-label="Remitente">
+                          {{ showNull(m?.remitente) }}
+                        </td>
+
+                        <td class="py-0 px-1" data-label="Detalles de Domicilio">
+                          {{ showNull(m?.direccion?.direccion_especifica_d) }}
+                        </td>
+
+                        <td class="py-0 px-1" data-label="Zona">
+                          {{ showNull(m?.direccion?.zona) }}
+                        </td>
+
                         <td class="py-0 px-1" data-label="Dirección maps">
-                          <a v-if="isCoordinates(m.direccion.direccion)"
+                          <a v-if="m?.direccion?.direccion && isCoordinates(m.direccion.direccion)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
                             target="_blank" class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion.direccion }}</span>
+                          <span v-else>
+                            {{ showNull(m?.direccion?.direccion) }}
+                          </span>
                         </td>
-                        <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
-                        <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
-                        <td class="py-0 px-1" data-label="Fecha Solicitud">{{ m.fecha_recojo_c }}</td>
-                        <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1" data-label="Teléfono D">{{ m.telefono_d }}</td>
+
+                        <td class="py-0 px-1" data-label="Teléfono">
+                          {{ showNull(m?.telefono) }}
+                        </td>
+
+                        <td class="py-0 px-1" data-label="Contenido">
+                          {{ showNull(m?.contenido) }}
+                        </td>
+
+                        <td class="py-0 px-1" data-label="Fecha Solicitud">
+                          {{ showNull(m?.fecha_recojo_c) }}
+                        </td>
+
+                        <td class="py-0 px-1" data-label="Destinatario">
+                          {{ showNull(m?.destinatario) }}
+                        </td>
+
+                        <td class="py-0 px-1" data-label="Teléfono D">
+                          {{ showNull(m?.telefono_d) }}
+                        </td>
+
                         <td class="py-0 px-1" data-label="Dirección Destinatario">
-                          <a v-if="isCoordinates(m.direccion_d)"
+                          <a v-if="m?.direccion_d && isCoordinates(m.direccion_d)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                             class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion_d }}</span>
+                          <span v-else>
+                            {{ showNull(m?.direccion_d) }}
+                          </span>
                         </td>
-                        <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1" data-label="Zona Destinatario">{{ m.zona_d }}</td>
+
+                        <td class="py-0 px-1" data-label="Municipio/Provincia">
+                          {{ showNull(m?.ciudad) }}
+                        </td>
+
+                        <td class="py-0 px-1" data-label="Zona Destinatario">
+                          {{ showNull(m?.zona_d) }}
+                        </td>
+
                         <!-- Botón para abrir el modal de observación -->
                         <td class="py-0 px-1" data-label="Acción">
                           <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm w-100">
@@ -198,6 +244,49 @@
         <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
       </div>
     </b-modal>
+    <b-modal v-model="isManualModalVisible" title="Registro Manual de Solicitud" hide-backdrop hide-footer>
+      <div class="form-group">
+        <label>Sucursal</label>
+        <select v-model="manualForm.sucursale_id" class="form-control">
+          <option value="">-- Seleccione --</option>
+          <option v-for="s in sucursales" :key="s.id" :value="s.id">
+            {{ s.sigla }} - {{ s.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Departamento</label>
+        <select v-model="manualForm.tarifa_id" class="form-control">
+          <option value="">-- Seleccione --</option>
+         <option v-for="t in tarifasModal" :key="t.id" :value="t.id">
+  {{ t.departamento }} - {{ t.servicio }}
+</option>
+
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Guía (manual)</label>
+        <input v-model="manualForm.guia" type="text" class="form-control" placeholder="Ej: 0101020001" />
+      </div>
+
+      <div class="form-group">
+        <label>Peso Correos (Kg)</label>
+        <input v-model="manualForm.peso_v" type="text" class="form-control" placeholder="000.001" />
+      </div>
+
+      <div class="form-group">
+        <label>Observación</label>
+        <textarea v-model="manualForm.observacion" class="form-control" rows="3"></textarea>
+      </div>
+
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isManualModalVisible = false">Cancelar</button>
+        <button class="btn btn-primary ml-2" @click="submitManualSolicitude">Guardar</button>
+      </div>
+    </b-modal>
+
   </div>
 </template>
 
@@ -231,9 +320,10 @@ export default {
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
       url_editar: '/admin/solicitudescartero/solicitudecartero/editar/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',
-      url_nuevo2: '/cartero/recogidocarteros/recogidocartero/nuevo2',
 
       tarifas: [], // Inicializamos tarifas como un array vacío
+      tarifasModal: [],
+
       collapseState: {},
       isModalVisible: false,
       currentId: null,
@@ -251,6 +341,15 @@ export default {
       observacion: '',
       uploadedImage: '',
       selectedSolicitudeId: null,
+      isManualModalVisible: false,
+      sucursales: [],
+      manualForm: {
+        sucursale_id: '',
+        tarifa_id: '',
+        guia: '',
+        peso_v: '',
+        observacion: ''
+      }
     };
   },
   computed: {
@@ -313,10 +412,96 @@ export default {
       return Object.keys(this.selected).some(key => this.selected[key]);
     }
   },
+  watch: {
+  'manualForm.sucursale_id': {
+    immediate: true,
+    async handler(newVal) {
+      // Limpia tarifa seleccionada cuando cambias sucursal
+      this.manualForm.tarifa_id = '';
+
+      if (!newVal) {
+        this.tarifasModal = [];
+        return;
+      }
+
+      try {
+        // ✅ Llama al endpoint filtrado
+        const res = await this.$api.$get(`getTarifas?sucursale_id=${newVal}`);
+        this.tarifasModal = Array.isArray(res) ? res : [];
+      } catch (e) {
+        console.error('Error cargando tarifas por sucursal:', e);
+        this.tarifasModal = [];
+      }
+    }
+  }
+},
+
   methods: {
-    goToNuevo2() {
-    window.location.href = this.url_nuevo2;
-  },
+    showNull(v, fallback = 'NULL') {
+      // null, undefined, vacío o string "null"
+      if (v === null || v === undefined) return fallback;
+      if (typeof v === 'string' && v.trim() === '') return fallback;
+      if (typeof v === 'string' && v.trim().toLowerCase() === 'null') return fallback;
+      return v;
+    },
+
+  openManualModal() {
+  this.isManualModalVisible = true;
+
+  // Si ya hay sucursal seleccionada, fuerza cargar tarifas
+  if (this.manualForm.sucursale_id) {
+    this.$nextTick(async () => {
+      try {
+        const res = await this.$api.$get(`getTarifas?sucursale_id=${this.manualForm.sucursale_id}`);
+        this.tarifasModal = Array.isArray(res) ? res : [];
+      } catch (e) {
+        this.tarifasModal = [];
+      }
+    });
+  }
+},
+
+
+    async submitManualSolicitude() {
+      // Validación simple
+      if (!this.manualForm.sucursale_id || !this.manualForm.tarifa_id || !this.manualForm.guia) {
+        return this.$swal.fire({
+          icon: 'warning',
+          title: 'Faltan datos',
+          text: 'Sucursal, Tarifa y Guía son obligatorios.',
+        });
+      }
+
+      this.load = true;
+      try {
+        // cartero_recogida_id = usuario logueado (según tu localStorage)
+        const carteroId = this.user?.user?.id;
+
+        await this.$api.$post('solicitudes/manual', {
+          sucursale_id: this.manualForm.sucursale_id,
+          tarifa_id: this.manualForm.tarifa_id,
+          guia: this.manualForm.guia,
+          peso_v: this.manualForm.peso_v,
+          observacion: this.manualForm.observacion,
+          cartero_recogida_id: carteroId, // backend puede sobreescribirlo por seguridad
+        });
+
+        await this.GET_DATA(this.apiUrl).then((data) => (this.list = data));
+
+        this.$swal.fire({ icon: 'success', title: 'Registrado', text: 'Solicitud registrada correctamente.' });
+
+        // reset
+        this.manualForm = { sucursale_id: '', tarifa_id: '', guia: '', peso_v: '', observacion: '' };
+        this.isManualModalVisible = false;
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo registrar la solicitud.' });
+      } finally {
+        this.load = false;
+      }
+    },
+
+   
     focusPesoInput() {
       this.$refs.pesoInput[0].focus(); // Asegúrate de que el campo de entrada esté enfocado
     },
@@ -600,42 +785,52 @@ export default {
   },
   mounted() {
     this.$nextTick(async () => {
-      let user = localStorage.getItem('userAuth');
+      // 1) Leer usuario logueado
+      const userStr = localStorage.getItem('userAuth');
 
-      if (user) {
-        this.user = JSON.parse(user);
-
-        if (this.user.user.departamento_cartero) {
-          // Lógica adicional si es necesario
-        } else {
-          // Lógica adicional si es necesario
+      if (userStr) {
+        try {
+          this.user = JSON.parse(userStr);
+        } catch (e) {
+          console.error("Error parseando userAuth:", e);
+          this.user = { cartero: [] };
         }
       } else {
-        // Manejar el caso en que no hay usuario
+        // Si no hay usuario, inicializamos igual para evitar errores
+        this.user = { cartero: [] };
       }
 
+      // 2) Cargar data (solicitudes, tarifas, sucursales)
       try {
+        // Solicitudes
         const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-        } else {
-          // Manejar el caso en que los datos no son un array
-        }
+        this.list = Array.isArray(data) ? data : [];
 
-        // Obtener tarifas para los nombres de tarifa
+        // Tarifas
         const tarifas = await this.GET_DATA('getTarifas');
-        if (Array.isArray(tarifas)) {
-          this.tarifas = tarifas;
-        } else {
-          // Manejar el caso en que las tarifas no son un array
-        }
+        this.tarifas = Array.isArray(tarifas) ? tarifas : [];
+
+        // Sucursales (para el modal: mostrar sigla)
+        const sucursales = await this.GET_DATA('sucursales');
+        this.sucursales = Array.isArray(sucursales) ? sucursales : [];
+
+        // Opcional: si quieres que por defecto se seleccione la sucursal del usuario
+        // (solo si tu "user.user.id" representa sucursale_id en tu sistema)
+        // if (this.user?.user?.id) {
+        //   this.manualForm.sucursale_id = this.user.user.id;
+        // }
+
       } catch (e) {
-        // Manejar errores en la obtención de datos
+        console.error("Error cargando datos:", e);
+        this.list = [];
+        this.tarifas = [];
+        this.sucursales = [];
       } finally {
         this.load = false;
       }
     });
-  },
+  }
+  ,
 };
 </script>
 

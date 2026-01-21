@@ -7,7 +7,8 @@
           <!-- Input de búsqueda -->
           <div class="col-12 mb-3 text-center">
             <h3 class="animated-header">Búsqueda de Envío</h3>
-            <input v-model="searchTerm" type="text" class="form-control search-input mt-3" placeholder="Ingrese el número de guía..." />
+            <input v-model="searchTerm" type="text" class="form-control search-input mt-3"
+              placeholder="Ingrese el número de guía..." />
           </div>
 
           <div class="col-12" v-if="searchTerm">
@@ -21,8 +22,9 @@
                 <div class="timeline-content animated-content">
                   <h5 class="animated-event-date">{{ event.fecha_hora }}</h5>
                   <p class="animated-event-description">
-                    {{ event.codigo }} - {{ event.accion === "Recojo" ? "En camino" : event.accion }}
+                    {{ event.codigo }} - {{ event.accion }}
                   </p>
+
                 </div>
               </div>
             </div>
@@ -49,24 +51,46 @@ export default {
       user: {
         sucursale: []
       },
+      accionesPermitidas: [
+        "cancelado",
+        "Solicitud",
+        "En camino",
+        "Entregado",
+        "Verificados",
+        "Recojo",
+        "Solicitud Manual",
+        "Rechazado",
+        "Devolucion",
+        "Transito",
+        "En camino",
+        "Recibido en oficina",
+        "Reencaminado",
+        "Recibido origen"
+      ],
+
+
     };
   },
   computed: {
     filteredList() {
+      const searchTerm = (this.searchTerm || '').toLowerCase().trim();
+
       return this.list
         .filter(item => {
-          const searchTerm = this.searchTerm.toLowerCase();
-          const accionesFiltradas = ["Solicitud", "Recojo", "Entregado"];
+          if (!searchTerm) return false;
+
+          const codigo = (item.codigo || '').toLowerCase();
+          const accion = (item.accion || '');
+
+          // Filtra por guía y acciones permitidas
           return (
-            accionesFiltradas.includes(item.accion) &&
-            (item.codigo.toLowerCase().includes(searchTerm) ||
-              item.accion.toLowerCase().includes(searchTerm) ||
-              item.descripcion.toLowerCase().includes(searchTerm) ||
-              item.fecha_hora.toLowerCase().includes(searchTerm))
+            codigo.includes(searchTerm) &&
+            this.accionesPermitidas.includes(accion)
           );
         })
+        // ✅ ORDEN SOLO POR FECHA Y HORA
         .sort((a, b) => new Date(a.fecha_hora) - new Date(b.fecha_hora));
-    },
+    }
   },
   methods: {
     async GET_DATA(path) {
@@ -198,43 +222,98 @@ export default {
 }
 
 @keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes slideIn {
-  0% { transform: translateY(-20px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInUp {
-  0% { transform: translateY(20px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes slideInTimeline {
-  0% { transform: translateX(-30px); opacity: 0; }
-  100% { transform: translateX(0); opacity: 1; }
+  0% {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInContent {
-  0% { opacity: 0; transform: scale(0.9); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes fadeInText {
-  0% { opacity: 0; transform: translateY(10px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 </style>
