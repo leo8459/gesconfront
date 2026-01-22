@@ -49,39 +49,85 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(m, i) in paginatedData" :key="i">
+                      <tr v-for="(m, i) in paginatedData" :key="m?.id ?? i">
 
-                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="p-1">{{ m.sucursale.nombre }}</td>
-                        <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                        <td class="py-0 px-1">{{ m.direccion.zona }}</td>
                         <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion.direccion)"
+                          {{ currentPage * itemsPerPage + i + 1 }}
+                        </td>
+
+                        <td class="p-1">
+                          {{ m?.sucursale?.nombre ?? 'SIN SUCURSAL' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.guia ?? 'SIN GUÍA' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.remitente ?? 'SIN REMITENTE' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.direccion?.direccion_especifica ?? 'SIN DETALLE' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.direccion?.zona ?? 'SIN ZONA' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          <a v-if="m?.direccion?.direccion && isCoordinates(String(m.direccion.direccion))"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
                             target="_blank" class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion.direccion }}</span>
+                          <span v-else>
+                            {{ m?.direccion?.direccion ?? 'SIN DIRECCIÓN' }}
+                          </span>
                         </td>
-                        <td class="py-0 px-1">{{ m.telefono }}</td>
-                        <td class="py-0 px-1">{{ m.contenido }}</td>
-                        <td class="py-0 px-1">{{ m.fecha_envio_regional }}</td>
-                        <td class="py-0 px-1">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
+
                         <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion_d)"
+                          {{ m?.telefono ?? 'SIN TELÉFONO' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.contenido ?? 'SIN CONTENIDO' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.fecha_envio_regional ?? 'SIN FECHA' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.destinatario ?? 'SIN DESTINATARIO' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.telefono_d ?? 'SIN TELÉFONO' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          <a v-if="m?.direccion_d && isCoordinates(String(m.direccion_d))"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                             class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion_d }}</span>
+                          <span v-else>
+                            {{ m?.direccion_d ?? 'SIN DIRECCIÓN' }}
+                          </span>
                         </td>
-                        <td class="py-0 px-1">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1">{{ m.zona_d }}</td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.ciudad ?? 'SIN MUNICIPIO/PROV.' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.zona_d ?? 'SIN ZONA' }}
+                        </td>
+
                       </tr>
                     </tbody>
+
                   </table>
                 </div>
               </div>
@@ -137,23 +183,15 @@
 
     <!-- Modal para añadir peso_r -->
     <b-modal v-model="isModalVisible" :title="modalTitle" hide-backdrop hide-footer @shown="focusPesoInput">
-          <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-            <!-- Contenido del modal con los campos de peso -->
-            <label :for="'peso_r-' + item.id" class="mt-2">Peso oficina destino (Kg)</label>
-            <input 
-              type="text" 
-              :id="'peso_r-' + item.id" 
-              v-model="item.peso_r" 
-              class="form-control" 
-              ref="pesoInput"
-              placeholder="000.001" 
-              step="0.001" 
-              min="0.001"
-            />
-          </div>
-          <!-- Botón para agregar el paquete a la lista -->
-          <button class="btn btn-secondary" @click="handleAgregarPaquetes">Agregar a la lista</button>
-        </b-modal>
+      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
+        <!-- Contenido del modal con los campos de peso -->
+        <label :for="'peso_r-' + item.id" class="mt-2">Peso oficina destino (Kg)</label>
+        <input type="text" :id="'peso_r-' + item.id" v-model="item.peso_r" class="form-control" ref="pesoInput"
+          placeholder="000.001" step="0.001" min="0.001" />
+      </div>
+      <!-- Botón para agregar el paquete a la lista -->
+      <button class="btn btn-secondary" @click="handleAgregarPaquetes">Agregar a la lista</button>
+    </b-modal>
   </div>
 </template>
 
@@ -212,31 +250,31 @@ export default {
       return 'Asignar Peso Correos (Kg)';
     },
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    const departamento = this.user?.user?.departamento;
+      const searchTerm = this.searchTerm.toLowerCase();
+      const departamento = this.user?.user?.departamento;
 
-    if (!departamento) {
-      return [];
-    }
+      if (!departamento) {
+        return [];
+      }
 
-    // Filtrado y ordenación
-    return this.list
-      .filter(item => {
-        const matchesReencaminamiento = item.reencaminamiento && item.reencaminamiento === departamento;
-        const matchesDepartamento = item.tarifa?.departamento === departamento;
+      // Filtrado y ordenación
+      return this.list
+        .filter(item => {
+          const matchesReencaminamiento = item.reencaminamiento && item.reencaminamiento === departamento;
+          const matchesDepartamento = item.tarifa?.departamento === departamento;
 
-        const matchesSearchTerm = Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        );
+          const matchesSearchTerm = Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchTerm)
+          );
 
-        return (matchesReencaminamiento || matchesDepartamento) && matchesSearchTerm && (item.estado === 8 || item.estado === 12);
-      })
-      .sort((a, b) => {
-        const dateA = new Date(a.fecha_envio_regional);
-        const dateB = new Date(b.fecha_envio_regional);
-        return dateB - dateA; // Orden descendente
-      });
-  },
+          return (matchesReencaminamiento || matchesDepartamento) && matchesSearchTerm && (item.estado === 8 || item.estado === 12);
+        })
+        .sort((a, b) => {
+          const dateA = new Date(a.fecha_envio_regional);
+          const dateB = new Date(b.fecha_envio_regional);
+          return dateB - dateA; // Orden descendente
+        });
+    },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -252,22 +290,22 @@ export default {
   methods: {
 
     handleAgregarPaquetes() {
-    if (this.selectedItemsData.length > 0) {
-      const estado = this.selectedItemsData[0].estado;
-      if (estado === 8) {
-        this.agregarPaquetesALista();
-      } else if (estado === 12) {
-        this.devolverPaquete();
-      } else {
-        // Opcional: manejar otros estados o mostrar un mensaje
-        this.$swal.fire({
-          icon: 'warning',
-          title: 'Estado no manejado',
-          text: `El estado ${estado} no es manejado por esta acción.`,
-        });
+      if (this.selectedItemsData.length > 0) {
+        const estado = this.selectedItemsData[0].estado;
+        if (estado === 8) {
+          this.agregarPaquetesALista();
+        } else if (estado === 12) {
+          this.devolverPaquete();
+        } else {
+          // Opcional: manejar otros estados o mostrar un mensaje
+          this.$swal.fire({
+            icon: 'warning',
+            title: 'Estado no manejado',
+            text: `El estado ${estado} no es manejado por esta acción.`,
+          });
+        }
       }
-    }
-  },
+    },
     agregarALista(item) {
       this.updatePrice(item);
       const existe = this.selectedForDelivery.find(p => p.id === item.id);

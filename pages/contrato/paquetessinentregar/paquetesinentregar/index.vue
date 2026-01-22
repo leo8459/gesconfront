@@ -74,71 +74,176 @@
                         <th class="py-0 px-1"></th>
                       </tr>
                     </thead>
-                    <tbody>
-                      <tr v-for="(m, i) in paginatedData" :key="m.id">
-                        <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
-                        <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-                        <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
-                        <td class="py-0 px-1">{{ m.sucursale.acuerdos }}</td>
-                        <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.peso_o }}</td>
-                        <td class="py-0 px-1">{{ m.peso_v }}</td>
-                        <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                        <td class="py-0 px-1">{{ m.direccion.zona }}</td>
-                        <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion.direccion)"
-                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                            target="_blank" class="btn btn-primary btn-sm">
-                            Ver mapa
-                          </a>
-                          <span v-else>{{ m.direccion.direccion }}</span>
-                        </td>
-                        <td class="py-0 px-1">{{ m.telefono }}</td>
-                        <td class="py-0 px-1">{{ m.contenido }}</td>
-                        <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
-                        <td class="py-0 px-1">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                        <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion_d)"
-                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                            class="btn btn-primary btn-sm">
-                            Ver mapa
-                          </a>
-                          <span v-else>{{ m.direccion_d }}</span>
-                        </td>
-                        <td class="py-0 px-1">{{ m.zona_d }}</td>
-                        <td class="py-0 px-1">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                        <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                        <td class="py-0 px-1">
-                          <div class="d-flex flex-column align-items-center">
-                            <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                              class="btn btn-sm btn-primary mt-1 align-self-start">
-                              Descargar
-                            </button>
-                          </div>
-                        </td>
-                        <td class="py-0 px-1">{{ m.justificacion }}</td>
-                        <td class="py-0 px-1">
-                          <div class="d-flex flex-column align-items-center">
-                            <button v-if="m.imagen_justificacion" @click="downloadImage(m.imagen_justificacion)"
-                              class="btn btn-sm btn-primary mt-1 align-self-start">
-                              Descargar
-                            </button>
-                          </div>
-                        </td>
-                        <td class="py-0 px-1">{{ translateStatus(m.estado) }}</td> <!-- Mostrar estado traducido -->
+                  <tbody>
+  <tr v-for="(m, i) in paginatedData" :key="m.id">
+    <td class="py-0 px-1">
+      {{ i + 1 + (currentPage - 1) * itemsPerPage }}
+    </td>
 
-                        <td class="py-0 px-1">
-                          <div class="btn-group">
-                            <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
-                              <i class="fas fa-ban"></i> Justificar Correspondencia
-                            </nuxtLink>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
+    <!-- Cliente / Sucursal -->
+    <td class="p-1">
+      {{ m?.sucursale?.nombre ?? '' }}
+    </td>
+
+    <!-- Cartero Recogida -->
+    <td class="p-1">
+      {{ m?.cartero_recogida?.nombre ?? 'Por asignar' }}
+    </td>
+
+    <!-- Acuerdo de Recojo -->
+    <td class="py-0 px-1">
+      {{ m?.sucursale?.acuerdos ?? '' }}
+    </td>
+
+    <!-- Guía -->
+    <td class="py-0 px-1">
+      {{ m?.guia ?? '' }}
+    </td>
+
+    <!-- Peso Empresa -->
+    <td class="py-0 px-1">
+      {{ m?.peso_o ?? '' }}
+    </td>
+
+    <!-- Peso Correos -->
+    <td class="py-0 px-1">
+      {{ m?.peso_v ?? '' }}
+    </td>
+
+    <!-- Remitente -->
+    <td class="py-0 px-1">
+      {{ m?.remitente ?? '' }}
+    </td>
+
+    <!-- Dirección específica -->
+    <td class="py-0 px-1">
+      {{ m?.direccion?.direccion_especifica ?? '' }}
+    </td>
+
+    <!-- Zona origen -->
+    <td class="py-0 px-1">
+      {{ m?.direccion?.zona ?? '' }}
+    </td>
+
+    <!-- Dirección Maps -->
+    <td class="py-0 px-1">
+      <a
+        v-if="isCoordinates(m?.direccion?.direccion)"
+        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+        target="_blank"
+        class="btn btn-primary btn-sm"
+      >
+        Ver mapa
+      </a>
+      <span v-else>
+        {{ m?.direccion?.direccion ?? '' }}
+      </span>
+    </td>
+
+    <!-- Teléfono -->
+    <td class="py-0 px-1">
+      {{ m?.telefono ?? '' }}
+    </td>
+
+    <!-- Contenido -->
+    <td class="py-0 px-1">
+      {{ m?.contenido ?? '' }}
+    </td>
+
+    <!-- Fecha Recojo -->
+    <td class="py-0 px-1">
+      {{ m?.fecha_recojo_c ?? '' }}
+    </td>
+
+    <!-- Destinatario -->
+    <td class="py-0 px-1">
+      {{ m?.destinatario ?? '' }}
+    </td>
+
+    <!-- Teléfono Destinatario -->
+    <td class="py-0 px-1">
+      {{ m?.telefono_d ?? '' }}
+    </td>
+
+    <!-- Dirección Destinatario -->
+    <td class="py-0 px-1">
+      <a
+        v-if="isCoordinates(m?.direccion_d)"
+        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d"
+        target="_blank"
+        class="btn btn-primary btn-sm"
+      >
+        Ver mapa
+      </a>
+      <span v-else>
+        {{ m?.direccion_d ?? '' }}
+      </span>
+    </td>
+
+    <!-- Zona Destino -->
+    <td class="py-0 px-1">
+      {{ m?.zona_d ?? '' }}
+    </td>
+
+    <!-- Ciudad -->
+    <td class="py-0 px-1">
+      {{ m?.ciudad ?? '' }}
+    </td>
+
+    <!-- Precio -->
+    <td class="py-0 px-1">
+      {{ m?.nombre_d ?? '' }}
+    </td>
+
+    <!-- Fecha Entrega / Devolución -->
+    <td class="py-0 px-1">
+      {{ m?.fecha_d ?? '' }}
+    </td>
+
+    <!-- Imagen Capturada -->
+    <td class="py-0 px-1">
+      <button
+        v-if="m?.imagen"
+        @click="downloadImage(m.imagen)"
+        class="btn btn-sm btn-primary"
+      >
+        Descargar
+      </button>
+    </td>
+
+    <!-- Justificación -->
+    <td class="py-0 px-1">
+      {{ m?.justificacion ?? '' }}
+    </td>
+
+    <!-- Imagen Justificación -->
+    <td class="py-0 px-1">
+      <button
+        v-if="m?.imagen_justificacion"
+        @click="downloadImage(m.imagen_justificacion)"
+        class="btn btn-sm btn-primary"
+      >
+        Descargar
+      </button>
+    </td>
+
+    <!-- Estado -->
+    <td class="py-0 px-1">
+      {{ translateStatus(m?.estado) }}
+    </td>
+
+    <!-- Acción -->
+    <td class="py-0 px-1">
+      <nuxtLink
+        :to="url_editar + m.id"
+        class="btn btn-info btn-sm"
+      >
+        Justificar
+      </nuxtLink>
+    </td>
+  </tr>
+</tbody>
+
                   </table>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-3">
@@ -216,90 +321,121 @@ export default {
     };
   },
   computed: {
-    filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
+   filteredData() {
+  const searchTerm = (this.searchTerm || '').toLowerCase();
 
-      // Verificar si `this.list` es un array, de lo contrario, devolver un array vacío.
-      if (!Array.isArray(this.list)) {
-        return [];
+  // 🔒 Seguridad: si list no es array
+  if (!Array.isArray(this.list)) {
+    return [];
+  }
+
+  return this.list.filter(item => {
+
+    // ===============================
+    // ✅ FILTROS OBLIGATORIOS
+    // ===============================
+
+    // ❌ SIN SUCURSAL → FUERA
+    if (!item?.sucursale?.id) {
+      return false;
+    }
+
+    // ❌ SIN TARIFA (EMS) → FUERA
+    if (!item?.tarifa_id && !item?.tarifa) {
+      return false;
+    }
+
+    // ❌ SIN FECHA DE RECOJO → FUERA
+    if (!item?.fecha_recojo_c) {
+      return false;
+    }
+
+    // ❌ SIN SERVICIO → FUERA (evita crash)
+    const servicio = (item?.tarifa?.servicio ?? '').trim();
+    if (!servicio) {
+      return false;
+    }
+
+    // ===============================
+    // ⏱️ LÓGICA DE TIEMPOS (TU CÓDIGO)
+    // ===============================
+
+    let fechaLimite;
+
+    const serviciosPorDias = [
+      "SERVICIO COURIER NACIONAL (Normal)",
+      "SERVICIO COURIER LOCAL (Normal)",
+      "SERVICIO DE PROVINCIAS A NIVEL NACIONAL"
+    ];
+
+    const serviciosPorHoras = [
+      "SERVICIO COURIER NACIONAL (Expreso)",
+      "SERVICIO COURIER LOCAL (Expreso)"
+    ];
+
+    const recojoDate = new Date(item.fecha_recojo_c);
+
+    if (isNaN(recojoDate.getTime())) {
+      return false;
+    }
+
+    // 📆 SERVICIOS POR DÍAS
+    if (serviciosPorDias.includes(servicio)) {
+      const diasEntrega = (item?.tarifa?.dias_entrega ?? 0) / 24;
+      fechaLimite = this.addBusinessDays(recojoDate, diasEntrega);
+      fechaLimite.setHours(20, 0, 0, 0);
+    }
+
+    // ⏰ SERVICIOS POR HORAS
+    else if (serviciosPorHoras.includes(servicio)) {
+      fechaLimite = new Date(recojoDate);
+
+      if (recojoDate.getDay() === 5 && recojoDate.getHours() >= 17) {
+        fechaLimite = this.addBusinessDays(recojoDate, 1);
+        fechaLimite.setHours(9, 30, 0, 0);
+      } 
+      else if (recojoDate.getHours() >= 8 && recojoDate.getHours() < 10) {
+        fechaLimite.setHours(19, 0, 0, 0);
+      } 
+      else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 23) {
+        fechaLimite = this.addBusinessDays(recojoDate, 1);
+        fechaLimite.setHours(9, 30, 0, 0);
+      } 
+      else {
+        fechaLimite = new Date(
+          recojoDate.getTime() + (item?.tarifa?.dias_entrega ?? 0) * 60 * 60 * 1000
+        );
+
+        if (fechaLimite.getDay() === 6) {
+          fechaLimite = this.addBusinessDays(fechaLimite, 2);
+          fechaLimite.setHours(10, 0, 0, 0);
+        } 
+        else if (fechaLimite.getDay() === 0) {
+          fechaLimite = this.addBusinessDays(fechaLimite, 1);
+          fechaLimite.setHours(10, 0, 0, 0);
+        }
       }
+    }
 
-      return this.list.filter(item => {
-        // Excluir registros donde `fecha_recojo_c` esté vacío.
-        if (!item.fecha_recojo_c) {
-          return false;
-        }
+    // ❌ SERVICIO DESCONOCIDO
+    else {
+      return false;
+    }
 
-        const servicio = item.tarifa.servicio;
-        let fechaLimite;
+    // ===============================
+    // ✅ VALIDACIONES FINALES
+    // ===============================
 
-        // Definir los servicios que se calculan por días.
-        const serviciosPorDias = [
-          "SERVICIO COURIER NACIONAL (Normal)",
-          "SERVICIO COURIER LOCAL (Normal)",
-          "SERVICIO DE PROVINCIAS A NIVEL NACIONAL"
-        ];
+    const isLate = new Date() > fechaLimite;
+    const isValidState = [1, 2, 5, 8, 9].includes(item.estado);
 
-        // Definir los servicios que se calculan por horas.
-        const serviciosPorHoras = [
-          "SERVICIO COURIER NACIONAL (Expreso)",
-          "SERVICIO COURIER LOCAL (Expreso)"
-        ];
+    const matchesSearch = Object.values(item)
+      .some(v => String(v ?? '').toLowerCase().includes(searchTerm));
 
-        const recojoDate = new Date(item.fecha_recojo_c);
-
-        // Verificar si la fecha de recogida es válida.
-        if (isNaN(recojoDate.getTime())) {
-          return false;
-        }
-
-        // Calcular la fecha límite para los servicios que se calculan por días.
-        if (serviciosPorDias.includes(servicio)) {
-          const diasEntrega = item.tarifa.dias_entrega / 24; // Convertir el tiempo de entrega a días.
-          fechaLimite = this.addBusinessDays(recojoDate, diasEntrega); // Añadir días hábiles.
-          fechaLimite.setHours(20, 0, 0, 0); // Establecer la hora límite a las 8 PM.
-        } else if (serviciosPorHoras.includes(servicio)) {
-          // Calcular la fecha límite para los servicios que se calculan por horas.
-          fechaLimite = new Date(recojoDate);
-
-          if (recojoDate.getDay() === 5 && recojoDate.getHours() >= 17) {
-            // Si es viernes después de las 5 PM, mover la fecha límite al siguiente lunes a las 10 AM.
-            fechaLimite = this.addBusinessDays(recojoDate, 1);
-            fechaLimite.setHours(9, 30, 0, 0);
-          } else if (recojoDate.getHours() >= 8 && recojoDate.getHours() < 10) {
-            // Si es entre las 8 AM y las 10 AM, la fecha límite es el mismo día a las 8 PM.
-            fechaLimite.setHours(19, 0, 0, 0);
-          } else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 23) {
-            // Si es entre las 5 PM y las 7 PM, la fecha límite es el día siguiente a las 10 AM.
-            fechaLimite = this.addBusinessDays(recojoDate, 1);
-            fechaLimite.setHours(9, 30, 0, 0);
-          } else {
-            // Para otros horarios, añadir el tiempo de entrega en horas a la fecha de recogida.
-            fechaLimite = new Date(recojoDate.getTime() + item.tarifa.dias_entrega * 60 * 60 * 1000);
-            if (fechaLimite.getDay() === 6) {
-              // Si la fecha límite cae en sábado, moverla al lunes a las 10 AM.
-              fechaLimite = this.addBusinessDays(fechaLimite, 2);
-              fechaLimite.setHours(10, 0, 0, 0);
-            } else if (fechaLimite.getDay() === 0) {
-              // Si la fecha límite cae en domingo, moverla al lunes a las 10 AM.
-              fechaLimite = this.addBusinessDays(fechaLimite, 1);
-              fechaLimite.setHours(10, 0, 0, 0);
-            }
-          }
-        } else {
-          // Si el servicio no está en ninguna de las categorías, excluir el registro.
-          return false;
-        }
-
-        // Verificar si la fecha límite ha sido superada.
-        const isLate = new Date() > fechaLimite;
-        // Verificar si el estado es válido (1, 2, o 5).
-        const isValidState = [1, 2, 5, 8, 9].includes(item.estado);
-
-        // Retornar true si el registro es tardío, está en un estado válido, y coincide con el término de búsqueda.
-        return isLate && isValidState && Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
-      });
-    },
+    return isLate && isValidState && matchesSearch;
+  });
+}
+,
 
 
     paginatedData() {

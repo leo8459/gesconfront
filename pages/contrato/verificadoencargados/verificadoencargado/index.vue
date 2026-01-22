@@ -132,92 +132,103 @@
                         <th class="py-0 px-1"></th>
                       </tr>
                     </thead>
-                    <tbody>
-                      <tr v-for="(m, i) in paginatedData" :key="m.id">
-                        <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
-                        <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-                        <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
-                        <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
-                        <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.peso_o }}</td>
-                        <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
-                        <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                        <td class="py-0 px-1">{{ m.direccion.zona }}</td>
-                        <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion.direccion)"
-                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                            target="_blank" class="btn btn-primary btn-sm">
-                            Ver mapa
-                          </a>
-                          <span v-else>{{ m.direccion.direccion }}</span>
-                        </td>
-                        <td class="py-0 px-1">{{ m.telefono }}</td>
-                        <td class="py-0 px-1">{{ m.contenido }}</td>
-                        <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
-                        <td class="py-0 px-1">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                        <td class="py-0 px-1">{{ m.sucursale.pagador }}</td>
+                   <tbody>
+  <tr v-for="(m, i) in paginatedData" :key="m?.id ?? i">
+    <td class="py-0 px-1">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
 
-                        <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion_d)"
-                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                            class="btn btn-primary btn-sm">
-                            Ver mapa
-                          </a>
-                          <span v-else>{{ m.direccion_d }}</span>
-                        </td>
-                        <td class="py-0 px-1">{{ m.zona_d }}</td>
-                        <td class="py-0 px-1">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1">
-                          <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
-                        </td>
-                        <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                        <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                        <td class="py-0 px-1">
-                          <div class="d-flex flex-column align-items-center">
-                            <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                              class="btn btn-sm btn-primary mt-1 align-self-start">
-                              Descargar
-                            </button>
-                          </div>
-                        </td>
-                        <td class="py-0 px-1">{{ m.justificacion }}</td>
-                        <td class="py-0 px-1">
-                          <button v-if="m.pdf_justificacion" @click="downloadPDF(m.pdf_justificacion)"
-                            class="btn btn-sm btn-primary mt-1">
-                            Descargar PDF
-                          </button>
-                          <span v-else>No PDF</span>
-                        </td>
+    <td class="p-1">{{ m?.sucursale?.nombre ?? 'SIN SUCURSAL' }}</td>
+    <td class="p-1">{{ m?.cartero_recogida?.nombre ?? 'Por asignar' }}</td>
+    <td class="p-1">{{ m?.cartero_entrega?.nombre ?? 'Por asignar' }}</td>
 
+    <td class="py-0 px-1">{{ m?.guia ?? '-' }}</td>
+    <td class="py-0 px-1">{{ m?.peso_o ?? '-' }}</td>
+    <td class="py-0 px-1">{{ (m?.peso_r ?? m?.peso_v) ?? '-' }}</td>
 
-                        <td class="py-0 px-1">
-                          <div class="d-flex flex-column align-items-center">
-                            <button v-if="m.imagen_justificacion" @click="downloadImage(m.imagen_justificacion)"
-                              class="btn btn-sm btn-primary mt-1 align-self-start">
-                              Descargar
-                            </button>
-                          </div>
-                        </td>
-                        <td class="py-0 px-1">{{ m.fecha_devolucion }}</td>
-                        <td class="py-0 px-1">
-                          <div class="d-flex flex-column align-items-center">
-                            <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
-                              class="btn btn-sm btn-primary mt-1 align-self-start">
-                              Descargar
-                            </button>
-                          </div>
-                        </td>
-                        <td class="py-0 px-1">
-                          <div class="btn-group">
-                            <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
-                              <i class="fas fa-ban"></i> Justificar Correspondencia
-                            </nuxtLink>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
+    <td class="py-0 px-1">{{ m?.remitente ?? '-' }}</td>
+
+    <td class="py-0 px-1">{{ m?.direccion?.direccion_especifica ?? 'NULL' }}</td>
+    <td class="py-0 px-1">{{ m?.direccion?.zona ?? 'NULL' }}</td>
+    <td class="py-0 px-1">{{ m?.direccion?.direccion ?? 'NULL' }}</td>
+
+    <td class="py-0 px-1">{{ m?.telefono ?? '-' }}</td>
+    <td class="py-0 px-1">{{ m?.contenido ?? '-' }}</td>
+    <td class="py-0 px-1">{{ m?.fecha_recojo_c ?? '-' }}</td>
+
+    <td class="py-0 px-1">{{ m?.destinatario ?? '-' }}</td>
+    <td class="py-0 px-1">{{ m?.telefono_d ?? '-' }}</td>
+
+    <td class="py-0 px-1">{{ m?.sucursale?.pagador ?? 'S/N' }}</td>
+
+    <td class="py-0 px-1">
+      <a
+        v-if="m?.direccion_d && isCoordinates(m.direccion_d)"
+        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d"
+        target="_blank"
+        class="btn btn-primary btn-sm"
+      >
+        Ver mapa
+      </a>
+      <span v-else>{{ m?.direccion_d ?? '-' }}</span>
+    </td>
+
+    <td class="py-0 px-1">{{ m?.zona_d ?? '-' }}</td>
+    <td class="py-0 px-1">{{ m?.ciudad ?? '-' }}</td>
+
+    <td class="py-0 px-1">
+      <img v-if="m?.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
+      <span v-else>-</span>
+    </td>
+
+    <!-- Precio -->
+    <td class="py-0 px-1">{{ m?.nombre_d ?? '-' }}</td>
+
+    <td class="py-0 px-1">{{ m?.fecha_d ?? '-' }}</td>
+
+    <!-- Imagen capturada -->
+    <td class="py-0 px-1">
+      <button v-if="m?.imagen" @click="downloadImage(m.imagen)" class="btn btn-sm btn-primary mt-1">
+        Descargar
+      </button>
+      <span v-else>-</span>
+    </td>
+
+    <td class="py-0 px-1">{{ m?.justificacion ?? '-' }}</td>
+
+    <!-- PDF -->
+    <td class="py-0 px-1">
+      <button v-if="m?.pdf_justificacion" @click="downloadPDF(m.pdf_justificacion)" class="btn btn-sm btn-primary mt-1">
+        Descargar PDF
+      </button>
+      <span v-else>No PDF</span>
+    </td>
+
+    <!-- Imagen justificación -->
+    <td class="py-0 px-1">
+      <button v-if="m?.imagen_justificacion" @click="downloadImage(m.imagen_justificacion)" class="btn btn-sm btn-primary mt-1">
+        Descargar
+      </button>
+      <span v-else>-</span>
+    </td>
+
+    <td class="py-0 px-1">{{ m?.fecha_devolucion ?? '-' }}</td>
+
+    <td class="py-0 px-1">
+      <button v-if="m?.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)" class="btn btn-sm btn-primary mt-1">
+        Descargar
+      </button>
+      <span v-else>-</span>
+    </td>
+
+    <td class="py-0 px-1">
+      <div class="btn-group">
+        <nuxtLink v-if="m?.id" :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
+          <i class="fas fa-ban"></i> Justificar Correspondencia
+        </nuxtLink>
+      </div>
+    </td>
+  </tr>
+</tbody>
+
                   </table>
                 </div>
               </div>
@@ -370,34 +381,37 @@ export default {
     };
   },
   computed: {
-    filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      const startDate = this.startDate ? new Date(this.startDate) : null;
-      const endDate = this.endDate ? new Date(this.endDate) : null;
+ filteredData() {
+  const searchTerm = (this.searchTerm || '').toLowerCase();
 
-      if (endDate) {
-        endDate.setDate(endDate.getDate() + 1);
-      }
+  return (this.list || []).filter(item => {
 
-      return this.list.filter(item => {
-        const isMatchingSucursales = !this.selectedSucursales.length || this.selectedSucursales.map(id => String(id)).includes(String(item.sucursale?.id)); const isMatchingOrigen = !this.selectedOrigen || item.sucursale?.origen === this.selectedOrigen;
-        const isMatchingDepartamento = !this.selectedDepartamento || item.tarifa?.departamento === this.selectedDepartamento;
-        const isMatchingState = item.estado === 4 || item.estado === 7;
+    // 🔴 FILTRO CLAVE: SOLO CON SUCURSAL
+    if (!item?.sucursale || !item?.sucursale?.id) {
+      return false;
+    }
 
-        if (!item.fecha_d) {
-          return false; // Si fecha_d es null o undefined, omitir este item
-        }
+    // Estado válido (ajusta si usas otros)
+    const estadoValido = item.estado === 4 || item.estado === 7;
 
-        const [day, month, year, hour, minute] = item.fecha_d.split(/[\s/:]+/);
-        const itemDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00`);
+    // Búsqueda segura
+    const matchSearch = [
+      item.guia,
+      item.remitente,
+      item.destinatario,
+      item.telefono,
+      item.telefono_d,
+      item.ciudad,
+      item.zona_d,
+      item.sucursale.nombre
+    ]
+      .filter(v => v !== null && v !== undefined)
+      .some(v => String(v).toLowerCase().includes(searchTerm));
 
-        const isWithinDateRange = (!startDate || (itemDate && itemDate >= startDate)) && (!endDate || (itemDate && itemDate <= endDate));
+    return estadoValido && matchSearch;
+  });
+},
 
-        return isMatchingSucursales && isMatchingOrigen && isMatchingDepartamento && isMatchingState &&
-          isWithinDateRange &&
-          Object.values(item).some(value => String(value).toLowerCase().includes(searchTerm));
-      });
-    },
 
 
     paginatedData() {

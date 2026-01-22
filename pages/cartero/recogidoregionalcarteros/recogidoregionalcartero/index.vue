@@ -45,43 +45,106 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(m, i) in paginatedData" :key="i">
-                        <!-- Checkbox para seleccionar individualmente -->
+                      <tr v-for="(m, i) in paginatedData" :key="m.id">
+
+                        <!-- Checkbox -->
                         <td class="py-0 px-1">
-                          <input type="checkbox" :value="m" @change="toggleSelection(m)" />
+                          <input type="checkbox" :checked="selectedForDelivery.some(x => x.id === m.id)"
+                            @change="toggleSelection(m)" />
                         </td>
-                        <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="p-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
-                        <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
-                        <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
-                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica }}
+
+                        <!-- Nº -->
+                        <td class="py-0 px-1" data-label="Nº">
+                          {{ currentPage * itemsPerPage + i + 1 }}
                         </td>
-                        <td class="py-0 px-1" data-label="Zona">{{ m.direccion.zona }}</td>
+
+                        <!-- Sucursal -->
+                        <td class="p-1" data-label="Sucursal">
+                          {{ m?.sucursale?.nombre ?? 'SIN SUCURSAL' }}
+                        </td>
+
+                        <!-- Guía -->
+                        <td class="py-0 px-1" data-label="Guía">
+                          {{ m?.guia ?? '-' }}
+                        </td>
+
+                        <!-- Remitente -->
+                        <td class="py-0 px-1" data-label="Remitente">
+                          {{ m?.remitente ?? '-' }}
+                        </td>
+
+                        <!-- Dirección específica -->
+                        <td class="py-0 px-1" data-label="Detalles de Domicilio">
+                          {{ m?.direccion?.direccion_especifica ?? 'SIN DIRECCIÓN' }}
+                        </td>
+
+                        <!-- Zona -->
+                        <td class="py-0 px-1" data-label="Zona">
+                          {{ m?.direccion?.zona ?? '-' }}
+                        </td>
+
+                        <!-- Dirección Maps -->
                         <td class="py-0 px-1" data-label="Dirección maps">
-                          <a v-if="isCoordinates(m.direccion.direccion)"
+                          <a v-if="m?.direccion?.direccion && isCoordinates(m.direccion.direccion)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
                             target="_blank" class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion.direccion }}</span>
+                          <span v-else>
+                            {{ m?.direccion?.direccion ?? 'No disponible' }}
+                          </span>
                         </td>
-                        <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
-                        <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
-                        <td class="py-0 px-1" data-label="Fecha Solicitud">{{ m.fecha }}</td>
-                        <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1" data-label="Teléfono D">{{ m.telefono_d }}</td>
+
+                        <!-- Teléfono -->
+                        <td class="py-0 px-1" data-label="Teléfono">
+                          {{ m?.telefono ?? '-' }}
+                        </td>
+
+                        <!-- Contenido -->
+                        <td class="py-0 px-1" data-label="Contenido">
+                          {{ m?.contenido ?? '-' }}
+                        </td>
+
+                        <!-- Fecha -->
+                        <td class="py-0 px-1" data-label="Fecha Solicitud">
+                          {{ m?.fecha ?? '-' }}
+                        </td>
+
+                        <!-- Destinatario -->
+                        <td class="py-0 px-1" data-label="Destinatario">
+                          {{ m?.destinatario ?? '-' }}
+                        </td>
+
+                        <!-- Teléfono Destinatario -->
+                        <td class="py-0 px-1" data-label="Teléfono D">
+                          {{ m?.telefono_d ?? '-' }}
+                        </td>
+
+                        <!-- Dirección Destinatario -->
                         <td class="py-0 px-1" data-label="Dirección Destinatario">
-                          <a v-if="isCoordinates(m.direccion_d)"
+                          <a v-if="m?.direccion_d && isCoordinates(m.direccion_d)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                             class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion_d }}</span>
+                          <span v-else>
+                            {{ m?.direccion_d ?? 'No disponible' }}
+                          </span>
                         </td>
-                        <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1" data-label="Zona Destinatario">{{ m.zona_d }}</td>
+
+                        <!-- Municipio -->
+                        <td class="py-0 px-1" data-label="Municipio/Provincia">
+                          {{ m?.ciudad ?? '-' }}
+                        </td>
+
+                        <!-- Zona Destinatario -->
+                        <td class="py-0 px-1" data-label="Zona Destinatario">
+                          {{ m?.zona_d ?? '-' }}
+                        </td>
+
                       </tr>
                     </tbody>
+
                   </table>
                 </div>
               </div>
@@ -93,11 +156,11 @@
         <div v-if="selectedForDelivery.length > 0">
           <!-- Lista de seleccionados -->
           <h5>Seleccionados para entrega:</h5>
-          
+
           <div class="table-responsive">
             <button @click="startDelivery" class="btn btn-primary btn-sm mb-3">
-            <i class="fas fa-truck"></i> Empezar Entrega
-          </button>
+              <i class="fas fa-truck"></i> Empezar Entrega
+            </button>
             <table class="table table-sm table-bordered">
               <thead>
                 <tr>
@@ -112,8 +175,9 @@
                 <tr v-for="(item, index) in selectedForDelivery" :key="index">
                   <td class="py-0 px-1" data-label="Nº">{{ index + 1 }}</td>
                   <td class="py-0 px-1" data-label="Guía">{{ item.guia }}</td>
-                  <td class="py-0 px-1" data-label="Sucursal">{{ item.sucursale.nombre }}</td>
-                  <td class="py-0 px-1" data-label="Departamento">{{ item.tarifa.departamento }}</td>
+                  <td class="py-0 px-1" data-label="Sucursal">{{ item?.sucursale?.nombre ?? 'SIN SUCURSAL' }}</td>
+                  <td class="py-0 px-1" data-label="Departamento">{{ item?.tarifa?.departamento ?? 'SIN TARIFA' }}</td>
+
                   <td class="py-0 px-1" data-label="Peso Correos (Kg)">{{ item.peso_r }}</td>
                 </tr>
               </tbody>
@@ -121,7 +185,7 @@
           </div>
 
           <!-- Botón para iniciar la entrega -->
-        
+
         </div>
       </div>
     </AdminTemplate>
@@ -208,46 +272,50 @@ export default {
       }
     },
     async startDelivery() {
-  const cartero_entrega_id = this.user?.user?.id || null;
-  try {
-    for (const item of this.selectedForDelivery) {
-      await this.$api.$put(`/encaminoregional/${item.id}`, {
-        cartero_entrega_id,
-      });
+      const cartero_entrega_id = this.user?.user?.id || null;
+      try {
+        for (const item of this.selectedForDelivery) {
+          await this.$api.$put(`/encaminoregional/${item.id}`, {
+            cartero_entrega_id,
+          });
+        }
+
+        // Mostrar la alerta con SweetAlert cuando todos los envíos estén en camino
+        Swal.fire({
+          icon: 'success',
+          title: 'Envíos en camino',
+          text: 'Todos los envíos seleccionados han sido marcados como en camino.',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          // Recargar la página una vez que se cierre la alerta
+          location.reload();
+        });
+
+      } catch (error) {
+        console.error(`Error entregando la solicitud:`, error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al intentar enviar las solicitudes.',
+          confirmButtonText: 'OK'
+        });
+      }
     }
-    
-    // Mostrar la alerta con SweetAlert cuando todos los envíos estén en camino
-    Swal.fire({
-      icon: 'success',
-      title: 'Envíos en camino',
-      text: 'Todos los envíos seleccionados han sido marcados como en camino.',
-      confirmButtonText: 'OK'
-    }).then(() => {
-      // Recargar la página una vez que se cierre la alerta
-      location.reload();
-    });
-    
-  } catch (error) {
-    console.error(`Error entregando la solicitud:`, error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Hubo un error al intentar enviar las solicitudes.',
-      confirmButtonText: 'OK'
-    });
-  }
-}
-,
+    ,
 
     handleSearchEnter() {
       const filteredItems = this.filteredData;
-      if (filteredItems.length > 0) {
-        const item = filteredItems[0];
-        this.selected[item.id] = true;
-        this.updateSelectedItems();
-        this.searchTerm = '';
-      }
+      if (!filteredItems || filteredItems.length === 0) return;
+
+      const item = filteredItems[0];
+
+      // evita duplicados
+      const exists = this.selectedForDelivery.some(x => x.id === item.id);
+      if (!exists) this.selectedForDelivery.push(item);
+
+      this.searchTerm = '';
     },
+
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
       return res;

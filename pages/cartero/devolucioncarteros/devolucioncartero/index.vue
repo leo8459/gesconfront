@@ -26,7 +26,7 @@
           <div class="col-12">
             <div class="card border-rounded">
               <div class="card-header">
-                DEVOLUCION EN CAMINO 
+                DEVOLUCION EN CAMINO
               </div>
               <div class="card-body p-2">
                 <div class="table-responsive">
@@ -49,41 +49,99 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(m, i) in paginatedData" :key="i">
-                        <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="p-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
-                        <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
-                        <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
-                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica }}
+                      <tr v-for="(m, i) in paginatedData" :key="m?.id ?? i">
+
+                        <!-- Nº -->
+                        <td class="py-0 px-1" data-label="Nº">
+                          {{ currentPage * itemsPerPage + i + 1 }}
                         </td>
-                        <td class="py-0 px-1" data-label="Zona">{{ m.direccion.zona }}</td>
+
+                        <!-- Sucursal -->
+                        <td class="p-1" data-label="Sucursal">
+                          {{ m?.sucursale?.nombre ?? 'SIN SUCURSAL' }}
+                        </td>
+
+                        <!-- Guía -->
+                        <td class="py-0 px-1" data-label="Guía">
+                          {{ m?.guia ?? '-' }}
+                        </td>
+
+                        <!-- Remitente -->
+                        <td class="py-0 px-1" data-label="Remitente">
+                          {{ m?.remitente ?? '-' }}
+                        </td>
+
+                        <!-- Detalles domicilio -->
+                        <td class="py-0 px-1" data-label="Detalles de Domicilio">
+                          {{ m?.direccion?.direccion_especifica ?? '-' }}
+                        </td>
+
+                        <!-- Zona -->
+                        <td class="py-0 px-1" data-label="Zona">
+                          {{ m?.direccion?.zona ?? '-' }}
+                        </td>
+
+                        <!-- Dirección maps -->
                         <td class="py-0 px-1" data-label="Dirección maps">
-                          <a v-if="isCoordinates(m.direccion.direccion)"
+                          <a v-if="m?.direccion?.direccion && isCoordinates(m.direccion.direccion)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
                             target="_blank" class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion.direccion }}</span>
+
+                          <a v-else-if="m?.direccion?.direccion"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+
+                          <span v-else>
+                            No disponible
+                          </span>
                         </td>
-                        <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
-                        <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
-                        <td class="py-0 px-1" data-label="Fecha Solicitud">{{ m.fecha_recojo_c }}</td>
-                        <td class="py-0 px-1" data-label="Observación">{{ m.observacion }}</td>
+
+                        <!-- Teléfono -->
+                        <td class="py-0 px-1" data-label="Teléfono">
+                          {{ m?.telefono ?? '-' }}
+                        </td>
+
+                        <!-- Contenido -->
+                        <td class="py-0 px-1" data-label="Contenido">
+                          {{ m?.contenido ?? '-' }}
+                        </td>
+
+                        <!-- Fecha Solicitud -->
+                        <td class="py-0 px-1" data-label="Fecha Solicitud">
+                          {{ m?.fecha_recojo_c ?? m?.fecha ?? '-' }}
+                        </td>
+
+                        <!-- Observación -->
+                        <td class="py-0 px-1" data-label="Observación">
+                          {{ m?.observacion ?? '-' }}
+                        </td>
+
+                        <!-- Imagen -->
                         <td class="py-0 px-1" data-label="Imagen">
                           <div class="d-flex flex-column align-items-center">
-                            <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                            <button v-if="m?.imagen" @click="downloadImage(m.imagen)"
+                              class="btn btn-sm btn-primary mt-1">
                               Descargar
                             </button>
+                            <span v-else>-</span>
                           </div>
                         </td>
+
+                        <!-- Acción -->
                         <td class="py-0 px-1">
-                          <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
+                          <button v-if="m?.id" @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
                             <i class="fas fa-undo"></i> Devolver a Origen
                           </button>
+                          <span v-else>-</span>
                         </td>
+
                       </tr>
                     </tbody>
+
                   </table>
                 </div>
               </div>
@@ -110,34 +168,35 @@
       </div>
     </AdminTemplate>
 
-    <b-modal v-model="isObservationModalVisible" title="Agregar Observación" @shown="initializeSignaturePad" hide-backdrop hide-footer>
-  <div class="form-group">
-    <label for="capturephoto">Subir Foto</label>
-    <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
-    <img v-if="uploadedImage" :src="uploadedImage" class="img-fluid mt-2" />
-  </div>
-  
-  <!-- Firma del Operador -->
-  <div class="form-group">
-    <label for="firma_o">Firma Operador</label>
-    <input type="text" v-model.trim="model.firma_o" class="form-control d-none" id="firma_o">
-    <div class="position-relative">
-      <canvas id="canvas_firma_o" class="border border-2 rounded-3 bg-white" width="350px" height="250px"></canvas>
-      <div class="btn-canvas">
-        <button type="button" id="guardar_firma_o" class="btn btn-primary">Guardar</button>
-        <button type="button" id="limpiar_firma_o" class="btn btn-secondary">Limpiar</button>
+    <b-modal v-model="isObservationModalVisible" title="Agregar Observación" @shown="initializeSignaturePad"
+      hide-backdrop hide-footer>
+      <div class="form-group">
+        <label for="capturephoto">Subir Foto</label>
+        <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
+        <img v-if="uploadedImage" :src="uploadedImage" class="img-fluid mt-2" />
       </div>
-    </div>
-  </div>
 
-  <div class="d-flex justify-content-end">
-    <button class="btn btn-secondary" @click="isObservationModalVisible = false">Cancelar</button>
-    <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
-  </div>
-</b-modal>
+      <!-- Firma del Operador -->
+      <div class="form-group">
+        <label for="firma_o">Firma Operador</label>
+        <input type="text" v-model.trim="model.firma_o" class="form-control d-none" id="firma_o">
+        <div class="position-relative">
+          <canvas id="canvas_firma_o" class="border border-2 rounded-3 bg-white" width="350px" height="250px"></canvas>
+          <div class="btn-canvas">
+            <button type="button" id="guardar_firma_o" class="btn btn-primary">Guardar</button>
+            <button type="button" id="limpiar_firma_o" class="btn btn-secondary">Limpiar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isObservationModalVisible = false">Cancelar</button>
+        <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
+      </div>
+    </b-modal>
 
 
-   
+
   </div>
 </template>
 
@@ -179,45 +238,45 @@ export default {
       observacion: '',
       uploadedImage: '', // Añadido para manejar la imagen subida
       model: {
-      firma_o: '',  // Firma del operador
-      firma_d: '',  // Firma del destinatario
-      observacion: '',
-      imagen: '', // Para la imagen subida
-      fecha_devolucion: '', // Agrega esta si también la usas
-      user: {
-        cartero: []
+        firma_o: '',  // Firma del operador
+        firma_d: '',  // Firma del destinatario
+        observacion: '',
+        imagen: '', // Para la imagen subida
+        fecha_devolucion: '', // Agrega esta si también la usas
+        user: {
+          cartero: []
+        },
       },
-    },
     };
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
+      const searchTerm = this.searchTerm.toLowerCase();
 
-    return this.list
-      .filter(item => {
-        // Filtrar por estado (6 o 13)
-        const isCorrectState = item.estado === 6 || item.estado === 13;
+      return this.list
+        .filter(item => {
+          // Filtrar por estado (6 o 13)
+          const isCorrectState = item.estado === 6 || item.estado === 13;
 
-        // Filtrar por término de búsqueda
-        const matchesSearchTerm = Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        );
+          // Filtrar por término de búsqueda
+          const matchesSearchTerm = Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchTerm)
+          );
 
-        // Filtrar por sucursal seleccionada (si hay alguna seleccionada)
-        const matchesSucursal = this.selectedSucursal
-          ? item.sucursale.id === this.selectedSucursal
-          : true; // Si no hay sucursal seleccionada, mostrar todas
+          // Filtrar por sucursal seleccionada (si hay alguna seleccionada)
+          const matchesSucursal = this.selectedSucursal
+            ? item.sucursale.id === this.selectedSucursal
+            : true; // Si no hay sucursal seleccionada, mostrar todas
 
-        return isCorrectState && matchesSearchTerm && matchesSucursal;
-      })
-      .sort((a, b) => {
-        // Ordenar por `fecha_recojo_c` de forma descendente
-        const dateA = new Date(a.fecha_recojo_c);
-        const dateB = new Date(b.fecha_recojo_c);
-        return dateB - dateA; // Orden descendente
-      });
-  },
+          return isCorrectState && matchesSearchTerm && matchesSucursal;
+        })
+        .sort((a, b) => {
+          // Ordenar por `fecha_recojo_c` de forma descendente
+          const dateA = new Date(a.fecha_recojo_c);
+          const dateB = new Date(b.fecha_recojo_c);
+          return dateB - dateA; // Orden descendente
+        });
+    },
 
     uniqueSucursalesInTable() {
       const sucursalIds = new Set();
@@ -246,72 +305,72 @@ export default {
   },
   methods: {
     initializeSignaturePad() {
-    const canvasFirmaO = document.getElementById('canvas_firma_o');
-    
-    if (canvasFirmaO) {
-      const signaturePadFirmaO = new SignaturePad(canvasFirmaO);
-      const clearButtonFirmaO = document.getElementById('limpiar_firma_o');
-      const generateButtonFirmaO = document.getElementById('guardar_firma_o');
+      const canvasFirmaO = document.getElementById('canvas_firma_o');
 
-      clearButtonFirmaO.addEventListener('click', () => {
-        signaturePadFirmaO.clear();
-        this.model.firma_o = "";
-      });
+      if (canvasFirmaO) {
+        const signaturePadFirmaO = new SignaturePad(canvasFirmaO);
+        const clearButtonFirmaO = document.getElementById('limpiar_firma_o');
+        const generateButtonFirmaO = document.getElementById('guardar_firma_o');
 
-      generateButtonFirmaO.addEventListener('click', () => {
-        const firmaO = signaturePadFirmaO.toDataURL();
-        this.model.firma_o = firmaO;
-        
-        // Verificar si la firma fue capturada correctamente
-        if (this.model.firma_o) {
-          // Mostrar mensaje de éxito con SweetAlert
-          Swal.fire({
-            icon: 'success',
-            title: 'Firma registrada',
-            text: 'Firma del operador registrada exitosamente.'
-          });
-        } else {
-          // Mostrar mensaje de error si no hay firma
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo registrar la firma. Inténtalo de nuevo.'
-          });
-        }
-      });
-    } else {
-      console.error("Canvas para firma del operador no encontrado.");
-    }
-  },
+        clearButtonFirmaO.addEventListener('click', () => {
+          signaturePadFirmaO.clear();
+          this.model.firma_o = "";
+        });
+
+        generateButtonFirmaO.addEventListener('click', () => {
+          const firmaO = signaturePadFirmaO.toDataURL();
+          this.model.firma_o = firmaO;
+
+          // Verificar si la firma fue capturada correctamente
+          if (this.model.firma_o) {
+            // Mostrar mensaje de éxito con SweetAlert
+            Swal.fire({
+              icon: 'success',
+              title: 'Firma registrada',
+              text: 'Firma del operador registrada exitosamente.'
+            });
+          } else {
+            // Mostrar mensaje de error si no hay firma
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'No se pudo registrar la firma. Inténtalo de nuevo.'
+            });
+          }
+        });
+      } else {
+        console.error("Canvas para firma del operador no encontrado.");
+      }
+    },
     handleSucursalChange() {
       this.currentPage = 0; // Reiniciar la paginación cuando se selecciona una nueva sucursal
     },
-      async confirmRechazar() {
-    this.load = true;
+    async confirmRechazar() {
+      this.load = true;
 
-    try {
-      const optimizedImage = await this.optimizeImage(this.uploadedImage);
-      const formattedDate = this.getFormattedDate();
-      const carteroId = this.user.user.id;
+      try {
+        const optimizedImage = await this.optimizeImage(this.uploadedImage);
+        const formattedDate = this.getFormattedDate();
+        const carteroId = this.user.user.id;
 
-      await this.$api.$put(`devolucion/${this.selectedSolicitudeId}`, {
-        fecha_devolucion: formattedDate,
-        observacion: this.observacion,
-        imagen_devolucion: optimizedImage,
-        cartero_entrega_id: carteroId,
-        firma_o: this.model.firma_o // Incluye la firma del operador
-      });
+        await this.$api.$put(`devolucion/${this.selectedSolicitudeId}`, {
+          fecha_devolucion: formattedDate,
+          observacion: this.observacion,
+          imagen_devolucion: optimizedImage,
+          cartero_entrega_id: carteroId,
+          firma_o: this.model.firma_o // Incluye la firma del operador
+        });
 
-      this.showSuccessMessage();
-      this.resetForm();
-    } catch (e) {
-      console.error(e);
-      this.showErrorMessage();
-    } finally {
-      this.load = false;
+        this.showSuccessMessage();
+        this.resetForm();
+      } catch (e) {
+        console.error(e);
+        this.showErrorMessage();
+      } finally {
+        this.load = false;
+      }
     }
-  }
-  ,
+    ,
 
     async optimizeImage(imageDataUrl) {
       const pica = Pica();
@@ -590,96 +649,96 @@ export default {
   mounted() {
     this.$nextTick(async () => {
       let user = localStorage.getItem('userAuth');
-      this.user = JSON.parse(user);    try {
-      await this.GET_DATA(this.apiUrl);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      this.load = false;
-    }
-
-    // Código relacionado con la firma (sin cambios)
-    var canvas2 = document.getElementById('canvas2');
-    var signaturePad2 = new SignaturePad(canvas2);
-    var clearButton2 = document.getElementById('limpiar2');
-    var generateButton2 = document.getElementById('guardar2');
-
-    clearButton2.addEventListener('click', () => {
-      signaturePad2.clear();
-      this.model.firma_d = "";
-    });
-
-    generateButton2.addEventListener('click', () => {
-      var firma2 = signaturePad2.toDataURL();
-      this.model.firma_d = firma2;
-      Swal.fire({
-        icon: 'success',
-        title: 'Firma registrada',
-        text: 'Firma registrada exitosamente.'
-      });
-    });
-
-    // Manejo de la captura de foto con límite de tamaño muy bajo
-    var fileInput = document.getElementById('capturephoto');
-
-    fileInput.addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            // Definir una resolución baja
-            const maxWidth = 1750; // Ancho máximo
-            const maxHeight = 1750; // Alto máximo
-
-            let width = img.width;
-            let height = img.height;
-
-            // Escalar la imagen a las dimensiones más pequeñas posibles
-            if (width > height) {
-              if (width > maxWidth) {
-                height *= maxWidth / width;
-                width = maxWidth;
-              }
-            } else {
-              if (height > maxHeight) {
-                width *= maxHeight / height;
-                height = maxHeight;
-              }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(img, 0, 0, width, height);
-
-            // Comprimir la imagen en formato WebP lo máximo posible
-            let quality = 0.4; // Calidad baja
-            let dataurl = canvas.toDataURL('image/webp', quality);
-
-            // Intentar reducir el tamaño por debajo de 1 KB
-            while (dataurl.length > 100000 && quality > 0.01) {
-              quality -= 0.01;
-              dataurl = canvas.toDataURL('image/webp', quality);
-            }
-
-            this.model.imagen = dataurl; // Guardar la imagen comprimida en el modelo
-
-            // Mostrar alerta cuando se sube una foto
-            Swal.fire({
-              icon: 'success',
-              title: 'Foto registrada',
-              text: 'La foto se ha subido exitosamente.'
-            });
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+      this.user = JSON.parse(user); try {
+        await this.GET_DATA(this.apiUrl);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.load = false;
       }
-    });
+
+      // Código relacionado con la firma (sin cambios)
+      var canvas2 = document.getElementById('canvas2');
+      var signaturePad2 = new SignaturePad(canvas2);
+      var clearButton2 = document.getElementById('limpiar2');
+      var generateButton2 = document.getElementById('guardar2');
+
+      clearButton2.addEventListener('click', () => {
+        signaturePad2.clear();
+        this.model.firma_d = "";
+      });
+
+      generateButton2.addEventListener('click', () => {
+        var firma2 = signaturePad2.toDataURL();
+        this.model.firma_d = firma2;
+        Swal.fire({
+          icon: 'success',
+          title: 'Firma registrada',
+          text: 'Firma registrada exitosamente.'
+        });
+      });
+
+      // Manejo de la captura de foto con límite de tamaño muy bajo
+      var fileInput = document.getElementById('capturephoto');
+
+      fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+
+              // Definir una resolución baja
+              const maxWidth = 1750; // Ancho máximo
+              const maxHeight = 1750; // Alto máximo
+
+              let width = img.width;
+              let height = img.height;
+
+              // Escalar la imagen a las dimensiones más pequeñas posibles
+              if (width > height) {
+                if (width > maxWidth) {
+                  height *= maxWidth / width;
+                  width = maxWidth;
+                }
+              } else {
+                if (height > maxHeight) {
+                  width *= maxHeight / height;
+                  height = maxHeight;
+                }
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+              ctx.drawImage(img, 0, 0, width, height);
+
+              // Comprimir la imagen en formato WebP lo máximo posible
+              let quality = 0.4; // Calidad baja
+              let dataurl = canvas.toDataURL('image/webp', quality);
+
+              // Intentar reducir el tamaño por debajo de 1 KB
+              while (dataurl.length > 100000 && quality > 0.01) {
+                quality -= 0.01;
+                dataurl = canvas.toDataURL('image/webp', quality);
+              }
+
+              this.model.imagen = dataurl; // Guardar la imagen comprimida en el modelo
+
+              // Mostrar alerta cuando se sube una foto
+              Swal.fire({
+                icon: 'success',
+                title: 'Foto registrada',
+                text: 'La foto se ha subido exitosamente.'
+              });
+            };
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
     });
 
   },

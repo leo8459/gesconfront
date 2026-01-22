@@ -67,62 +67,79 @@
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i">
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="p-1">{{ m.sucursale.nombre }}</td>
-                        <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
-                        <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
-                        <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <!-- Mostrar la dirección específica -->
+
+                        <td class="p-1">{{ m?.sucursale?.nombre ?? 'NULL' }}</td>
+
+                        <td class="p-1">{{ m?.cartero_entrega?.nombre ?? 'Por asignar' }}</td>
+
+                        <td class="py-0 px-1">{{ m?.guia ?? 'NULL' }}</td>
+
+                        <td class="py-0 px-1">{{ (m?.peso_r ?? m?.peso_v) ?? 'NULL' }}</td>
+
+                        <td class="py-0 px-1">{{ m?.remitente ?? 'NULL' }}</td>
+
+                        <!-- Dirección maps (NULL safe) -->
                         <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion.direccion)"
+                          <a v-if="m?.direccion?.direccion && isCoordinates(m.direccion.direccion)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
                             target="_blank" class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion.direccion }}</span>
+                          <span v-else>{{ m?.direccion?.direccion ?? 'NULL' }}</span>
                         </td>
-                        <td class="py-0 px-1">{{ m.telefono }}</td>
-                        <td class="py-0 px-1">{{ m.contenido }}</td>
-                        <td class="py-0 px-1">{{ m.fecha }}</td>
-                        <td class="py-0 px-1">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
+
+                        <td class="py-0 px-1">{{ m?.telefono ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.contenido ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.fecha ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.destinatario ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.telefono_d ?? 'NULL' }}</td>
+
                         <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion_d)"
+                          <a v-if="m?.direccion_d && isCoordinates(m.direccion_d)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                             class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion_d }}</span>
-                        </td>
-                        <td class="py-0 px-1">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1">{{ m.zona_d }}</td>
-                        <td class="py-0 px-1">
-                          <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
-                        </td>
-                        <td class="py-0 px-1">{{ m.entrega_observacion }}</td>
-
-                        <td class="py-0 px-1">
-                          <span v-if="m.fecha_devolucion">{{ m.fecha_devolucion }}</span>
-                          <span v-else>{{ m.fecha_d }}</span>
+                          <span v-else>{{ m?.direccion_d ?? 'NULL' }}</span>
                         </td>
 
+                        <td class="py-0 px-1">{{ m?.ciudad ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.zona_d ?? 'NULL' }}</td>
 
                         <td class="py-0 px-1">
+                          <img v-if="m?.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
+                          <span v-else>NULL</span>
+                        </td>
 
-                          <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                            class="btn btn-sm btn-primary mt-1">Descargar</button>
+                        <td class="py-0 px-1">{{ m?.entrega_observacion ?? 'NULL' }}</td>
+
+                        <td class="py-0 px-1">
+                          <span v-if="m?.fecha_devolucion">{{ m.fecha_devolucion }}</span>
+                          <span v-else>{{ m?.fecha_d ?? 'NULL' }}</span>
                         </td>
 
                         <td class="py-0 px-1">
-                          <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Destino" width="100" />
+                          <button v-if="m?.imagen" @click="downloadImage(m.imagen)" class="btn btn-sm btn-primary mt-1">
+                            Descargar
+                          </button>
+                          <span v-else>NULL</span>
                         </td>
-                        <td class="py-0 px-1">
 
-                          <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
-                            class="btn btn-sm btn-primary mt-1">Descargar</button>
+                        <td class="py-0 px-1">
+                          <img v-if="m?.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
+                          <span v-else>NULL</span>
+                        </td>
+
+                        <td class="py-0 px-1">
+                          <button v-if="m?.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
+                            class="btn btn-sm btn-primary mt-1">
+                            Descargar
+                          </button>
+                          <span v-else>NULL</span>
                         </td>
                       </tr>
                     </tbody>
+
                   </table>
                 </div>
               </div>
@@ -201,41 +218,61 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
+      const searchTerm = (this.searchTerm || '').toLowerCase();
+      const carteroId = this.user?.user?.id;
 
-      return this.list
-        .filter(item =>
-          (item.estado === 3 || item.estado === 4 || item.estado === 10 || item.estado === 7) &&
-          item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
-          Object.values(item).some(value =>
-            String(value).toLowerCase().includes(searchTerm)
-          )
-        )
+      return (this.list || [])
+        .filter(item => {
+          const estadoOk = [3, 4, 10, 7].includes(item?.estado);
+
+          // ✅ mismo cartero (si es null no entra)
+          const mismoCartero = item?.cartero_entrega?.id === carteroId;
+
+          // ✅ contratos + EMS (ambos pasan, solo filtramos por estado y cartero)
+          const esEMS = (item?.tipo_correspondencia ?? '').toUpperCase() === 'EMS';
+          const esContrato = !esEMS; // si quieres separar después
+
+          // ✅ búsqueda segura (no revienta con nulls)
+          const coincideBusqueda =
+            Object.values(item || {}).some(v =>
+              String(v ?? '').toLowerCase().includes(searchTerm)
+            ) ||
+            String(item?.sucursale?.nombre ?? '').toLowerCase().includes(searchTerm) ||
+            String(item?.direccion?.direccion ?? '').toLowerCase().includes(searchTerm);
+
+          // ✅ mantiene estados + cartero + búsqueda + muestra contratos y EMS
+          return estadoOk && mismoCartero && coincideBusqueda && (esContrato || esEMS);
+        })
         .sort((a, b) => {
-          // Usamos fecha_devolucion si existe, de lo contrario usamos fecha_d
-          const dateA = a.fecha_devolucion || a.fecha_d;
-          const dateB = b.fecha_devolucion || b.fecha_d;
+          const parseFecha = (str) => {
+            if (!str) return 0;
 
-          // Asegúrate de que ambas fechas existen y tienen el formato correcto
-          if (dateA && dateB) {
-            const [dayA, monthA, yearTimeA] = dateA.split('/');
-            const [dayB, monthB, yearTimeB] = dateB.split('/');
+            // formato esperado: "dd/mm/yyyy HH:MM"
+            const parts = String(str).split(' ');
+            const datePart = parts[0] || '';
+            const timePart = parts[1] || '00:00';
 
-            const [yearA, timeA] = yearTimeA.split(' ');
-            const [yearB, timeB] = yearTimeB.split(' ');
+            const [day, month, year] = datePart.split('/');
+            const [hours, minutes] = timePart.split(':');
 
-            const [hoursA, minutesA] = timeA.split(':');
-            const [hoursB, minutesB] = timeB.split(':');
+            const d = new Date(
+              Number(year || 0),
+              Number(month || 1) - 1,
+              Number(day || 1),
+              Number(hours || 0),
+              Number(minutes || 0)
+            );
 
-            const dateObjA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA);
-            const dateObjB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB);
+            return isNaN(d.getTime()) ? 0 : d.getTime();
+          };
 
-            // Orden descendente (del más nuevo al más antiguo)
-            return dateObjB - dateObjA;
-          }
-          return 0;
+          const dateA = a?.fecha_devolucion || a?.fecha_d;
+          const dateB = b?.fecha_devolucion || b?.fecha_d;
+
+          return parseFecha(dateB) - parseFecha(dateA); // descendente
         });
-    },
+    }
+    ,
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -351,20 +388,27 @@ export default {
       };
 
       filteredData.forEach((m, i) => {
-        const estadoTexto = m.estado === 3 ? 'ENTREGADO' : 'ENTREGADO';
+        const estadoTexto = 'ENTREGADO';
+
+        // ✅ AHORA SERVICIO = NOMBRE DE SUCURSAL
+        const servicioTexto =
+          m?.sucursale?.nombre
+          ?? (((m?.tipo_correspondencia ?? '').toUpperCase() === 'EMS')
+            ? 'PARTICULAR'
+            : 'SIN SUCURSAL');
 
         const row = worksheet.addRow({
           index: i + 1,
-          servicio: m.tarifa.servicio,
-          guia: m.guia,
-          fecha: m.fecha_recojo_c,
-          ciudad: m.ciudad,
-          zona_destinatario: m.zona_d,
-          cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
-          peso_correos: m.peso_v + ' Kg',
-          fecha_destinatario: m.fecha_d,
+          servicio: servicioTexto,
+          guia: m?.guia ?? 'NULL',
+          fecha: m?.fecha_recojo_c ?? 'NULL',
+          ciudad: m?.ciudad ?? 'NULL',
+          zona_destinatario: m?.zona_d ?? 'NULL',
+          cartero: m?.cartero_entrega?.nombre ?? 'Por asignar',
+          peso_correos: m?.peso_v ? `${m.peso_v} Kg` : 'NULL',
+          fecha_destinatario: m?.fecha_d ?? 'NULL',
           estado: estadoTexto,
-          observacion: m.observacion,
+          observacion: m?.observacion ?? 'NULL',
         });
 
         const fillColor = i % 2 === 0 ? 'FFCCFFCC' : 'FF99CCFF';
@@ -382,6 +426,7 @@ export default {
           };
         });
       });
+
 
       worksheet.eachRow({ includeEmpty: true }, function (row) {
         row.height = 25;

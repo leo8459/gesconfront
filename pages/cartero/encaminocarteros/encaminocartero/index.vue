@@ -42,44 +42,62 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(m, i) in paginatedData" :key="i">
+                      <tr v-for="(m, i) in paginatedData" :key="m?.id ?? i">
                         <td class="py-0 px-1">
-                          <input type="checkbox" v-model="selected[m.id]">
+                          <input type="checkbox" v-model="selected[m?.id]" :disabled="!m?.id">
                         </td>
+
                         <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="py-0 px-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
-                        <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
-                        <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
-                        <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
-                        <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
-                        <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1" data-label="Teléfono Destinatario">{{ m.telefono_d }}</td>
+
+                        <!-- ✅ sucursale puede ser null -->
+                        <td class="py-0 px-1" data-label="Sucursal">
+                          {{ m?.sucursale?.nombre ?? 'SIN SUCURSAL' }}
+                        </td>
+
+                        <td class="py-0 px-1" data-label="Guía">{{ m?.guia ?? 'NULL' }}</td>
+                        <td class="py-0 px-1" data-label="Remitente">{{ m?.remitente ?? 'NULL' }}</td>
+                        <td class="py-0 px-1" data-label="Teléfono">{{ m?.telefono ?? 'NULL' }}</td>
+                        <td class="py-0 px-1" data-label="Contenido">{{ m?.contenido ?? 'NULL' }}</td>
+                        <td class="py-0 px-1" data-label="Destinatario">{{ m?.destinatario ?? 'NULL' }}</td>
+                        <td class="py-0 px-1" data-label="Teléfono Destinatario">{{ m?.telefono_d ?? 'NULL' }}</td>
+
                         <td class="py-0 px-1" data-label="Dirección Destinatario Maps">
-                          <a v-if="isCoordinates(m.direccion_d) || m.direccion_especifica_d"
-                            :href="'https://www.google.com/maps/search/?api=1&query=' + (isCoordinates(m.direccion_d) ? m.direccion_d : m.direccion_especifica_d)"
+                          <a v-if="(m?.direccion_d && isCoordinates(m.direccion_d)) || m?.direccion_especifica_d"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + ((m?.direccion_d && isCoordinates(m.direccion_d)) ? m.direccion_d : m.direccion_especifica_d)"
                             target="_blank" class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
                           <span v-else>No hay dirección disponible</span>
                         </td>
 
-                        <td class="py-0 px-1" data-label="Dirección">{{ m.direccion_especifica_d }}</td>
-                        <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1" data-label="Zona">{{ m.zona_d }}</td>
+                        <td class="py-0 px-1" data-label="Dirección">{{ m?.direccion_especifica_d ?? 'NULL' }}</td>
+                        <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m?.ciudad ?? 'NULL' }}</td>
+                        <td class="py-0 px-1" data-label="Zona">{{ m?.zona_d ?? 'NULL' }}</td>
+
                         <td class="py-0 px-1" data-label="Acción">
                           <div class="btn-group">
-                            <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2 w-100">
+                            <nuxtLink v-if="m?.id" :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2 w-100">
                               <i class="fas fa-ban"></i> Entregar Correspondencia
                             </nuxtLink>
+
+                            <button v-else class="btn btn-secondary btn-sm py-1 px-2 w-100" disabled>
+                              Sin ID
+                            </button>
                           </div>
                         </td>
+
                         <td class="py-0 px-1" data-label="Devolver">
-                          <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm w-100">
+                          <button v-if="m?.id" @click="openObservationModal(m.id)" class="btn btn-warning btn-sm w-100">
                             <i class="fas fa-undo"></i> Devolver a Origen
+                          </button>
+
+                          <button v-else class="btn btn-secondary btn-sm w-100" disabled>
+                            No disponible
                           </button>
                         </td>
                       </tr>
                     </tbody>
+
                   </table>
                 </div>
               </div>
@@ -189,24 +207,47 @@ export default {
     };
   },
   computed: {
-    filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    return this.list
-      .filter(item =>
-        item.estado === 2 &&
+   filteredData() {
+  const searchTerm = (this.searchTerm || '').toLowerCase();
+  const carteroId = this.user?.user?.id;
+
+  return this.list
+    .filter(item => {
+      const mismoCartero =
         item.cartero_entrega &&
-        item.cartero_entrega.id === this.user.user.id &&
-        (
-          (item.guia && item.guia.toLowerCase().includes(searchTerm)) ||
-          (item.sucursale && item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)) ||
-          (item.remitente && item.remitente.toLowerCase().includes(searchTerm)) ||
-          (item.direccion_especifica_d && item.direccion_especifica_d.toLowerCase().includes(searchTerm)) ||
-          (item.ciudad && item.ciudad.toLowerCase().includes(searchTerm)) ||
-          (item.zona_d && item.zona_d.toLowerCase().includes(searchTerm))
-        )
-      )
-      .sort((a, b) => new Date(b.fecha_recojo_c) - new Date(a.fecha_recojo_c)); // Ordena por fecha_recojo_c
-  },
+        item.cartero_entrega.id === carteroId;
+
+      // ✅ CONTRATO normal (estado 2 + mismo cartero + NO EMS)
+      const esContrato =
+        item.estado === 2 &&
+        mismoCartero &&
+        (item.tipo_correspondencia ?? '').toUpperCase() !== 'EMS';
+
+      // ✅ EMS global (estado 2 + mismo cartero + tipo EMS)
+      const esEMS =
+        item.estado === 2 &&
+        mismoCartero &&
+        (item.tipo_correspondencia ?? '').toUpperCase() === 'EMS';
+
+      const coincideBusqueda =
+        (item.guia ?? '').toLowerCase().includes(searchTerm) ||
+        (item.sucursale?.nombre ?? '').toLowerCase().includes(searchTerm) ||
+        (item.remitente ?? '').toLowerCase().includes(searchTerm) ||
+        (item.direccion_especifica_d ?? '').toLowerCase().includes(searchTerm) ||
+        (item.ciudad ?? '').toLowerCase().includes(searchTerm) ||
+        (item.zona_d ?? '').toLowerCase().includes(searchTerm);
+
+      return (esContrato || esEMS) && coincideBusqueda;
+    })
+    .sort((a, b) => {
+      const fa = a.fecha_recojo_c ? new Date(a.fecha_recojo_c).getTime() : 0;
+      const fb = b.fecha_recojo_c ? new Date(b.fecha_recojo_c).getTime() : 0;
+      return fb - fa;
+    });
+}
+
+,
+
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -258,85 +299,85 @@ export default {
     },
 
     async processMap(selectedItems, userLocation) {
-  let validItems = [];
-  let invalidItems = [];
+      let validItems = [];
+      let invalidItems = [];
 
-  // Iterar sobre los elementos seleccionados
-  selectedItems.forEach(item => {
-    if (this.isCoordinates(item.direccion_d)) {
-      const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
-      validItems.push({ item: item, lat: lat, lng: lng });
-    } else if (item.direccion_especifica_d) {
-      // Si tienes lógica para manejar direcciones específicas, puedes implementarla aquí
-      // Por ahora, consideramos que estas direcciones no son válidas
-      invalidItems.push(item);
-    } else {
-      invalidItems.push(item);
-    }
-  });
+      // Iterar sobre los elementos seleccionados
+      selectedItems.forEach(item => {
+        if (this.isCoordinates(item.direccion_d)) {
+          const [lat, lng] = item.direccion_d.split(',').map(coord => parseFloat(coord.trim()));
+          validItems.push({ item: item, lat: lat, lng: lng });
+        } else if (item.direccion_especifica_d) {
+          // Si tienes lógica para manejar direcciones específicas, puedes implementarla aquí
+          // Por ahora, consideramos que estas direcciones no son válidas
+          invalidItems.push(item);
+        } else {
+          invalidItems.push(item);
+        }
+      });
 
-  if (validItems.length === 0) {
-    const guiaNumbers = invalidItems.map(item => item.guia).join(', ');
-    this.$swal.fire({
-      icon: 'warning',
-      title: 'Sin direcciones válidas',
-      text: 'No se encontraron direcciones válidas en los elementos seleccionados. Las guías sin direcciones válidas son: ' + guiaNumbers,
-    });
-    return;
-  }
+      if (validItems.length === 0) {
+        const guiaNumbers = invalidItems.map(item => item.guia).join(', ');
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Sin direcciones válidas',
+          text: 'No se encontraron direcciones válidas en los elementos seleccionados. Las guías sin direcciones válidas son: ' + guiaNumbers,
+        });
+        return;
+      }
 
-  if (invalidItems.length > 0) {
-    const guiaNumbers = invalidItems.map(item => item.guia).join(', ');
-    this.$swal.fire({
-      icon: 'info',
-      title: 'Algunas direcciones no son válidas',
-      text: 'Las siguientes guías no tienen direcciones válidas y no serán incluidas en el mapa: ' + guiaNumbers,
-    });
-  }
+      if (invalidItems.length > 0) {
+        const guiaNumbers = invalidItems.map(item => item.guia).join(', ');
+        this.$swal.fire({
+          icon: 'info',
+          title: 'Algunas direcciones no son válidas',
+          text: 'Las siguientes guías no tienen direcciones válidas y no serán incluidas en el mapa: ' + guiaNumbers,
+        });
+      }
 
-  // Proceder con los elementos válidos
-  let waypoints = validItems.map(obj => ({ lat: obj.lat, lng: obj.lng }));
+      // Proceder con los elementos válidos
+      let waypoints = validItems.map(obj => ({ lat: obj.lat, lng: obj.lng }));
 
-  // Ordenar las waypoints usando el algoritmo de vecino más cercano
-  let sortedWaypoints = [];
-  let currentLocation = { ...userLocation };
-  let remainingWaypoints = [...waypoints];
+      // Ordenar las waypoints usando el algoritmo de vecino más cercano
+      let sortedWaypoints = [];
+      let currentLocation = { ...userLocation };
+      let remainingWaypoints = [...waypoints];
 
-  while (remainingWaypoints.length > 0) {
-    let nearest = remainingWaypoints.reduce((prev, curr) => {
-      const distPrev = this.calculateDistance(currentLocation, prev);
-      const distCurr = this.calculateDistance(currentLocation, curr);
-      return distPrev < distCurr ? prev : curr;
-    });
+      while (remainingWaypoints.length > 0) {
+        let nearest = remainingWaypoints.reduce((prev, curr) => {
+          const distPrev = this.calculateDistance(currentLocation, prev);
+          const distCurr = this.calculateDistance(currentLocation, curr);
+          return distPrev < distCurr ? prev : curr;
+        });
 
-    sortedWaypoints.push(nearest);
-    currentLocation = nearest;
-    remainingWaypoints = remainingWaypoints.filter(wp => wp !== nearest);
-  }
+        sortedWaypoints.push(nearest);
+        currentLocation = nearest;
+        remainingWaypoints = remainingWaypoints.filter(wp => wp !== nearest);
+      }
 
-  // Convertir las waypoints ordenadas a strings para la URL de Google Maps
-  const waypointsParam = sortedWaypoints.map(wp => `${wp.lat},${wp.lng}`).join('|');
+      // Convertir las waypoints ordenadas a strings para la URL de Google Maps
+      const waypointsParam = sortedWaypoints.map(wp => `${wp.lat},${wp.lng}`).join('|');
 
-  // Construir la URL de Google Maps
-  let url = 'https://www.google.com/maps/dir/?api=1';
-  url += `&origin=${userLocation.lat},${userLocation.lng}`;
-  url += `&destination=${sortedWaypoints[sortedWaypoints.length - 1].lat},${sortedWaypoints[sortedWaypoints.length - 1].lng}`;
+      // Construir la URL de Google Maps
+      let url = 'https://www.google.com/maps/dir/?api=1';
+      url += `&origin=${userLocation.lat},${userLocation.lng}`;
+      url += `&destination=${sortedWaypoints[sortedWaypoints.length - 1].lat},${sortedWaypoints[sortedWaypoints.length - 1].lng}`;
 
-  if (sortedWaypoints.length > 1) {
-    const intermediateWaypoints = sortedWaypoints.slice(0, -1).map(wp => `${wp.lat},${wp.lng}`).join('|');
-    url += `&waypoints=${intermediateWaypoints}`;
-  }
+      if (sortedWaypoints.length > 1) {
+        const intermediateWaypoints = sortedWaypoints.slice(0, -1).map(wp => `${wp.lat},${wp.lng}`).join('|');
+        url += `&waypoints=${intermediateWaypoints}`;
+      }
 
-  // Abrir la URL en una nueva pestaña
-  const mapWindow = window.open(url, '_blank');
-  if (!mapWindow) {
-    this.$swal.fire({
-      icon: 'error',
-      title: 'Bloqueo de ventanas emergentes',
-      text: 'Por favor, habilite las ventanas emergentes para esta aplicación.',
-    });
-  }
-},
+      // Abrir la URL en una nueva pestaña
+      const mapWindow = window.open(url, '_blank');
+      if (!mapWindow) {
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Bloqueo de ventanas emergentes',
+          text: 'Por favor, habilite las ventanas emergentes para esta aplicación.',
+        });
+      }
+    },
 
     openGoogleMaps(userLocation, waypoints) {
       let url = 'https://www.google.com/maps/dir/?api=1';

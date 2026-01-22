@@ -37,7 +37,7 @@
         </div>
         <div class="d-flex justify-content-between align-items-center mb-4">
           <!-- Botón para descargar la plantilla -->
-         
+
         </div>
         <!-- Campo para buscar por código de barras -->
         <div class="row mb-3">
@@ -132,30 +132,32 @@
                 </div>
 
                 <nav aria-label="Page navigation">
-  <ul class="pagination justify-content-between">
-    <!-- Botón para ir a la página anterior -->
-    <li class="page-item" :class="{ disabled: currentPage === 0 }">
-      <button class="page-link" @click="goToPage(currentPage - 1)" :disabled="currentPage === 0">
-        &lt;
-      </button>
-    </li>
+                  <ul class="pagination justify-content-between">
+                    <!-- Botón para ir a la página anterior -->
+                    <li class="page-item" :class="{ disabled: currentPage === 0 }">
+                      <button class="page-link" @click="goToPage(currentPage - 1)" :disabled="currentPage === 0">
+                        &lt;
+                      </button>
+                    </li>
 
-    <!-- Páginas dinámicas -->
-    <li v-for="page in totalPagesArray" :key="page" :class="['page-item', { active: page === currentPage + 1 }]">
-      <button v-if="page !== '...'" class="page-link" @click="goToPage(page - 1)">
-        {{ page }}
-      </button>
-      <span v-else class="page-link">...</span>
-    </li>
+                    <!-- Páginas dinámicas -->
+                    <li v-for="page in totalPagesArray" :key="page"
+                      :class="['page-item', { active: page === currentPage + 1 }]">
+                      <button v-if="page !== '...'" class="page-link" @click="goToPage(page - 1)">
+                        {{ page }}
+                      </button>
+                      <span v-else class="page-link">...</span>
+                    </li>
 
-    <!-- Botón para ir a la página siguiente -->
-    <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
-      <button class="page-link" @click="goToPage(currentPage + 1)" :disabled="currentPage >= totalPages - 1">
-        &gt;
-      </button>
-    </li>
-  </ul>
-</nav>
+                    <!-- Botón para ir a la página siguiente -->
+                    <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
+                      <button class="page-link" @click="goToPage(currentPage + 1)"
+                        :disabled="currentPage >= totalPages - 1">
+                        &gt;
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
 
               </div>
             </div>
@@ -203,45 +205,51 @@ export default {
   },
   computed: {
     totalPagesArray() {
-    const totalPages = this.totalPages;
-    const currentPage = this.currentPage + 1; // Ajuste para que la paginación sea intuitiva (1 basado)
-    const maxPagesToShow = 3;
+      const totalPages = this.totalPages;
+      const currentPage = this.currentPage + 1; // Ajuste para que la paginación sea intuitiva (1 basado)
+      const maxPagesToShow = 3;
 
-    const pages = [];
+      const pages = [];
 
-    // Mostrar los primeros 3 números
-    for (let i = 1; i <= Math.min(maxPagesToShow, totalPages); i++) {
-      pages.push(i);
-    }
+      // Mostrar los primeros 3 números
+      for (let i = 1; i <= Math.min(maxPagesToShow, totalPages); i++) {
+        pages.push(i);
+      }
 
-    // Mostrar puntos suspensivos si hay más páginas
-    if (currentPage > maxPagesToShow + 1) {
-      pages.push('...');
-    }
+      // Mostrar puntos suspensivos si hay más páginas
+      if (currentPage > maxPagesToShow + 1) {
+        pages.push('...');
+      }
 
-    // Mostrar las páginas alrededor de la página actual
-    const startPage = Math.max(currentPage - 1, maxPagesToShow + 1);
-    const endPage = Math.min(currentPage + 1, totalPages - maxPagesToShow);
+      // Mostrar las páginas alrededor de la página actual
+      const startPage = Math.max(currentPage - 1, maxPagesToShow + 1);
+      const endPage = Math.min(currentPage + 1, totalPages - maxPagesToShow);
 
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
 
-    // Mostrar puntos suspensivos si hay más páginas después
-    if (currentPage < totalPages - maxPagesToShow) {
-      pages.push('...');
-    }
+      // Mostrar puntos suspensivos si hay más páginas después
+      if (currentPage < totalPages - maxPagesToShow) {
+        pages.push('...');
+      }
 
-    // Mostrar los últimos 3 números
-    for (let i = Math.max(totalPages - maxPagesToShow + 1, endPage + 1); i <= totalPages; i++) {
-      pages.push(i);
-    }
+      // Mostrar los últimos 3 números
+      for (let i = Math.max(totalPages - maxPagesToShow + 1, endPage + 1); i <= totalPages; i++) {
+        pages.push(i);
+      }
 
-    return pages;
-  },
-    filteredList() {
-      return this.list.filter(item => item.sucursale.id === this.user.user.id && (item.estado === 1));
+      return pages;
     },
+    filteredList() {
+      const userId = this.user?.user?.id;
+      if (!userId) return [];
+
+      return this.list.filter(item =>
+        item?.sucursale?.id === userId && item?.estado === 1
+      );
+    },
+
     sortedList() {
       return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
     },
@@ -287,143 +295,143 @@ export default {
     },
 
     generatePDF(data, doc) {
-  if (!data) {
-    console.error('No data provided to generate the PDF');
-    return;
-  }
+      if (!data) {
+        console.error('No data provided to generate the PDF');
+        return;
+      }
 
-  const fontSize = 16; // Tamaño de letra aumentado
-  doc.setFontSize(fontSize);
+      const fontSize = 16; // Tamaño de letra aumentado
+      doc.setFontSize(fontSize);
 
-  const guia = data.guia || '';
-  const codigoBarras = data.codigo_barras || '';
-  const remitente = data.remitente || '';
-  const destinatario = data.destinatario || '';
-  const direccion_especifica_d = data.direccion_especifica_d || '';
-  const origen = data.sucursale ? data.sucursale.origen : '';
-  const destino = data.tarifa ? data.tarifa.departamento : '';
-  const direccionEspecifica = data.direccion ? data.direccion.direccion_especifica : '';
-  const telefono = data.telefono || '';
-  const telefono_d = data.telefono_d || '';
-  const imagenData = data.imagen || ''; // Se asume que `data.imagen` contiene la imagen en base64 o una URL válida.
+      const guia = data.guia || '';
+      const codigoBarras = data.codigo_barras || '';
+      const remitente = data.remitente || '';
+      const destinatario = data.destinatario || '';
+      const direccion_especifica_d = data.direccion_especifica_d || '';
+      const origen = data.sucursale ? data.sucursale.origen : '';
+      const destino = data.tarifa ? data.tarifa.departamento : '';
+      const direccionEspecifica = data.direccion ? data.direccion.direccion_especifica : '';
+      const telefono = data.telefono || '';
+      const telefono_d = data.telefono_d || '';
+      const imagenData = data.imagen || ''; // Se asume que `data.imagen` contiene la imagen en base64 o una URL válida.
 
-  let startX = 10;
-  let startY = 10;
-  let cellHeight = 15;
-  let cellWidth = 135;
-  const checkboxSize = 4;  // Tamaño del checkbox
+      let startX = 10;
+      let startY = 10;
+      let cellHeight = 15;
+      let cellWidth = 135;
+      const checkboxSize = 4;  // Tamaño del checkbox
 
-  // Sección de Remitente
-  doc.setFontSize(fontSize);
-  doc.rect(startX, startY, cellWidth, cellHeight);
-  doc.text(`REMITENTE: ${remitente}`, startX + 2, startY + 10);
+      // Sección de Remitente
+      doc.setFontSize(fontSize);
+      doc.rect(startX, startY, cellWidth, cellHeight);
+      doc.text(`REMITENTE: ${remitente}`, startX + 2, startY + 10);
 
-  const barcodeCellHeight = cellHeight * 3;
-  doc.rect(startX + cellWidth, startY, cellWidth, barcodeCellHeight);
+      const barcodeCellHeight = cellHeight * 3;
+      doc.rect(startX + cellWidth, startY, cellWidth, barcodeCellHeight);
 
-  if (codigoBarras) {
-    const barcodeX = startX + cellWidth + 15;
-    const barcodeY = startY + 18;
-    const barcodeWidth = 75;
-    const barcodeHeight = 10;
-    doc.addImage(codigoBarras, 'JPEG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
-    const textWidth = doc.getTextWidth(guia);
-    const textX = barcodeX + (barcodeWidth - textWidth) / 2;
-    doc.text(guia, textX, barcodeY + barcodeHeight + 5);
-  }
+      if (codigoBarras) {
+        const barcodeX = startX + cellWidth + 15;
+        const barcodeY = startY + 18;
+        const barcodeWidth = 75;
+        const barcodeHeight = 10;
+        doc.addImage(codigoBarras, 'JPEG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
+        const textWidth = doc.getTextWidth(guia);
+        const textX = barcodeX + (barcodeWidth - textWidth) / 2;
+        doc.text(guia, textX, barcodeY + barcodeHeight + 5);
+      }
 
-  // Colocar la imagen desde la base de datos en el PDF
-  if (imagenData) {
-    const imageX = startX + cellWidth + 15;  // Ajusta la posición X según el diseño
-    const imageY = startY + 5;  // Ajusta la posición Y según el diseño
-    const imageWidth = 50;  // Ajusta el ancho de la imagen
-    const imageHeight = 50;  // Ajusta la altura de la imagen
+      // Colocar la imagen desde la base de datos en el PDF
+      if (imagenData) {
+        const imageX = startX + cellWidth + 15;  // Ajusta la posición X según el diseño
+        const imageY = startY + 5;  // Ajusta la posición Y según el diseño
+        const imageWidth = 50;  // Ajusta el ancho de la imagen
+        const imageHeight = 50;  // Ajusta la altura de la imagen
 
-    // Usar addImage para colocar la imagen en el PDF, puede ser 'PNG' o 'JPEG' según el formato de `imagenData`
-    doc.addImage(imagenData, 'PNG', imageX, imageY, imageWidth, imageHeight);
-  } else {
-    console.error('No image data available');
-  }
+        // Usar addImage para colocar la imagen en el PDF, puede ser 'PNG' o 'JPEG' según el formato de `imagenData`
+        doc.addImage(imagenData, 'PNG', imageX, imageY, imageWidth, imageHeight);
+      } else {
+        console.error('No image data available');
+      }
 
-  // Continúa con el resto del contenido...
-  startY += cellHeight;
-  doc.rect(startX, startY, cellWidth, cellHeight);
-  doc.text(`TELEFONO: ${telefono}`, startX + 2, startY + 10);
+      // Continúa con el resto del contenido...
+      startY += cellHeight;
+      doc.rect(startX, startY, cellWidth, cellHeight);
+      doc.text(`TELEFONO: ${telefono}`, startX + 2, startY + 10);
 
-  startY += cellHeight;
-  doc.rect(startX, startY, cellWidth, cellHeight);
-  doc.text(`Direccion: ${direccionEspecifica}`, startX + 2, startY + 10);
+      startY += cellHeight;
+      doc.rect(startX, startY, cellWidth, cellHeight);
+      doc.text(`Direccion: ${direccionEspecifica}`, startX + 2, startY + 10);
 
-  startY += cellHeight;
-  doc.rect(startX, startY, cellWidth, cellHeight);
-  doc.text(`Departamento: ${origen}`, startX + 2, startY + 10);
+      startY += cellHeight;
+      doc.rect(startX, startY, cellWidth, cellHeight);
+      doc.text(`Departamento: ${origen}`, startX + 2, startY + 10);
 
-  startY += cellHeight;
-  doc.rect(startX, startY, cellWidth / 2, cellHeight * 2);
-  doc.text('DEVOLUCION', startX + 2, startY + 10);
-  doc.text('RETOUR', startX + 2, startY + 20);
+      startY += cellHeight;
+      doc.rect(startX, startY, cellWidth / 2, cellHeight * 2);
+      doc.text('DEVOLUCION', startX + 2, startY + 10);
+      doc.text('RETOUR', startX + 2, startY + 20);
 
-  doc.setFontSize(fontSize + 2); // Tamaño de letra más grande para "CN 15"
-  doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, cellHeight * 2);
-  doc.text('CN 15', startX + cellWidth / 2 + 10, startY + 15);
-  doc.setFontSize(fontSize); // Regresa al tamaño de letra base
+      doc.setFontSize(fontSize + 2); // Tamaño de letra más grande para "CN 15"
+      doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, cellHeight * 2);
+      doc.text('CN 15', startX + cellWidth / 2 + 10, startY + 15);
+      doc.setFontSize(fontSize); // Regresa al tamaño de letra base
 
-  doc.rect(startX + cellWidth, startY, cellWidth, cellHeight * 2);
-  doc.text(`DESTINATARIO: ${destinatario}`, startX + cellWidth + 10, startY + 10);
+      doc.rect(startX + cellWidth, startY, cellWidth, cellHeight * 2);
+      doc.text(`DESTINATARIO: ${destinatario}`, startX + cellWidth + 10, startY + 10);
 
-  startY += cellHeight * 2;
+      startY += cellHeight * 2;
 
-  // Celdas de la izquierda con checkbox
-  const leftCellTexts = [
-    { topText: 'Se Mudó', bottomText: 'Déménagé' },
-    { topText: 'Desconocido', bottomText: 'Inconnu' },
-    { topText: 'Direccion Insuficiente', bottomText: 'Adresse Insuffisante' }
-  ];
+      // Celdas de la izquierda con checkbox
+      const leftCellTexts = [
+        { topText: 'Se Mudó', bottomText: 'Déménagé' },
+        { topText: 'Desconocido', bottomText: 'Inconnu' },
+        { topText: 'Direccion Insuficiente', bottomText: 'Adresse Insuffisante' }
+      ];
 
-  leftCellTexts.forEach(cell => {
-    doc.rect(startX, startY, cellWidth / 2, cellHeight);
-    doc.text(cell.topText, startX + 2, startY + 7);
-    doc.text(cell.bottomText, startX + 2, startY + 14);
-    doc.rect(startX + cellWidth / 2 - checkboxSize - 2, startY + (cellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
-    startY += cellHeight;
-  });
+      leftCellTexts.forEach(cell => {
+        doc.rect(startX, startY, cellWidth / 2, cellHeight);
+        doc.text(cell.topText, startX + 2, startY + 7);
+        doc.text(cell.bottomText, startX + 2, startY + 14);
+        doc.rect(startX + cellWidth / 2 - checkboxSize - 2, startY + (cellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
+        startY += cellHeight;
+      });
 
-  // Celdas de la derecha con checkbox
-  const rightCellTexts = [
-    { topText: 'No Reclamado', bottomText: 'Non Réclamé' },
-    { topText: 'Rechazado', bottomText: 'Refusé' },
-    { topText: 'Se Asentó', bottomText: 'Parti' }
-  ];
+      // Celdas de la derecha con checkbox
+      const rightCellTexts = [
+        { topText: 'No Reclamado', bottomText: 'Non Réclamé' },
+        { topText: 'Rechazado', bottomText: 'Refusé' },
+        { topText: 'Se Asentó', bottomText: 'Parti' }
+      ];
 
-  startY -= cellHeight * 3;
-  rightCellTexts.forEach(cell => {
-    doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, cellHeight);
-    doc.text(cell.topText, startX + cellWidth / 2 + 2, startY + 7);
-    doc.text(cell.bottomText, startX + cellWidth / 2 + 2, startY + 14);
-    doc.rect(startX + cellWidth - checkboxSize - 2, startY + (cellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
-    startY += cellHeight;
-  });
+      startY -= cellHeight * 3;
+      rightCellTexts.forEach(cell => {
+        doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, cellHeight);
+        doc.text(cell.topText, startX + cellWidth / 2 + 2, startY + 7);
+        doc.text(cell.bottomText, startX + cellWidth / 2 + 2, startY + 14);
+        doc.rect(startX + cellWidth - checkboxSize - 2, startY + (cellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
+        startY += cellHeight;
+      });
 
-  // Información del Destinatario
-  startY -= cellHeight * 3;
-  doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-  doc.text(`TELEFONO DESTINATARIO: ${telefono_d}`, startX + cellWidth + 10, startY + 10);
+      // Información del Destinatario
+      startY -= cellHeight * 3;
+      doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
+      doc.text(`TELEFONO DESTINATARIO: ${telefono_d}`, startX + cellWidth + 10, startY + 10);
 
-  startY += cellHeight;
-  doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-  doc.text(`Direccion: ${direccion_especifica_d}`, startX + cellWidth + 10, startY + 10);
+      startY += cellHeight;
+      doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
+      doc.text(`Direccion: ${direccion_especifica_d}`, startX + cellWidth + 10, startY + 10);
 
-  startY += cellHeight;
-  doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-  doc.text(`Departamento: ${destino}`, startX + cellWidth + 10, startY + 10);
+      startY += cellHeight;
+      doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
+      doc.text(`Departamento: ${destino}`, startX + cellWidth + 10, startY + 10);
 
-  // Línea final de puntos en el Footer
-  startY += cellHeight;
-  doc.rect(startX, startY, cellWidth * 2, cellHeight);
-  doc.text('................................................................................................................', startX + 2, startY + 10);
-}
+      // Línea final de puntos en el Footer
+      startY += cellHeight;
+      doc.rect(startX, startY, cellWidth * 2, cellHeight);
+      doc.text('................................................................................................................', startX + 2, startY + 10);
+    }
 
-,
+    ,
 
     async fetchSaldoData() {
       try {
@@ -531,20 +539,20 @@ export default {
       return regex.test(address);
     },
     goToPage(page) {
-    if (page >= 0 && page < this.totalPages) {
-      this.currentPage = page;
-    }
-  },
-  nextPage() {
-    if (this.currentPage < this.totalPages - 1) {
-      this.currentPage++;
-    }
-  },
-  previousPage() {
-    if (this.currentPage > 0) {
-      this.currentPage--;
-    }
-  },
+      if (page >= 0 && page < this.totalPages) {
+        this.currentPage = page;
+      }
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages - 1) {
+        this.currentPage++;
+      }
+    },
+    previousPage() {
+      if (this.currentPage > 0) {
+        this.currentPage--;
+      }
+    },
     async imprimirRotulosDelDia() {
       const hoy = new Date().toISOString().slice(0, 10); // Obtiene la fecha actual en formato 'YYYY-MM-DD'
 
@@ -816,8 +824,20 @@ export default {
   },
   mounted() {
     this.$nextTick(async () => {
-      let user = localStorage.getItem('userAuth');
-      this.user = JSON.parse(user);
+      const userStr = localStorage.getItem('userAuth');
+      this.user = userStr ? JSON.parse(userStr) : { user: null };
+
+      if (!this.user?.user?.id) {
+        this.load = false;
+        this.list = [];
+        this.$swal?.fire?.({
+          icon: 'warning',
+          title: 'Sin sesión',
+          text: 'No se encontró usuario logueado (userAuth).',
+        });
+        return;
+      }
+
 
       // Parte 1: Obtener el saldo restante y el total de nombre_d
       try {
@@ -971,6 +991,7 @@ select option[disabled] {
   /* Bordes redondeados */
   padding: 15px;
 }
+
 .pagination .page-item.active .page-link {
   background-color: #34447C;
   color: white;
@@ -986,5 +1007,4 @@ select option[disabled] {
   color: #6c757d;
   pointer-events: none;
 }
-
 </style>

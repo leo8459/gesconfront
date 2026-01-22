@@ -14,7 +14,14 @@
             </div>
           </div>
         </div>
-        
+        <button @click="openEmsModal"
+          style="background-color:#F39C12; color:white; padding:10px 15px; border:none; border-radius:5px; cursor:pointer; margin-left:10px;">
+          <i class="fas fa-plus"></i> Añadir EMS
+        </button>
+
+
+
+
         <button @click="openManualModal"
           style="background-color:#F39C12; color:white; padding:10px 15px; border:none; border-radius:5px; cursor:pointer; margin-left:10px;">
           Registro Manual
@@ -48,14 +55,14 @@
                         <th class="py-0 px-1">Teléfono D</th>
                         <th class="py-0 px-1">Dirección Destinatario</th>
                         <th class="py-0 px-1">Municipio/Provincia</th>
-                        
+
                         <!-- Nueva columna para la acción -->
                         <th class="py-0 px-1">Acción</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i">
-                                                <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
+                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
 
                         <td class="p-1" data-label="Sucursal">
                           {{ showNull(m?.sucursale?.nombre) }}
@@ -184,7 +191,9 @@
                     <tr v-for="(item, index) in selectedForDelivery" :key="index">
                       <td class="py-0 px-1" data-label="Nº">{{ index + 1 }}</td>
                       <td class="py-0 px-1" data-label="Guía">{{ item.guia }}</td>
-                      <td class="py-0 px-1" data-label="Sucursal">{{ item.sucursale.nombre }}</td>
+                      <td class="py-0 px-1" data-label="Sucursal">
+                        {{ item?.sucursale?.nombre || 'SIN SUCURSAL' }}
+                      </td>
                       <td class="py-0 px-1" data-label="Tarifa">{{ item.tarifa }}</td>
                       <td class="py-0 px-1" data-label="Peso">{{ item.peso_v }}</td>
                     </tr>
@@ -210,7 +219,9 @@
     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer
       @shown="focusPesoInput">
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+        <label :for="'peso_v-' + item.id">
+          {{ item.guia }} - {{ item?.sucursale?.nombre || 'SIN SUCURSAL' }} - {{ item?.tarifa || 'SIN TARIFA' }}
+        </label>
 
         <!-- Campo de entrada con ref para enfoque directo -->
         <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
@@ -244,6 +255,36 @@
         <button class="btn btn-primary ml-2" @click="confirmRechazar">Guardar</button>
       </div>
     </b-modal>
+
+    <b-modal v-model="isEmsModalVisible" title="Añadir EMS" hide-backdrop hide-footer>
+      <div class="form-group">
+        <label>Tipo Correspondencia</label>
+        <input class="form-control" v-model="emsForm.tipo_correspondencia" readonly />
+      </div>
+
+      <div class="form-group">
+        <label>Guía</label>
+        <input class="form-control" v-model="emsForm.guia" placeholder="Ingrese guía..." />
+      </div>
+
+      <div class="form-group">
+        <label>Peso Correos (Kg)</label>
+        <input class="form-control" v-model="emsForm.peso_v" placeholder="000.001" />
+      </div>
+
+      <div class="form-group">
+        <label>Observación</label>
+        <textarea class="form-control" v-model="emsForm.observacion" rows="3"></textarea>
+      </div>
+
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isEmsModalVisible = false">Cancelar</button>
+        <button class="btn btn-primary ml-2" @click="submitEMS">Guardar</button>
+      </div>
+    </b-modal>
+
+
+
     <b-modal v-model="isManualModalVisible" title="Registro Manual de Solicitud" hide-backdrop hide-footer>
       <div class="form-group">
         <label>Sucursal</label>
@@ -259,9 +300,9 @@
         <label>Departamento</label>
         <select v-model="manualForm.tarifa_id" class="form-control">
           <option value="">-- Seleccione --</option>
-         <option v-for="t in tarifasModal" :key="t.id" :value="t.id">
-  {{ t.departamento }} - {{ t.servicio }}
-</option>
+          <option v-for="t in tarifasModal" :key="t.id" :value="t.id">
+            {{ t.departamento }} - {{ t.servicio }}
+          </option>
 
         </select>
       </div>
@@ -349,56 +390,67 @@ export default {
         guia: '',
         peso_v: '',
         observacion: ''
-      }
+      },
+      emsForm: {
+        tipo_correspondencia: 'EMS',
+        guia: '',
+        peso_v: '',
+        observacion: ''
+      },
+
+
+
     };
   },
   computed: {
     filteredData() {
-      // Convertimos el término de búsqueda a minúsculas
-      const searchTerm = this.searchTerm.toLowerCase();
+      const searchTerm = (this.searchTerm || '').toLowerCase();
 
-      // Si no hay usuario o departamento, no filtramos nada
-      if (!this.user || !this.user.user) {
-        return [];
-      }
+      // Si no hay usuario o departamento, igual devolvemos EMS global
+      const departamentoCartero = this.user?.user?.departamento_cartero || null;
 
-      // Obtenemos el departamento del cartero
-      const departamentoCartero = this.user.user.departamento_cartero;
-      if (!departamentoCartero) {
-        return [];
-      }
-
-      // Filtramos la lista con la lógica combinada
       const filtered = this.list.filter((item) => {
-        // 1) Lógica para estado 5: (estado=5 y sucursale.origen=departamentoCartero)
+        // 1) Estado 5 por sucursal.origen = departamento del cartero
         const cumpleEstado5 =
           item.estado === 5 &&
           item.sucursale?.origen === departamentoCartero;
 
-        // 2) Lógica para estados 10, 11, 13: (estado ∈ {10, 11, 13} y reencaminamiento=departamentoCartero)
+        // 2) Estados 10, 11, 13 por reencaminamiento = departamento del cartero
         const cumpleEstado10_11_13 =
           [10, 11, 13].includes(item.estado) &&
           item.reencaminamiento === departamentoCartero;
 
-        // 3) Coincide con término de búsqueda
+        // 3) ✅ EMS GLOBAL (sucursale_id y tarifa_id en NULL)
+        //    (puedes ajustar el estado si quieres solo estado 5)
+        const cumpleEMSGlobal =
+          item.estado === 5 &&
+          (item.tipo_correspondencia || '').toUpperCase() === 'EMS' &&
+          (item.sucursale_id === null || item.sucursale_id === undefined) &&
+          (item.tarifa_id === null || item.tarifa_id === undefined);
+
+
+        // 4) Coincide con búsqueda (sin romper si hay nulls)
         const coincideBusqueda =
           Object.values(item).some((value) =>
-            String(value).toLowerCase().includes(searchTerm)
+            String(value ?? '').toLowerCase().includes(searchTerm)
           ) ||
           (item.sucursale?.nombre &&
             item.sucursale.nombre.toLowerCase().includes(searchTerm));
 
-        // Retornamos true si (cumpleEstado5 O cumpleEstado10_11_13) y coincide con búsqueda
-        return (cumpleEstado5 || cumpleEstado10_11_13) && coincideBusqueda;
+        // ✅ Retorna si cumple alguna regla y además coincide búsqueda
+        return (cumpleEstado5 || cumpleEstado10_11_13 || cumpleEMSGlobal) && coincideBusqueda;
       });
 
-      // Ordenamos por fecha_recojo_c de forma descendente
+      // Ordenamos por fecha_recojo_c descendente (si es null, manda al final)
       filtered.sort((a, b) => {
-        return new Date(b.fecha_recojo_c) - new Date(a.fecha_recojo_c);
+        const fa = a.fecha_recojo_c ? new Date(a.fecha_recojo_c).getTime() : 0;
+        const fb = b.fecha_recojo_c ? new Date(b.fecha_recojo_c).getTime() : 0;
+        return fb - fa;
       });
 
       return filtered;
     },
+
 
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
@@ -413,30 +465,83 @@ export default {
     }
   },
   watch: {
-  'manualForm.sucursale_id': {
-    immediate: true,
-    async handler(newVal) {
-      // Limpia tarifa seleccionada cuando cambias sucursal
-      this.manualForm.tarifa_id = '';
+    'manualForm.sucursale_id': {
+      immediate: true,
+      async handler(newVal) {
+        // Limpia tarifa seleccionada cuando cambias sucursal
+        this.manualForm.tarifa_id = '';
 
-      if (!newVal) {
-        this.tarifasModal = [];
-        return;
-      }
+        if (!newVal) {
+          this.tarifasModal = [];
+          return;
+        }
 
-      try {
-        // ✅ Llama al endpoint filtrado
-        const res = await this.$api.$get(`getTarifas?sucursale_id=${newVal}`);
-        this.tarifasModal = Array.isArray(res) ? res : [];
-      } catch (e) {
-        console.error('Error cargando tarifas por sucursal:', e);
-        this.tarifasModal = [];
+        try {
+          // ✅ Llama al endpoint filtrado
+          const res = await this.$api.$get(`getTarifas?sucursale_id=${newVal}`);
+          this.tarifasModal = Array.isArray(res) ? res : [];
+        } catch (e) {
+          console.error('Error cargando tarifas por sucursal:', e);
+          this.tarifasModal = [];
+        }
       }
     }
-  }
-},
+  },
 
   methods: {
+    openEmsModal() {
+      this.emsForm = {
+        tipo_correspondencia: 'EMS',
+        guia: '',
+        peso_v: '',
+        observacion: ''
+      };
+      this.isEmsModalVisible = true;
+    },
+
+    async submitEMS() {
+      if (!this.emsForm.guia) {
+        return this.$swal.fire({
+          icon: 'warning',
+          title: 'Falta guía',
+          text: 'La guía es obligatoria.',
+        });
+      }
+
+      this.load = true;
+      try {
+        const carteroId = this.user?.user?.id;
+
+        await this.$api.$post('solicitudes/ems', {
+          guia: this.emsForm.guia,
+          peso_v: this.emsForm.peso_v,
+          observacion: this.emsForm.observacion,
+          cartero_recogida_id: carteroId,
+        });
+
+        const data = await this.GET_DATA(this.apiUrl);
+        this.list = Array.isArray(data) ? data : [];
+
+        this.$swal.fire({
+          icon: 'success',
+          title: 'EMS registrado',
+          text: 'El envío EMS fue registrado correctamente.',
+        });
+
+        this.isEmsModalVisible = false;
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo registrar el EMS.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
+
+
     showNull(v, fallback = 'NULL') {
       // null, undefined, vacío o string "null"
       if (v === null || v === undefined) return fallback;
@@ -445,21 +550,21 @@ export default {
       return v;
     },
 
-  openManualModal() {
-  this.isManualModalVisible = true;
+    openManualModal() {
+      this.isManualModalVisible = true;
 
-  // Si ya hay sucursal seleccionada, fuerza cargar tarifas
-  if (this.manualForm.sucursale_id) {
-    this.$nextTick(async () => {
-      try {
-        const res = await this.$api.$get(`getTarifas?sucursale_id=${this.manualForm.sucursale_id}`);
-        this.tarifasModal = Array.isArray(res) ? res : [];
-      } catch (e) {
-        this.tarifasModal = [];
+      // Si ya hay sucursal seleccionada, fuerza cargar tarifas
+      if (this.manualForm.sucursale_id) {
+        this.$nextTick(async () => {
+          try {
+            const res = await this.$api.$get(`getTarifas?sucursale_id=${this.manualForm.sucursale_id}`);
+            this.tarifasModal = Array.isArray(res) ? res : [];
+          } catch (e) {
+            this.tarifasModal = [];
+          }
+        });
       }
-    });
-  }
-},
+    },
 
 
     async submitManualSolicitude() {
@@ -501,7 +606,7 @@ export default {
       }
     },
 
-   
+
     focusPesoInput() {
       this.$refs.pesoInput[0].focus(); // Asegúrate de que el campo de entrada esté enfocado
     },
@@ -672,37 +777,51 @@ export default {
       }
     },
     openAssignModal() {
-      this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => {
-        const precio = this.calculatePrice(item.tarifa_id, item.peso_v);
-        return {
-          id: item.id,
-          guia: item.guia,
-          sucursale: item.sucursale,
-          peso_v: item.peso_v !== undefined && item.peso_v !== null && item.peso_v !== 0 ? item.peso_v : '', // Asegúrate de que peso_v esté vacío inicialmente
-          tarifa_id: item.tarifa_id,
-          tarifa: this.getTarifaLabel(item.tarifa_id),
-          nombre_d: precio,
-          precio: precio
-        };
-      });
+      this.selectedItemsData = this.list
+        .filter(item => this.selected[item.id])
+        .map(item => {
+          const precio = this.calculatePrice(item.tarifa_id, item.peso_v);
+
+          return {
+            id: item.id,
+            guia: item.guia,
+
+            // ✅ evita null
+            sucursale: item.sucursale ?? { nombre: 'SIN SUCURSAL' },
+
+            peso_v: item.peso_v ? item.peso_v : '',
+            tarifa_id: item.tarifa_id,
+
+            // ✅ evita tarifa null
+            tarifa: item.tarifa_id ? this.getTarifaLabel(item.tarifa_id) : 'SIN TARIFA',
+
+            nombre_d: precio,
+            precio: precio
+          };
+        });
+
       this.isModalVisible = true;
     },
+
     handleSearchEnter() {
       const filteredItems = this.filteredData;
       if (filteredItems.length > 0) {
-        const item = filteredItems[0]; // Seleccionar el primer elemento filtrado
+        const item = filteredItems[0];
+
         this.selectedItemsData = [{
           id: item.id,
           guia: item.guia,
-          sucursale: item.sucursale,
-          peso_v: item.peso_v || 0,
+          sucursale: item.sucursale ?? { nombre: 'SIN SUCURSAL' },
+          peso_v: item.peso_v || '',
           tarifa_id: item.tarifa_id,
-          tarifa: this.getTarifaLabel(item.tarifa_id), // Añadir la tarifa al objeto
-          precio: this.calculatePrice(item.tarifa_id, item.peso_v) // Calcular el precio inicial
+          tarifa: item.tarifa_id ? this.getTarifaLabel(item.tarifa_id) : 'SIN TARIFA',
+          precio: this.calculatePrice(item.tarifa_id, item.peso_v)
         }];
+
         this.isModalVisible = true;
       }
     },
+
     confirmAssignSelected() {
       this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
         // Validación final

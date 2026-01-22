@@ -5,7 +5,7 @@
       <div slot="body">
         <div class="row justify-content-end mb-3">
           <div class="col-2">
-            
+
           </div>
         </div>
         <div class="row">
@@ -36,61 +36,108 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(m, i) in paginatedList" :key="i">
-                        <td>{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td>{{ m.sucursale.nombre }}</td>
-                        <td>{{ m.guia }}</td>
-                        <td>{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
-                        <td>{{ m.remitente }}</td>
+                      <tr v-for="(m, i) in paginatedList" :key="m?.id ?? i">
+
                         <td>
-                          <a v-if="isCoordinates(m.direccion.direccion)"
+                          {{ currentPage * itemsPerPage + i + 1 }}
+                        </td>
+
+                        <td>
+                          {{ m?.sucursale?.nombre ?? 'SIN SUCURSAL' }}
+                        </td>
+
+                        <td>
+                          {{ m?.guia ?? 'SIN GUÍA' }}
+                        </td>
+
+                        <td>
+                          {{ (m?.peso_r ?? m?.peso_v) ?? '0' }}
+                        </td>
+
+                        <td>
+                          {{ m?.remitente ?? 'SIN REMITENTE' }}
+                        </td>
+
+                        <td>
+                          <a v-if="m?.direccion?.direccion && isCoordinates(String(m.direccion.direccion))"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
                             target="_blank" class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion.direccion }}</span>
+                          <span v-else>
+                            {{ m?.direccion?.direccion ?? 'SIN DIRECCIÓN' }}
+                          </span>
                         </td>
-                        <td>{{ m.telefono }}</td>
-                        <td>{{ m.contenido }}</td>
-                        <td>{{ m.fecha_recojo_c }}</td>
-                        <td>{{ m.destinatario }}</td>
-                        <td>{{ m.telefono_d }}</td>
+
                         <td>
-                          <a v-if="isCoordinates(m.direccion_d)"
+                          {{ m?.telefono ?? 'SIN TELÉFONO' }}
+                        </td>
+
+                        <td>
+                          {{ m?.contenido ?? 'SIN CONTENIDO' }}
+                        </td>
+
+                        <td>
+                          {{ m?.fecha_recojo_c ?? 'SIN FECHA' }}
+                        </td>
+
+                        <td>
+                          {{ m?.destinatario ?? 'SIN DESTINATARIO' }}
+                        </td>
+
+                        <td>
+                          {{ m?.telefono_d ?? 'SIN TELÉFONO' }}
+                        </td>
+
+                        <td>
+                          <a v-if="m?.direccion_d && isCoordinates(String(m.direccion_d))"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                             class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion_d }}</span>
+                          <span v-else>
+                            {{ m?.direccion_d ?? 'SIN DIRECCIÓN' }}
+                          </span>
                         </td>
-                        <td>{{ m.direccion_especifica_d }}</td>
-                        <td>{{ m.ciudad }}</td>
+
+                        <td>
+                          {{ m?.direccion_especifica_d ?? 'SIN DETALLE' }}
+                        </td>
+
+                        <td>
+                          {{ m?.ciudad ?? 'SIN CIUDAD' }}
+                        </td>
+
                       </tr>
                     </tbody>
+
                   </table>
                 </div>
                 <!-- Paginación -->
                 <nav aria-label="Page navigation">
-  <ul class="pagination justify-content-between">
-    <!-- Botón de página anterior -->
-    <li class="page-item" :class="{ disabled: currentPage === 0 }">
-      <button class="page-link" @click="goToPage(currentPage - 1)" :disabled="currentPage === 0">&lt;</button>
-    </li>
+                  <ul class="pagination justify-content-between">
+                    <!-- Botón de página anterior -->
+                    <li class="page-item" :class="{ disabled: currentPage === 0 }">
+                      <button class="page-link" @click="goToPage(currentPage - 1)"
+                        :disabled="currentPage === 0">&lt;</button>
+                    </li>
 
-    <!-- Páginas dinámicas -->
-    <li v-for="page in totalPagesArray" :key="page" :class="['page-item', { active: page === currentPage + 1 }]">
-      <button v-if="page !== '...'" class="page-link" @click="goToPage(page - 1)">
-        {{ page }}
-      </button>
-      <span v-else class="page-link">...</span>
-    </li>
+                    <!-- Páginas dinámicas -->
+                    <li v-for="page in totalPagesArray" :key="page"
+                      :class="['page-item', { active: page === currentPage + 1 }]">
+                      <button v-if="page !== '...'" class="page-link" @click="goToPage(page - 1)">
+                        {{ page }}
+                      </button>
+                      <span v-else class="page-link">...</span>
+                    </li>
 
-    <!-- Botón de página siguiente -->
-    <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
-      <button class="page-link" @click="goToPage(currentPage + 1)" :disabled="currentPage >= totalPages - 1">&gt;</button>
-    </li>
-  </ul>
-</nav>
+                    <!-- Botón de página siguiente -->
+                    <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
+                      <button class="page-link" @click="goToPage(currentPage + 1)"
+                        :disabled="currentPage >= totalPages - 1">&gt;</button>
+                    </li>
+                  </ul>
+                </nav>
 
               </div>
             </div>
@@ -127,45 +174,54 @@ export default {
   },
   computed: {
     totalPagesArray() {
-    const totalPages = this.totalPages;
-    const currentPage = this.currentPage + 1; // 1-based index for user-friendly display
-    const maxPagesToShow = 3;
+      const totalPages = this.totalPages;
+      const currentPage = this.currentPage + 1; // 1-based index for user-friendly display
+      const maxPagesToShow = 3;
 
-    const pages = [];
+      const pages = [];
 
-    // Mostrar los primeros 3 números
-    for (let i = 1; i <= Math.min(maxPagesToShow, totalPages); i++) {
-      pages.push(i);
-    }
+      // Mostrar los primeros 3 números
+      for (let i = 1; i <= Math.min(maxPagesToShow, totalPages); i++) {
+        pages.push(i);
+      }
 
-    // Mostrar puntos suspensivos si hay más páginas
-    if (currentPage > maxPagesToShow + 1) {
-      pages.push('...');
-    }
+      // Mostrar puntos suspensivos si hay más páginas
+      if (currentPage > maxPagesToShow + 1) {
+        pages.push('...');
+      }
 
-    // Mostrar las páginas alrededor de la página actual
-    const startPage = Math.max(currentPage - 1, maxPagesToShow + 1);
-    const endPage = Math.min(currentPage + 1, totalPages - maxPagesToShow);
+      // Mostrar las páginas alrededor de la página actual
+      const startPage = Math.max(currentPage - 1, maxPagesToShow + 1);
+      const endPage = Math.min(currentPage + 1, totalPages - maxPagesToShow);
 
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
 
-    // Mostrar puntos suspensivos si hay más páginas después
-    if (currentPage < totalPages - maxPagesToShow) {
-      pages.push('...');
-    }
+      // Mostrar puntos suspensivos si hay más páginas después
+      if (currentPage < totalPages - maxPagesToShow) {
+        pages.push('...');
+      }
 
-    // Mostrar los últimos 3 números
-    for (let i = Math.max(totalPages - maxPagesToShow + 1, endPage + 1); i <= totalPages; i++) {
-      pages.push(i);
-    }
+      // Mostrar los últimos 3 números
+      for (let i = Math.max(totalPages - maxPagesToShow + 1, endPage + 1); i <= totalPages; i++) {
+        pages.push(i);
+      }
 
-    return pages;
-  },
-    filteredList() {
-      return this.list.filter(item => item.sucursale.id === this.user.user.id && (item.estado === 2 || item.estado === 5 || item.estado === 8 || item.estado === 10 || item.estado === 9));
+      return pages;
     },
+    filteredList() {
+      const userId = this.user?.user?.id;
+      if (!userId) return [];
+
+      const estados = [2, 5, 8, 9, 10];
+
+      return this.list.filter(item =>
+        item?.sucursale?.id === userId &&
+        estados.includes(Number(item?.estado))
+      );
+    },
+
     sortedList() {
       return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
     },
@@ -247,25 +303,37 @@ export default {
       return regex.test(address);
     },
     goToPage(page) {
-    if (page >= 0 && page < this.totalPages) {
-      this.currentPage = page;
-    }
-  },
-  nextPage() {
-    if (this.currentPage < this.totalPages - 1) {
-      this.currentPage++;
-    }
-  },
-  previousPage() {
-    if (this.currentPage > 0) {
-      this.currentPage--;
-    }
-  },
+      if (page >= 0 && page < this.totalPages) {
+        this.currentPage = page;
+      }
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages - 1) {
+        this.currentPage++;
+      }
+    },
+    previousPage() {
+      if (this.currentPage > 0) {
+        this.currentPage--;
+      }
+    },
   },
   mounted() {
     this.$nextTick(async () => {
-      let user = localStorage.getItem('userAuth');
-      this.user = JSON.parse(user);
+      const userStr = localStorage.getItem('userAuth');
+      this.user = userStr ? JSON.parse(userStr) : { user: null };
+
+      if (!this.user?.user?.id) {
+        this.load = false;
+        this.list = [];
+        this.$swal?.fire?.({
+          icon: 'warning',
+          title: 'Sin sesión',
+          text: 'No se encontró usuario logueado (userAuth).',
+        });
+        return;
+      }
+
       try {
         const data = await this.GET_DATA(this.apiUrl);
         if (Array.isArray(data)) {

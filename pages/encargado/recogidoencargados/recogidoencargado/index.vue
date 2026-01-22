@@ -43,37 +43,43 @@
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i">
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="p-1">{{ m.sucursale.nombre }}</td>
-                        <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                        <!-- Mostrar la dirección específica -->
-                        <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
+
+                        <td class="p-1">{{ m?.sucursale?.nombre ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.guia ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.remitente ?? 'NULL' }}</td>
+
+                        <td class="py-0 px-1">{{ m?.direccion?.direccion_especifica ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.direccion?.zona ?? 'NULL' }}</td>
+
                         <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion.direccion)"
+                          <a v-if="m?.direccion?.direccion && isCoordinates(m.direccion.direccion)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
                             target="_blank" class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion.direccion }}</span>
+                          <span v-else>{{ m?.direccion?.direccion ?? 'NULL' }}</span>
                         </td>
-                        <td class="py-0 px-1">{{ m.telefono }}</td>
-                        <td class="py-0 px-1">{{ m.contenido }}</td>
-                        <td class="py-0 px-1">{{ m.fecha }}</td>
-                        <td class="py-0 px-1">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
+
+                        <td class="py-0 px-1">{{ m?.telefono ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.contenido ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.fecha ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.destinatario ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.telefono_d ?? 'NULL' }}</td>
+
                         <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion_d)"
+                          <a v-if="m?.direccion_d && isCoordinates(m.direccion_d)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                             class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion_d }}</span>
+                          <span v-else>{{ m?.direccion_d ?? 'NULL' }}</span>
                         </td>
-                        <td class="py-0 px-1">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1">{{ m.zona_d }}</td>
+
+                        <td class="py-0 px-1">{{ m?.ciudad ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.zona_d ?? 'NULL' }}</td>
                       </tr>
                     </tbody>
+
                   </table>
                 </div>
               </div>
@@ -146,8 +152,8 @@
                 <tr v-for="(item, index) in selectedForDelivery" :key="index">
                   <td class="py-0 px-1">{{ index + 1 }}</td>
                   <td class="py-0 px-1">{{ item.guia }}</td>
-                  <td class="py-0 px-1">{{ item.sucursale.nombre }}</td>
-                  <td class="py-0 px-1">{{ item.tarifa }}</td>
+                  <td class="py-0 px-1">{{ item?.sucursale?.nombre ?? 'NULL' }}</td>
+                  <td class="py-0 px-1">{{ item?.tarifa ?? 'NULL' }}</td>
                   <td class="py-0 px-1">{{ item.peso_v }}</td>
                 </tr>
               </tbody>
@@ -161,7 +167,11 @@
     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer
       @shown="focusPesoInput">
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+<label :for="'peso_v-' + item.id">
+  {{ item?.guia ?? 'SIN GUIA' }} -
+  {{ item?.sucursale?.nombre ?? item?.sucursale_nombre ?? 'EMS GLOBAL' }} -
+  {{ item?.tarifa ?? 'SIN TARIFA' }}
+</label>
 
         <!-- Campo de entrada con ref para enfoque directo -->
         <label :for="'peso_v-' + item.id" class="mt-2">Peso Envio (Kg)</label>
@@ -241,66 +251,66 @@ export default {
   },
   computed: {
     filteredData() {
-  const searchTerm = this.searchTerm.toLowerCase();
-  // Verificar si `this.user` y `this.user.user` están definidos antes de acceder a `departamento`
-  const departamentoCartero = this.user && this.user.user 
-    ? this.user.user.departamento 
-    : null;
+      const searchTerm = (this.searchTerm || '').toLowerCase();
 
-  return this.list
-    .filter(item => {
-      // -------- LÓGICA PARA ESTADO 5 (ya existente) --------
-      const cumpleEstado5 = (
-        item.estado === 5 &&
-        item.sucursale &&                 // Existe sucursal
-        departamentoCartero &&
-        item.sucursale.origen === departamentoCartero
-      );
+      const departamentoCartero = this.user?.user?.departamento ?? null;
 
-      // -------- LÓGICA PARA ESTADO 10 --------
-      const cumpleEstado10 = (
-        item.estado === 10 &&
-        departamentoCartero &&
-        item.reencaminamiento === departamentoCartero
-      );
+      return (this.list || [])
+        .filter(item => {
+          // ---- ESTADOS (igual que tú) ----
+          const cumpleEstado5 =
+            item?.estado === 5 &&
+            item?.sucursale?.origen &&
+            departamentoCartero &&
+            item.sucursale.origen === departamentoCartero;
 
-      // -------- LÓGICA PARA ESTADO 11 --------
-      const cumpleEstado11 = (
-        item.estado === 11 &&
-        departamentoCartero &&
-        item.reencaminamiento === departamentoCartero
-      );
+          const cumpleEstado10 =
+            item?.estado === 10 &&
+            departamentoCartero &&
+            item?.reencaminamiento === departamentoCartero;
 
-      // -------- LÓGICA PARA ESTADO 13 --------
-      const cumpleEstado13 = (
-        item.estado === 13 &&
-        departamentoCartero &&
-        item.reencaminamiento === departamentoCartero
-      );
+          const cumpleEstado11 =
+            item?.estado === 11 &&
+            departamentoCartero &&
+            item?.reencaminamiento === departamentoCartero;
 
-      // -------- LÓGICA DE BÚSQUEDA Y SUCURSAL (igual a antes) --------
-      const coincideBusqueda =
-        Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        ) ||
-        (item.sucursale &&
-         item.sucursale.nombre &&
-         item.sucursale.nombre.toLowerCase().includes(searchTerm));
+          const cumpleEstado13 =
+            item?.estado === 13 &&
+            departamentoCartero &&
+            item?.reencaminamiento === departamentoCartero;
 
-      const coincideSucursal = this.selectedSucursal
-        ? item.sucursale.id === this.selectedSucursal
-        : true;
+          // ✅ EMS GLOBAL (sucursale_id y tarifa_id en NULL) + estado (ajusta si quieres otros estados)
+          const cumpleEMSGlobal =
+            [5, 10, 11, 13].includes(item?.estado) &&
+            String(item?.tipo_correspondencia ?? '').toUpperCase() === 'EMS' &&
+            (item?.sucursale_id == null) &&
+            (item?.tarifa_id == null);
 
-      // Al final, unimos ambas lógicas:
-      //  ( estado5 O estado10 O estado11 O estado13 ) && (coincideSucursal, coincideBusqueda )
-      return (
-        (cumpleEstado5 || cumpleEstado10 || cumpleEstado11 || cumpleEstado13) &&
-        coincideSucursal &&
-        coincideBusqueda
-      );
-    })
-    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-},
+          // ---- BÚSQUEDA NULL-SAFE ----
+          const coincideBusqueda =
+            Object.values(item || {}).some(v =>
+              String(v ?? '').toLowerCase().includes(searchTerm)
+            ) ||
+            String(item?.sucursale?.nombre ?? '').toLowerCase().includes(searchTerm);
+
+          // Si usas selectedSucursal, que no reviente si no existe
+          const coincideSucursal = this.selectedSucursal
+            ? item?.sucursale?.id === this.selectedSucursal
+            : true;
+
+          return (
+            (cumpleEstado5 || cumpleEstado10 || cumpleEstado11 || cumpleEstado13 || cumpleEMSGlobal) &&
+            coincideSucursal &&
+            coincideBusqueda
+          );
+        })
+        .sort((a, b) => {
+          const fa = a?.fecha ? new Date(a.fecha).getTime() : 0;
+          const fb = b?.fecha ? new Date(b.fecha).getTime() : 0;
+          return fb - fa;
+        });
+    },
+
 
 
 
@@ -324,13 +334,14 @@ export default {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
-    getTarifaLabel(tarifa_id) {
-      if (!this.tarifas) {
-        return 'Tarifas no cargadas';
-      }
-      const tarifa = this.tarifas.find(t => t.id === tarifa_id);
-      return tarifa ? tarifa.departamento : 'Tarifa no encontrada';
-    },
+  getTarifaLabel(tarifa_id) {
+  if (!tarifa_id) return 'SIN TARIFA'; // ✅ EMS GLOBAL
+  if (!Array.isArray(this.tarifas) || this.tarifas.length === 0) return 'Tarifas no cargadas';
+
+  const tarifa = this.tarifas.find(t => t.id === tarifa_id);
+  return tarifa ? (tarifa.departamento ?? 'SIN DEP') : 'Tarifa no encontrada';
+},
+
     calculatePrice(tarifa_id, peso_v) {
       const tarifa = this.tarifas.find(t => t.id === tarifa_id);
       if (tarifa) {
@@ -371,24 +382,29 @@ export default {
         this.load = false;
       }
     },
-    openAssignModal() {
-      this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => {
-        const precio = this.calculatePrice(item.tarifa_id, item.peso_v);
-        return {
-          id: item.id,
-          guia: item.guia,
-          sucursale: item.sucursale,
-          peso_v: item.peso_v !== undefined && item.peso_v !== null && item.peso_v !== 0 ? item.peso_v : '', // Asegúrate de que peso_v esté vacío inicialmente
-          tarifa_id: item.tarifa_id,
-          tarifa: this.getTarifaLabel(item.tarifa_id),
-          nombre_d: precio,
-          precio: precio,
-          peso_o: item.peso_o // Incluye peso aquí
+  openAssignModal() {
+  this.selectedItemsData = this.list
+    .filter(item => this.selected[item.id])
+    .map(item => {
+      const precio = this.calculatePrice(item.tarifa_id, item.peso_v);
 
-        };
-      });
-      this.isModalVisible = true;
-    },
+      return {
+        id: item.id,
+        guia: item.guia,
+        sucursale: item?.sucursale ?? null,
+        sucursale_nombre: item?.sucursale?.nombre ?? 'EMS GLOBAL',
+        peso_v: item?.peso_v ?? '',
+        tarifa_id: item?.tarifa_id ?? null,
+        tarifa: this.getTarifaLabel(item?.tarifa_id),
+        nombre_d: precio,
+        precio: precio,
+        peso_o: item?.peso_o ?? null,
+      };
+    });
+
+  this.isModalVisible = true;
+},
+
     handleSearchEnter() {
       const filteredItems = this.filteredData;
       if (filteredItems.length > 0) {
@@ -451,16 +467,17 @@ export default {
       this.load = true;
       try {
         const carteroId = this.user.user.id;
-        const payload = this.selectedForAssign.map(item => ({
-          id: item.id,
-          guia: item.guia,
-          origen: item.sucursale.origen,
-          tarifa: item.tarifa,
-          peso_v: item.peso_v,
-          sucursale_nombre: item.sucursale.nombre,
-          fecha_solicitud: item.fecha,
-          fecha_envio_regional: item.fecha_envio_regional
-        }));
+       const payload = this.selectedForAssign.map(item => ({
+  id: item?.id ?? null,
+  guia: item?.guia ?? 'NULL',
+  origen: item?.sucursale?.origen ?? 'EMS',                 // ✅
+  tarifa: item?.tarifa ?? 'NULL',
+  peso_v: item?.peso_v ?? '0.001',
+  sucursale_nombre: item?.sucursale?.nombre ?? 'EMS GLOBAL', // ✅
+  fecha_solicitud: item?.fecha ?? 'NULL',
+  fecha_envio_regional: item?.fecha_envio_regional ?? null
+}));
+
 
         for (let item of this.selectedForAssign) {
           // Asigna al item un reencaminamiento (ej: LPZ o SRZ)
@@ -469,13 +486,14 @@ export default {
 
           // PUT al backend
           await this.$encargados.$put(`solicitudesregional5/${item.id}`, {
-            encargado_id: carteroId,
-            peso_v: item.peso_v,
-            fecha_envio_regional: item.fecha_envio_regional,
-            precio: item.precio,
-            nombre_d: item.nombre_d,
-            reencaminamiento: item.reencaminamiento, // Importante enviarlo al backend
-          });
+  encargado_id: carteroId,
+  peso_v: item.peso_v ?? '0.001',
+  fecha_envio_regional: item.fecha_envio_regional ?? null,
+  precio: item.precio ?? 0,
+  nombre_d: item.nombre_d ?? null,
+  reencaminamiento: item.reencaminamiento ?? this.departamentoSeleccionado ?? null,
+});
+
         }
 
         // Generar el archivo Excel en el frontend usando ExcelJS con el nuevo diseño
@@ -549,7 +567,7 @@ export default {
 
         // Cuarta fila
         worksheet.mergeCells('A5:C5');
-        worksheet.getCell('A5').value = `${firstPackage.sucursale.origen}`; // Usar el origen del primer paquete
+worksheet.getCell('A5').value = `${firstPackage?.sucursale?.origen ?? 'EMS'}`;
         worksheet.getCell('A5').style = headerStyle;
 
         worksheet.mergeCells('H5:M5');
@@ -674,11 +692,11 @@ export default {
         this.selectedForAssign.forEach((item) => {
           let peso = parseFloat(item.peso_v); // Convertir peso a número con punto decimal
           worksheet.getCell(`A${currentRow}`).value = item.guia;
-          worksheet.getCell(`B${currentRow}`).value = item.sucursale.origen;
+worksheet.getCell(`B${currentRow}`).value = item?.sucursale?.origen ?? 'EMS';
           worksheet.getCell(`C${currentRow}`).value = item.reencaminamiento;
           worksheet.getCell(`D${currentRow}`).value = 1; // Cantidad
           worksheet.getCell(`F${currentRow}`).value = peso; // Asignar peso como número
-          worksheet.getCell(`G${currentRow}`).value = item.sucursale.nombre;
+worksheet.getCell(`G${currentRow}`).value = item?.sucursale?.nombre ?? 'EMS GLOBAL';
           worksheet.mergeCells(`J${currentRow}:M${currentRow}`);
           worksheet.getCell(`J${currentRow}`).value = item.observacion || ''; // Asignar observación
 
@@ -764,14 +782,15 @@ export default {
           title: 'Paquetes Enviados',
           text: 'Todos los paquetes seleccionados han sido asignados y exportados.',
         });
-      } catch (e) {
-        console.error(e);
-        this.$swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un error al asignar los paquetes.',
-        });
-      } finally {
+    } catch (e) {
+  console.error('ERROR ASIGNAR/REPORTE =>', e?.response?.data || e);
+  this.$swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: e?.response?.data?.message || JSON.stringify(e?.response?.data || e) || 'Hubo un error al asignar los paquetes.',
+  });
+}
+ finally {
         this.load = false;
       }
     },

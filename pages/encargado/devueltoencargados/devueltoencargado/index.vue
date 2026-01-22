@@ -4,7 +4,7 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-         
+
         </div>
         <div class="row">
           <div class="col-12">
@@ -28,32 +28,51 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(m, i) in paginatedList" :key="i">
-                        <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="p-1">{{ m.sucursale.nombre }}</td>
-                        <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.observacion }}</td>
+                      <tr v-for="(m, i) in paginatedList" :key="m?.id ?? i">
                         <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>               
-                    <td class="py-0 px-1">{{ m.fecha_devolucion }}</td>
+                          {{ currentPage * itemsPerPage + i + 1 }}
+                        </td>
 
-                    <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                      
-                        <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>                  
+                        <td class="p-1">
+                          {{ m?.sucursale?.nombre ?? 'SIN SUCURSAL' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.guia ?? '-' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.observacion ?? '-' }}
+                        </td>
+
+                        <!-- Foto (imagen original) -->
+                        <td class="py-0 px-1">
+                          <div class="d-flex flex-column align-items-center">
+                            <button v-if="m?.imagen" @click="downloadImage(m.imagen)"
+                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              Descargar
+                            </button>
+                            <span v-else>-</span>
+                          </div>
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.fecha_devolucion ?? '-' }}
+                        </td>
+
+                        <!-- Foto (imagen devolucion) -->
+                        <td class="py-0 px-1">
+                          <div class="d-flex flex-column align-items-center">
+                            <button v-if="m?.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
+                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              Descargar
+                            </button>
+                            <span v-else>-</span>
+                          </div>
+                        </td>
                       </tr>
                     </tbody>
+
                   </table>
                 </div>
                 <!-- Paginación -->
@@ -107,25 +126,25 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm ? this.searchTerm.toLowerCase() : '';
-    return this.list.filter(item =>
-      item.estado === 7 && Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm)
-      )
-    );
-  },
-  sortedList() {
-    // Asegúrate de que filteredData retorne un array antes de intentar ordenarlo
-    return this.filteredData.slice().sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  },
-  paginatedList() {
-    const start = this.currentPage * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.sortedList.slice(start, end);
-  },
-  totalPages() {
-    return Math.ceil(this.sortedList.length / this.itemsPerPage);
-  }
+      const searchTerm = this.searchTerm ? this.searchTerm.toLowerCase() : '';
+      return this.list.filter(item =>
+        item.estado === 7 && Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        )
+      );
+    },
+    sortedList() {
+      // Asegúrate de que filteredData retorne un array antes de intentar ordenarlo
+      return this.filteredData.slice().sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    },
+    paginatedList() {
+      const start = this.currentPage * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.sortedList.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.sortedList.length / this.itemsPerPage);
+    }
   },
   methods: {
     generateThumbnail(base64Image) {

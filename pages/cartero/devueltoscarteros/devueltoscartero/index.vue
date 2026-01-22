@@ -10,7 +10,8 @@
             </button>
           </div>
           <div class="col-3">
-            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control" placeholder="Buscar..." />
+            <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
+              placeholder="Buscar..." />
           </div>
         </div>
         <div class="row">
@@ -24,78 +25,121 @@
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Guía</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Detalles de Domicilio</th>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Sucursal</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Detalles de Domicilio</th>
 
-                    <!-- Nueva columna para la dirección específica -->
-                    <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
-                    <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha Solicitud</th>
-                    <th class="py-0 px-1">Observacion</th>
-                    <th class="py-0 px-1">imagen Devolucion</th>
-                    <th class="py-0 px-1">imagen de retorno</th>
+                        <!-- Nueva columna para la dirección específica -->
+                        <th class="py-0 px-1">Zona</th> <!-- Nueva columna para la zona -->
+                        <th class="py-0 px-1">Dirección maps</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Fecha Solicitud</th>
+                        <th class="py-0 px-1">Observacion</th>
+                        <th class="py-0 px-1">imagen Devolucion</th>
+                        <th class="py-0 px-1">imagen de retorno</th>
 
-                    
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha_devolucion }}</td>
-                    <td class="py-0 px-1">{{ m.observacion }}</td>
-                    <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                       
-                        <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>                    
-                    <td class="py-0 px-1">
-                      <div class="d-flex flex-column align-items-center">
-                       
-                        <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                          class="btn btn-sm btn-primary mt-1 align-self-start">
-                          Descargar
-                        </button>
-                      </div>
-                    </td>            
-                  </tr>
-                </tbody>
-              </table>
+
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="m?.id ?? i">
+                        <td class="py-0 px-1">
+                          {{ currentPage * itemsPerPage + i + 1 }}
+                        </td>
+
+                        <td class="p-1">
+                          {{ m?.sucursale?.nombre ?? 'SIN SUCURSAL' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.guia ?? '-' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.remitente ?? '-' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.direccion?.direccion_especifica ?? '-' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.direccion?.zona ?? '-' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          <a v-if="m?.direccion?.direccion && isCoordinates(m.direccion.direccion)"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+
+                          <a v-else-if="m?.direccion?.direccion"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+
+                          <span v-else>-</span>
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.telefono ?? '-' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.contenido ?? '-' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.fecha_devolucion ?? m?.fecha ?? '-' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.observacion ?? '-' }}
+                        </td>
+
+                        <!-- imagen devolucion -->
+                        <td class="py-0 px-1">
+                          <div class="d-flex flex-column align-items-center">
+                            <button v-if="m?.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
+                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              Descargar
+                            </button>
+                            <span v-else>-</span>
+                          </div>
+                        </td>
+
+                        <!-- imagen retorno -->
+                        <td class="py-0 px-1">
+                          <div class="d-flex flex-column align-items-center">
+                            <button v-if="m?.imagen" @click="downloadImage(m.imagen)"
+                              class="btn btn-sm btn-primary mt-1 align-self-start">
+                              Descargar
+                            </button>
+                            <span v-else>-</span>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
             <!-- Paginación -->
             <nav aria-label="Page navigation">
               <ul class="pagination justify-content-between">
                 <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0"><</button>
+                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0">
+                    <</button>
                 </li>
-                <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page - 1 }">
+                <li class="page-item" v-for="page in totalPages" :key="page"
+                  :class="{ active: currentPage === page - 1 }">
                   <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
                 </li>
                 <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
@@ -107,10 +151,10 @@
         </div>
       </div>
     </AdminTemplate>
-    
+
     <!-- Modal para añadir observación -->
     <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop>
-      
+
       <div class="form-group">
         <label for="capturephoto">Subir Foto</label>
         <input type="file" accept="image/*" id="capturephoto" class="form-control-file" @change="handleImageUpload">
@@ -171,14 +215,14 @@ export default {
   },
   computed: {
     filteredData() {
-  const searchTerm = this.searchTerm.toLowerCase();
-  return this.list.filter(item =>
-    item.estado === 7 && 
-    Object.values(item).some(value =>
-      String(value).toLowerCase().includes(searchTerm)
-    )
-  );
-},
+      const searchTerm = this.searchTerm.toLowerCase();
+      return this.list.filter(item =>
+        item.estado === 7 &&
+        Object.values(item).some(value =>
+          String(value).toLowerCase().includes(searchTerm)
+        )
+      );
+    },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -243,43 +287,43 @@ export default {
         reader.readAsDataURL(file);
       }
     },
-   async confirmRechazar() {
-  this.load = true;
-  try {
-    const now = new Date();
-    const options = {
-      timeZone: 'America/La_Paz',
-    };
-    const formattedDate = now.toLocaleDateString('es-ES', options) + ' ' + now.toLocaleTimeString('es-ES', options);
+    async confirmRechazar() {
+      this.load = true;
+      try {
+        const now = new Date();
+        const options = {
+          timeZone: 'America/La_Paz',
+        };
+        const formattedDate = now.toLocaleDateString('es-ES', options) + ' ' + now.toLocaleTimeString('es-ES', options);
 
-    await this.$api.$put(`devolucion/${this.selectedSolicitudeId}`, { 
-      fecha_devolucion: formattedDate, // Asigna la fecha de devolución al backend
-      observacion: this.observacion,
-      imagen_devolucion: this.uploadedImage, // Cambiar imagen por imagen_devolucion
-    });
+        await this.$api.$put(`devolucion/${this.selectedSolicitudeId}`, {
+          fecha_devolucion: formattedDate, // Asigna la fecha de devolución al backend
+          observacion: this.observacion,
+          imagen_devolucion: this.uploadedImage, // Cambiar imagen por imagen_devolucion
+        });
 
-    await this.GET_DATA(this.apiUrl);
-    this.$swal.fire({
-      icon: 'success',
-      title: 'Solicitud ha sido Retornada',
-      text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
-    });
+        await this.GET_DATA(this.apiUrl);
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Solicitud ha sido Retornada',
+          text: `La solicitud ha sido marcada como 'Devuelta a destino' con la observación.`,
+        });
 
-    this.isObservationModalVisible = false;
-    this.observacion = ''; 
-    this.uploadedImage = ''; // Limpiar la imagen después de guardar
-  } catch (e) {
-    console.error(e);
-    this.$swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Hubo un error al devolver la solicitud a destino.',
-    });
-  } finally {
-    this.load = false;
-  }
-}
-,
+        this.isObservationModalVisible = false;
+        this.observacion = '';
+        this.uploadedImage = ''; // Limpiar la imagen después de guardar
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al devolver la solicitud a destino.',
+        });
+      } finally {
+        this.load = false;
+      }
+    }
+    ,
 
     openObservationModal(id) {
       this.selectedSolicitudeId = id;
@@ -300,7 +344,7 @@ export default {
           title: 'Cartero asignado',
           text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
         });
-        await this.GET_DATA(this.apiUrl); 
+        await this.GET_DATA(this.apiUrl);
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -347,7 +391,7 @@ export default {
         const item = this.list.find(m => m.id === id);
         if (item) {
           const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
-          Object.assign(item, response); 
+          Object.assign(item, response);
           await this.GET_DATA(this.apiUrl);
         }
       } catch (e) {
@@ -382,14 +426,14 @@ export default {
             console.error('Item inválido:', item);
           }
         }
-        await this.GET_DATA(this.apiUrl); 
+        await this.GET_DATA(this.apiUrl);
         this.$swal.fire({
           icon: 'success',
           title: 'Carteros asignados',
           text: 'Todos los carteros seleccionados han sido asignados.',
         });
         this.isModalVisible = false;
-        this.selected = {}; 
+        this.selected = {};
         await this.GET_DATA(this.apiUrl);
       } catch (e) {
         console.error(e);

@@ -40,47 +40,119 @@
                         <th class="py-0 px-1"></th>
                       </tr>
                     </thead>
-                    <tbody>
-                      <tr v-for="(m, i) in paginatedData" :key="i">
-                        <td class="py-0 px-1">
-      <input type="checkbox" v-model="selected[m.id]">
-    </td>
-                        <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="py-0 px-1" data-label="Sucursal">{{ m.sucursale.nombre }}</td>
-                        <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
-                        <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
-                        <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
-                        <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
-                        <td class="py-0 px-1" data-label="Destinatario">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1" data-label="Teléfono Destinatario">{{ m.telefono_d }}</td>
-                        <td class="py-0 px-1" data-label="Dirección Destinatario Maps">
-  <a 
-    v-if="isCoordinates(m.direccion_d) || m.direccion_especifica_d" 
-    :href="'https://www.google.com/maps/search/?api=1&query=' + (isCoordinates(m.direccion_d) ? m.direccion_d : m.direccion_especifica_d)" 
-    target="_blank" 
-    class="btn btn-primary btn-sm">
-    Ver mapa
-  </a>
-  <span v-else>No hay dirección disponible</span>
-</td>
+                  <tbody>
+  <tr v-for="(m, i) in paginatedData" :key="m.id">
 
-                        <td class="py-0 px-1" data-label="Dirección">{{ m.direccion_especifica_d }}</td>
-                        <td class="py-0 px-1" data-label="Municipio/Provincia">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1" data-label="Zona">{{ m.zona_d }}</td>
-                        <td class="py-0 px-1" data-label="Acción">
-                          <div class="btn-group">
-                            <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2 w-100">
-                              <i class="fas fa-ban"></i> Entregar Correspondencia
-                            </nuxtLink>
-                          </div>
-                        </td>
-                        <td class="py-0 px-1" data-label="Devolver">
-                          <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm w-100">
-                            <i class="fas fa-undo"></i> Devolver a Origen
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
+    <!-- Checkbox -->
+    <td class="py-0 px-1">
+      <input type="checkbox" v-model="selected[m.id]" />
+    </td>
+
+    <!-- Nº -->
+    <td class="py-0 px-1" data-label="Nº">
+      {{ currentPage * itemsPerPage + i + 1 }}
+    </td>
+
+    <!-- Sucursal -->
+    <td class="py-0 px-1" data-label="Sucursal">
+      {{ m?.sucursale?.nombre ?? 'SIN SUCURSAL' }}
+    </td>
+
+    <!-- Guía -->
+    <td class="py-0 px-1" data-label="Guía">
+      {{ m?.guia ?? '-' }}
+    </td>
+
+    <!-- Remitente -->
+    <td class="py-0 px-1" data-label="Remitente">
+      {{ m?.remitente ?? '-' }}
+    </td>
+
+    <!-- Teléfono -->
+    <td class="py-0 px-1" data-label="Teléfono">
+      {{ m?.telefono ?? '-' }}
+    </td>
+
+    <!-- Contenido -->
+    <td class="py-0 px-1" data-label="Contenido">
+      {{ m?.contenido ?? '-' }}
+    </td>
+
+    <!-- Destinatario -->
+    <td class="py-0 px-1" data-label="Destinatario">
+      {{ m?.destinatario ?? '-' }}
+    </td>
+
+    <!-- Teléfono Destinatario -->
+    <td class="py-0 px-1" data-label="Teléfono Destinatario">
+      {{ m?.telefono_d ?? '-' }}
+    </td>
+
+    <!-- Dirección Destinatario MAPS (EMS / Normal) -->
+    <td class="py-0 px-1" data-label="Dirección Destinatario Maps">
+      <a
+        v-if="m?.direccion_d && isCoordinates(m.direccion_d)"
+        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d"
+        target="_blank"
+        class="btn btn-primary btn-sm"
+      >
+        Ver mapa
+      </a>
+
+      <a
+        v-else-if="m?.direccion_especifica_d"
+        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_especifica_d"
+        target="_blank"
+        class="btn btn-primary btn-sm"
+      >
+        Ver mapa
+      </a>
+
+      <span v-else>
+        No disponible
+      </span>
+    </td>
+
+    <!-- Dirección Destinatario -->
+    <td class="py-0 px-1" data-label="Dirección Destinatario">
+      {{ m?.direccion_especifica_d ?? '-' }}
+    </td>
+
+    <!-- Municipio / Provincia -->
+    <td class="py-0 px-1" data-label="Municipio/Provincia">
+      {{ m?.ciudad ?? '-' }}
+    </td>
+
+    <!-- Zona Destinatario -->
+    <td class="py-0 px-1" data-label="Zona Destinatario">
+      {{ m?.zona_d ?? '-' }}
+    </td>
+
+    <!-- Acción Entregar -->
+    <td class="py-0 px-1" data-label="Acción">
+      <nuxt-link
+        v-if="m?.id"
+        :to="url_editar + m.id"
+        class="btn btn-info btn-sm w-100"
+      >
+        <i class="fas fa-check"></i> Entregar
+      </nuxt-link>
+    </td>
+
+    <!-- Acción Devolver -->
+    <td class="py-0 px-1" data-label="Devolver">
+      <button
+        v-if="m?.id"
+        @click="openObservationModal(m.id)"
+        class="btn btn-warning btn-sm w-100"
+      >
+        <i class="fas fa-undo"></i> Devolver
+      </button>
+    </td>
+
+  </tr>
+</tbody>
+
                   </table>
                 </div>
               </div>

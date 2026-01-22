@@ -27,27 +27,53 @@
                         <th class="py-0 px-1">Foto</th>
 
                       </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="m.id">
-                   
-                    <td class="py-0 px-1">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                        <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
-
-                        <td class="py-0 px-1">{{ m.observacion }}</td>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="m?.id ?? i">
+                        <!-- # -->
                         <td class="py-0 px-1">
-                     
-                      <button v-if="m.imagen" @click="downloadImage(m.imagen)"
-                        class="btn btn-sm btn-primary mt-1">Descargar</button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                          {{ (currentPage - 1) * itemsPerPage + i + 1 }}
+                        </td>
+
+                        <!-- Sucursal (si es EMS y viene null => EMS GLOBAL) -->
+                        <td class="p-1">
+                          {{
+                            m?.sucursale?.nombre ??
+                            (((m?.tipo_correspondencia ?? '') + '').toUpperCase() === 'EMS'
+                              ? 'EMS GLOBAL'
+                          : 'SIN SUCURSAL')
+                          }}
+                        </td>
+
+                        <!-- Guía -->
+                        <td class="py-0 px-1">
+                          {{ m?.guia ?? 'SIN GUÍA' }}
+                        </td>
+
+                        <!-- Cartero -->
+                        <td class="p-1">
+                          {{ m?.cartero_entrega?.nombre ?? 'Por asignar' }}
+                        </td>
+
+                        <!-- Observación -->
+                        <td class="py-0 px-1">
+                          {{ m?.observacion ?? 'SIN OBSERVACIÓN' }}
+                        </td>
+
+                        <!-- Foto -->
+                        <td class="py-0 px-1">
+                          <button v-if="m?.imagen" @click="downloadImage(m.imagen)" class="btn btn-sm btn-primary mt-1">
+                            Descargar
+                          </button>
+                          <span v-else>SIN FOTO</span>
+                        </td>
+                      </tr>
+                    </tbody>
+
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
@@ -104,13 +130,36 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item =>
-        item.estado === 6 &&
-        Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        )
-      );
+      const searchTerm = (this.searchTerm || '').toLowerCase();
+
+      return (this.list || [])
+        .filter(item => {
+          // ✅ solo rechazados
+          const estadoOk = item?.estado === 6;
+
+          // ✅ EMS o Contrato (no excluye nada, solo evita null issues)
+          const esEMS = ((item?.tipo_correspondencia ?? '') + '').toUpperCase() === 'EMS';
+          const esContrato = !esEMS; // si no es EMS lo tratamos como "contrato/normal"
+
+          // ✅ búsqueda NULL-safe (NO revienta con nulls)
+          const valuesMatch = Object.values(item || {}).some(v =>
+            String(v ?? '').toLowerCase().includes(searchTerm)
+          );
+
+          // ✅ búsquedas específicas por relaciones (sucursale / cartero)
+          const sucursalMatch = String(item?.sucursale?.nombre ?? '').toLowerCase().includes(searchTerm);
+          const carteroMatch = String(item?.cartero_entrega?.nombre ?? '').toLowerCase().includes(searchTerm);
+
+          const coincideBusqueda = valuesMatch || sucursalMatch || carteroMatch;
+
+          return estadoOk && coincideBusqueda && (esEMS || esContrato);
+        })
+        // ✅ orden (si tienes fecha, usa la fecha, si no, no rompe)
+        .sort((a, b) => {
+          const fa = new Date(a?.fecha ?? 0).getTime() || 0;
+          const fb = new Date(b?.fecha ?? 0).getTime() || 0;
+          return fb - fa;
+        });
     },
     paginatedData() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -200,14 +249,14 @@ export default {
         console.error('Error al obtener los datos:', e);
       }
     },
-   
-   
-    
-    
-   
-  
-    
-    
+
+
+
+
+
+
+
+
   },
   mounted() {
     this.$nextTick(async () => {

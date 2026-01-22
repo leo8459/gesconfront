@@ -51,53 +51,151 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="m.id">
-                    <td class="py-0 px-1">
-                      <input type="checkbox" v-model="selected[m.id]" />
-                    </td>
-                    <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
-                    <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-                    <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
-                    <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.peso_o }}</td>
-                    <td class="py-0 px-1">{{ m.peso_v }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
+  <tr v-for="(m, i) in paginatedData" :key="m?.id ?? i">
+    <!-- checkbox -->
+    <td class="py-0 px-1">
+      <input
+        type="checkbox"
+        :checked="!!selected[m?.id]"
+        @change="$set(selected, m?.id, $event.target.checked)"
+        :disabled="!m?.id"
+      />
+    </td>
 
-                    <td class="py-0 px-1">
-                      <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
-                    </td>
-                    <td class="py-0 px-1">{{ m.fecha_d }}</td>
-                  </tr>
-                </tbody>
+    <!-- contador -->
+    <td class="py-0 px-1">
+      {{ (currentPage - 1) * itemsPerPage + i + 1 }}
+    </td>
+
+    <!-- sucursal -->
+    <td class="p-1">
+      {{ m?.sucursale?.nombre ?? 'SIN SUCURSAL' }}
+    </td>
+
+    <!-- cartero recogida -->
+    <td class="p-1">
+      {{ m?.cartero_recogida?.nombre ?? 'Por asignar' }}
+    </td>
+
+    <!-- cartero entrega -->
+    <td class="p-1">
+      {{ m?.cartero_entrega?.nombre ?? 'Por asignar' }}
+    </td>
+
+    <!-- guia -->
+    <td class="py-0 px-1">
+      {{ m?.guia ?? '-' }}
+    </td>
+
+    <!-- peso empresa -->
+    <td class="py-0 px-1">
+      {{ m?.peso_o ?? '-' }}
+    </td>
+
+    <!-- peso correos -->
+    <td class="py-0 px-1">
+      {{ m?.peso_v ?? '-' }}
+    </td>
+
+    <!-- remitente -->
+    <td class="py-0 px-1">
+      {{ m?.remitente ?? '-' }}
+    </td>
+
+    <!-- domicilio remitente -->
+    <td class="py-0 px-1">
+      {{ m?.direccion?.direccion_especifica ?? '-' }}
+    </td>
+
+    <!-- zona remitente -->
+    <td class="py-0 px-1">
+      {{ m?.direccion?.zona ?? '-' }}
+    </td>
+
+    <!-- maps remitente -->
+    <td class="py-0 px-1">
+      <a
+        v-if="m?.direccion?.direccion && isCoordinates(m.direccion.direccion)"
+        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+        target="_blank"
+        class="btn btn-primary btn-sm"
+      >
+        Ver mapa
+      </a>
+      <span v-else>{{ m?.direccion?.direccion ?? '-' }}</span>
+    </td>
+
+    <!-- telefono -->
+    <td class="py-0 px-1">
+      {{ m?.telefono ?? '-' }}
+    </td>
+
+    <!-- contenido -->
+    <td class="py-0 px-1">
+      {{ m?.contenido ?? '-' }}
+    </td>
+
+    <!-- fecha -->
+    <td class="py-0 px-1">
+      {{ m?.fecha ?? '-' }}
+    </td>
+
+    <!-- destinatario -->
+    <td class="py-0 px-1">
+      {{ m?.destinatario ?? '-' }}
+    </td>
+
+    <!-- telefono d -->
+    <td class="py-0 px-1">
+      {{ m?.telefono_d ?? '-' }}
+    </td>
+
+    <!-- direccion destinatario + maps -->
+    <td class="py-0 px-1">
+      <a
+        v-if="m?.direccion_d && isCoordinates(m.direccion_d)"
+        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d"
+        target="_blank"
+        class="btn btn-primary btn-sm"
+      >
+        Ver mapa
+      </a>
+      <span v-else>{{ m?.direccion_d ?? '-' }}</span>
+    </td>
+
+    <!-- ciudad -->
+    <td class="py-0 px-1">
+      {{ m?.ciudad ?? '-' }}
+    </td>
+
+    <!-- detalle domicilio destinatario -->
+    <td class="py-0 px-1">
+      {{ m?.direccion_especifica_d ?? '-' }}
+    </td>
+
+    <!-- zona destinatario -->
+    <td class="py-0 px-1">
+      {{ m?.zona_d ?? '-' }}
+    </td>
+
+    <!-- firma -->
+    <td class="py-0 px-1">
+      <img
+        v-if="m?.firma_d"
+        :src="m.firma_d"
+        alt="Firma Destino"
+        width="100"
+      />
+      <span v-else>-</span>
+    </td>
+
+    <!-- fecha destinatario -->
+    <td class="py-0 px-1">
+      {{ m?.fecha_d ?? '-' }}
+    </td>
+  </tr>
+</tbody>
+
               </table>
             </div>
           </div>

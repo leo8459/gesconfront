@@ -150,8 +150,17 @@ export default {
     return pages;
   },
     filteredList() {
-      return this.list.filter(item => item.sucursale.id === this.user.user.id && (item.estado === 7));
-    },
+  const userId = this.user?.user?.id;
+
+  // si no hay user logueado, no muestres nada y evitas el error
+  if (!userId) return [];
+
+  return this.list.filter(item =>
+    item?.sucursale?.id === userId &&
+    (item?.estado === 7 || item?.estado === 7)
+  );
+},
+
     sortedList() {
       return this.filteredList.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
     },
@@ -292,24 +301,29 @@ export default {
     }
   },
   },
-  mounted() {
-    this.$nextTick(async () => {
-      let user = localStorage.getItem('userAuth');
-      this.user = JSON.parse(user);
-      try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
-      } catch (e) {
-        console.error('Error al obtener los datos:', e);
-      } finally {
-        this.load = false;
-      }
-    });
-  },
+ mounted() {
+  this.$nextTick(async () => {
+    const userStr = localStorage.getItem('userAuth');
+    this.user = userStr ? JSON.parse(userStr) : { user: null };
+
+    if (!this.user?.user?.id) {
+      this.list = [];
+      this.load = false;
+      return;
+    }
+
+    try {
+      const data = await this.GET_DATA(this.apiUrl);
+      this.list = Array.isArray(data) ? data : [];
+    } catch (e) {
+      console.error('Error al obtener los datos:', e);
+      this.list = [];
+    } finally {
+      this.load = false;
+    }
+  });
+},
+
 };
 </script>
 

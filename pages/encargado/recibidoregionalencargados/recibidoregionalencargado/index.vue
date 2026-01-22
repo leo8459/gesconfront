@@ -30,66 +30,116 @@
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
-                    <th class="py-0 px-1">
-                      <input type="checkbox" @click="selectAll($event, paginatedData)" />
-                    </th>
-                    <th class="py-0 px-1">#</th>
-                    <th class="py-0 px-1">Sucursal</th>
-                    <th class="py-0 px-1">Guía</th>
-                    <th class="py-0 px-1">Remitente</th>
-                    <th class="py-0 px-1">Detalles de Domicilio</th>
-                    <th class="py-0 px-1">Zona</th>
-                    <th class="py-0 px-1">Dirección maps</th>
-                    <th class="py-0 px-1">Teléfono</th>
-                    <th class="py-0 px-1">Contenido</th>
-                    <th class="py-0 px-1">Fecha Solicitud</th>
-                    <th class="py-0 px-1">Destinatario</th>
-                    <th class="py-0 px-1">Teléfono D</th>
-                    <th class="py-0 px-1">Dirección Destinatario</th>
-                    <th class="py-0 px-1">Municipio/Provincia</th>
-                    <th class="py-0 px-1">Zona Destinatario</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="i">
-                    <td class="py-0 px-1">
-                      <input type="checkbox" v-model="selected[m.id]" />
-                    </td>
-                    <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ m.sucursale.nombre }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                    <td class="py-0 px-1">{{ m.direccion.zona }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                        target="_blank" class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion.direccion }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
-                    <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion_d)"
-                        :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
-                        class="btn btn-primary btn-sm">
-                        Ver mapa
-                      </a>
-                      <span v-else>{{ m.direccion_d }}</span>
-                    </td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
-                  </tr>
-                </tbody>
-              </table>
+                        <th class="py-0 px-1">
+                          <input type="checkbox" @click="selectAll($event, paginatedData)" />
+                        </th>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Sucursal</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Detalles de Domicilio</th>
+                        <th class="py-0 px-1">Zona</th>
+                        <th class="py-0 px-1">Dirección maps</th>
+                        <th class="py-0 px-1">Teléfono</th>
+                        <th class="py-0 px-1">Contenido</th>
+                        <th class="py-0 px-1">Fecha Solicitud</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Teléfono D</th>
+                        <th class="py-0 px-1">Dirección Destinatario</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th class="py-0 px-1">Zona Destinatario</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in paginatedData" :key="m?.id ?? i">
+
+                        <!-- Checkbox -->
+                        <td class="py-0 px-1">
+                          <input type="checkbox" :disabled="!m?.id" :checked="!!selected[m?.id]"
+                            @change="m?.id && $set(selected, m.id, $event.target.checked)" />
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ currentPage * itemsPerPage + i + 1 }}
+                        </td>
+
+                        <td class="p-1">
+                          {{ m?.sucursale?.nombre ?? 'SIN SUCURSAL' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.guia ?? 'SIN GUÍA' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.remitente ?? 'SIN REMITENTE' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.direccion?.direccion_especifica ?? 'SIN DETALLE' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.direccion?.zona ?? 'SIN ZONA' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          <a v-if="m?.direccion?.direccion && isCoordinates(String(m.direccion.direccion))"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+                            target="_blank" class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>
+                            {{ m?.direccion?.direccion ?? 'SIN DIRECCIÓN' }}
+                          </span>
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.telefono ?? 'SIN TELÉFONO' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.contenido ?? 'SIN CONTENIDO' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.fecha ?? 'SIN FECHA' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.destinatario ?? 'SIN DESTINATARIO' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.telefono_d ?? 'SIN TELÉFONO' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          <a v-if="m?.direccion_d && isCoordinates(String(m.direccion_d))"
+                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
+                            class="btn btn-primary btn-sm">
+                            Ver mapa
+                          </a>
+                          <span v-else>
+                            {{ m?.direccion_d ?? 'SIN DIRECCIÓN' }}
+                          </span>
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.ciudad ?? 'SIN MUNICIPIO/PROV.' }}
+                        </td>
+
+                        <td class="py-0 px-1">
+                          {{ m?.zona_d ?? 'SIN ZONA' }}
+                        </td>
+
+                      </tr>
+                    </tbody>
+
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
 
             <!-- Paginación -->
@@ -201,13 +251,23 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item =>
-        item.estado === 10 && Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        )
-      );
+      const searchTerm = (this.searchTerm || '').toLowerCase();
+
+      return (this.list || []).filter(item => {
+        if (!item) return false;
+
+        // estado 10 (Recibidos)
+        const matchesEstado = item.estado === 10;
+
+        // búsqueda segura
+        const matchesSearch = JSON.stringify(item)
+          .toLowerCase()
+          .includes(searchTerm);
+
+        return matchesEstado && matchesSearch;
+      });
     },
+
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -222,8 +282,11 @@ export default {
   },
   methods: {
     focusPesoInput() {
-      this.$refs.pesoInput[0].focus();
+      const ref = this.$refs.pesoInput;
+      if (Array.isArray(ref) && ref.length > 0) ref[0].focus();
+      else if (ref) ref.focus();
     },
+
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
@@ -293,20 +356,24 @@ export default {
     },
     handleSearchEnter() {
       const filteredItems = this.filteredData;
-      if (filteredItems.length > 0) {
-        const item = filteredItems[0];
-        this.selectedItemsData = [{
-          id: item.id,
-          guia: item.guia,
-          sucursale: item.sucursale,
-          peso_v: item.peso_v || 0,
-          tarifa_id: item.tarifa_id,
-          tarifa: this.getTarifaLabel(item.tarifa_id),
-          precio: this.calculatePrice(item.tarifa_id, item.peso_v)
-        }];
-        this.isModalVisible = true;
-      }
+      if (!filteredItems || filteredItems.length === 0) return;
+
+      const item = filteredItems[0];
+
+      this.selectedItemsData = [{
+        id: item?.id,
+        guia: item?.guia ?? '',
+        sucursale: item?.sucursale ?? { nombre: 'SIN SUCURSAL' }, // 🔥 aquí
+        peso_v: item?.peso_v || 0,
+        tarifa_id: item?.tarifa_id,
+        tarifa: this.getTarifaLabel(item?.tarifa_id),
+        precio: this.calculatePrice(item?.tarifa_id, item?.peso_v),
+        estado: item?.estado
+      }];
+
+      this.isModalVisible = true;
     },
+
     confirmAssignSelected() {
       this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
         let peso = parseFloat(item.peso_v);

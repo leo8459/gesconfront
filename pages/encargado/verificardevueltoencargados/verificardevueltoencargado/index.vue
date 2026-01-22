@@ -68,7 +68,9 @@
                           <input type="checkbox" v-model="selected[m.id]" />
                         </td>
                         <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
-                        <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
+<td class="p-1">
+  {{ m?.sucursale?.nombre ?? ( (m?.tipo_correspondencia ?? '').toUpperCase() === 'EMS' ? 'EMS GLOBAL' : 'NULL' ) }}
+</td>
 
                         <td class="py-0 px-1">{{ m.guia }}</td>
                         <td class="py-0 px-1">{{ m.peso_o }}</td>
@@ -83,17 +85,22 @@
                             </button>
                           </div>
                         </td>
-                        <td class="py-0 px-1">{{ m.direccion.direccion_especifica }}</td>
-                        <!-- Mostrar la dirección específica -->
-                        <td class="py-0 px-1">{{ m.direccion.zona }}</td> <!-- Mostrar la zona -->
-                        <td class="py-0 px-1">
-                          <a v-if="isCoordinates(m.direccion.direccion)"
-                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
-                            target="_blank" class="btn btn-primary btn-sm">
-                            Ver mapa
-                          </a>
-                          <span v-else>{{ m.direccion.direccion }}</span>
-                        </td>
+                      <td class="py-0 px-1">{{ m?.direccion?.direccion_especifica ?? 'NULL' }}</td>
+
+<td class="py-0 px-1">{{ m?.direccion?.zona ?? 'NULL' }}</td>
+
+<td class="py-0 px-1">
+  <a
+    v-if="m?.direccion?.direccion && isCoordinates(m.direccion.direccion)"
+    :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
+    target="_blank"
+    class="btn btn-primary btn-sm"
+  >
+    Ver mapa
+  </a>
+  <span v-else>{{ m?.direccion?.direccion ?? 'NULL' }}</span>
+</td>
+
                         <td class="py-0 px-1">{{ m.telefono }}</td>
                         <td class="py-0 px-1">{{ m.contenido }}</td>
                         <td class="py-0 px-1">{{ m.fecha }}</td>
@@ -203,15 +210,47 @@ export default {
     };
   },
   computed: {
-    filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      return this.list.filter(item =>
-        (item.estado === 11) && // Incluir elementos con estado 3 o 10
-        Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        )
-      );
-    },
+   filteredData() {
+  const searchTerm = (this.searchTerm || '').toLowerCase();
+
+  // ✅ estados que quieres ver (ajusta si necesitas más)
+  const estadosPermitidos = [11]; // ejemplo: return
+  // si quieres ver varios: const estadosPermitidos = [11, 10, 5, 13];
+
+  return (this.list || [])
+    .filter(item => {
+      const estadoOk = estadosPermitidos.includes(item?.estado);
+
+      // ✅ EMS GLOBAL: sucursale_id y tarifa_id null
+      const esEMS = (item?.tipo_correspondencia ?? '').toUpperCase() === 'EMS';
+      const esEMSGlobal =
+        esEMS &&
+        (item?.sucursale_id === null || item?.sucursale_id === undefined) &&
+        (item?.tarifa_id === null || item?.tarifa_id === undefined);
+
+      // ✅ contratos normales (con sucursal) o EMS global
+      const visible = (item?.sucursale != null) || esEMSGlobal;
+
+      // ✅ búsqueda segura (no revienta con null)
+      const coincideBusqueda =
+        String(item?.guia ?? '').toLowerCase().includes(searchTerm) ||
+        String(item?.remitente ?? '').toLowerCase().includes(searchTerm) ||
+        String(item?.destinatario ?? '').toLowerCase().includes(searchTerm) ||
+        String(item?.telefono ?? '').toLowerCase().includes(searchTerm) ||
+        String(item?.telefono_d ?? '').toLowerCase().includes(searchTerm) ||
+        String(item?.contenido ?? '').toLowerCase().includes(searchTerm) ||
+        String(item?.ciudad ?? '').toLowerCase().includes(searchTerm) ||
+        String(item?.zona_d ?? '').toLowerCase().includes(searchTerm) ||
+        String(item?.direccion_especifica_d ?? '').toLowerCase().includes(searchTerm) ||
+        String(item?.sucursale?.nombre ?? '').toLowerCase().includes(searchTerm) ||
+        String(item?.direccion?.direccion ?? '').toLowerCase().includes(searchTerm) ||
+        String(item?.direccion?.zona ?? '').toLowerCase().includes(searchTerm) ||
+        String(item?.direccion?.direccion_especifica ?? '').toLowerCase().includes(searchTerm);
+
+      return estadoOk && visible && coincideBusqueda;
+    });
+},
+
 
     paginatedData() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
