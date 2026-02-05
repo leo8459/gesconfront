@@ -70,41 +70,41 @@
                     <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
                     <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
 
-                    <td class="py-0 px-1">{{ dash(m.guia) }}</td>
+                    <td class="py-0 px-1">{{ (m.guia ?? '-') }}</td>
                     <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
-                    <td class="py-0 px-1">{{ dash(m.remitente) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.direccion.direccion_especifica) }}</td>
+                    <td class="py-0 px-1">{{ (m.remitente ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.direccion.direccion_especifica ?? '-') }}</td>
                     <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">{{ dash(m.direccion.zona) }}</td> <!-- Mostrar la zona -->
+                    <td class="py-0 px-1">{{ (m.direccion.zona ?? '-') }}</td> <!-- Mostrar la zona -->
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion.direccion)"
                         :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
                         target="_blank" class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
-                      <span v-else>{{ dash(m.direccion.direccion) }}</span>
+                      <span v-else>{{ (m.direccion.direccion ?? '-') }}</span>
                     </td>
-                    <td class="py-0 px-1">{{ dash(m.contenido) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.fecha_recojo_c) }}</td>
+                    <td class="py-0 px-1">{{ (m.contenido ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.fecha_recojo_c ?? '-') }}</td>
 
-                    <td class="py-0 px-1">{{ dash(m.destinatario) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.telefono_d) }}</td>
+                    <td class="py-0 px-1">{{ (m.destinatario ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.telefono_d ?? '-') }}</td>
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion_d)"
                         :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                         class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
-                      <span v-else>{{ dash(m.direccion_d) }}</span>
+                      <span v-else>{{ (m.direccion_d ?? '-') }}</span>
                     </td>
-                    <td class="py-0 px-1">{{ dash(m.ciudad) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.direccion_especifica_d) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.zona_d) }}</td>
+                    <td class="py-0 px-1">{{ (m.ciudad ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.direccion_especifica_d ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.zona_d ?? '-') }}</td>
 
                     <td class="py-0 px-1">
                       <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
                     </td>
-                    <td class="py-0 px-1">{{ dash(m.fecha_d) }}</td>
+                    <td class="py-0 px-1">{{ (m.fecha_d ?? '-') }}</td>
                     <td class="py-0 px-1">{{ m.estado === 3 || m.estado === 4 ? 'Entregado' : m.estado }}</td>
                     <td class="py-0 px-1">
 
@@ -120,7 +120,7 @@
 
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
-              <span>Página {{ dash(currentPage) }} de {{ dash(totalPages) }}</span>
+              <span>Página {{ (currentPage ?? '-') }} de {{ (totalPages ?? '-') }}</span>
               <button class="btn btn-secondary" :disabled="currentPage === totalPages"
                 @click="nextPage">Siguiente</button>
             </div>
@@ -128,7 +128,7 @@
               <ul class="pagination">
                 <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray"
                   :key="pageNumber">
-                  <button class="page-link" @click="goToPage(pageNumber)">{{ dash(pageNumber) }}</button>
+                  <button class="page-link" @click="goToPage(pageNumber)">{{ (pageNumber ?? '-') }}</button>
                 </li>
               </ul>
             </div>

@@ -43,7 +43,7 @@
                       <ul v-if="remitenteSuggestions.length" class="suggestions-list">
                         <li v-for="(suggestion, index) in remitenteSuggestions" :key="index"
                           @click="applyFrequentRemitente(suggestion)">
-                          {{ dash(suggestion.remitente) }} - {{ dash(suggestion.direccion_r) }}, Zona: {{ dash(suggestion.zona_r) }}
+                          {{ (suggestion.remitente ?? '-') }} - {{ (suggestion.direccion_r ?? '-') }}, Zona: {{ (suggestion.zona_r ?? '-') }}
                           <button @click.stop="deleteFrequentRemitente(index)" class="delete-btn">X</button>
                         </li>
                       </ul>
@@ -67,7 +67,7 @@
                         :reduce="tarifa => tarifa.id" placeholder="Buscar departamento...">
                         <template #option="option">
                           <div>
-                            {{ dash(option.departamento) }} - {{ dash(option.servicio) }}
+                            {{ (option.departamento ?? '-') }} - {{ (option.servicio ?? '-') }}
                           </div>
                         </template>
                         <template #selected-option="option">

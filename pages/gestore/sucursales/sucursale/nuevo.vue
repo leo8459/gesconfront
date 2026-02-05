@@ -19,7 +19,7 @@
                         <v-select :options="empresas" v-model="model.empresa_id" label="nombre"
                           :reduce="empresa => empresa.id" placeholder="Buscar empresa...">
                           <template #option="option">
-                            <div>{{ dash(option.nombre) }}</div>
+                            <div>{{ (option.nombre ?? '-') }}</div>
                           </template>
                           <template #selected-option="option">
                             <div>{{ option.nombre }}</div>

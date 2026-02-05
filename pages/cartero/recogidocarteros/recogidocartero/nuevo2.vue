@@ -38,7 +38,7 @@
     placeholder="Seleccionar sucursal..."
   >
     <template #option="option">
-      <div>{{ dash(option.nombre) }}</div>
+      <div>{{ (option.nombre ?? '-') }}</div>
     </template>
     <template #selected-option="option">
       <div>{{ option.nombre }}</div>

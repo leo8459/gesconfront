@@ -15,7 +15,7 @@
                   <div class="form-group">
                     <label class="form-label" for="sucursal">Sucursal</label>
                     <select name="" id="sucursal" class="form-control" v-model="model.sucursale_id">
-                      <option v-for="m in sucursales" :value="m.id">{{ dash(m.nombre) }}</option>
+                      <option v-for="m in sucursales" :value="m.id">{{ (m.nombre ?? '-') }}</option>
                     </select>
                   </div>
                   <div class="form-group col-12">
@@ -76,7 +76,7 @@
                   <div class="form-group">
                     <label class="form-label" for="sucursal">Sucursal</label>
                     <select name="" id="sucursal" class="form-control" v-model="clonado.sucursale_id">
-                      <option v-for="m in sucursales" :value="m.id">{{ dash(m.nombre) }}</option>
+                      <option v-for="m in sucursales" :value="m.id">{{ (m.nombre ?? '-') }}</option>
                     </select>
                   </div>
                   <div class="form-group col-12">

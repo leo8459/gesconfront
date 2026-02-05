@@ -140,7 +140,7 @@
                     <li v-for="page in totalPagesArray" :key="page"
                       :class="['page-item', { active: page === currentPage + 1 }]">
                       <button v-if="page !== '...'" class="page-link" @click="goToPage(page - 1)">
-                        {{ dash(page) }}
+                        {{ (page ?? '-') }}
                       </button>
                       <span v-else class="page-link">...</span>
                     </li>

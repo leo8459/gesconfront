@@ -26,11 +26,11 @@
                   <tr v-for="(m, i) in paginatedData" :key="m.id">
                    
                     <td class="py-0 px-1">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ dash(m.sucursale.nombre) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.guia) }}</td>
+                    <td class="p-1">{{ (m.sucursale.nombre ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.guia ?? '-') }}</td>
                         <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
 
-                        <td class="py-0 px-1">{{ dash(m.observacion) }}</td>
+                        <td class="py-0 px-1">{{ (m.observacion ?? '-') }}</td>
                         <td class="py-0 px-1">
                      
                       <button v-if="m.imagen" @click="downloadImage(m.imagen)"
@@ -42,7 +42,7 @@
             </div>
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
-              <span>Página {{ dash(currentPage) }} de {{ dash(totalPages) }}</span>
+              <span>Página {{ (currentPage ?? '-') }} de {{ (totalPages ?? '-') }}</span>
               <button class="btn btn-secondary" :disabled="currentPage === totalPages"
                 @click="nextPage">Siguiente</button>
             </div>
@@ -50,7 +50,7 @@
               <ul class="pagination">
                 <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray"
                   :key="pageNumber">
-                  <button class="page-link" @click="goToPage(pageNumber)">{{ dash(pageNumber) }}</button>
+                  <button class="page-link" @click="goToPage(pageNumber)">{{ (pageNumber ?? '-') }}</button>
                 </li>
               </ul>
             </div>

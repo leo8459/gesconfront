@@ -142,7 +142,7 @@
                 </li>
                 <li class="page-item" v-for="page in totalPages" :key="page"
                   :class="{ active: currentPage === page - 1 }">
-                  <button class="page-link" @click="goToPage(page - 1)">{{ dash(page) }}</button>
+                  <button class="page-link" @click="goToPage(page - 1)">{{ (page ?? '-') }}</button>
                 </li>
                 <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
                   <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
@@ -170,8 +170,8 @@
               <tbody>
                 <tr v-for="(item, index) in selectedForDelivery" :key="index">
                   <td class="py-0 px-1">{{ index + 1 }}</td>
-                  <td class="py-0 px-1">{{ dash(item.guia) }}</td>
-                  <td class="py-0 px-1">{{ dash(item.peso_r) }}</td>
+                  <td class="py-0 px-1">{{ (item.guia ?? '-') }}</td>
+                  <td class="py-0 px-1">{{ (item.peso_r ?? '-') }}</td>
                 </tr>
               </tbody>
             </table>

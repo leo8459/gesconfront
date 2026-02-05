@@ -219,7 +219,7 @@
                       :class="{ active: currentPage === page - 1 }"
                     >
                       <button class="page-link" @click="goToPage(page - 1)">
-                        {{ dash(page) }}
+                        {{ (page ?? '-') }}
                       </button>
                     </li>
                     <li
@@ -264,16 +264,16 @@
                     >
                       <td class="py-0 px-1" data-label="Nº">{{ index + 1 }}</td>
                       <td class="py-0 px-1" data-label="Guía">
-                        {{ dash(item.guia) }}
+                        {{ (item.guia ?? '-') }}
                       </td>
                       <td class="py-0 px-1" data-label="Sucursal">
                         {{ item?.sucursale?.nombre || "SIN SUCURSAL" }}
                       </td>
                       <td class="py-0 px-1" data-label="Tarifa">
-                        {{ dash(item.tarifa) }}
+                        {{ (item.tarifa ?? '-') }}
                       </td>
                       <td class="py-0 px-1" data-label="Peso">
-                        {{ dash(item.peso_v) }}
+                        {{ (item.peso_v ?? '-') }}
                       </td>
                     </tr>
                   </tbody>
@@ -307,7 +307,7 @@
     >
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
         <label :for="'peso_v-' + item.id">
-          {{ dash(item.guia) }} - {{ item?.sucursale?.nombre || "SIN SUCURSAL" }} -
+          {{ (item.guia ?? '-') }} - {{ item?.sucursale?.nombre || "SIN SUCURSAL" }} -
           {{ item?.tarifa || "SIN TARIFA" }}
         </label>
 
@@ -457,7 +457,7 @@
         <select v-model="manualForm.sucursale_id" class="form-control">
           <option value="">-- Seleccione --</option>
           <option v-for="s in sucursales" :key="s.id" :value="s.id">
-            {{ dash(s.sigla) }} - {{ dash(s.nombre) }}
+            {{ (s.sigla ?? '-') }} - {{ (s.nombre ?? '-') }}
           </option>
         </select>
       </div>
@@ -467,7 +467,7 @@
         <select v-model="manualForm.tarifa_id" class="form-control">
           <option value="">-- Seleccione --</option>
           <option v-for="t in tarifasModal" :key="t.id" :value="t.id">
-            {{ dash(t.departamento) }} - {{ dash(t.servicio) }}
+            {{ (t.departamento ?? '-') }} - {{ (t.servicio ?? '-') }}
           </option>
         </select>
       </div>

@@ -174,11 +174,11 @@
               <tbody>
                 <tr v-for="(item, index) in selectedForDelivery" :key="index">
                   <td class="py-0 px-1" data-label="Nº">{{ index + 1 }}</td>
-                  <td class="py-0 px-1" data-label="Guía">{{ dash(item.guia) }}</td>
+                  <td class="py-0 px-1" data-label="Guía">{{ (item.guia ?? '-') }}</td>
                   <td class="py-0 px-1" data-label="Sucursal">{{ item?.sucursale?.nombre ?? 'SIN SUCURSAL' }}</td>
                   <td class="py-0 px-1" data-label="Departamento">{{ item?.tarifa?.departamento ?? 'SIN TARIFA' }}</td>
 
-                  <td class="py-0 px-1" data-label="Peso Correos (Kg)">{{ dash(item.peso_r) }}</td>
+                  <td class="py-0 px-1" data-label="Peso Correos (Kg)">{{ (item.peso_r ?? '-') }}</td>
                 </tr>
               </tbody>
             </table>

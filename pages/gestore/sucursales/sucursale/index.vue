@@ -10,7 +10,7 @@
             <select v-model="selectedSucursal" id="sucursal" class="form-control">
               <option value="">Todas</option>
               <option v-for="sucursal in sucursales" :key="sucursal.id" :value="sucursal.id">
-                {{ dash(sucursal.nombre) }}
+                {{ (sucursal.nombre ?? '-') }}
               </option>
             </select>
           </div>
@@ -74,21 +74,21 @@
                     <tbody>
                       <tr v-for="(m, i) in paginatedList" :key="i">
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="py-0 px-1">{{ dash(m.nombre) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.sigla) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.tipo_contrato) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.acuerdo_contrato) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.origen) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.ini_vigencia) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.fin_vigencia) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.limite) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.cobertura) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.direccion) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.acuerdos) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.codigo_cliente) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.pagador) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.n_contrato) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.contacto_administrativo) }}</td>
+                        <td class="py-0 px-1">{{ (m.nombre ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.sigla ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.tipo_contrato ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.acuerdo_contrato ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.origen ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.ini_vigencia ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.fin_vigencia ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.limite ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.cobertura ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.direccion ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.acuerdos ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.codigo_cliente ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.pagador ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.n_contrato ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.contacto_administrativo ?? '-') }}</td>
                         <td class="py-0 px-1">
                       
                       <button v-if="m.imagen" @click="downloadImage(m.imagen)"
@@ -117,7 +117,7 @@
                     </li>
                     <li class="page-item" v-for="page in totalPages" :key="page"
                       :class="{ active: currentPage === page - 1 }">
-                      <button class="page-link" @click="goToPage(page - 1)">{{ dash(page) }}</button>
+                      <button class="page-link" @click="goToPage(page - 1)">{{ (page ?? '-') }}</button>
                     </li>
                     <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
                       <button class="page-link" @click="nextPage"

@@ -155,7 +155,7 @@
                 </li>
                 <li class="page-item" v-for="page in totalPages" :key="page"
                   :class="{ active: currentPage === page - 1 }">
-                  <button class="page-link" @click="goToPage(page - 1)">{{ dash(page) }}</button>
+                  <button class="page-link" @click="goToPage(page - 1)">{{ (page ?? '-') }}</button>
                 </li>
                 <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
                   <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
@@ -182,10 +182,10 @@
               <tbody>
                 <tr v-for="(item, index) in selectedForDelivery" :key="index">
                   <td class="py-0 px-1">{{ index + 1 }}</td>
-                  <td class="py-0 px-1">{{ dash(item.guia) }}</td>
-                  <td class="py-0 px-1">{{ dash(item.sucursale.nombre) }}</td>
-                  <td class="py-0 px-1">{{ dash(item.tarifa) }}</td>
-                  <td class="py-0 px-1">{{ dash(item.peso_v) }}</td>
+                  <td class="py-0 px-1">{{ (item.guia ?? '-') }}</td>
+                  <td class="py-0 px-1">{{ (item.sucursale.nombre ?? '-') }}</td>
+                  <td class="py-0 px-1">{{ (item.tarifa ?? '-') }}</td>
+                  <td class="py-0 px-1">{{ (item.peso_v ?? '-') }}</td>
                 </tr>
               </tbody>
             </table>
@@ -197,7 +197,7 @@
     <!-- Modal para añadir peso_v -->
     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop @shown="focusPesoInput">
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ dash(item.guia) }} - {{ dash(item.sucursale.nombre) }} - {{ dash(item.tarifa) }}</label>
+        <label :for="'peso_v-' + item.id">{{ (item.guia ?? '-') }} - {{ (item.sucursale.nombre ?? '-') }} - {{ (item.tarifa ?? '-') }}</label>
         <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
         <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control"
           @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" ref="pesoInput" />

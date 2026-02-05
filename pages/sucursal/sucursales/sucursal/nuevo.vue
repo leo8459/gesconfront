@@ -48,7 +48,7 @@
                         :reduce="tarifa => tarifa.id" placeholder="Buscar departamento...">
                         <template #option="option">
                           <div>
-                            {{ dash(option.departamento) }} - {{ dash(option.servicio) }}
+                            {{ (option.departamento ?? '-') }} - {{ (option.servicio ?? '-') }}
                           </div>
                         </template>
                         <template #selected-option="option">

@@ -9,7 +9,7 @@
             <button @click="mostrarSaldoRestanteManual" class="btn btn-warning w-100">
               Ver Sucursales con Saldo Bajo
             </button>
-            <!-- {{ dash(user.user) }} -->
+            <!-- {{ (user.user ?? '-') }} -->
           </div>
           <div class="col-md-2 d-flex align-items-end">
             <button @click="elegirTipoDeReporte" class="btn btn-success btn-sm w-100">
@@ -43,7 +43,7 @@
               :reduce="sucursal => sucursal.id" placeholder="Buscar sucursales..." multiple>
               <template #option="option">
                 <div>
-                  {{ dash(option.nombre) }}
+                  {{ (option.nombre ?? '-') }}
                 </div>
               </template>
               <template #selected-option="option">

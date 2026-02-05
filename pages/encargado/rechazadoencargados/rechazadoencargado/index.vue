@@ -77,7 +77,7 @@
 
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
-              <span>Página {{ dash(currentPage) }} de {{ dash(totalPages) }}</span>
+              <span>Página {{ (currentPage ?? '-') }} de {{ (totalPages ?? '-') }}</span>
               <button class="btn btn-secondary" :disabled="currentPage === totalPages"
                 @click="nextPage">Siguiente</button>
             </div>
@@ -85,7 +85,7 @@
               <ul class="pagination">
                 <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray"
                   :key="pageNumber">
-                  <button class="page-link" @click="goToPage(pageNumber)">{{ dash(pageNumber) }}</button>
+                  <button class="page-link" @click="goToPage(pageNumber)">{{ (pageNumber ?? '-') }}</button>
                 </li>
               </ul>
             </div>

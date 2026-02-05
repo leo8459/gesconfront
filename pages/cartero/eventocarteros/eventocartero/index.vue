@@ -30,9 +30,9 @@
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i">
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td class="py-0 px-1">{{ dash(m.codigo) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.accion) }}</td>
-                        <td class="py-0 px-1">{{ dash(m.descripcion) }}</td>
+                        <td class="py-0 px-1">{{ (m.codigo ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.accion ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ (m.descripcion ?? '-') }}</td>
                         <td class="py-0 px-1">
                           {{
                             (m.sucursale && m.sucursale.nombre) ||
@@ -41,7 +41,7 @@
                             'Sin responsable'
                           }}
                         </td>
-                        <td class="py-0 px-1">{{ dash(m.fecha_hora) }}</td>
+                        <td class="py-0 px-1">{{ (m.fecha_hora ?? '-') }}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -63,7 +63,7 @@
 
               <!-- Mostrar primeras páginas -->
               <li v-for="page in pagesToShow" :key="page" :class="{ active: currentPage === page - 1 }" class="page-item">
-                <button class="page-link" @click="goToPage(page - 1)">{{ dash(page) }}</button>
+                <button class="page-link" @click="goToPage(page - 1)">{{ (page ?? '-') }}</button>
               </li>
 
               <!-- Puntos suspensivos si hay más páginas antes de las páginas centrales -->
@@ -73,7 +73,7 @@
 
               <!-- Páginas centrales -->
               <li v-for="page in middlePages" :key="page" :class="{ active: currentPage === page - 1 }" class="page-item">
-                <button class="page-link" @click="goToPage(page - 1)">{{ dash(page) }}</button>
+                <button class="page-link" @click="goToPage(page - 1)">{{ (page ?? '-') }}</button>
               </li>
 
               <!-- Puntos suspensivos si hay más páginas después de las páginas centrales -->
@@ -83,7 +83,7 @@
 
               <!-- Mostrar últimas páginas -->
               <li v-for="page in lastPagesToShow" :key="page" :class="{ active: currentPage === page - 1 }" class="page-item">
-                <button class="page-link" @click="goToPage(page - 1)">{{ dash(page) }}</button>
+                <button class="page-link" @click="goToPage(page - 1)">{{ (page ?? '-') }}</button>
               </li>
 
               <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">

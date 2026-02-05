@@ -37,24 +37,24 @@
                 <tbody>
                   <tr v-for="(m, i) in paginatedData" :key="i">
                     <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                    <td class="p-1">{{ dash(m.sucursale.nombre) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.guia) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.remitente) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.telefono) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.contenido) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.destinatario) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.telefono_d) }}</td>
+                    <td class="p-1">{{ (m.sucursale.nombre ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.guia ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.remitente ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.telefono ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.contenido ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.destinatario ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.telefono_d ?? '-') }}</td>
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion_d)"
                         :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                         class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
-                      <span v-else>{{ dash(m.direccion_d) }}</span>
+                      <span v-else>{{ (m.direccion_d ?? '-') }}</span>
                     </td>
-                    <td class="py-0 px-1">{{ dash(m.direccion_especifica_d) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.ciudad) }}</td>
-                    <td class="py-0 px-1">{{ dash(m.zona_d) }}</td>
+                    <td class="py-0 px-1">{{ (m.direccion_especifica_d ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.ciudad ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m.zona_d ?? '-') }}</td>
                     <td class="py-0 px-1">
                       <div class="btn-group">
                         <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
@@ -78,7 +78,7 @@
                   <button class="page-link" @click="previousPage" :disabled="currentPage === 0"><</button>
                 </li>
                 <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: currentPage === page - 1 }">
-                  <button class="page-link" @click="goToPage(page - 1)">{{ dash(page) }}</button>
+                  <button class="page-link" @click="goToPage(page - 1)">{{ (page ?? '-') }}</button>
                 </li>
                 <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
                   <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">></button>
@@ -110,7 +110,7 @@
     <!-- Modal para añadir peso_v -->
     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ dash(item.guia) }} - {{ dash(item.sucursale.nombre) }}</label>
+        <label :for="'peso_v-' + item.id">{{ (item.guia ?? '-') }} - {{ (item.sucursale.nombre ?? '-') }}</label>
         <input type="number" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" />
       </div>
       <div class="d-flex justify-content-end">

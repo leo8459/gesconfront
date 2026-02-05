@@ -19,7 +19,7 @@
                         :reduce="sucursale => sucursale.id" placeholder="Buscar sucursal...">
                         <template #option="option">
                           <div>
-                            {{ dash(option.nombre) }}
+                            {{ (option.nombre ?? '-') }}
                           </div>
                         </template>
                         <template #selected-option="option">

@@ -29,18 +29,18 @@
                   <tbody>
                     <tr v-for="(m, i) in paginatedList" :key="i">
                       <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
-                      <td class="py-0 px-1">{{ dash(m.sucursale.nombre) }}</td> <!-- Muestra el nombre de la sucursal -->
-                      <td class="py-0 px-1">{{ dash(m.nombre) }}</td> <!-- Muestra el nombre de la sucursal -->
+                      <td class="py-0 px-1">{{ (m.sucursale.nombre ?? '-') }}</td> <!-- Muestra el nombre de la sucursal -->
+                      <td class="py-0 px-1">{{ (m.nombre ?? '-') }}</td> <!-- Muestra el nombre de la sucursal -->
                       <td class="py-0 px-1">
                         <a v-if="isCoordinates(m.direccion)"
                            :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank"
                            class="btn btn-primary btn-sm">
                            Ver mapa
                         </a>
-                        <span v-else>{{ dash(m.direccion) }}</span>
+                        <span v-else>{{ (m.direccion ?? '-') }}</span>
                       </td>
-                      <td class="py-0 px-1">{{ dash(m.direccion_especifica) }}</td>
-                      <td class="py-0 px-1">{{ dash(m.zona) }}</td>
+                      <td class="py-0 px-1">{{ (m.direccion_especifica ?? '-') }}</td>
+                      <td class="py-0 px-1">{{ (m.zona ?? '-') }}</td>
                       <td class="py-0 px-1">
                         <div class="btn-group">
                           <nuxtLink :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2">
@@ -62,7 +62,7 @@
                     </li>
                     <li class="page-item" v-for="page in totalPages" :key="page"
                       :class="{ active: currentPage === page - 1 }">
-                      <button class="page-link" @click="goToPage(page - 1)">{{ dash(page) }}</button>
+                      <button class="page-link" @click="goToPage(page - 1)">{{ (page ?? '-') }}</button>
                     </li>
                     <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
                       <button class="page-link" @click="nextPage"

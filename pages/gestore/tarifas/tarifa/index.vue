@@ -14,7 +14,7 @@
               <div v-for="(sucursal, index) in sucursales" :key="index" class="col-12 col-sm-6 col-lg-4 mb-3">
                 <div class="card border-primary h-100">
                   <div class="card-header" style="background-color: #34447C; color: #FFFFFF; text-align: center;">
-                    <h5 class="card-title" style="color: #FFFFFF;">{{ dash(sucursal.nombre) }}</h5>
+                    <h5 class="card-title" style="color: #FFFFFF;">{{ (sucursal.nombre ?? '-') }}</h5>
                   </div>
                   <div class="card-body d-flex flex-column">
                     <p class="card-text">
@@ -36,7 +36,7 @@
   <div class="modal-dialog modal-dialog-scrollable modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Variables de la Sucursal: {{ dash(selectedSucursal.nombre) }}</h5>
+        <h5 class="modal-title" id="exampleModalLabel">Variables de la Sucursal: {{ (selectedSucursal.nombre ?? '-') }}</h5>
         <button type="button" class="close" @click="closeModal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -61,14 +61,14 @@
               <tbody>
                 <tr v-for="(m, i) in selectedSucursal.tarifas" :key="m.id">
                   <td class="p-1">{{ i + 1 }}</td>
-                  <td class="p-1">{{ dash(m.sucursale.origen) }}</td>
-                  <td class="p-1">{{ dash(m.departamento) }}</td>
-                  <td class="p-1">{{ dash(m.provincia) }}</td>
-                  <td class="p-1">{{ dash(m.servicio) }}</td>
-                  <td class="p-1">{{ dash(m.precio) }}</td>
-                  <td class="p-1">{{ dash(m.precio_extra) }}</td>
-                  <td class="p-1">{{ dash(m.retencion) }}</td>
-                  <td class="p-1">{{ dash(m.dias_entrega) }}</td>
+                  <td class="p-1">{{ (m.sucursale.origen ?? '-') }}</td>
+                  <td class="p-1">{{ (m.departamento ?? '-') }}</td>
+                  <td class="p-1">{{ (m.provincia ?? '-') }}</td>
+                  <td class="p-1">{{ (m.servicio ?? '-') }}</td>
+                  <td class="p-1">{{ (m.precio ?? '-') }}</td>
+                  <td class="p-1">{{ (m.precio_extra ?? '-') }}</td>
+                  <td class="p-1">{{ (m.retencion ?? '-') }}</td>
+                  <td class="p-1">{{ (m.dias_entrega ?? '-') }}</td>
 
                   <td class="p-1">
   <div v-if="m.estado !== 2" class="btn-group">

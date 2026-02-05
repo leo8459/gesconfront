@@ -18,7 +18,7 @@
                           <strong>Sucursales Con Contrato</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dash(dashboard.totalSucursalesConContrato) }}
+                          {{ (dashboard.totalSucursalesConContrato ?? '-') }}
                         </h6>
                       </div>
                     </div>
@@ -43,7 +43,7 @@
                           <strong>Sucursales Sin Contrato</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dash(dashboard.totalSucursalesSinContrato) }}
+                          {{ (dashboard.totalSucursalesSinContrato ?? '-') }}
                         </h6>
                       </div>
                     </div>
@@ -68,7 +68,7 @@
                           <strong>Total recaudado</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dash(dashboard.totalGastado) }}
+                          {{ (dashboard.totalGastado ?? '-') }}
                         </h6>
                       </div>
                     </div>

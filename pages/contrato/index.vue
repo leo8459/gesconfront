@@ -13,10 +13,10 @@
                   <div class="col-8">
                     <div class="numbers">
                       <p class="text-sm mb-0 text-capitalize">
-                        <strong>{{ dash(card.titulo) }}</strong>
+                        <strong>{{ (card.titulo ?? '-') }}</strong>
                       </p>
                       <h6 class="text-center text-lg font-weight-bolder text-black">
-                        {{ dash(card.total) }}
+                        {{ (card.total ?? '-') }}
                       </h6>
                     </div>
                   </div>
