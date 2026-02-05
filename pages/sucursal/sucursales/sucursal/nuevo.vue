@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -48,7 +48,7 @@
                         :reduce="tarifa => tarifa.id" placeholder="Buscar departamento...">
                         <template #option="option">
                           <div>
-                            {{ option.departamento }} - {{ option.servicio }}
+                            {{ dash(option.departamento) }} - {{ dash(option.servicio) }}
                           </div>
                         </template>
                         <template #selected-option="option">

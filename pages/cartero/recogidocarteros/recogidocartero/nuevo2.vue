@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -38,7 +38,7 @@
     placeholder="Seleccionar sucursal..."
   >
     <template #option="option">
-      <div>{{ option.nombre }}</div>
+      <div>{{ dash(option.nombre) }}</div>
     </template>
     <template #selected-option="option">
       <div>{{ option.nombre }}</div>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -13,10 +13,10 @@
                   <div class="col-8">
                     <div class="numbers">
                       <p class="text-sm mb-0 text-capitalize">
-                        <strong>{{ card.titulo }}</strong>
+                        <strong>{{ dash(card.titulo) }}</strong>
                       </p>
                       <h6 class="text-center text-lg font-weight-bolder text-black">
-                        {{ card.total }}
+                        {{ dash(card.total) }}
                       </h6>
                     </div>
                   </div>

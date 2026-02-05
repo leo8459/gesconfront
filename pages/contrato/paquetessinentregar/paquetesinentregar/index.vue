@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -13,7 +13,7 @@
               <select v-model="selectedSucursal" id="sucursal" class="form-control">
                 <option value="">Todas</option>
                 <option v-for="sucursal in sucursales" :key="sucursal.id" :value="sucursal.id">
-                  {{ sucursal.nombre }}
+                  {{ dash(sucursal.nombre) }}
                 </option>
               </select>
             </div>
@@ -248,7 +248,7 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-3">
                   <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
-                  <span>Página {{ currentPage }} de {{ totalPages }}</span>
+                  <span>Página {{ dash(currentPage) }} de {{ dash(totalPages) }}</span>
                   <button class="btn btn-secondary" :disabled="currentPage === totalPages"
                     @click="nextPage">Siguiente</button>
                 </div>
@@ -264,7 +264,7 @@
         class="page-link"
         @click="goToPage(pageNumber)"
       >
-        {{ pageNumber }}
+        {{ dash(pageNumber) }}
       </button>
       <span v-else class="page-link disabled">...</span>
     </li>

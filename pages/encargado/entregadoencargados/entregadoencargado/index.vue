@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -64,10 +64,10 @@
                         <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
                         <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                         <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
-                        <td class="py-0 px-1">{{ m.guia }}</td>
-                        <td class="py-0 px-1">{{ m.peso_o }}</td>
-                        <td class="py-0 px-1">{{ m.peso_v }}</td>
-                        <td class="py-0 px-1">{{ m.remitente }}</td>
+                        <td class="py-0 px-1">{{ dash(m.guia) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.peso_o) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.peso_v) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.remitente) }}</td>
                         <td class="py-0 px-1">
                           {{ m?.direccion?.direccion_especifica ?? 'NULL' }}
                         </td>
@@ -78,28 +78,28 @@
                         <td class="py-0 px-1">
                           {{ m?.direccion?.direccion ?? 'NULL' }}
                         </td>
-                        <td class="py-0 px-1">{{ m.telefono }}</td>
-                        <td class="py-0 px-1">{{ m.contenido }}</td>
-                        <td class="py-0 px-1">{{ m.fecha }}</td>
+                        <td class="py-0 px-1">{{ dash(m.telefono) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.contenido) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.fecha) }}</td>
 
-                        <td class="py-0 px-1">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
+                        <td class="py-0 px-1">{{ dash(m.destinatario) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.telefono_d) }}</td>
                         <td class="py-0 px-1">
                           <a v-if="isCoordinates(m.direccion_d)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                             class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion_d }}</span>
+                          <span v-else>{{ dash(m.direccion_d) }}</span>
                         </td>
-                        <td class="py-0 px-1">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
-                        <td class="py-0 px-1">{{ m.zona_d }}</td>
+                        <td class="py-0 px-1">{{ dash(m.ciudad) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.direccion_especifica_d) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.zona_d) }}</td>
 
                         <td class="py-0 px-1">
                           <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
                         </td>
-                        <td class="py-0 px-1">{{ m.fecha_d }}</td>
+                        <td class="py-0 px-1">{{ dash(m.fecha_d) }}</td>
                         <td class="py-0 px-1">{{ m.estado === 3 ? 'Entregado' : m.estado }}</td>
                       </tr>
                     </tbody>
@@ -110,7 +110,7 @@
 
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
-              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <span>Página {{ dash(currentPage) }} de {{ dash(totalPages) }}</span>
               <button class="btn btn-secondary" :disabled="currentPage === totalPages"
                 @click="nextPage">Siguiente</button>
             </div>
@@ -118,7 +118,7 @@
               <ul class="pagination">
                 <li :class="['page-item', { active: currentPage === pageNumber }]" v-for="pageNumber in totalPagesArray"
                   :key="pageNumber">
-                  <button class="page-link" @click="goToPage(pageNumber)">{{ pageNumber }}</button>
+                  <button class="page-link" @click="goToPage(pageNumber)">{{ dash(pageNumber) }}</button>
                 </li>
               </ul>
             </div>

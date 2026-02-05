@@ -19,7 +19,16 @@
                 </div>
               </div>
               <div class="col-lg-6">
-
+                <div class="text-center text-sm text-muted text-lg-end">
+                  En caso de soporte técnico comunicarse con
+                  <a href="https://wa.me/59178877682" target="_blank" rel="noopener">
+                    WhatsApp
+                  </a>
+                  o
+                  <a href="mailto:leonardo.doriamedina@correos.gob.bo">
+                    leonardo.doriamedina@correos.gob.bo
+                  </a>
+                </div>
               </div>
             </div>
           </div>

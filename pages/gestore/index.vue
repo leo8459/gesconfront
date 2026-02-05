@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -18,7 +18,7 @@
                           <strong>Sucursales Con Contrato</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSucursalesConContrato }}
+                          {{ dash(dashboard.totalSucursalesConContrato) }}
                         </h6>
                       </div>
                     </div>
@@ -43,7 +43,7 @@
                           <strong>Sucursales Sin Contrato</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSucursalesSinContrato }}
+                          {{ dash(dashboard.totalSucursalesSinContrato) }}
                         </h6>
                       </div>
                     </div>
@@ -68,7 +68,7 @@
                           <strong>Total recaudado</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalGastado }}
+                          {{ dash(dashboard.totalGastado) }}
                         </h6>
                       </div>
                     </div>

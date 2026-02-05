@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -35,7 +35,7 @@
             <select v-model="selectedSucursal" id="sucursal" class="form-control">
               <option value="">Todas</option>
               <option v-for="sucursal in sucursales" :key="sucursal.id" :value="sucursal.id">
-                {{ sucursal.nombre }}
+                {{ dash(sucursal.nombre) }}
               </option>
             </select>
           </div>
@@ -129,13 +129,13 @@
                         <td class="py-0 px-1">{{ i + 1 + (currentPage - 1) * itemsPerPage }}</td>
                         <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
 
-                        <td class="py-0 px-1">{{ m.guia }}</td>
+                        <td class="py-0 px-1">{{ dash(m.guia) }}</td>
                         <td class="py-0 px-1">{{ m.tarifa ? m.tarifa.servicio : 'N/A' }}</td>
 
 
-                        <td class="py-0 px-1">{{ m.fecha }}</td>
-                        <td class="py-0 px-1">{{ m.fecha_recojo_c }}</td>
-                        <td class="py-0 px-1">{{ m.fecha_d }}</td>
+                        <td class="py-0 px-1">{{ dash(m.fecha) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.fecha_recojo_c) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.fecha_d) }}</td>
 
                         <td class="py-0 px-1">{{ getEstado(m.estado) }}</td> <!-- Mostrar el estado -->
 
@@ -148,7 +148,7 @@
 
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="prevPage">Anterior</button>
-              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <span>Página {{ dash(currentPage) }} de {{ dash(totalPages) }}</span>
               <button class="btn btn-secondary" :disabled="currentPage === totalPages"
                 @click="nextPage">Siguiente</button>
             </div>
@@ -164,7 +164,7 @@
         class="page-link"
         @click="goToPage(pageNumber)"
       >
-        {{ pageNumber }}
+        {{ dash(pageNumber) }}
       </button>
       <span v-else class="page-link disabled">...</span>
     </li>
@@ -191,10 +191,10 @@
                       <tbody>
                         <tr v-for="(m, i) in solicitadasHoy" :key="m.id">
                           <td>{{ i + 1 }}</td>
-                          <td>{{ m.guia }}</td>
-                          <td>{{ m.fecha }}</td>
-                          <td>{{ m.fecha_recojo_c }}</td>
-                          <td>{{ m.fecha_envio_regional }}</td>
+                          <td>{{ dash(m.guia) }}</td>
+                          <td>{{ dash(m.fecha) }}</td>
+                          <td>{{ dash(m.fecha_recojo_c) }}</td>
+                          <td>{{ dash(m.fecha_envio_regional) }}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -217,10 +217,10 @@
                       <tbody>
                         <tr v-for="(m, i) in recogidasHoy" :key="m.id">
                           <td>{{ i + 1 }}</td>
-                          <td>{{ m.guia }}</td>
-                          <td>{{ m.fecha }}</td>
-                          <td>{{ m.fecha_recojo_c }}</td>
-                          <td>{{ m.fecha_envio_regional }}</td>
+                          <td>{{ dash(m.guia) }}</td>
+                          <td>{{ dash(m.fecha) }}</td>
+                          <td>{{ dash(m.fecha_recojo_c) }}</td>
+                          <td>{{ dash(m.fecha_envio_regional) }}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -243,10 +243,10 @@
                       <tbody>
                         <tr v-for="(m, i) in entregadasHoy" :key="m.id">
                           <td>{{ i + 1 }}</td>
-                          <td>{{ m.guia }}</td>
-                          <td>{{ m.fecha }}</td>
-                          <td>{{ m.fecha_recojo_c }}</td>
-                          <td>{{ m.fecha_envio_regional }}</td>
+                          <td>{{ dash(m.guia) }}</td>
+                          <td>{{ dash(m.fecha) }}</td>
+                          <td>{{ dash(m.fecha_recojo_c) }}</td>
+                          <td>{{ dash(m.fecha_envio_regional) }}</td>
                         </tr>
                       </tbody>
                     </table>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -19,7 +19,7 @@
                         :reduce="sucursale => sucursale.id" placeholder="Buscar sucursal...">
                         <template #option="option">
                           <div>
-                            {{ option.nombre }}
+                            {{ dash(option.nombre) }}
                           </div>
                         </template>
                         <template #selected-option="option">

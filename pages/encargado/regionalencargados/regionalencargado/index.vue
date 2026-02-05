@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -49,7 +49,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(m, i) in paginatedData" :key="m?.id ?? i">
+                      <tr v-for="(m, i) in paginatedData" :key="m?.id ?? i" :class="rowStatusClass(m)">
 
                         <td class="py-0 px-1">
                           {{ currentPage * itemsPerPage + i + 1 }}
@@ -142,7 +142,7 @@
                 </li>
                 <li class="page-item" v-for="page in totalPages" :key="page"
                   :class="{ active: currentPage === page - 1 }">
-                  <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+                  <button class="page-link" @click="goToPage(page - 1)">{{ dash(page) }}</button>
                 </li>
                 <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
                   <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
@@ -170,8 +170,8 @@
               <tbody>
                 <tr v-for="(item, index) in selectedForDelivery" :key="index">
                   <td class="py-0 px-1">{{ index + 1 }}</td>
-                  <td class="py-0 px-1">{{ item.guia }}</td>
-                  <td class="py-0 px-1">{{ item.peso_r }}</td>
+                  <td class="py-0 px-1">{{ dash(item.guia) }}</td>
+                  <td class="py-0 px-1">{{ dash(item.peso_r) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -374,6 +374,28 @@ export default {
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
+    },
+    getHoursSinceRecojo(item) {
+      const rawDate = item?.fecha_recojo_c;
+      if (!rawDate) return null;
+      const date = new Date(rawDate);
+      if (Number.isNaN(date.getTime())) return null;
+      return Math.max(0, (Date.now() - date.getTime()) / 36e5);
+    },
+    rowStatusClass(item) {
+      const diffHours = this.getHoursSinceRecojo(item);
+      if (diffHours === null) return '';
+      const hasCiudad = String(item?.ciudad ?? '').trim() !== '';
+
+      if (hasCiudad) {
+        if (diffHours <= 92) return 'row-green';
+        if (diffHours <= 114) return 'row-orange';
+        return 'row-red';
+      }
+
+      if (diffHours <= 48) return 'row-green';
+      if (diffHours <= 72) return 'row-orange';
+      return 'row-red';
     },
     getTarifaLabel(tarifa_id) {
       if (!this.tarifas) {
@@ -647,7 +669,7 @@ export default {
 }
 
 .card-header {
-  background-color: #34447C;
+  background-color: #1f6f8b;
   color: #FFFFFF;
   font-weight: bold;
   text-transform: uppercase;
@@ -677,5 +699,17 @@ export default {
   font-weight: bold;
   background-color: #007bff;
   color: white;
+}
+
+.row-green {
+  background-color: #d4edda !important;
+}
+
+.row-orange {
+  background-color: #fff3cd !important;
+}
+
+.row-red {
+  background-color: #f8d7da !important;
 }
 </style>

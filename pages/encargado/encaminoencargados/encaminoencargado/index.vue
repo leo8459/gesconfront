@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -21,6 +21,11 @@
                 En camino
               </div>
               <div class="card-body p-2">
+                <div v-if="alertsCercaLimite.length > 0" class="mb-2">
+                  <div v-for="(a, idx) in alertsCercaLimite" :key="idx" class="alert alert-warning py-1 px-2 mb-1">
+                    Faltan {{ a.horasRestantes }} horas para llegar al límite verde. Código de rastreo: {{ a.guia }}.
+                  </div>
+                </div>
                 <div class="table-responsive">
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
@@ -46,30 +51,30 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(m, i) in paginatedData" :key="m.id">
+                  <tr v-for="(m, i) in paginatedData" :key="m.id" :class="rowStatusClass(m)">
                     <td class="py-0 px-1">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
                     <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
                     <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.peso_o }}</td>
-                    <td class="py-0 px-1">{{ m.peso_v }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
+                    <td class="py-0 px-1">{{ dash(m.guia) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.peso_o) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.peso_v) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.remitente) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.contenido) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.fecha) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.destinatario) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.telefono_d) }}</td>
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion_d)"
                         :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                         class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
-                      <span v-else>{{ m.direccion_d }}</span>
+                      <span v-else>{{ dash(m.direccion_d) }}</span>
                     </td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
-                    <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
-                    <td class="py-0 px-1">{{ m.zona_d }}</td>
+                    <td class="py-0 px-1">{{ dash(m.ciudad) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.direccion_especifica_d) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.zona_d) }}</td>
                     <td class="py-0 px-1">
                       <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
                         <i class="fas fa-undo"></i> Devolver a Origen
@@ -84,7 +89,7 @@
 
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="currentPage--">Anterior</button>
-              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <span>Página {{ dash(currentPage) }} de {{ dash(totalPages) }}</span>
               <button class="btn btn-secondary" :disabled="currentPage === totalPages"
                 @click="currentPage++">Siguiente</button>
             </div>
@@ -96,7 +101,7 @@
     <!-- Modal para añadir peso_v -->
     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }}</label>
+        <label :for="'peso_v-' + item.id">{{ dash(item.guia) }} - {{ dash(item.sucursale.nombre) }}</label>
         <input type="number" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" />
       </div>
       <div class="d-flex justify-content-end">
@@ -183,12 +188,90 @@ export default {
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
+    },
+    alertsCercaLimite() {
+      const result = [];
+      (this.filteredData || []).forEach(item => {
+        const greenLimit = this.getGreenLimitHours(item);
+        if (!greenLimit) return;
+        const diffHours = this.getHoursSinceRecojo(item);
+        if (diffHours === null) return;
+        const horasRestantes = Math.ceil(greenLimit - diffHours);
+        if (horasRestantes <= 10 && horasRestantes > 0) {
+          result.push({
+            guia: item?.guia ?? 'SIN GUIA',
+            horasRestantes,
+          });
+        }
+      });
+      return result;
     }
   },
   methods: {
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
+    },
+    getHoursSinceRecojo(item) {
+      const rawDate = item?.fecha_recojo_c;
+      if (!rawDate) return null;
+      const date = this.parseFecha(rawDate);
+      if (Number.isNaN(date.getTime())) return null;
+      return Math.max(0, (Date.now() - date.getTime()) / 36e5);
+    },
+    parseFecha(value) {
+      if (value instanceof Date) return value;
+      if (typeof value === 'number') return new Date(value);
+      const str = String(value).trim();
+
+      // Soporta: dd/MM/yyyy HH:mm[:ss]
+      const m1 = str.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+      if (m1) {
+        const [, dd, mm, yyyy, hh = '00', min = '00', ss = '00'] = m1;
+        return new Date(
+          Number(yyyy),
+          Number(mm) - 1,
+          Number(dd),
+          Number(hh),
+          Number(min),
+          Number(ss)
+        );
+      }
+
+      // Soporta: yyyy-MM-dd HH:mm[:ss] o yyyy-MM-ddTHH:mm[:ss]
+      const m2 = str.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+      if (m2) {
+        const [, yyyy, mm, dd, hh = '00', min = '00', ss = '00'] = m2;
+        return new Date(
+          Number(yyyy),
+          Number(mm) - 1,
+          Number(dd),
+          Number(hh),
+          Number(min),
+          Number(ss)
+        );
+      }
+
+      return new Date(str);
+    },
+    getGreenLimitHours(item) {
+      const hasCiudad = String(item?.ciudad ?? '').trim() !== '';
+      return hasCiudad ? 92 : 48;
+    },
+    rowStatusClass(item) {
+      const diffHours = this.getHoursSinceRecojo(item);
+      if (diffHours === null) return '';
+      const hasCiudad = String(item?.ciudad ?? '').trim() !== '';
+
+      if (hasCiudad) {
+        if (diffHours <= 92) return 'row-green';
+        if (diffHours <= 114) return 'row-orange';
+        return 'row-red';
+      }
+
+      if (diffHours <= 48) return 'row-green';
+      if (diffHours <= 72) return 'row-orange';
+      return 'row-red';
     },
     async markAsRejected(solicitudeId) {
       this.load = true;
@@ -381,7 +464,7 @@ export default {
 }
 
 .card-header {
-  background-color: #34447C;
+  background-color: #7a2e2e;
   color: #FFFFFF;
   font-weight: bold;
   text-transform: uppercase;
@@ -411,5 +494,17 @@ export default {
   font-weight: bold;
   background-color: #007bff;
   color: white;
+}
+
+.row-green {
+  background-color: #d4edda !important;
+}
+
+.row-orange {
+  background-color: #fff3cd !important;
+}
+
+.row-red {
+  background-color: #f8d7da !important;
 }
 </style>

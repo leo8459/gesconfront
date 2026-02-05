@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -17,7 +17,7 @@
             <select v-model="selectedSucursal" class="form-control" @change="handleSucursalChange">
               <option value="">Seleccione Sucursal</option>
               <option v-for="sucursal in uniqueSucursalesInTable" :key="sucursal.id" :value="sucursal.id">
-                {{ sucursal.nombre }}
+                {{ dash(sucursal.nombre) }}
               </option>
             </select>
           </div>
@@ -62,25 +62,25 @@
                         </td>
                         <td class="py-0 px-1" data-label="Nº">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1" data-label="Sucursal">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
-                        <td class="py-0 px-1" data-label="Guía">{{ m.guia }}</td>
-                        <td class="py-0 px-1" data-label="Acuerdo de Recojo">{{ m.sucursale.acuerdos }}</td>
-                        <td class="py-0 px-1" data-label="Peso Empresa">{{ m.peso_o }}</td>
-                        <td class="py-0 px-1" data-label="Remitente">{{ m.remitente }}</td>
-                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ m.direccion.direccion_especifica }}</td>
-                        <td class="py-0 px-1" data-label="Zona">{{ m.direccion.zona }}</td>
+                        <td class="py-0 px-1" data-label="Guía">{{ dash(m.guia) }}</td>
+                        <td class="py-0 px-1" data-label="Acuerdo de Recojo">{{ dash(m.sucursale.acuerdos) }}</td>
+                        <td class="py-0 px-1" data-label="Peso Empresa">{{ dash(m.peso_o) }}</td>
+                        <td class="py-0 px-1" data-label="Remitente">{{ dash(m.remitente) }}</td>
+                        <td class="py-0 px-1" data-label="Detalles de Domicilio">{{ dash(m.direccion.direccion_especifica) }}</td>
+                        <td class="py-0 px-1" data-label="Zona">{{ dash(m.direccion.zona) }}</td>
                         <td class="py-0 px-1" data-label="Dirección Maps">
                           <a v-if="isCoordinates(m.direccion.direccion)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
                             target="_blank" class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion.direccion }}</span>
+                          <span v-else>{{ dash(m.direccion.direccion) }}</span>
                         </td>
-                        <td class="py-0 px-1" data-label="Teléfono">{{ m.telefono }}</td>
-                        <td class="py-0 px-1" data-label="Contenido">{{ m.contenido }}</td>
-                        <td class="py-0 px-1" data-label="Fecha">{{ m.fecha }}</td>
-                        <td class="py-0 px-1" data-label="Departamento Origen">{{ m.sucursale.origen }}</td>
-                        <td class="py-0 px-1" data-label="Departamento Destino">{{ m.tarifa.departamento }}</td>
+                        <td class="py-0 px-1" data-label="Teléfono">{{ dash(m.telefono) }}</td>
+                        <td class="py-0 px-1" data-label="Contenido">{{ dash(m.contenido) }}</td>
+                        <td class="py-0 px-1" data-label="Fecha">{{ dash(m.fecha) }}</td>
+                        <td class="py-0 px-1" data-label="Departamento Origen">{{ dash(m.sucursale.origen) }}</td>
+                        <td class="py-0 px-1" data-label="Departamento Destino">{{ dash(m.tarifa.departamento) }}</td>
                         <td class="py-0 px-1">
                           <div class="btn-group">
                   
@@ -101,7 +101,7 @@
                     </li>
                     <li class="page-item" v-for="page in totalPages" :key="page"
                       :class="{ active: currentPage === page - 1 }">
-                      <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+                      <button class="page-link" @click="goToPage(page - 1)">{{ dash(page) }}</button>
                     </li>
                     <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
                       <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
@@ -116,12 +116,12 @@
    <b-modal v-model="isSelectedModalVisible" title="Resultados de la Búsqueda" hide-backdrop hide-footer>
   <div v-for="(item, index) in selectedItemsData" :key="item.id" class="form-group">
     <div class="d-flex justify-content-between align-items-center">
-      <label>{{ item.sucursale.nombre }} - {{ item.guia }}</label>
+      <label>{{ dash(item.sucursale.nombre) }} - {{ dash(item.guia) }}</label>
       <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
     </div>
     <!-- Campo de texto para observaciones -->
     <div class="form-group mt-2">
-      <label for="recojo_observacion">Observaciones para la guía {{ item.guia }}</label>
+      <label for="recojo_observacion">Observaciones para la guía {{ dash(item.guia) }}</label>
       <textarea v-model="item.recojo_observacion" class="form-control" placeholder="Ingrese observaciones"></textarea>
     </div>
   </div>
@@ -137,12 +137,12 @@
   <div v-for="(item, index) in selectedItemsData" :key="item.id" class="form-group">
     <div class="d-flex justify-content-between align-items-center">
       <input type="checkbox" v-model="selectedForPickup" :value="item.id">
-      <label class="ml-2">{{ item.sucursale.nombre }} - {{ item.guia }}</label>
+      <label class="ml-2">{{ dash(item.sucursale.nombre) }} - {{ dash(item.guia) }}</label>
       <button @click="removeItem(index)" class="btn btn-danger btn-sm">Eliminar</button>
     </div>
     <!-- Campo de texto para observaciones -->
     <div class="form-group mt-2">
-      <label for="recojo_observacion">Observaciones para la guía {{ item.guia }}</label>
+      <label for="recojo_observacion">Observaciones para la guía {{ dash(item.guia) }}</label>
       <textarea v-model="item.recojo_observacion" class="form-control" placeholder="Ingrese observaciones"></textarea>
     </div>
   </div>

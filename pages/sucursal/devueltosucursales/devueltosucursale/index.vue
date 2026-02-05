@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -31,9 +31,9 @@
                     <tbody>
                       <tr v-for="(m, i) in paginatedList" :key="i">
                         <td>{{ currentPage * itemsPerPage + i + 1 }}</td>
-                        <td>{{ m.sucursale.nombre }}</td>
-                        <td>{{ m.guia }}</td>
-                        <td>{{ m.observacion }}</td>
+                        <td>{{ dash(m.sucursale.nombre) }}</td>
+                        <td>{{ dash(m.guia) }}</td>
+                        <td>{{ dash(m.observacion) }}</td>
                         <td>
                           <div class="d-flex flex-column align-items-center">
                             <button v-if="m.imagen" @click="downloadImage(m.imagen)"
@@ -42,7 +42,7 @@
                             </button>
                           </div>
                         </td>
-                        <td>{{ m.fecha_devolucion }}</td>
+                        <td>{{ dash(m.fecha_devolucion) }}</td>
                         <td>
                           <div class="d-flex flex-column align-items-center">
                             <button v-if="m.imagen_devolucion" @click="downloadImage(m.imagen_devolucion)"
@@ -66,7 +66,7 @@
     <!-- Números de página dinámicos -->
     <li v-for="page in totalPagesArray" :key="page" :class="['page-item', { active: page === currentPage + 1 }]">
       <button v-if="page !== '...'" class="page-link" @click="goToPage(page - 1)">
-        {{ page }}
+        {{ dash(page) }}
       </button>
       <span v-else class="page-link">...</span>
     </li>

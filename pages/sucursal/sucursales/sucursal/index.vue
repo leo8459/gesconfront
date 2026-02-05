@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -83,7 +83,7 @@
                       <tr v-for="(m, i) in paginatedList" :key="i">
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
                         <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : 'Sucursal no asignada' }}</td>
-                        <td class="py-0 px-1">{{ m.guia }}</td>
+                        <td class="py-0 px-1">{{ dash(m.guia) }}</td>
                         <td class="py-0 px-1">{{ m.direccion ? m.direccion.nombre : 'Dirección no asignada' }}</td>
                         <td class="py-0 px-1">{{ m.direccion ? m.direccion.direccion_especifica : 'No especificada' }}
                         </td>
@@ -96,23 +96,23 @@
                           </a>
                           <span v-else>{{ m.direccion ? m.direccion.direccion : 'Dirección no disponible' }}</span>
                         </td>
-                        <td class="py-0 px-1">{{ m.peso_o }}</td>
-                        <td class="py-0 px-1">{{ m.remitente }}</td>
-                        <td class="py-0 px-1">{{ m.telefono }}</td>
-                        <td class="py-0 px-1">{{ m.contenido }}</td>
-                        <td class="py-0 px-1">{{ m.fecha }}</td>
-                        <td class="py-0 px-1">{{ m.destinatario }}</td>
-                        <td class="py-0 px-1">{{ m.telefono_d }}</td>
+                        <td class="py-0 px-1">{{ dash(m.peso_o) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.remitente) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.telefono) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.contenido) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.fecha) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.destinatario) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.telefono_d) }}</td>
                         <td class="py-0 px-1">
                           <a v-if="isCoordinates(m.direccion_d)"
                             :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank"
                             class="btn btn-primary btn-sm">
                             Ver mapa
                           </a>
-                          <span v-else>{{ m.direccion_d }}</span>
+                          <span v-else>{{ dash(m.direccion_d) }}</span>
                         </td>
-                        <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
-                        <td class="py-0 px-1">{{ m.ciudad }}</td>
+                        <td class="py-0 px-1">{{ dash(m.direccion_especifica_d) }}</td>
+                        <td class="py-0 px-1">{{ dash(m.ciudad) }}</td>
                         <td class="py-0 px-1">
                           <div class="btn-group">
                             <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
@@ -144,7 +144,7 @@
                     <li v-for="page in totalPagesArray" :key="page"
                       :class="['page-item', { active: page === currentPage + 1 }]">
                       <button v-if="page !== '...'" class="page-link" @click="goToPage(page - 1)">
-                        {{ page }}
+                        {{ dash(page) }}
                       </button>
                       <span v-else class="page-link">...</span>
                     </li>

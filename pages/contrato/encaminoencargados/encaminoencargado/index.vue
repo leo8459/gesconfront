@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -52,39 +52,39 @@
                     <td class="p-1">{{ m.sucursale ? m.sucursale.nombre : '' }}</td>
                     <td class="p-1">{{ m.cartero_recogida ? m.cartero_recogida.nombre : 'Por asignar' }}</td>
                     <td class="p-1">{{ m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar' }}</td>
-                    <td class="py-0 px-1">{{ m.guia }}</td>
-                    <td class="py-0 px-1">{{ m.peso_o }}</td>
-                    <td class="py-0 px-1">{{ m.peso_v }}</td>
-                    <td class="py-0 px-1">{{ m.remitente }}</td>
+                    <td class="py-0 px-1">{{ dash(m.guia) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.peso_o) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.peso_v) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.remitente) }}</td>
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion" target="_blank" class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
-                      <span v-else>{{ m.direccion }}</span>
+                      <span v-else>{{ dash(m.direccion) }}</span>
                     </td>
-                    <td class="py-0 px-1">{{ m.direccion_especifica }}</td>
-                    <td class="py-0 px-1">{{ m.telefono }}</td>
-                    <td class="py-0 px-1">{{ m.contenido }}</td>
-                    <td class="py-0 px-1">{{ m.fecha }}</td>
+                    <td class="py-0 px-1">{{ dash(m.direccion_especifica) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.telefono) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.contenido) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.fecha) }}</td>
                     <td class="py-0 px-1">
                       <img v-if="m.firma_o" :src="m.firma_o" alt="Firma Origen" width="100" />
                     </td>
-                    <td class="py-0 px-1">{{ m.destinatario }}</td>
-                    <td class="py-0 px-1">{{ m.telefono_d }}</td>
+                    <td class="py-0 px-1">{{ dash(m.destinatario) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.telefono_d) }}</td>
                     <td class="py-0 px-1">
                       <a v-if="isCoordinates(m.direccion_d)" :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion_d" target="_blank" class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
-                      <span v-else>{{ m.direccion_d }}</span>
+                      <span v-else>{{ dash(m.direccion_d) }}</span>
                     </td>
-                    <td class="py-0 px-1">{{ m.ciudad }}</td>
+                    <td class="py-0 px-1">{{ dash(m.ciudad) }}</td>
                     <td class="py-0 px-1">
                       <img v-if="m.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
                     </td>
-                    <td class="py-0 px-1">{{ m.direccion_especifica_d }}</td>
-                    <td class="py-0 px-1">{{ m.nombre_d }}</td>
-                    <td class="py-0 px-1">{{ m.ci_d }}</td>
-                    <td class="py-0 px-1">{{ m.fecha_d }}</td>
+                    <td class="py-0 px-1">{{ dash(m.direccion_especifica_d) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.nombre_d) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.ci_d) }}</td>
+                    <td class="py-0 px-1">{{ dash(m.fecha_d) }}</td>
                     <td class="py-0 px-1">{{ m.estado === 2 ? 'En camino' : m.estado }}</td>
                     <td class="py-0 px-1">
                       <button @click="openObservationModal(m.id)" class="btn btn-warning btn-sm">
@@ -97,7 +97,7 @@
             </div>
             <div class="d-flex justify-content-between align-items-center mt-3">
               <button class="btn btn-secondary" :disabled="currentPage === 1" @click="currentPage--">Anterior</button>
-              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <span>Página {{ dash(currentPage) }} de {{ dash(totalPages) }}</span>
               <button class="btn btn-secondary" :disabled="currentPage === totalPages" @click="currentPage++">Siguiente</button>
             </div>
           </div>
@@ -108,7 +108,7 @@
     <!-- Modal para añadir peso_v -->
     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop>
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }}</label>
+        <label :for="'peso_v-' + item.id">{{ dash(item.guia) }} - {{ dash(item.sucursale.nombre) }}</label>
         <input type="number" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" />
       </div>
       <div class="d-flex justify-content-end">

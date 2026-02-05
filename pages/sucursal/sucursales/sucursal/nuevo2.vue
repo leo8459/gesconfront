@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -43,7 +43,7 @@
                       <ul v-if="remitenteSuggestions.length" class="suggestions-list">
                         <li v-for="(suggestion, index) in remitenteSuggestions" :key="index"
                           @click="applyFrequentRemitente(suggestion)">
-                          {{ suggestion.remitente }} - {{ suggestion.direccion_r }}, Zona: {{ suggestion.zona_r }}
+                          {{ dash(suggestion.remitente) }} - {{ dash(suggestion.direccion_r) }}, Zona: {{ dash(suggestion.zona_r) }}
                           <button @click.stop="deleteFrequentRemitente(index)" class="delete-btn">X</button>
                         </li>
                       </ul>
@@ -67,7 +67,7 @@
                         :reduce="tarifa => tarifa.id" placeholder="Buscar departamento...">
                         <template #option="option">
                           <div>
-                            {{ option.departamento }} - {{ option.servicio }}
+                            {{ dash(option.departamento) }} - {{ dash(option.servicio) }}
                           </div>
                         </template>
                         <template #selected-option="option">

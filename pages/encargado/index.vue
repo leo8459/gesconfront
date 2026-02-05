@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -18,7 +18,7 @@
                           <strong>Correspondencias Solicitadas</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado1 }}
+                          {{ dash(dashboard.totalSolicitudesEstado1) }}
                         </h6>
                       </div>
                     </div>
@@ -42,7 +42,7 @@
                           <strong>Correspondencias Recogidas</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado5 }}
+                          {{ dash(dashboard.totalSolicitudesEstado5) }}
                         </h6>
                       </div>
                     </div>
@@ -66,7 +66,7 @@
                           <strong>Correspondencias en camino</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado2 }}
+                          {{ dash(dashboard.totalSolicitudesEstado2) }}
                         </h6>
                       </div>
                     </div>
@@ -91,7 +91,7 @@
                           <strong>Correspondencias Entregadas</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado3 }}
+                          {{ dash(dashboard.totalSolicitudesEstado3) }}
                         </h6>
                       </div>
                     </div>
@@ -119,7 +119,7 @@
                           <strong>Correspondencias solicitadas hoy</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado1Hoy }}
+                          {{ dash(dashboard.totalSolicitudesEstado1Hoy) }}
                         </h6>
                       </div>
                     </div>
@@ -143,7 +143,7 @@
                           <strong>Correspondencias recogidas hoy</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado5Hoy }}
+                          {{ dash(dashboard.totalSolicitudesEstado5Hoy) }}
                         </h6>
                       </div>
                     </div>
@@ -167,7 +167,7 @@
                           <strong>Correspondencias en camino hoy</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado2Hoy }}
+                          {{ dash(dashboard.totalSolicitudesEstado2Hoy) }}
                         </h6>
                       </div>
                     </div>
@@ -192,7 +192,7 @@
                           <strong>Correspondencias entregadas hoy</strong>
                         </p>
                         <h6 class="text-center text-lg font-weight-bolder text-black">
-                          {{ dashboard.totalSolicitudesEstado3Hoy }}
+                          {{ dash(dashboard.totalSolicitudesEstado3Hoy) }}
                         </h6>
                       </div>
                     </div>

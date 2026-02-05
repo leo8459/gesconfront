@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -15,7 +15,7 @@
                     <div class="form-group col-12">
                       <label for="sucursal">Sucursal</label>
                       <select id="sucursal" class="form-control" v-model="model.sucursale_id" disabled>
-                        <option v-for="m in sucursales" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+                        <option v-for="m in sucursales" :key="m.id" :value="m.id">{{ dash(m.nombre) }}</option>
                       </select>
                     </div>
                   
@@ -81,8 +81,8 @@
         <div id="map" style="height: 500px; width: 100%;"></div>
       </div>
       <div class="coordinates mt-2">
-        <p>Latitud: {{ currentLat }}</p>
-        <p>Longitud: {{ currentLng }}</p>
+        <p>Latitud: {{ dash(currentLat) }}</p>
+        <p>Longitud: {{ dash(currentLng) }}</p>
       </div>
     </b-modal>
   </div>

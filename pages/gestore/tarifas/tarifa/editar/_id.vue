@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -15,7 +15,7 @@
                     <div class="form-group col-12">
                       <label for="">Sucursal</label>
                       <select name="" id="" class="form-control" v-model="model.sucursale_id">
-                        <option v-for="m in sucursales" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+                        <option v-for="m in sucursales" :key="m.id" :value="m.id">{{ dash(m.nombre) }}</option>
                       </select>
                     </div>
                     <div class="form-group col-12">

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -20,9 +20,9 @@
               <div v-for="(event, index) in filteredList" :key="index" class="timeline-item">
                 <div class="timeline-icon animated-icon"></div>
                 <div class="timeline-content animated-content">
-                  <h5 class="animated-event-date">{{ event.fecha_hora }}</h5>
+                  <h5 class="animated-event-date">{{ dash(event.fecha_hora) }}</h5>
                   <p class="animated-event-description">
-                    {{ event.codigo }} - {{ event.accion }}
+                    {{ dash(event.codigo) }} - {{ dash(event.accion) }}
                   </p>
 
                 </div>

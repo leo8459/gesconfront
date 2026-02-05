@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -26,6 +26,11 @@
                 Recibidos
               </div>
               <div class="card-body p-2">
+                <div v-if="alertsCercaLimite.length > 0" class="mb-2">
+                  <div v-for="(a, idx) in alertsCercaLimite" :key="idx" class="alert alert-warning py-1 px-2 mb-1">
+                    Faltan {{ a.horasRestantes }} horas para llegar al límite verde. Código de rastreo: {{ a.guia }}.
+                  </div>
+                </div>
                 <div class="table-responsive">
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
@@ -51,7 +56,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(m, i) in paginatedData" :key="m?.id ?? i">
+                      <tr v-for="(m, i) in paginatedData" :key="m?.id ?? i" :class="rowStatusClass(m)">
 
                         <!-- Checkbox -->
                         <td class="py-0 px-1">
@@ -150,7 +155,7 @@
                 </li>
                 <li class="page-item" v-for="page in totalPages" :key="page"
                   :class="{ active: currentPage === page - 1 }">
-                  <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+                  <button class="page-link" @click="goToPage(page - 1)">{{ dash(page) }}</button>
                 </li>
                 <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
                   <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
@@ -177,10 +182,10 @@
               <tbody>
                 <tr v-for="(item, index) in selectedForDelivery" :key="index">
                   <td class="py-0 px-1">{{ index + 1 }}</td>
-                  <td class="py-0 px-1">{{ item.guia }}</td>
-                  <td class="py-0 px-1">{{ item.sucursale.nombre }}</td>
-                  <td class="py-0 px-1">{{ item.tarifa }}</td>
-                  <td class="py-0 px-1">{{ item.peso_v }}</td>
+                  <td class="py-0 px-1">{{ dash(item.guia) }}</td>
+                  <td class="py-0 px-1">{{ dash(item.sucursale.nombre) }}</td>
+                  <td class="py-0 px-1">{{ dash(item.tarifa) }}</td>
+                  <td class="py-0 px-1">{{ dash(item.peso_v) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -192,7 +197,7 @@
     <!-- Modal para añadir peso_v -->
     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop @shown="focusPesoInput">
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ item.guia }} - {{ item.sucursale.nombre }} - {{ item.tarifa }}</label>
+        <label :for="'peso_v-' + item.id">{{ dash(item.guia) }} - {{ dash(item.sucursale.nombre) }} - {{ dash(item.tarifa) }}</label>
         <label :for="'peso_v-' + item.id" class="mt-2">Peso (Kg)</label>
         <input type="text" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control"
           @input="updatePrice(item)" placeholder="000.001" step="0.001" min="0.001" ref="pesoInput" />
@@ -278,6 +283,23 @@ export default {
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
+    },
+    alertsCercaLimite() {
+      const result = [];
+      (this.filteredData || []).forEach(item => {
+        const greenLimit = this.getGreenLimitHours(item);
+        if (!greenLimit) return;
+        const diffHours = this.getHoursSinceRecojo(item);
+        if (diffHours === null) return;
+        const horasRestantes = Math.ceil(greenLimit - diffHours);
+        if (horasRestantes <= 10 && horasRestantes > 0) {
+          result.push({
+            guia: item?.guia ?? 'SIN GUIA',
+            horasRestantes,
+          });
+        }
+      });
+      return result;
     }
   },
   methods: {
@@ -290,6 +312,67 @@ export default {
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
+    },
+    getHoursSinceRecojo(item) {
+      const rawDate = item?.fecha_recojo_c;
+      if (!rawDate) return null;
+      const date = this.parseFecha(rawDate);
+      if (Number.isNaN(date.getTime())) return null;
+      return Math.max(0, (Date.now() - date.getTime()) / 36e5);
+    },
+    parseFecha(value) {
+      if (value instanceof Date) return value;
+      if (typeof value === 'number') return new Date(value);
+      const str = String(value).trim();
+
+      // Soporta: dd/MM/yyyy HH:mm[:ss]
+      const m1 = str.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+      if (m1) {
+        const [, dd, mm, yyyy, hh = '00', min = '00', ss = '00'] = m1;
+        return new Date(
+          Number(yyyy),
+          Number(mm) - 1,
+          Number(dd),
+          Number(hh),
+          Number(min),
+          Number(ss)
+        );
+      }
+
+      // Soporta: yyyy-MM-dd HH:mm[:ss] o yyyy-MM-ddTHH:mm[:ss]
+      const m2 = str.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+      if (m2) {
+        const [, yyyy, mm, dd, hh = '00', min = '00', ss = '00'] = m2;
+        return new Date(
+          Number(yyyy),
+          Number(mm) - 1,
+          Number(dd),
+          Number(hh),
+          Number(min),
+          Number(ss)
+        );
+      }
+
+      return new Date(str);
+    },
+    getGreenLimitHours(item) {
+      const hasCiudad = String(item?.ciudad ?? '').trim() !== '';
+      return hasCiudad ? 92 : 48;
+    },
+    rowStatusClass(item) {
+      const diffHours = this.getHoursSinceRecojo(item);
+      if (diffHours === null) return '';
+      const hasCiudad = String(item?.ciudad ?? '').trim() !== '';
+
+      if (hasCiudad) {
+        if (diffHours <= 92) return 'row-green';
+        if (diffHours <= 114) return 'row-orange';
+        return 'row-red';
+      }
+
+      if (diffHours <= 48) return 'row-green';
+      if (diffHours <= 72) return 'row-orange';
+      return 'row-red';
     },
     getTarifaLabel(tarifa_id) {
       if (!this.tarifas) {
@@ -513,7 +596,7 @@ export default {
 }
 
 .card-header {
-  background-color: #34447C;
+  background-color: #1f6f8b;
   color: #FFFFFF;
   font-weight: bold;
   text-transform: uppercase;
@@ -543,5 +626,17 @@ export default {
   font-weight: bold;
   background-color: #007bff;
   color: white;
+}
+
+.row-green {
+  background-color: #d4edda !important;
+}
+
+.row-orange {
+  background-color: #fff3cd !important;
+}
+
+.row-red {
+  background-color: #f8d7da !important;
 }
 </style>

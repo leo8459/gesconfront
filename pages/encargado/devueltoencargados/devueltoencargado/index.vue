@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -83,7 +83,7 @@
                     </li>
                     <li class="page-item" v-for="page in totalPages" :key="page"
                       :class="{ active: currentPage === page - 1 }">
-                      <button class="page-link" @click="goToPage(page - 1)">{{ page }}</button>
+                      <button class="page-link" @click="goToPage(page - 1)">{{ dash(page) }}</button>
                     </li>
                     <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
                       <button class="page-link" @click="nextPage"
