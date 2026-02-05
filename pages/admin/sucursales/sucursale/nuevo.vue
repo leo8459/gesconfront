@@ -40,27 +40,27 @@
                       <input type="text" v-model="model.origen" class="form-control" id="">
                     </div>
                     <div class="form-group col-12">
-                      <label for="">Inicio Fecha</label>
+                      <label for="">Inicio Contrato</label>
                       <input type="date" v-model="model.ini_vigencia" class="form-control" :min="ini_vigencia">
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="">Fin Fecha</label>
+                      <label for="">Fin Contrato</label>
                       <input type="date" v-model="model.fin_vigencia" class="form-control" :min="fin_vigencia">
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="">limite</label>
+                      <label for="">Limite Presupuestario</label>
                       <input type="text" v-model="model.limite" class="form-control" id="">
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="">cobertura</label>
+                      <label for="">Cobertura</label>
                       <input type="text" v-model="model.cobertura" class="form-control" id="">
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="">Acuerdo Recojo</label>
+                      <label for="">Acuerdo de Recojo</label>
                       <input type="text" v-model="model.acuerdos" class="form-control" id="">
                     </div>
 
