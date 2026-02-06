@@ -219,7 +219,7 @@
                       :class="{ active: currentPage === page - 1 }"
                     >
                       <button class="page-link" @click="goToPage(page - 1)">
-                        {{ (page ?? '-') }}
+                        {{ page ?? "-" }}
                       </button>
                     </li>
                     <li
@@ -264,16 +264,16 @@
                     >
                       <td class="py-0 px-1" data-label="Nº">{{ index + 1 }}</td>
                       <td class="py-0 px-1" data-label="Guía">
-                        {{ (item.guia ?? '-') }}
+                        {{ item.guia ?? "-" }}
                       </td>
                       <td class="py-0 px-1" data-label="Sucursal">
                         {{ item?.sucursale?.nombre || "SIN SUCURSAL" }}
                       </td>
                       <td class="py-0 px-1" data-label="Tarifa">
-                        {{ (item.tarifa ?? '-') }}
+                        {{ item.tarifa ?? "-" }}
                       </td>
                       <td class="py-0 px-1" data-label="Peso">
-                        {{ (item.peso_v ?? '-') }}
+                        {{ item.peso_v ?? "-" }}
                       </td>
                     </tr>
                   </tbody>
@@ -307,7 +307,8 @@
     >
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
         <label :for="'peso_v-' + item.id">
-          {{ (item.guia ?? '-') }} - {{ item?.sucursale?.nombre || "SIN SUCURSAL" }} -
+          {{ item.guia ?? "-" }} -
+          {{ item?.sucursale?.nombre || "SIN SUCURSAL" }} -
           {{ item?.tarifa || "SIN TARIFA" }}
         </label>
 
@@ -421,7 +422,23 @@
         />
       </div>
       <div class="form-group">
-        <label>Ciudad</label>
+        <label>Destino</label>
+        <select v-model="emsForm.reencaminamiento" class="form-control">
+          <option value="">-- Seleccione --</option>
+          <option value="LPB">La Paz (LPB)</option>
+          <option value="SRZ">Santa Cruz (SRZ)</option>
+          <option value="CBB">Cochabamba (CBB)</option>
+          <option value="ORU">Oruro (ORU)</option>
+          <option value="PTI">Potosí (PTI)</option>
+          <option value="TJA">Tarija (TJA)</option>
+          <option value="SRE">Sucre (SRE)</option>
+          <option value="BEN">Trinidad (TDD)</option>
+          <option value="CIJ">Cobija (CIJ)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Provinicia</label>
         <input
           class="form-control"
           v-model="emsForm.ciudad"
@@ -457,7 +474,7 @@
         <select v-model="manualForm.sucursale_id" class="form-control">
           <option value="">-- Seleccione --</option>
           <option v-for="s in sucursales" :key="s.id" :value="s.id">
-            {{ (s.sigla ?? '-') }} - {{ (s.nombre ?? '-') }}
+            {{ s.sigla ?? "-" }} - {{ s.nombre ?? "-" }}
           </option>
         </select>
       </div>
@@ -467,18 +484,28 @@
         <select v-model="manualForm.tarifa_id" class="form-control">
           <option value="">-- Seleccione --</option>
           <option v-for="t in tarifasModal" :key="t.id" :value="t.id">
-            {{ (t.departamento ?? '-') }} - {{ (t.servicio ?? '-') }}
+            {{ t.departamento ?? "-" }} - {{ t.servicio ?? "-" }}
           </option>
         </select>
       </div>
       <div class="form-group">
         <label>Destino</label>
-        <input
+        <select
           v-model="manualForm.reencaminamiento"
-          type="text"
           class="form-control"
-          placeholder="Ej: LP / CBB / SCZ / etc."
-        />
+          id="origen"
+        >
+          <option value="">-- Seleccione --</option>
+          <option value="LPB">La Paz (LPB)</option>
+          <option value="SRZ">Santa Cruz (SRZ)</option>
+          <option value="CBB">Cochabamba (CBB)</option>
+          <option value="ORU">Oruro (ORU)</option>
+          <option value="PTI">Potosí (PTI)</option>
+          <option value="TJA">Tarija (TJA)</option>
+          <option value="SRE">Sucre (SRE)</option>
+          <option value="BEN">Trinidad (TDD)</option>
+          <option value="CIJ">Cobija (CIJ)</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -594,7 +621,8 @@ export default {
       emsForm: {
         tipo_correspondencia: "EMS",
         guia: "",
-        ciudad: "", // ✅ NUEVO
+        ciudad: "",
+        reencaminamiento: "", // ✅ NUEVO (Destino)
         peso_v: "",
         observacion: "",
       },
@@ -693,7 +721,8 @@ export default {
       this.emsForm = {
         tipo_correspondencia: "EMS",
         guia: "",
-        ciudad: "", // ✅ NUEVO
+        ciudad: "",
+        reencaminamiento: "", // ✅ NUEVO
         peso_v: "",
         observacion: "",
       };
@@ -714,7 +743,8 @@ export default {
         const carteroId = this.user?.user?.id;
         await this.$api.$post("solicitudes/ems", {
           guia: this.emsForm.guia,
-          ciudad: this.emsForm.ciudad, // ✅ NUEVO
+          ciudad: this.emsForm.ciudad,
+          reencaminamiento: this.emsForm.reencaminamiento, // ✅ NUEVO
           peso_v: this.emsForm.peso_v,
           observacion: this.emsForm.observacion,
           cartero_recogida_id: carteroId,
