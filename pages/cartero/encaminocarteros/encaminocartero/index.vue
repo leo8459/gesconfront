@@ -4,8 +4,10 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-          <div class="col-3" v-if="hasSelectedItems">
-
+          <div class="col-12 col-md-3" v-if="hasPrelistaTransportes">
+            <button @click="openTransporteModal" class="btn btn-success btn-sm w-100">
+              <i class="fas fa-truck"></i> Total / Registrar Transporte
+            </button>
           </div>
           <div class="col-12 col-md-3 search-input-container">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text"
@@ -102,6 +104,51 @@
                 </div>
               </div>
             </div>
+            <div class="card border-rounded" v-if="hasPrelistaTransportes">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Prelista de Transportes</span>
+                <button class="btn btn-success btn-sm mb-0 transporte-register-btn" @click="openTransporteModal">
+                  <i class="fas fa-plus"></i> Registrar
+                </button>
+              </div>
+              <div class="card-body p-2">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th class="py-0 px-1">Precio</th>
+                        <th class="py-0 px-1">Peso</th>
+                        <th class="py-0 px-1">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(t, i) in prelistaTransportes" :key="t?.id ?? i">
+                        <td class="py-0 px-1">{{ i + 1 }}</td>
+                        <td class="py-0 px-1">{{ t?.guia ?? '-' }}</td>
+                        <td class="py-0 px-1">{{ t?.destinatario ?? '-' }}</td>
+                        <td class="py-0 px-1">{{ t?.ciudad ?? '-' }}</td>
+                        <td class="py-0 px-1">{{ Number(t?.precio_item ?? 0).toFixed(2) }}</td>
+                        <td class="py-0 px-1">{{ Number(t?.peso_item ?? 0).toFixed(2) }}</td>
+                        <td class="py-0 px-1">
+                          <button class="btn btn-danger btn-sm py-1 px-2 w-100" @click="quitarDePrelista(t.id)">
+                            Quitar
+                          </button>
+                        </td>
+                      </tr>
+                      <tr v-if="!prelistaTransportes.length">
+                        <td colspan="7" class="text-center">
+                          No hay transportes registrados.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
             <div class="row justify-content-end mb-3">
 
               <div class="col-3" v-if="hasSelectedItems">
@@ -151,6 +198,43 @@
       </div>
     </b-modal>
 
+    <b-modal v-model="isTransporteModalVisible" title="Registrar Transporte Total" hide-backdrop hide-footer>
+      <div class="form-group">
+        <label for="transportadora">Transportadora</label>
+        <input id="transportadora" v-model="transporteForm.transportadora" class="form-control" type="text"
+          placeholder="Nombre de la transportadora" />
+      </div>
+      <div class="form-group">
+        <label for="provincia">Provincia</label>
+        <input id="provincia" v-model="transporteForm.provincia" class="form-control" type="text"
+          placeholder="Provincia" />
+      </div>
+      <div class="form-group">
+        <label for="n-recibo">N° Recibo</label>
+        <input id="n-recibo" v-model="transporteForm.n_recibo" class="form-control" type="text"
+          placeholder="Número de recibo" />
+      </div>
+      <div class="form-group">
+        <label for="n-factura">N° Factura</label>
+        <input id="n-factura" v-model="transporteForm.n_factura" class="form-control" type="text"
+          placeholder="Número de factura" />
+      </div>
+      <div class="form-group">
+        <label for="precio-total">Precio Total</label>
+        <input id="precio-total" v-model.number="transporteForm.precio_total" class="form-control" type="number"
+          min="0" step="0.01" placeholder="0.00" />
+      </div>
+      <div class="form-group">
+        <label for="peso-total">Peso Total</label>
+        <input id="peso-total" v-model.number="transporteForm.peso_total" class="form-control" type="number" min="0"
+          step="0.01" placeholder="0.00" />
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isTransporteModalVisible = false">Cancelar</button>
+        <button class="btn btn-success ml-2" @click="registrarTransporte">Guardar Total</button>
+      </div>
+    </b-modal>
+
     <!-- Modal para añadir peso_v -->
     <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer>
       <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
@@ -168,8 +252,6 @@
 <script>
 import { BCollapse, BModal } from 'bootstrap-vue';
 import Pica from 'pica';
-import Vue from 'vue';
-import Router from 'vue-router';
 
 export default {
   name: "IndexPage",
@@ -204,6 +286,17 @@ export default {
       selectedMapItems: [],
       userLocation: null,
       sortedMapItems: [],
+      prelistaTransportes: [],
+      guiasEnPrelistaIds: [],
+      isTransporteModalVisible: false,
+      transporteForm: {
+        transportadora: '',
+        provincia: '',
+        n_recibo: '',
+        n_factura: '',
+        precio_total: 0,
+        peso_total: 0,
+      },
     };
   },
   computed: {
@@ -211,8 +304,13 @@ export default {
   const searchTerm = (this.searchTerm || '').toLowerCase();
   const carteroId = this.user?.user?.id;
 
-  return this.list
+      return this.list
     .filter(item => {
+      const yaEnPrelista = this.guiasEnPrelistaIds.includes(item?.id);
+      if (yaEnPrelista) {
+        return false;
+      }
+
       const mismoCartero =
         item.cartero_entrega &&
         item.cartero_entrega.id === carteroId;
@@ -256,11 +354,124 @@ export default {
     totalPages() {
       return Math.ceil(this.filteredData.length / this.itemsPerPage);
     },
+    hasPrelistaTransportes() {
+      return this.prelistaTransportes.length > 0;
+    },
+    totalPrelistaPrecio() {
+      return this.prelistaTransportes.reduce((acc, item) => acc + Number(item?.precio_item || 0), 0);
+    },
+    totalPrelistaPeso() {
+      return this.prelistaTransportes.reduce((acc, item) => acc + Number(item?.peso_item || 0), 0);
+    },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
     }
   },
   methods: {
+    toNumber(value) {
+      const parsed = parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    },
+    openTransporteModal() {
+      if (!this.hasPrelistaTransportes) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Sin prelista',
+          text: 'Primero ingresa una guía en el buscador y presiona Enter.',
+        });
+        return;
+      }
+      this.transporteForm = {
+        transportadora: '',
+        provincia: '',
+        n_recibo: '',
+        n_factura: '',
+        precio_total: Number(this.totalPrelistaPrecio.toFixed(2)),
+        peso_total: Number(this.totalPrelistaPeso.toFixed(2)),
+      };
+      this.isTransporteModalVisible = true;
+    },
+    async registrarTransporte() {
+      const carteroId = this.user?.user?.id;
+      if (!carteroId) {
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se encontró el cartero logueado.',
+        });
+        return;
+      }
+
+      const tieneRecibo = !!(this.transporteForm.n_recibo || '').trim();
+      const tieneFactura = !!(this.transporteForm.n_factura || '').trim();
+      if (!this.transporteForm.transportadora || (!tieneRecibo && !tieneFactura)) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Campos requeridos',
+          text: 'Completa transportadora y al menos uno: n° recibo o n° factura.',
+        });
+        return;
+      }
+
+      this.load = true;
+      try {
+        const solicitudesIds = this.prelistaTransportes.map(item => item.id).filter(Boolean);
+        const guias = this.prelistaTransportes
+          .map(item => (item?.guia || '').toString().trim())
+          .filter(Boolean);
+
+        if (!solicitudesIds.length) {
+          this.$swal.fire({
+            icon: 'warning',
+            title: 'Sin solicitudes',
+            text: 'Debes agregar al menos una guía a la prelista.',
+          });
+          this.load = false;
+          return;
+        }
+
+        await this.$api.$post('transportes', {
+          transportadora: this.transporteForm.transportadora,
+          provincia: (this.transporteForm.provincia || '').trim(),
+          cartero_id: carteroId,
+          n_recibo: (this.transporteForm.n_recibo || '').trim(),
+          n_factura: (this.transporteForm.n_factura || '').trim(),
+          precio_total: Number(this.transporteForm.precio_total || 0),
+          peso_total: Number(this.transporteForm.peso_total || 0),
+          solicitude_ids: solicitudesIds,
+          guias,
+        });
+
+        await this.GET_DATA(this.apiUrl);
+        this.prelistaTransportes = [];
+        this.guiasEnPrelistaIds = [];
+        this.isTransporteModalVisible = false;
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Transporte registrado',
+          text: 'Se guardó correctamente el total de transporte.',
+        });
+      } catch (e) {
+        console.error(e);
+        const backendMessage =
+          e?.response?.data?.message ||
+          e?.response?.data?.error ||
+          (Array.isArray(e?.response?.data?.errors)
+            ? e.response.data.errors.join(', ')
+            : null);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: backendMessage || 'No se pudo registrar el transporte.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
+    quitarDePrelista(id) {
+      this.prelistaTransportes = this.prelistaTransportes.filter(item => item.id !== id);
+      this.guiasEnPrelistaIds = this.guiasEnPrelistaIds.filter(itemId => itemId !== id);
+    },
     showMap() {
       const selectedItems = this.list.filter(item => this.selected[item.id]);
 
@@ -595,10 +806,41 @@ export default {
       this.isModalVisible = true;
     },
     handleSearchEnter() {
-      this.selectedItemsData = this.filteredData;
-      if (this.selectedItemsData.length > 0) {
-        this.isModalVisible = true;
+      const term = (this.searchTerm || '').trim().toLowerCase();
+      if (!term) return;
+
+      const item = this.list.find(row => {
+        const guia = (row?.guia || '').toLowerCase();
+        return guia === term;
+      });
+
+      if (!item) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Guía no encontrada',
+          text: 'No existe una solicitud con esa guía para agregar a la prelista.',
+        });
+        return;
       }
+
+      const yaExiste = this.prelistaTransportes.some(row => row.id === item.id);
+      if (yaExiste) {
+        this.$swal.fire({
+          icon: 'info',
+          title: 'Ya está en prelista',
+          text: `La guía ${item.guia} ya fue agregada.`,
+        });
+        this.searchTerm = '';
+        return;
+      }
+
+      this.prelistaTransportes.push({
+        ...item,
+        precio_item: this.toNumber(item?.nombre_d ?? item?.precio ?? item?.precio_total),
+        peso_item: this.toNumber(item?.peso_v ?? item?.peso_total ?? item?.peso),
+      });
+      this.guiasEnPrelistaIds.push(item.id);
+      this.searchTerm = '';
     },
     async confirmAssignSelected() {
       this.load = true;
@@ -754,6 +996,11 @@ export default {
 
 .btn-primary:hover {
   background-color: #4a5a7a;
+}
+
+.transporte-register-btn {
+  width: auto;
+  min-width: 110px;
 }
 
 .btn {
