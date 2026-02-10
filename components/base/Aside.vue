@@ -83,6 +83,18 @@
                 </nuxtLink>
               </li>
               <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/admin/cartero/provincia">
+                  <span class="sidenav-mini-icon"> Provincia </span>
+                  <span class="sidenav-normal full-width-text"> Provincia (Estado 14) </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/admin/cartero/eventos">
+                  <span class="sidenav-mini-icon"> Eventos </span>
+                  <span class="sidenav-normal full-width-text"> Eventos </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/admin/codigos/codigo">
                   <span class="sidenav-mini-icon"> Codigos Manuales </span>
                   <span class="sidenav-normal full-width-text"> Codigos Manuales </span>

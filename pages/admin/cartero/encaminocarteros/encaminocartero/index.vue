@@ -10,6 +10,11 @@
             </button>
           </div>
           <div class="col-3">
+            <nuxtLink to="/admin/cartero/provincia" class="btn btn-info btn-sm w-100">
+              <i class="fas fa-map-marker-alt"></i> Provincia
+            </nuxtLink>
+          </div>
+          <div class="col-3">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control" placeholder="Buscar..." />
           </div>
         </div>
@@ -146,8 +151,7 @@ export default {
     filteredData() {
       const searchTerm = this.searchTerm.toLowerCase();
       return this.list.filter(item =>
-        item.estado === 2 && 
-        item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
+        item.estado === 2 &&
         Object.values(item).some(value =>
           String(value).toLowerCase().includes(searchTerm)
         )
