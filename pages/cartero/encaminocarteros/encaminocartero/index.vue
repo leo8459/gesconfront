@@ -4,6 +4,11 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
+          <div class="col-12 col-md-3 mb-2 mb-md-0">
+            <button @click="toggleMandadosProvincia" class="btn btn-info btn-sm w-100">
+              <i class="fas fa-list"></i> Mandados a Provincia
+            </button>
+          </div>
           <div class="col-12 col-md-3" v-if="hasPrelistaTransportes">
             <button @click="openTransporteModal" class="btn btn-success btn-sm w-100">
               <i class="fas fa-truck"></i> Total / Registrar Transporte
@@ -149,6 +154,49 @@
                 </div>
               </div>
             </div>
+
+            <div class="card border-rounded" v-if="showMandadosProvincia">
+              <div class="card-header">
+                Mandados a Provincia
+              </div>
+              <div class="card-body p-2">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th class="py-0 px-1">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in mandadosProvinciaData" :key="m?.id ?? i">
+                        <td class="py-0 px-1">{{ i + 1 }}</td>
+                        <td class="py-0 px-1">{{ m?.guia ?? '-' }}</td>
+                        <td class="py-0 px-1">{{ m?.destinatario ?? '-' }}</td>
+                        <td class="py-0 px-1">{{ m?.ciudad ?? '-' }}</td>
+                        <td class="py-0 px-1">
+                          <nuxtLink v-if="m?.id" :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2 w-100">
+                            <i class="fas fa-ban"></i> Entregar Correspondencia
+                          </nuxtLink>
+                          <button v-else class="btn btn-secondary btn-sm py-1 px-2 w-100" disabled>
+                            Sin ID
+                          </button>
+                        </td>
+                      </tr>
+                      <tr v-if="!mandadosProvinciaData.length">
+                        <td colspan="5" class="text-center">
+                          No hay envíos mandados a provincia para este cartero.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
             <div class="row justify-content-end mb-3">
 
               <div class="col-3" v-if="hasSelectedItems">
@@ -297,6 +345,7 @@ export default {
         precio_total: 0,
         peso_total: 0,
       },
+      showMandadosProvincia: false,
     };
   },
   computed: {
@@ -363,11 +412,23 @@ export default {
     totalPrelistaPeso() {
       return this.prelistaTransportes.reduce((acc, item) => acc + Number(item?.peso_item || 0), 0);
     },
+    mandadosProvinciaData() {
+      const carteroId = Number(this.user?.user?.id);
+      return this.list
+        .filter(item => {
+          const idEntrega = Number(item?.cartero_entrega_id ?? item?.cartero_entrega?.id);
+          return Number(item?.estado) === 14 && idEntrega === carteroId;
+        })
+        .sort((a, b) => (b?.id || 0) - (a?.id || 0));
+    },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
     }
   },
   methods: {
+    toggleMandadosProvincia() {
+      this.showMandadosProvincia = !this.showMandadosProvincia;
+    },
     toNumber(value) {
       const parsed = parseFloat(value);
       return Number.isFinite(parsed) ? parsed : 0;
