@@ -3,40 +3,54 @@
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
-        <div class="card border-rounded mb-3">
-          <div class="card-header">Reporte de Transporte (PDF)</div>
-          <div class="card-body p-2">
-            <div class="row">
-              <div class="col-12 col-md-3 mb-2">
-                <label class="mb-1">Fecha inicio</label>
-                <input v-model="dateFrom" type="date" class="form-control" />
+        <div class="card border-rounded mb-3 report-card">
+          <div class="card-header">Panel de Reportes de Transporte</div>
+          <div class="card-body p-3">
+            <div class="row g-2 align-items-end">
+              <div class="col-12 col-md-3">
+                <label class="mb-1 filter-label">Fecha inicio</label>
+                <input v-model="dateFrom" type="date" class="form-control form-control-sm" />
               </div>
-              <div class="col-12 col-md-3 mb-2">
-                <label class="mb-1">Fecha fin</label>
-                <input v-model="dateTo" type="date" class="form-control" />
+              <div class="col-12 col-md-3">
+                <label class="mb-1 filter-label">Fecha fin</label>
+                <input v-model="dateTo" type="date" class="form-control form-control-sm" />
               </div>
-              <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
-                <button class="btn btn-primary btn-sm w-100" @click="applyDateFilter">Aplicar</button>
-              </div>
-              <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
-                <button class="btn btn-secondary btn-sm w-100" @click="clearDateFilter">Limpiar</button>
-              </div>
-              <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
-                <button class="btn btn-success btn-sm w-100" @click="generateReportPdf">
-                  Generar PDF
-                </button>
-              </div>
-              <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
-                <button class="btn btn-success btn-sm w-100" @click="generateReportExcel">
-                  Generar Excel
-                </button>
+              <div class="col-12 col-md-6 d-flex justify-content-md-end">
+                <button class="btn btn-success btn-sm action-btn" @click="generateReportExcel">Generar Excel</button>
               </div>
             </div>
           </div>
         </div>
 
+        <div class="row mb-3">
+          <div class="col-6 col-md-3 mb-2">
+            <div class="metric-card">
+              <div class="metric-title">Dias con movimiento</div>
+              <div class="metric-value">{{ reportTotalDias }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3 mb-2">
+            <div class="metric-card">
+              <div class="metric-title">Total envios</div>
+              <div class="metric-value">{{ reportTotalEnvios }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3 mb-2">
+            <div class="metric-card">
+              <div class="metric-title">Total pagado</div>
+              <div class="metric-value">{{ reportTotalPagado.toFixed(2) }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3 mb-2">
+            <div class="metric-card">
+              <div class="metric-title">Kilo total</div>
+              <div class="metric-value">{{ reportKiloTotal.toFixed(2) }}</div>
+            </div>
+          </div>
+        </div>
+
         <div class="row justify-content-end mb-3">
-          <div class="col-12 col-md-2">
+          <div class="col-12 col-md-2 mb-2 mb-md-0">
             <nuxtLink to="/admin/cartero/eventos" class="btn btn-info btn-sm w-100">
               Ver Eventos
             </nuxtLink>
@@ -46,7 +60,7 @@
               v-model="searchTerm"
               @keypress.enter="currentPage = 0"
               type="text"
-              class="form-control"
+              class="form-control form-control-sm"
               placeholder="Buscar..."
             />
           </div>
@@ -91,8 +105,11 @@
 
         <div class="row">
           <div class="col-12">
-            <div class="table-responsive">
-              <table class="table table-sm table-bordered">
+            <div class="card border-rounded">
+              <div class="card-header">Detalle de Registros de Transporte</div>
+              <div class="card-body p-0">
+                <div class="table-responsive detail-table-wrap">
+              <table class="table table-sm table-bordered detail-table mb-0">
                 <thead>
                   <tr>
                     <th class="py-0 px-1">#</th>
@@ -127,6 +144,8 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+              </div>
             </div>
 
             <nav aria-label="Page navigation">
@@ -441,7 +460,7 @@ export default {
       worksheet.mergeCells('A2:M2');
       worksheet.getCell('A2').value = `Rango: ${from} a ${to}`;
       worksheet.getCell('A2').font = { italic: true, color: { argb: 'FF2F3A4A' } };
-      worksheet.getCell('A2').alignment = { vertical: 'middle', horizontal: 'left' };
+      worksheet.getCell('A2').alignment = { vertical: 'middle', horizontal: 'center' };
       worksheet.getRow(2).height = 20;
 
       worksheet.columns = [
@@ -460,16 +479,42 @@ export default {
         { header: 'Monto Total Provincia', key: 'monto_total_provincia', width: 18 },
       ];
 
-      worksheet.getRow(3).values = worksheet.columns.map(c => c.header);
-      const headerRow = worksheet.getRow(3);
-      headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-      headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-      headerRow.height = 22;
-      headerRow.eachCell(cell => {
+      worksheet.mergeCells('A3:F3');
+      worksheet.mergeCells('G3:J3');
+      worksheet.mergeCells('K3:M3');
+      worksheet.getCell('A3').value = 'DATOS GENERALES';
+      worksheet.getCell('G3').value = 'TRAMO REGIONAL';
+      worksheet.getCell('K3').value = 'TRAMO PROVINCIA';
+      ['A3', 'G3', 'K3'].forEach(addr => {
+        const cell = worksheet.getCell(addr);
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FF2A6EA8' },
+          fgColor: { argb: 'FF244C8A' },
+        };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFD0D7E2' } },
+          left: { style: 'thin', color: { argb: 'FFD0D7E2' } },
+          bottom: { style: 'thin', color: { argb: 'FFD0D7E2' } },
+          right: { style: 'thin', color: { argb: 'FFD0D7E2' } },
+        };
+      });
+      worksheet.getRow(3).height = 22;
+
+      worksheet.getRow(4).values = worksheet.columns.map(c => c.header);
+      const headerRow = worksheet.getRow(4);
+      headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      headerRow.height = 24;
+      headerRow.eachCell((cell, colNumber) => {
+        const isRegional = colNumber >= 7 && colNumber <= 10;
+        const isProvincia = colNumber >= 11 && colNumber <= 13;
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: isRegional ? 'FF2A6EA8' : isProvincia ? 'FF1F8A5B' : 'FF3A5D9C' },
         };
         cell.border = {
           top: { style: 'thin', color: { argb: 'FFD0D7E2' } },
@@ -481,14 +526,17 @@ export default {
 
       rows.forEach((r, idx) => {
         const row = worksheet.addRow(r);
-        row.eachCell(cell => {
+        row.eachCell((cell, colNumber) => {
           cell.border = {
             top: { style: 'thin', color: { argb: 'FFE1E7F0' } },
             left: { style: 'thin', color: { argb: 'FFE1E7F0' } },
             bottom: { style: 'thin', color: { argb: 'FFE1E7F0' } },
             right: { style: 'thin', color: { argb: 'FFE1E7F0' } },
           };
-          cell.alignment = { vertical: 'middle', horizontal: 'left' };
+          cell.alignment = {
+            vertical: 'middle',
+            horizontal: [1, 6, 9, 13].includes(colNumber) ? 'right' : 'left',
+          };
         });
         if (idx % 2 === 0) {
           row.eachCell(cell => {
@@ -516,23 +564,23 @@ export default {
         cell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FFE8F0FF' },
+          fgColor: { argb: 'FFF0F6FF' },
         };
         cell.border = {
-          top: { style: 'thin', color: { argb: 'FFB9C9E8' } },
+          top: { style: 'medium', color: { argb: 'FF9FB4DA' } },
           left: { style: 'thin', color: { argb: 'FFB9C9E8' } },
-          bottom: { style: 'thin', color: { argb: 'FFB9C9E8' } },
+          bottom: { style: 'medium', color: { argb: 'FF9FB4DA' } },
           right: { style: 'thin', color: { argb: 'FFB9C9E8' } },
         };
       });
 
-      const firstDataRow = 4;
+      const firstDataRow = 5;
       const lastRow = totalRow.number;
       worksheet.autoFilter = {
-        from: { row: 3, column: 1 },
-        to: { row: 3, column: 13 },
+        from: { row: 4, column: 1 },
+        to: { row: 4, column: 13 },
       };
-      worksheet.views = [{ state: 'frozen', ySplit: 3 }];
+      worksheet.views = [{ state: 'frozen', ySplit: 4 }];
 
       worksheet.getColumn(6).numFmt = '#,##0.000';
       worksheet.getColumn(9).numFmt = '#,##0.00';
@@ -668,21 +716,59 @@ export default {
 
 <style scoped>
 .card.border-rounded {
-  border-radius: 14px;
-  border: 1px solid #dbe3ef;
+  border-radius: 12px;
+  border: 1px solid #d7e1f0;
   overflow: hidden;
+  box-shadow: 0 4px 14px rgba(23, 44, 79, 0.06);
 }
 
 .card-header {
   background: #1f3b73;
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.2px;
 }
 
 .table thead th {
   background: #e9eef8;
   color: #243b64;
   font-weight: 600;
+}
+
+.report-card .card-body {
+  background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+}
+
+.filter-label {
+  font-size: 12px;
+  color: #35507f;
+  font-weight: 700;
+}
+
+.action-btn {
+  min-width: 110px;
+}
+
+.metric-card {
+  background: #ffffff;
+  border: 1px solid #d9e3f2;
+  border-radius: 10px;
+  padding: 10px 12px;
+  height: 100%;
+}
+
+.metric-title {
+  font-size: 12px;
+  color: #5d7297;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.metric-value {
+  font-size: 22px;
+  line-height: 1.1;
+  color: #1f3b73;
+  font-weight: 800;
 }
 
 .ranking-table thead th {
@@ -704,6 +790,17 @@ export default {
 .ranking-table td,
 .ranking-table th {
   padding: 8px 10px;
+}
+
+.detail-table-wrap {
+  max-height: 430px;
+}
+
+.detail-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #dfe8f7;
 }
 
 .btn-primary {
