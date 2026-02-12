@@ -4,8 +4,15 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
-          <div class="col-3" v-if="hasSelectedItems">
-            
+          <div class="col-12 col-md-3 mb-2 mb-md-0">
+            <button @click="toggleMandadosRegional" class="btn btn-info btn-sm w-100">
+              <i class="fas fa-list"></i> Mostrar Mandados a Regional
+            </button>
+          </div>
+          <div class="col-12 col-md-3 mb-2 mb-md-0" v-if="hasSelectedItems">
+            <button @click="openAssignModal" class="btn btn-success btn-sm w-100">
+              <i class="fas fa-plus"></i> Registrar Seleccionados
+            </button>
           </div>
           <div class="col-12 col-md-3 search-input-container">
       <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control search-input" placeholder="Buscar..." />
@@ -157,6 +164,49 @@
                 </div>
               </div>
             </div>
+            <div class="card border-rounded" v-if="showMandadosRegional">
+              <div class="card-header">
+                Mandados a Regional
+              </div>
+              <div class="card-body p-2">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <th class="py-0 px-1">#</th>
+                        <th class="py-0 px-1">Guía</th>
+                        <th class="py-0 px-1">Destinatario</th>
+                        <th class="py-0 px-1">Municipio/Provincia</th>
+                        <th class="py-0 px-1">Fecha</th>
+                        <th class="py-0 px-1">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(m, i) in mandadosRegionalData" :key="m?.id ?? i">
+                        <td class="py-0 px-1">{{ i + 1 }}</td>
+                        <td class="py-0 px-1">{{ m?.guia ?? '-' }}</td>
+                        <td class="py-0 px-1">{{ m?.destinatario ?? '-' }}</td>
+                        <td class="py-0 px-1">{{ m?.ciudad ?? '-' }}</td>
+                        <td class="py-0 px-1">{{ m?.fecha_envio_regional ?? m?.fecha ?? '-' }}</td>
+                        <td class="py-0 px-1">
+                          <nuxtLink v-if="m?.id" :to="url_editar + m.id" class="btn btn-info btn-sm py-1 px-2 w-100">
+                            <i class="fas fa-check"></i> Entregar Correspondencia
+                          </nuxtLink>
+                          <button v-else class="btn btn-secondary btn-sm py-1 px-2 w-100" disabled>
+                            Sin ID
+                          </button>
+                        </td>
+                      </tr>
+                      <tr v-if="!mandadosRegionalData.length">
+                        <td colspan="6" class="text-center">
+                          No hay envíos mandados a regional.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
             <div class="row justify-content-end mb-3">
 
   <div class="col-3" v-if="hasSelectedItems">
@@ -203,15 +253,40 @@
       </div>
     </b-modal>
 
-    <!-- Modal para añadir peso_v -->
-    <b-modal v-model="isModalVisible" title="Asignar Peso Correos (Kg)" hide-backdrop hide-footer>
-      <div v-for="item in selectedItemsData" :key="item.id" class="form-group">
-        <label :for="'peso_v-' + item.id">{{ (item.guia ?? '-') }} - {{ (item.sucursale.nombre ?? '-') }}</label>
-        <input type="number" :id="'peso_v-' + item.id" v-model="item.peso_v" class="form-control" />
+    <b-modal v-model="isTransporteModalVisible" title="Registrar Transporte Total" hide-backdrop hide-footer>
+      <div class="form-group">
+        <label for="transportadora">Transportadora</label>
+        <input id="transportadora" v-model="transporteForm.transportadora" class="form-control" type="text"
+          placeholder="Nombre de la transportadora" />
+      </div>
+      <div class="form-group">
+        <label for="provincia">Provincia</label>
+        <input id="provincia" v-model="transporteForm.provincia" class="form-control" type="text"
+          placeholder="Provincia" />
+      </div>
+      <div class="form-group">
+        <label for="n-recibo">N° Recibo / Boleta</label>
+        <input id="n-recibo" v-model="transporteForm.n_recibo" class="form-control" type="text"
+          placeholder="Número de recibo o boleta" />
+      </div>
+      <div class="form-group">
+        <label for="n-factura">N° Factura</label>
+        <input id="n-factura" v-model="transporteForm.n_factura" class="form-control" type="text"
+          placeholder="Número de factura" />
+      </div>
+      <div class="form-group">
+        <label for="precio-total">Precio Total</label>
+        <input id="precio-total" v-model.number="transporteForm.precio_total" class="form-control" type="number"
+          min="0" step="0.01" placeholder="0.00" />
+      </div>
+      <div class="form-group">
+        <label for="peso-total">Peso Total</label>
+        <input id="peso-total" v-model.number="transporteForm.peso_total" class="form-control" type="number" min="0"
+          step="0.01" placeholder="0.00" />
       </div>
       <div class="d-flex justify-content-end">
-        <button class="btn btn-secondary" @click="isModalVisible = false">Cancelar</button>
-        <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
+        <button class="btn btn-secondary" @click="isTransporteModalVisible = false">Cancelar</button>
+        <button class="btn btn-success ml-2" @click="registrarSeleccionadosConTransporte">Registrar</button>
       </div>
     </b-modal>
   </div>
@@ -242,7 +317,7 @@ export default {
       url_editar: '/admin/cartero/editar/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',
       collapseState: {},
-      isModalVisible: false,
+      isTransporteModalVisible: false,
       currentId: null,
       selected: {},
       selectedItemsData: [],
@@ -256,6 +331,15 @@ export default {
       selectedMapItems: [],
       userLocation: null,
       sortedMapItems: [],
+      showMandadosRegional: false,
+      transporteForm: {
+        transportadora: '',
+        provincia: '',
+        n_recibo: '',
+        n_factura: '',
+        precio_total: 0,
+        peso_total: 0,
+      },
     };
   },
   computed: {
@@ -286,9 +370,21 @@ export default {
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
+    },
+    mandadosRegionalData() {
+      const carteroId = Number(this.user?.user?.id);
+      return this.list
+        .filter(item => {
+          const idEntrega = Number(item?.cartero_entrega_id ?? item?.cartero_entrega?.id);
+          return Number(item?.estado) === 14 && (idEntrega === carteroId || !idEntrega);
+        })
+        .sort((a, b) => (b?.id || 0) - (a?.id || 0));
     }
   },
   methods: {
+    toggleMandadosRegional() {
+      this.showMandadosRegional = !this.showMandadosRegional;
+    },
     showMap() {
       const selectedItems = this.list.filter(item => this.selected[item.id]);
 
@@ -599,36 +695,84 @@ export default {
       this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => ({
         id: item.id,
         guia: item.guia,
-        sucursale: item.sucursale,
+        sucursale: item?.sucursale ?? null,
         peso_v: item.peso_v || 0
       }));
-      this.isModalVisible = true;
+      const totalPrecio = this.selectedItemsData.reduce((acc, item) => acc + Number(item?.precio || item?.nombre_d || 0), 0);
+      const totalPeso = this.selectedItemsData.reduce((acc, item) => acc + Number(item?.peso_v || 0), 0);
+      this.transporteForm = {
+        transportadora: '',
+        provincia: '',
+        n_recibo: '',
+        n_factura: '',
+        precio_total: Number(totalPrecio.toFixed(2)),
+        peso_total: Number(totalPeso.toFixed(3)),
+      };
+      this.isTransporteModalVisible = true;
     },
     handleSearchEnter() {
-      this.selectedItemsData = this.filteredData;
-      if (this.selectedItemsData.length > 0) {
-        this.isModalVisible = true;
+      const term = (this.searchTerm || '').toString().trim().toLowerCase();
+      if (!term) return;
+
+      const exact = this.filteredData.find(item => String(item?.guia ?? '').toLowerCase() === term);
+      const partial = this.filteredData.find(item => String(item?.guia ?? '').toLowerCase().includes(term));
+      const target = exact || partial;
+
+      if (target?.id) {
+        this.$set(this.selected, target.id, true);
+        this.searchTerm = '';
       }
     },
-    async confirmAssignSelected() {
+    async registrarSeleccionadosConTransporte() {
       this.load = true;
       try {
-        const carteroId = this.user.user.id;
-        for (let item of this.selectedItemsData) {
-          if (item && item.id) {
-            await this.$api.$put(`solicitudesentrega/${item.id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
-          } else {
-            console.error('Item inválido:', item);
-          }
+        const tieneRecibo = !!(this.transporteForm.n_recibo || '').trim();
+        const tieneFactura = !!(this.transporteForm.n_factura || '').trim();
+        if (!this.transporteForm.transportadora || (!tieneRecibo && !tieneFactura)) {
+          this.$swal.fire({
+            icon: 'warning',
+            title: 'Campos requeridos',
+            text: 'Completa transportadora y al menos uno: N° recibo/boleta o N° factura.',
+          });
+          this.load = false;
+          return;
         }
+
+        const carteroId = this.user.user.id;
+        const solicitudesIds = this.selectedItemsData.map(item => item.id).filter(Boolean);
+        const guias = this.selectedItemsData.map(item => (item?.guia || '').toString().trim()).filter(Boolean);
+
+        if (!solicitudesIds.length) {
+          this.$swal.fire({
+            icon: 'warning',
+            title: 'Sin seleccionados',
+            text: 'Debes seleccionar al menos una guía.',
+          });
+          this.load = false;
+          return;
+        }
+
+        await this.$api.$post('transportes', {
+          transportadora: this.transporteForm.transportadora,
+          provincia: (this.transporteForm.provincia || '').trim(),
+          cartero_id: carteroId,
+          n_recibo: (this.transporteForm.n_recibo || '').trim(),
+          n_factura: (this.transporteForm.n_factura || '').trim(),
+          precio_total: Number(this.transporteForm.precio_total || 0),
+          peso_total: Number(this.transporteForm.peso_total || 0),
+          estado: 14,
+          solicitude_ids: solicitudesIds,
+          guias,
+        });
         await this.GET_DATA(this.apiUrl); 
         this.$swal.fire({
           icon: 'success',
-          title: 'Carteros asignados',
-          text: 'Todos los carteros seleccionados han sido asignados.',
+          title: 'Envíos registrados',
+          text: 'Los seleccionados se registraron con transporte y se enviaron a estado 14.',
         });
-        this.isModalVisible = false;
+        this.isTransporteModalVisible = false;
         this.selected = {}; 
+        this.selectedItemsData = [];
         await this.GET_DATA(this.apiUrl);
       } catch (e) {
         console.error(e);

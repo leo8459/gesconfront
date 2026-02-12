@@ -26,6 +26,11 @@
                   Generar PDF
                 </button>
               </div>
+              <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
+                <button class="btn btn-success btn-sm w-100" @click="generateReportExcel">
+                  Generar Excel
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -145,6 +150,9 @@
 </template>
 
 <script>
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+
 export default {
   name: 'AdminCarteroProvinciaIndex',
   data() {
@@ -152,11 +160,15 @@ export default {
       load: true,
       list: [],
       carteros: [],
+      eventos: [],
+      solicitudes: [],
       searchTerm: '',
       dateFrom: '',
       dateTo: '',
       apiUrl: 'transportes1',
       carterosUrl: 'carteros1',
+      eventosUrl: 'eventos1',
+      solicitudesUrl: 'solicitudes1',
       page: 'Provincia',
       modulo: 'Provincia',
       currentPage: 0,
@@ -310,6 +322,236 @@ export default {
       const guias = this.parseGuias(item?.guias);
       return guias.length || 1;
     },
+    getGuiaFromEvento(evento) {
+      if (!evento) return '';
+      const raw = evento?.codigo ?? evento?.codigo_id ?? evento?.codigo?.codigo ?? '';
+      return String(raw || '').trim();
+    },
+    getFechaEntregaByGuia(guia) {
+      const normalized = String(guia || '').trim().toLowerCase();
+      if (!normalized) return '';
+
+      const matches = (this.eventos || []).filter(ev => {
+        const codigo = this.getGuiaFromEvento(ev).toLowerCase();
+        if (codigo !== normalized) return false;
+        const eventoTxt = String(ev?.evento ?? ev?.accion ?? '').toLowerCase();
+        const descripcionTxt = String(ev?.observacion ?? ev?.descripcion ?? '').toLowerCase();
+        const full = `${eventoTxt} ${descripcionTxt}`;
+        return full.includes('entreg');
+      });
+
+      if (!matches.length) return '';
+      const sorted = [...matches].sort((a, b) => {
+        const da = new Date(a?.fecha_hora ?? a?.created_at ?? a?.fecha ?? 0).getTime();
+        const db = new Date(b?.fecha_hora ?? b?.created_at ?? b?.fecha ?? 0).getTime();
+        return db - da;
+      });
+      return sorted[0]?.fecha_hora ?? sorted[0]?.created_at ?? sorted[0]?.fecha ?? '';
+    },
+    getSolicitudByGuia(guia) {
+      const normalized = String(guia || '').trim().toLowerCase();
+      if (!normalized) return null;
+      return (this.solicitudes || []).find(s => String(s?.guia || '').trim().toLowerCase() === normalized) || null;
+    },
+    buildExcelRows() {
+      const byGuia = {};
+
+      this.filteredByDateData.forEach(t => {
+        const guias = this.parseGuias(t?.guias);
+        guias.forEach(g => {
+          const guia = String(g || '').trim();
+          if (!guia) return;
+          if (!byGuia[guia]) byGuia[guia] = [];
+          byGuia[guia].push(t);
+        });
+      });
+
+      return Object.keys(byGuia).map(guia => {
+        const transportesPorGuia = [...byGuia[guia]].sort((a, b) => {
+          const da = new Date(a?.created_at ?? 0).getTime();
+          const db = new Date(b?.created_at ?? 0).getTime();
+          return da - db;
+        });
+
+        const sol = this.getSolicitudByGuia(guia);
+        const estadoSolicitud = Number(sol?.estado);
+        if (![3, 4].includes(estadoSolicitud)) return null;
+
+        const transporteById = sol?.transporte_id
+          ? this.filteredByDateData.find(t => Number(t?.id) === Number(sol?.transporte_id))
+          : null;
+        // Si la guia estuvo en varios transportes, usa un solo registro (el ultimo) para el monto regional.
+        const transporteRegional = transporteById || transportesPorGuia[transportesPorGuia.length - 1] || null;
+        const transporteProvincia = transportesPorGuia.length > 1
+          ? transportesPorGuia[transportesPorGuia.length - 1]
+          : (Number(sol?.estado) === 14 ? transporteRegional : null);
+        const facturaReciboRegional = [
+          transporteRegional?.n_factura,
+          transporteRegional?.n_recibo,
+        ].filter(Boolean).join(' / ');
+        const facturaReciboProvincia = [
+          transporteProvincia?.n_factura,
+          transporteProvincia?.n_recibo,
+        ].filter(Boolean).join(' / ');
+
+        return {
+          id: sol?.id ?? '',
+          guia,
+          fecha_recojo: sol?.fecha_recojo_c ?? sol?.fecha_recojo ?? sol?.fecha ?? '',
+          fecha_envio_regional: sol?.fecha_envio_regional ?? transporteRegional?.created_at ?? '',
+          destino: sol?.ciudad ?? sol?.reencaminamiento ?? '',
+          peso_por_guia: sol?.peso_v ?? sol?.peso_r ?? sol?.peso_o ?? '',
+          transportadora_regional: transporteRegional?.transportadora ?? '',
+          factura_recibo_regional: facturaReciboRegional || '',
+          monto_total_regional: Number(transporteRegional?.precio_total ?? 0),
+          fecha_entrega: this.getFechaEntregaByGuia(guia) || (sol?.fecha_d ?? ''),
+          transportadora_provincia: transporteProvincia?.transportadora ?? '',
+          factura_recibo_provincia: facturaReciboProvincia || '',
+          monto_total_provincia: Number(transporteProvincia?.precio_total ?? 0),
+        };
+      }).filter(Boolean);
+    },
+    async generateReportExcel() {
+      const rows = this.buildExcelRows();
+      if (!rows.length) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Sin datos',
+          text: 'No hay datos para generar el Excel en el rango seleccionado.',
+        });
+        return;
+      }
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Reporte Transporte');
+      const from = this.dateFrom || 'SIN_LIMITE';
+      const to = this.dateTo || 'SIN_LIMITE';
+
+      worksheet.mergeCells('A1:M1');
+      worksheet.getCell('A1').value = 'REPORTE DETALLADO DE TRANSPORTE POR GUIA';
+      worksheet.getCell('A1').font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+      worksheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' };
+      worksheet.getCell('A1').fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF1F3B73' },
+      };
+      worksheet.getRow(1).height = 24;
+
+      worksheet.mergeCells('A2:M2');
+      worksheet.getCell('A2').value = `Rango: ${from} a ${to}`;
+      worksheet.getCell('A2').font = { italic: true, color: { argb: 'FF2F3A4A' } };
+      worksheet.getCell('A2').alignment = { vertical: 'middle', horizontal: 'left' };
+      worksheet.getRow(2).height = 20;
+
+      worksheet.columns = [
+        { header: 'ID', key: 'id', width: 10 },
+        { header: 'Codigo Guia', key: 'guia', width: 22 },
+        { header: 'Fecha Recojo', key: 'fecha_recojo', width: 20 },
+        { header: 'Envio a Regional', key: 'fecha_envio_regional', width: 22 },
+        { header: 'Destino (Ciudad)', key: 'destino', width: 20 },
+        { header: 'Peso por Guia', key: 'peso_por_guia', width: 16 },
+        { header: 'Transportadora Regional', key: 'transportadora_regional', width: 24 },
+        { header: 'Factura/Recibo Regional', key: 'factura_recibo_regional', width: 24 },
+        { header: 'Monto Total Regional', key: 'monto_total_regional', width: 18 },
+        { header: 'Fecha Entrega', key: 'fecha_entrega', width: 20 },
+        { header: 'Transportadora Provincia', key: 'transportadora_provincia', width: 24 },
+        { header: 'Factura/Recibo Provincia', key: 'factura_recibo_provincia', width: 24 },
+        { header: 'Monto Total Provincia', key: 'monto_total_provincia', width: 18 },
+      ];
+
+      worksheet.getRow(3).values = worksheet.columns.map(c => c.header);
+      const headerRow = worksheet.getRow(3);
+      headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      headerRow.height = 22;
+      headerRow.eachCell(cell => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF2A6EA8' },
+        };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFD0D7E2' } },
+          left: { style: 'thin', color: { argb: 'FFD0D7E2' } },
+          bottom: { style: 'thin', color: { argb: 'FFD0D7E2' } },
+          right: { style: 'thin', color: { argb: 'FFD0D7E2' } },
+        };
+      });
+
+      rows.forEach((r, idx) => {
+        const row = worksheet.addRow(r);
+        row.eachCell(cell => {
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE1E7F0' } },
+            left: { style: 'thin', color: { argb: 'FFE1E7F0' } },
+            bottom: { style: 'thin', color: { argb: 'FFE1E7F0' } },
+            right: { style: 'thin', color: { argb: 'FFE1E7F0' } },
+          };
+          cell.alignment = { vertical: 'middle', horizontal: 'left' };
+        });
+        if (idx % 2 === 0) {
+          row.eachCell(cell => {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFF7FAFF' },
+            };
+          });
+        }
+      });
+
+      const totalPeso = rows.reduce((acc, r) => acc + Number(r?.peso_por_guia || 0), 0);
+      const totalRegional = rows.reduce((acc, r) => acc + Number(r?.monto_total_regional || 0), 0);
+      const totalProvincia = rows.reduce((acc, r) => acc + Number(r?.monto_total_provincia || 0), 0);
+
+      const totalRow = worksheet.addRow({
+        guia: 'TOTAL',
+        peso_por_guia: Number(totalPeso.toFixed(3)),
+        monto_total_regional: Number(totalRegional.toFixed(2)),
+        monto_total_provincia: Number(totalProvincia.toFixed(2)),
+      });
+      totalRow.font = { bold: true, color: { argb: 'FF1F3B73' } };
+      totalRow.eachCell(cell => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFE8F0FF' },
+        };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFB9C9E8' } },
+          left: { style: 'thin', color: { argb: 'FFB9C9E8' } },
+          bottom: { style: 'thin', color: { argb: 'FFB9C9E8' } },
+          right: { style: 'thin', color: { argb: 'FFB9C9E8' } },
+        };
+      });
+
+      const firstDataRow = 4;
+      const lastRow = totalRow.number;
+      worksheet.autoFilter = {
+        from: { row: 3, column: 1 },
+        to: { row: 3, column: 13 },
+      };
+      worksheet.views = [{ state: 'frozen', ySplit: 3 }];
+
+      worksheet.getColumn(6).numFmt = '#,##0.000';
+      worksheet.getColumn(9).numFmt = '#,##0.00';
+      worksheet.getColumn(13).numFmt = '#,##0.00';
+
+      for (let r = firstDataRow; r <= lastRow; r++) {
+        worksheet.getRow(r).height = 20;
+      }
+
+      ['A', 'I', 'M'].forEach(col => {
+        worksheet.getColumn(col).alignment = { vertical: 'middle', horizontal: 'right' };
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      saveAs(blob, `reporte_transporte_detalle_${from}_${to}.xlsx`);
+    },
     async generateReportPdf() {
       const { jsPDF } = await import('jspdf');
       await import('jspdf-autotable');
@@ -375,6 +617,8 @@ export default {
       if (Array.isArray(res?.data)) return res.data;
       if (Array.isArray(res?.transportes)) return res.transportes;
       if (Array.isArray(res?.carteros)) return res.carteros;
+      if (Array.isArray(res?.eventos)) return res.eventos;
+      if (Array.isArray(res?.solicitudes)) return res.solicitudes;
       return [];
     },
     async GET_DATA(path) {
@@ -384,6 +628,14 @@ export default {
     async GET_CARTEROS(path) {
       const res = await this.$administrador.$get(path);
       this.carteros = this.extractArrayPayload(res);
+    },
+    async GET_EVENTOS(path) {
+      const res = await this.$administrador.$get(path);
+      this.eventos = this.extractArrayPayload(res);
+    },
+    async GET_SOLICITUDES(path) {
+      const res = await this.$administrador.$get(path);
+      this.solicitudes = this.extractArrayPayload(res);
     },
     nextPage() {
       if (this.currentPage < this.totalPages - 1) this.currentPage++;
@@ -398,7 +650,12 @@ export default {
   mounted() {
     this.$nextTick(async () => {
       try {
-        await Promise.all([this.GET_DATA(this.apiUrl), this.GET_CARTEROS(this.carterosUrl)]);
+        await Promise.all([
+          this.GET_DATA(this.apiUrl),
+          this.GET_CARTEROS(this.carterosUrl),
+          this.GET_EVENTOS(this.eventosUrl),
+          this.GET_SOLICITUDES(this.solicitudesUrl),
+        ]);
       } catch (e) {
         console.error('Error al obtener datos de provincia:', e);
       } finally {

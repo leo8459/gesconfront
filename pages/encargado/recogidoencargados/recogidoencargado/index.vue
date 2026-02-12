@@ -108,7 +108,7 @@
           </div>
         </div>
         <div class="col-3" v-if="selectedForAssign.length > 0">
-          <button class="btn btn-primary" @click="isModalNameVisible = true">
+          <button class="btn btn-primary" @click="openRegionalModal">
             MANDAR A REGIONAL
           </button>
 
@@ -129,6 +129,42 @@
                 <option value="CBB">CBB</option>
 
               </select>
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="transportadora">Transportadora</label>
+              <input id="transportadora" v-model="transporteForm.transportadora" type="text" class="form-control"
+                placeholder="Nombre de la transportadora" />
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="provincia">Provincia</label>
+              <input id="provincia" v-model="transporteForm.provincia" type="text" class="form-control"
+                placeholder="Provincia" />
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="n-recibo">N° Recibo</label>
+              <input id="n-recibo" v-model="transporteForm.n_recibo" type="text" class="form-control"
+                placeholder="Número de recibo" />
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="n-factura">N° Factura</label>
+              <input id="n-factura" v-model="transporteForm.n_factura" type="text" class="form-control"
+                placeholder="Número de factura" />
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="precio-total">Precio Total</label>
+              <input id="precio-total" v-model.number="transporteForm.precio_total" type="number" min="0" step="0.01"
+                class="form-control" placeholder="0.00" />
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="peso-total">Peso Total</label>
+              <input id="peso-total" v-model.number="transporteForm.peso_total" type="number" min="0" step="0.01"
+                class="form-control" placeholder="0.00" />
             </div>
 
             <div class="d-flex justify-content-end mt-3">
@@ -251,6 +287,14 @@ export default {
       selectedForDelivery: [],   // Paquetes para enviar
       load: true,                // Controla la carga
       departamentoSeleccionado: '',  // <-- NUEVO 
+      transporteForm: {
+        transportadora: '',
+        provincia: '',
+        n_recibo: '',
+        n_factura: '',
+        precio_total: 0,
+        peso_total: 0,
+      },
 
     };
   },
@@ -448,6 +492,26 @@ export default {
       item.precio = this.calculatePrice(item.tarifa_id, item.peso_v);
       item.nombre_d = item.precio; // Actualiza nombre_d con el precio calculado
     },
+    openRegionalModal() {
+      const totalPrecio = (this.selectedForAssign || []).reduce((acc, item) => {
+        return acc + Number(item?.precio || 0);
+      }, 0);
+
+      const totalPeso = (this.selectedForAssign || []).reduce((acc, item) => {
+        return acc + Number(item?.peso_v || 0);
+      }, 0);
+
+      this.transporteForm = {
+        transportadora: '',
+        provincia: '',
+        n_recibo: '',
+        n_factura: '',
+        precio_total: Number(totalPrecio.toFixed(2)),
+        peso_total: Number(totalPeso.toFixed(3)),
+      };
+
+      this.isModalNameVisible = true;
+    },
     async GET_DATA(path) {
       const res = await this.$encargados.$get(path);
       return res;
@@ -542,6 +606,17 @@ export default {
         return;
       }
 
+      const tieneRecibo = !!(this.transporteForm.n_recibo || '').trim();
+      const tieneFactura = !!(this.transporteForm.n_factura || '').trim();
+      if (!this.transporteForm.transportadora || (!tieneRecibo && !tieneFactura)) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Campos requeridos',
+          text: 'Completa transportadora y al menos uno: n° recibo o n° factura.',
+        });
+        return;
+      }
+
       // Cerrar el modal y llamar a la función que genera el Excel
       this.isModalNameVisible = false;
       this.confirmAllAssignments();
@@ -561,6 +636,35 @@ export default {
   fecha_envio_regional: item?.fecha_envio_regional ?? null
 }));
 
+        const solicitudesIds = (this.selectedForAssign || [])
+          .map(item => item?.id)
+          .filter(Boolean);
+        const guias = (this.selectedForAssign || [])
+          .map(item => (item?.guia || '').toString().trim())
+          .filter(Boolean);
+
+        if (!solicitudesIds.length) {
+          this.$swal.fire({
+            icon: 'warning',
+            title: 'Sin solicitudes',
+            text: 'Debes seleccionar al menos una guía para enviar a regional.',
+          });
+          this.load = false;
+          return;
+        }
+
+        await this.$encargados.$post('transportes', {
+          transportadora: this.transporteForm.transportadora,
+          provincia: (this.transporteForm.provincia || '').trim(),
+          cartero_id: carteroId,
+          n_recibo: (this.transporteForm.n_recibo || '').trim(),
+          n_factura: (this.transporteForm.n_factura || '').trim(),
+          precio_total: Number(this.transporteForm.precio_total || 0),
+          peso_total: Number(this.transporteForm.peso_total || 0),
+          solicitude_ids: solicitudesIds,
+          guias,
+        });
+
 
         for (let item of this.selectedForAssign) {
           // Asigna al item un reencaminamiento (ej: LPZ o SRZ)
@@ -575,6 +679,12 @@ export default {
   precio: item.precio ?? 0,
   nombre_d: item.nombre_d ?? null,
   reencaminamiento: item.reencaminamiento ?? this.departamentoSeleccionado ?? null,
+  transportadora: (this.transporteForm.transportadora || '').trim(),
+  provincia: (this.transporteForm.provincia || '').trim(),
+  n_recibo: (this.transporteForm.n_recibo || '').trim(),
+  n_factura: (this.transporteForm.n_factura || '').trim(),
+  precio_total: Number(this.transporteForm.precio_total || 0),
+  peso_total: Number(this.transporteForm.peso_total || 0),
 });
 
         }
