@@ -234,7 +234,7 @@ export default {
       const searchTerm = this.searchTerm.toLowerCase();
 
       return this.list.filter(item => {
-        const matchesDepartamento = item.tarifa && item.tarifa.departamento === departamentoCartero;
+        const matchesDepartamento = item?.tarifa?.departamento === departamentoCartero;
         const matchesReencaminamiento = item.reencaminamiento && item.reencaminamiento === departamentoCartero;
 
         const matchesSearchTerm = Object.values(item).some(value =>

@@ -62,20 +62,12 @@
                     </div>
 
                     <div class="form-group col-12">
-                      <label for="tarifas">Destino y servicio</label>
-                      <v-select :options="tarifas" v-model="model.tarifa_id" label="departamento"
-                        :reduce="tarifa => tarifa.id" placeholder="Buscar departamento...">
-                        <template #option="option">
-                          <div>
-                            {{ (option.departamento ?? '-') }} - {{ (option.servicio ?? '-') }}
-                          </div>
-                        </template>
-                        <template #selected-option="option">
-                          <div>
-                            {{ option.departamento }} - {{ option.servicio }}
-                          </div>
-                        </template>
-                      </v-select>
+                      <label for="reencaminamiento">Departamento destino</label>
+                      <select id="reencaminamiento" v-model="model.reencaminamiento" class="form-control">
+                        <option v-for="departamento in departamentosEnvio" :key="departamento.value" :value="departamento.value">
+                          {{ departamento.label }}
+                        </option>
+                      </select>
                     </div>
 
                     <div class="form-group col-12">
@@ -248,6 +240,7 @@ export default {
         tipo_servicio: 'servicio',
         sucursale_id: '',
         tarifa_id: '',
+        reencaminamiento: '',
         sucursale_nombre: '',
         cartero_id: null,
         guia: '',
@@ -283,6 +276,18 @@ export default {
       load: true,
       sucursales: [],
       tarifas: [],
+      departamentosEnvio: [
+        { value: '', label: '-- Seleccione --' },
+        { value: 'LPB', label: 'La Paz (LPB)' },
+        { value: 'SRZ', label: 'Santa Cruz (SRZ)' },
+        { value: 'CBB', label: 'Cochabamba (CBB)' },
+        { value: 'ORU', label: 'Oruro (ORU)' },
+        { value: 'PTI', label: 'Potosí (PTI)' },
+        { value: 'TJA', label: 'Tarija (TJA)' },
+        { value: 'SRE', label: 'Sucre (SRE)' },
+        { value: 'BEN', label: 'Trinidad (TDD)' },
+        { value: 'CIJ', label: 'Cobija (CIJ)' }
+      ],
       sucursale_id_logueada: '',
       ini_vigencia: '',
       fin_vigencia: '',
@@ -398,7 +403,7 @@ export default {
           remitente: this.model.remitente,
           telefono: this.model.telefono,
           contenido: this.model.contenido,
-          tarifa_id: this.model.tarifa_id,
+          reencaminamiento: this.model.reencaminamiento,
           direccion_id: this.model.direccion_id,
           peso_o: this.model.peso_o,
           precio: this.precioSeleccionado,
@@ -446,10 +451,9 @@ export default {
       this.model.remitente = remitente.remitente;
       this.model.telefono = remitente.telefono;
       this.model.contenido = remitente.contenido;
-      this.model.tarifa_id = remitente.tarifa_id;
+      this.model.reencaminamiento = remitente.reencaminamiento || '';
       this.model.direccion_id = remitente.direccion_id;
       this.model.peso_o = remitente.peso_o;
-      this.precioSeleccionado = remitente.precio; // Asegúrate de que se muestre el precio
 
       // Campos adicionales de dirección
       this.model.direccion = remitente.direccion_r;

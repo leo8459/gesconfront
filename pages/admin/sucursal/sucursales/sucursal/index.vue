@@ -67,8 +67,8 @@
                           </a>
                           <span v-else>{{ m.direccion_d }}</span>
                         </td>
-                        <td class="py-0 px-1">{{ m.ciudad }}</td>
-                        <td class="py-0 px-1">{{ getTarifaLabel(m.tarifa_id) }}</td>
+                        <td class="py-0 px-1">{{ getDestinoLabel(m) }}</td>
+                        <td class="py-0 px-1">{{ getTarifaLabel(m.tarifa_id) || '-' }}</td>
                         <td class="py-0 px-1">
                           <div class="btn-group">
                             <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
@@ -186,11 +186,16 @@ export default {
       });
     },
     getTarifaLabel(tarifa_id) {
-      if (!this.tarifas) {
-        return 'Tarifas no cargadas';
+      if (!tarifa_id || !this.tarifas) {
+        return '';
       }
       const tarifa = this.tarifas.find(t => t.id === tarifa_id);
-      return tarifa ? tarifa.departamento : 'Tarifa no encontrada';
+      return tarifa ? (tarifa.departamento || '') : '';
+    },
+    getDestinoLabel(item) {
+      if (!item) return '-';
+      const destinoTarifa = (item.tarifa && item.tarifa.departamento) || this.getTarifaLabel(item.tarifa_id);
+      return destinoTarifa || item.reencaminamiento || item.ciudad || '-';
     },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;

@@ -80,7 +80,7 @@
                         <td class="py-0 px-1" data-label="Contenido">{{ (m.contenido ?? '-') }}</td>
                         <td class="py-0 px-1" data-label="Fecha">{{ (m.fecha ?? '-') }}</td>
                         <td class="py-0 px-1" data-label="Departamento Origen">{{ (m.sucursale.origen ?? '-') }}</td>
-                        <td class="py-0 px-1" data-label="Departamento Destino">{{ (m.tarifa.departamento ?? '-') }}</td>
+                        <td class="py-0 px-1" data-label="Departamento Destino">{{ (m?.tarifa?.departamento ?? m?.reencaminamiento ?? '-') }}</td>
                         <td class="py-0 px-1">
                           <div class="btn-group">
                   
@@ -266,7 +266,7 @@ export default {
     const sucursal = data.sucursale || {};
     const tarifa = data.tarifa || {};
     const origen = sucursal.origen || '';
-    const destino = tarifa.departamento || '';
+    const destino = tarifa?.departamento || data.reencaminamiento || '';
   
     const direccion = data.direccion || {};
     const direccionEspecifica = direccion.direccion_especifica || '';

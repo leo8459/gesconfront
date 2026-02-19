@@ -112,7 +112,7 @@
                           <span v-else>{{ (m.direccion_d ?? '-') }}</span>
                         </td>
                         <td class="py-0 px-1">{{ (m.direccion_especifica_d ?? '-') }}</td>
-                        <td class="py-0 px-1">{{ (m.ciudad ?? '-') }}</td>
+                        <td class="py-0 px-1">{{ getDestinoLabel(m) }}</td>
                         <td class="py-0 px-1">
                           <div class="btn-group">
                             <button type="button" @click="Eliminar(m.id)" class="btn btn-danger btn-sm py-1 px-2">
@@ -309,10 +309,19 @@ export default {
       const destinatario = data.destinatario || '';
       const direccion_especifica_d = data.direccion_especifica_d || '';
       const origen = data.sucursale ? data.sucursale.origen : '';
-      const destino = data.tarifa ? data.tarifa.departamento : '';
+      const destino = (data.tarifa ? data.tarifa.departamento : '') || data.reencaminamiento || '';
       const direccionEspecifica = data.direccion ? data.direccion.direccion_especifica : '';
       const telefono = data.telefono || '';
       const telefono_d = data.telefono_d || '';
+      const drawWrappedLine = (text, x, y, maxWidth, maxLines = 2) => {
+        const rawLines = doc.splitTextToSize(text || '', maxWidth);
+        const lines = rawLines.slice(0, maxLines);
+        if (rawLines.length > maxLines && lines.length) {
+          const last = lines[lines.length - 1];
+          lines[lines.length - 1] = `${last.slice(0, Math.max(0, last.length - 3))}...`;
+        }
+        doc.text(lines, x, y);
+      };
       const imagenData = data.imagen || ''; // Se asume que `data.imagen` contiene la imagen en base64 o una URL válida.
 
       let startX = 10;
@@ -324,7 +333,7 @@ export default {
       // Sección de Remitente
       doc.setFontSize(fontSize);
       doc.rect(startX, startY, cellWidth, cellHeight);
-      doc.text(`REMITENTE: ${remitente}`, startX + 2, startY + 10);
+      drawWrappedLine(`REMITENTE: ${remitente}`, startX + 2, startY + 8, cellWidth - 6, 2);
 
       const barcodeCellHeight = cellHeight * 3;
       doc.rect(startX + cellWidth, startY, cellWidth, barcodeCellHeight);
@@ -377,7 +386,7 @@ export default {
       doc.setFontSize(fontSize); // Regresa al tamaño de letra base
 
       doc.rect(startX + cellWidth, startY, cellWidth, cellHeight * 2);
-      doc.text(`DESTINATARIO: ${destinatario}`, startX + cellWidth + 10, startY + 10);
+      drawWrappedLine(`DESTINATARIO: ${destinatario}`, startX + cellWidth + 2, startY + 8, cellWidth - 6, 2);
 
       startY += cellHeight * 2;
 
@@ -528,11 +537,16 @@ export default {
       }
     },
     getTarifaLabel(tarifa_id) {
-      if (!this.tarifas) {
-        return 'Tarifas no cargadas';
+      if (!tarifa_id || !this.tarifas) {
+        return '';
       }
       const tarifa = this.tarifas.find(t => t.id === tarifa_id);
-      return tarifa ? tarifa.departamento : 'Tarifa no encontrada';
+      return tarifa ? (tarifa.departamento || '') : '';
+    },
+    getDestinoLabel(item) {
+      if (!item) return '-';
+      const destinoTarifa = (item.tarifa && item.tarifa.departamento) || this.getTarifaLabel(item.tarifa_id);
+      return destinoTarifa || item.reencaminamiento || item.ciudad || '-';
     },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
@@ -730,7 +744,7 @@ export default {
       const sucursal = data.sucursale || {};
       const tarifa = data.tarifa || {};
       const origen = sucursal.origen || '';
-      const destino = tarifa.departamento || '';
+      const destino = tarifa.departamento || data.reencaminamiento || '';
 
       const direccion = data.direccion || {};
       const direccionEspecifica = direccion.direccion_especifica || '';

@@ -224,7 +224,7 @@ export default {
     const sucursal = data.sucursale || {};
     const tarifa = data.tarifa || {};
     const origen = sucursal.origen || '';
-    const destino = tarifa.departamento || '';
+    const destino = tarifa?.departamento || data.reencaminamiento || '';
   
     const direccion = data.direccion || {};
     const direccionEspecifica = direccion.direccion_especifica || '';

@@ -227,7 +227,7 @@ export default {
         return 'Tarifas no cargadas';
       }
       const tarifa = this.tarifas.find(t => t.id === tarifa_id);
-      return tarifa ? tarifa.departamento : 'Tarifa no encontrada';
+      return tarifa?.departamento || 'SIN TARIFA';
     },
     calculatePrice(tarifa_id, peso_v) {
       const tarifa = this.tarifas.find(t => t.id === tarifa_id);

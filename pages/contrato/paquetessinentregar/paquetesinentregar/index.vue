@@ -675,7 +675,7 @@ export default {
           sucursal_origen: m.sucursale.origen,  // Campo ajustado
           direccion: m.direccion_especifica,
           sucursal: m.sucursale.nombre,
-          servicio: m.tarifa.departamento,  // Ajuste según tu estructura
+          servicio: (m?.tarifa?.departamento ?? m?.reencaminamiento ?? 'SIN TARIFA'),  // Ajuste según tu estructura
           ciudad: m.ciudad,
           zona: m.zona_d,
           contenido: m.contenido,

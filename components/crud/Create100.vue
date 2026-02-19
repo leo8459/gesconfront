@@ -59,10 +59,6 @@
       this.showAlert('El campo "Contenido" es obligatorio.');
       return;
     }
-    if (!this.model.tarifa_id) {
-      this.showAlert('El campo "Destino y Servicio" es obligatorio.');
-      return;
-    }
     if (!this.model.direccion_id) {
       this.showAlert('El campo "Dirección de Recojo" es obligatorio.');
       return;
@@ -272,10 +268,19 @@
     const destinatario = data.destinatario || '';
     const direccion_especifica_d = data.direccion_especifica_d || '';
     const origen = data.sucursale ? data.sucursale.origen : '';
-    const destino = data.tarifa ? data.tarifa.departamento : '';
+    const destino = (data.tarifa ? data.tarifa.departamento : '') || data.reencaminamiento || '';
     const direccionEspecifica = data.direccion ? data.direccion.direccion_especifica : '';
     const telefono = data.telefono || '';
     const telefono_d = data.telefono_d || '';
+    const drawWrappedLine = (text, x, y, maxWidth, maxLines = 2) => {
+      const rawLines = doc.splitTextToSize(text || '', maxWidth);
+      const lines = rawLines.slice(0, maxLines);
+      if (rawLines.length > maxLines && lines.length) {
+        const last = lines[lines.length - 1];
+        lines[lines.length - 1] = `${last.slice(0, Math.max(0, last.length - 3))}...`;
+      }
+      doc.text(lines, x, y);
+    };
 
     let startX = 10;
     let startY = 10;
@@ -286,7 +291,7 @@
     // Sección de Remitente
     doc.setFontSize(fontSize); // Aplica el nuevo tamaño de letra
     doc.rect(startX, startY, cellWidth, cellHeight);
-    doc.text(`REMITENTE: ${remitente}`, startX + 2, startY + 10);
+    drawWrappedLine(`REMITENTE: ${remitente}`, startX + 2, startY + 8, cellWidth - 6, 2);
 
     const barcodeCellHeight = cellHeight * 3;
     doc.rect(startX + cellWidth, startY, cellWidth, barcodeCellHeight);
@@ -327,7 +332,7 @@
     doc.setFontSize(fontSize); // Regresa al tamaño de letra base
 
     doc.rect(startX + cellWidth, startY, cellWidth, cellHeight * 2);
-    doc.text(`DESTINATARIO: ${destinatario}`, startX + cellWidth + 10, startY + 10);
+    drawWrappedLine(`DESTINATARIO: ${destinatario}`, startX + cellWidth + 2, startY + 8, cellWidth - 6, 2);
 
     startY += cellHeight * 2;
 

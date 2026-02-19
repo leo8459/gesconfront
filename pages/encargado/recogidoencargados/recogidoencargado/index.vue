@@ -466,7 +466,7 @@ export default {
   if (!Array.isArray(this.tarifas) || this.tarifas.length === 0) return 'Tarifas no cargadas';
 
   const tarifa = this.tarifas.find(t => t.id === tarifa_id);
-  return tarifa ? (tarifa.departamento ?? 'SIN DEP') : 'Tarifa no encontrada';
+  return tarifa?.departamento ?? 'SIN DEP';
 },
 
     calculatePrice(tarifa_id, peso_v) {
