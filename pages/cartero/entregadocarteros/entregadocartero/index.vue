@@ -19,6 +19,9 @@
               <button @click="exportToExcel" class="btn btn-success btn-sm">
                 <i class="fas fa-file-excel"></i> Exportar a Excel
               </button>
+              <button class="btn btn-primary btn-sm ml-2" @click="openAddDeliveredModal">
+                <i class="fas fa-plus"></i> Añadir envios entregados
+              </button>
             </div>
           </div>
 
@@ -177,6 +180,101 @@
         <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
       </div>
     </b-modal>
+    <b-modal
+      v-model="isAddDeliveredVisible"
+      title="Añadir envios entregados"
+      hide-backdrop
+      hide-footer
+      size="xl"
+      centered
+      modal-class="delivered-modal"
+      content-class="delivered-modal-content"
+    >
+      <div class="delivered-form">
+        <div class="row">
+          <div class="col-lg-4 col-md-6 mb-3">
+            <label class="delivered-label">Sucursal</label>
+            <select v-model="deliveredForm.sucursale_id" class="form-control delivered-control">
+              <option value="">-- Seleccionar --</option>
+              <option v-for="s in sucursales" :key="s.id" :value="s.id">{{ s.nombre }}</option>
+            </select>
+          </div>
+
+          <div class="col-lg-4 col-md-6 mb-3">
+            <label class="delivered-label">Guía</label>
+            <input v-model.trim="deliveredForm.guia" class="form-control delivered-control" />
+          </div>
+
+          <div class="col-lg-4 col-md-6 mb-3">
+            <label class="delivered-label">Peso recibido (Kg)</label>
+            <input v-model.trim="deliveredForm.peso_r" class="form-control delivered-control" />
+          </div>
+
+          <div class="col-lg-6 col-md-6 mb-3">
+            <label class="delivered-label">Remitente</label>
+            <input v-model.trim="deliveredForm.remitente" class="form-control delivered-control" />
+          </div>
+
+          <div class="col-lg-6 col-md-6 mb-3">
+            <label class="delivered-label">Teléfono</label>
+            <input v-model.trim="deliveredForm.telefono" class="form-control delivered-control" />
+          </div>
+
+          <div class="col-lg-6 col-md-6 mb-3">
+            <label class="delivered-label">Destinatario</label>
+            <input v-model.trim="deliveredForm.destinatario" class="form-control delivered-control" />
+          </div>
+
+          <div class="col-lg-6 col-md-6 mb-3">
+            <label class="delivered-label">Teléfono destinatario</label>
+            <input v-model.trim="deliveredForm.telefono_d" class="form-control delivered-control" />
+          </div>
+
+          <div class="col-md-12 mb-3">
+            <label class="delivered-label">Contenido</label>
+            <input v-model.trim="deliveredForm.contenido" class="form-control delivered-control" />
+          </div>
+
+          <div class="col-md-12 mb-3">
+            <label class="delivered-label">Dirección destinatario</label>
+            <input v-model.trim="deliveredForm.direccion_d" class="form-control delivered-control" />
+          </div>
+
+          <div class="col-md-12 mb-3">
+            <label class="delivered-label">Reencaminamiento</label>
+            <select v-model="deliveredForm.reencaminamiento" class="form-control delivered-control">
+              <option v-for="dep in departamentosEnvio" :key="dep.value" :value="dep.value">
+                {{ dep.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-12">
+            <input type="text" v-model="deliveredForm.imagen" class="form-control d-none" />
+
+            <label class="delivered-upload w-100 text-center">
+              <div class="d-flex justify-content-center">
+                <div class="d-flex flex-column px-5 py-2">
+                  <i class="fa-solid fa-image fa-3x mb-2"></i>
+                  <p class="m-0">Sacar / Subir foto</p>
+                  <small v-if="deliveredForm.imagen" class="delivered-photo-ok">Foto cargada</small>
+                </div>
+              </div>
+              <input type="file" accept="image/*" id="captureDeliveredPhoto" capture="camera" class="d-none" @change="handleDeliveredPhotoUpload">
+            </label>
+
+            <div v-if="deliveredForm.imagen" class="text-center mt-3">
+              <img :src="deliveredForm.imagen" alt="Vista previa" class="delivered-preview">
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4 delivered-actions">
+          <button class="btn delivered-btn-cancel" @click="isAddDeliveredVisible = false">Cancelar</button>
+          <button class="btn delivered-btn-save ml-2" @click="saveDeliveredManual">Guardar</button>
+        </div>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -214,6 +312,33 @@ export default {
       },
       currentPage: 0,
       itemsPerPage: 10,
+      isAddDeliveredVisible: false,
+deliveredForm: {
+  sucursale_id: '',
+  guia: '',
+  peso_r: '',
+  remitente: '',
+  telefono: '',
+  contenido: '',
+  destinatario: '',
+  telefono_d: '',
+  direccion_d: '',
+  reencaminamiento: '',
+  imagen: '',
+},
+departamentosEnvio: [
+  { value: '', label: '-- Seleccione --' },
+  { value: 'LPB', label: 'La Paz (LPB)' },
+  { value: 'SRZ', label: 'Santa Cruz (SRZ)' },
+  { value: 'CBB', label: 'Cochabamba (CBB)' },
+  { value: 'ORU', label: 'Oruro (ORU)' },
+  { value: 'PTI', label: 'Potosí (PTI)' },
+  { value: 'TJA', label: 'Tarija (TJA)' },
+  { value: 'SRE', label: 'Sucre (SRE)' },
+  { value: 'BEN', label: 'Trinidad (TDD)' },
+  { value: 'CIJ', label: 'Cobija (CIJ)' }
+],
+sucursales: [],
     };
   },
   computed: {
@@ -286,6 +411,152 @@ export default {
     }
   },
   methods: {
+  openAddDeliveredModal() {
+  // limpiar form
+  this.deliveredForm = {
+    sucursale_id: '',
+    guia: '',
+    peso_r: '',
+    remitente: '',
+    telefono: '',
+    contenido: '',
+    destinatario: '',
+    telefono_d: '',
+    direccion_d: '',
+    reencaminamiento: '',
+    imagen: '',
+  };
+  this.isAddDeliveredVisible = true;
+},
+
+handleDeliveredPhotoUpload(event) {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const maxDimension = 1200;
+      const maxLength = 55000; // evita exceder columna TEXT en backend
+
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height && width > maxDimension) {
+        height = Math.round((height * maxDimension) / width);
+        width = maxDimension;
+      } else if (height >= width && height > maxDimension) {
+        width = Math.round((width * maxDimension) / height);
+        height = maxDimension;
+      }
+
+      let quality = 0.7;
+      let attempts = 0;
+      let dataurl = '';
+
+      while (attempts < 10) {
+        canvas.width = width;
+        canvas.height = height;
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        dataurl = canvas.toDataURL('image/webp', quality);
+
+        if (dataurl.length <= maxLength) break;
+
+        quality = Math.max(0.2, quality - 0.1);
+        width = Math.max(420, Math.round(width * 0.9));
+        height = Math.max(420, Math.round(height * 0.9));
+        attempts += 1;
+      }
+
+      this.deliveredForm.imagen = dataurl;
+      console.log('[ENTREGADOS][IMAGEN_PREPARADA]', {
+        name: file.name,
+        mime: file.type,
+        originalSizeBytes: file.size,
+        base64Length: dataurl.length
+      });
+
+      this.$swal.fire({
+        icon: 'success',
+        title: 'Foto registrada',
+        text: 'La foto se ha subido exitosamente.'
+      });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+},
+
+async saveDeliveredManual() {
+  if (!this.deliveredForm.guia) {
+    this.$swal.fire({ icon: 'warning', title: 'Falta guía', text: 'La guía es obligatoria.' });
+    return;
+  }
+  if (!this.deliveredForm.remitente || !this.deliveredForm.telefono || !this.deliveredForm.contenido) {
+    this.$swal.fire({ icon: 'warning', title: 'Faltan datos', text: 'Remitente, teléfono y contenido son obligatorios.' });
+    return;
+  }
+  if (!this.deliveredForm.destinatario || !this.deliveredForm.telefono_d) {
+    this.$swal.fire({ icon: 'warning', title: 'Faltan datos', text: 'Destinatario y teléfono destinatario son obligatorios.' });
+    return;
+  }
+
+  this.load = true;
+  let payload = null;
+  try {
+    const now = new Date();
+    payload = {
+      ...this.deliveredForm,
+      estado: 3,
+      fecha_d: `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    };
+
+    console.log('[ENTREGADOS][REQUEST]', {
+      ...payload,
+      imagen: payload?.imagen ? `[base64 length: ${payload.imagen.length}]` : '(vacio)'
+    });
+
+    const response = await this.$api.$post('solicitudes/entregados', payload);
+    console.log('[ENTREGADOS][RESPONSE]', response);
+
+    if (response?.id && !response?.imagen && payload?.imagen) {
+      console.warn('[ENTREGADOS][WARN] POST devolvió imagen null. Intentando guardar imagen por PUT...');
+      const updateRes = await this.$api.$put(`${this.apiUrl}/${response.id}`, { imagen: payload.imagen });
+      console.log('[ENTREGADOS][PUT_IMAGEN_RESPONSE]', updateRes);
+    }
+
+    await this.GET_DATA(this.apiUrl);
+    this.isAddDeliveredVisible = false;
+
+    this.$swal.fire({
+      icon: 'success',
+      title: 'Guardado',
+      text: 'Envío entregado registrado correctamente.'
+    });
+  } catch (e) {
+    const errorPayload = {
+      message: e?.message || 'Error desconocido',
+      status: e?.response?.status || null,
+      data: e?.response?.data || null,
+      sentPayload: payload
+        ? { ...payload, imagen: payload?.imagen ? `[base64 length: ${payload.imagen.length}]` : '(vacio)' }
+        : null
+    };
+    console.error('[ENTREGADOS][ERROR]', errorPayload);
+    this.$swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: `No se pudo guardar el envío entregado. Revisa consola (F12). Status: ${errorPayload.status ?? 'N/A'}`
+    });
+  } finally {
+    this.load = false;
+  }
+},
     async exportToExcel() {
       // Validar las fechas seleccionadas
       if (!this.startDate || !this.endDate) {
@@ -533,13 +804,13 @@ export default {
     async GET_DATA(path) {
       try {
         const res = await this.$api.$get(path);
-        if (Array.isArray(res)) {
+        if (path === this.apiUrl && Array.isArray(res)) {
           this.list = res;
-        } else {
-          console.error('Los datos recuperados no son un array:', res);
         }
+        return res;
       } catch (e) {
         console.error('Error al obtener los datos:', e);
+        return null;
       }
     },
     async EliminarItem(id) {
@@ -659,6 +930,8 @@ export default {
   mounted() {
     this.$nextTick(async () => {
       let user = localStorage.getItem('userAuth');
+      const sucursales = await this.GET_DATA('sucursales');
+      this.sucursales = Array.isArray(sucursales) ? sucursales : [];
       if (user) {
         this.user = JSON.parse(user);
         console.log('Usuario cargado:', this.user);
@@ -668,13 +941,8 @@ export default {
       }
 
       try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-          console.log('Datos cargados:', this.list);
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
+        await this.GET_DATA(this.apiUrl);
+        console.log('Datos cargados:', this.list);
       } catch (e) {
         console.error('Error al obtener los datos:', e);
       } finally {
@@ -748,5 +1016,130 @@ export default {
 
 .btn-primary:hover {
   background-color: #4a5a7a;
+}
+
+.delivered-form {
+  background: linear-gradient(180deg, #f9fbff 0%, #f4f6fa 100%);
+  border: 1px solid #dde5f2;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.delivered-label {
+  font-weight: 700;
+  color: #2b3f67;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.delivered-control {
+  border: 1px solid #c8d4ea;
+  border-radius: 10px;
+  height: 42px;
+  box-shadow: none;
+}
+
+.delivered-control:focus {
+  border-color: #4466a8;
+  box-shadow: 0 0 0 0.18rem rgba(68, 102, 168, 0.18);
+}
+
+.delivered-upload {
+  border: 2px dashed #b8c8e4;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  color: #48699f;
+  transition: all 0.2s ease;
+}
+
+.delivered-upload:hover {
+  border-color: #4466a8;
+  background: #f6f9ff;
+}
+
+.delivered-photo-ok {
+  color: #1f7a43;
+  font-weight: 600;
+}
+
+.delivered-preview {
+  max-width: 220px;
+  max-height: 220px;
+  border-radius: 10px;
+  border: 1px solid #b9c8e2;
+  box-shadow: 0 8px 20px rgba(28, 47, 84, 0.12);
+}
+
+.delivered-actions .btn {
+  min-width: 120px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.delivered-btn-cancel {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.delivered-btn-cancel:hover {
+  background: #d7dbe2;
+  border-color: #c2c8d0;
+}
+
+.delivered-btn-save {
+  background: #34447c;
+  border-color: #34447c;
+  color: #fff;
+}
+
+.delivered-btn-save:hover {
+  background: #2b3765;
+  border-color: #2b3765;
+}
+
+::v-deep .delivered-modal .modal-dialog {
+  width: 70vw;
+  max-width: 70vw;
+  margin: 1rem auto !important;
+}
+
+::v-deep .delivered-modal {
+  padding-left: 0 !important;
+}
+
+::v-deep .delivered-modal-content {
+  border-radius: 16px;
+  border: 1px solid #c9d7ef;
+  box-shadow: 0 16px 44px rgba(16, 30, 58, 0.22);
+  overflow: hidden;
+}
+
+::v-deep .delivered-modal .modal-header {
+  background: #f4f7ff;
+  border-bottom: 1px solid #dbe4f3;
+}
+
+::v-deep .delivered-modal .modal-title {
+  font-weight: 800;
+  color: #2f4573;
+}
+
+@media (max-width: 768px) {
+  ::v-deep .delivered-modal .modal-dialog {
+    width: calc(100vw - 0.5rem);
+    max-width: none;
+    margin: 0.25rem auto;
+  }
+
+  .delivered-form {
+    padding: 10px;
+  }
+
+  .delivered-actions .btn {
+    min-width: 100px;
+  }
 }
 </style>
