@@ -11,7 +11,7 @@ export default function ({ $axios, store, redirect }, inject) {
   // let url ='http://172.65.10.33:8459/carteros/'
 
   // const url = 'http://localhost/backgescon2/public/carteros/';
-    const url = 'http://gescon.correos.gob.bo/administrador/';
+        const url = 'https://gescon.correos.gob.bo/carteros/';
 
   api.setBaseURL(url);
 

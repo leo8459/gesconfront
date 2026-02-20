@@ -13,7 +13,8 @@ export default function ({ $axios, store, redirect }, inject) {
 
 
     // const url = 'http://localhost/backgescon2/public/encargados/';
-        const url = 'http://gescon.correos.gob.bo/administrador/';
+        // const url = 'http://gescon.correos.gob.bo/encargados/';
+        const url = 'https://gescon.correos.gob.bo/encargados/';
 
     encargados.setBaseURL(url);
   
