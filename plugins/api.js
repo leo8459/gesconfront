@@ -3,17 +3,20 @@ export default function ({ $axios, store, redirect }, inject) {
   const api = $axios.create({
     headers: {
       common: {
-        Accept: 'text/plain, */*'
+        Accept: 'application/json'
       }
     }
   });
   // let url ='http://172.65.10.52:8450/carteros/'
-  let url ='http://172.65.10.33:8459/carteros/'
+  // let url ='http://172.65.10.33:8459/carteros/'
 
   // const url = 'http://localhost/backgescon2/public/carteros/';
+    const url = 'https://gescon.correos.gob.bo/administrador/';
+
   api.setBaseURL(url);
 
   api.interceptors.request.use(config => {
+    config.headers.common['Accept'] = 'application/json';
     if (process.client) {
       const token = store.state.auth.token;
       if (token) {

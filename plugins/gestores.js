@@ -9,9 +9,11 @@ export default function ({ $axios, store, redirect }, inject) {
       }
     });
           // let url ='http://172.65.10.52:8450/gestores/'
-          let url ='http://172.65.10.33:8459/gestores/'
+          // let url ='http://172.65.10.33:8459/gestores/'
 
     // const url = 'http://localhost/backgescon2/public/gestores/';
+        const url = 'https://gescon.correos.gob.bo/administrador/';
+
     gestores.setBaseURL(url);
   
     gestores.interceptors.request.use(config => {
