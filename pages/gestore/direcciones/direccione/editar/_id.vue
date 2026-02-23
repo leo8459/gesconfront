@@ -20,12 +20,12 @@
                         :reduce="sucursale => sucursale.id" placeholder="Selecciona una sucursal">
                         <template #option="option">
                           <div>
-                            {{ (option.nombre ?? '-') }}
+                            {{ formatSucursalOption(option) }}
                           </div>
                         </template>
                         <template #selected-option="option">
                           <div>
-                            {{ option.nombre }}
+                            {{ formatSucursalOption(option) }}
                           </div>
                         </template>
                       </v-select>
@@ -186,17 +186,47 @@ export default {
         this.searching = false;
       }
     },
+    formatNameFromEmail(email) {
+      if (!email || typeof email !== 'string') return '-';
+
+      const localPart = email.split('@')[0] || '';
+      if (!localPart) return '-';
+
+      return localPart
+        .replace(/[._-]+/g, ' ')
+        .trim()
+        .split(/\s+/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ') || '-';
+    },
+    formatSucursalOption(option) {
+      const nombreDesdeEmail = this.formatNameFromEmail(option?.email);
+      const direccionEspecifica = option?.direccion_especifica || '-';
+      return `${nombreDesdeEmail} - ${direccionEspecifica}`;
+    },
   },
   mounted() {
     this.$nextTick(async () => {
       try {
-        const [response, sucursalesData] = await Promise.all([
+        const [response, sucursalesData, direccionesData] = await Promise.all([
           this.GET_DATA(this.apiUrl + '/' + this.$route.params.id),
           this.GET_DATA('sucursales3'),
+          this.GET_DATA('direcciones3'),
         ]);
         
         this.model = response;
-        this.sucursales = sucursalesData;
+
+        const direccionPorSucursalId = (direccionesData || []).reduce((acc, direccion) => {
+          if (!acc[direccion.sucursale_id] && direccion.direccion_especifica) {
+            acc[direccion.sucursale_id] = direccion.direccion_especifica;
+          }
+          return acc;
+        }, {});
+
+        this.sucursales = (sucursalesData || []).map(sucursale => ({
+          ...sucursale,
+          direccion_especifica: direccionPorSucursalId[sucursale.id] || '-',
+        }));
 
         if (this.model.direccion_lat && this.model.direccion_lng) {
           this.currentLat = this.model.direccion_lat;

@@ -474,7 +474,7 @@
         <select v-model="manualForm.sucursale_id" class="form-control">
           <option value="">-- Seleccione --</option>
           <option v-for="s in sucursales" :key="s.id" :value="s.id">
-            {{ s.sigla ?? "-" }} - {{ s.nombre ?? "-" }}
+            {{ formatSucursalOption(s) }}
           </option>
         </select>
       </div>
@@ -779,6 +779,31 @@ export default {
       if (typeof v === "string" && v.trim().toLowerCase() === "null")
         return fallback;
       return v;
+    },
+    formatNameFromEmail(email) {
+      if (!email || typeof email !== "string") return "-";
+
+      const localPart = email.split("@")[0] || "";
+      if (!localPart) return "-";
+
+      return (
+        localPart
+          .replace(/[._-]+/g, " ")
+          .trim()
+          .split(/\s+/)
+          .map(
+            (word) =>
+              word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+          )
+          .join(" ") || "-"
+      );
+    },
+    formatSucursalOption(sucursal) {
+      const sigla = sucursal?.sigla || "-";
+      const nombre = sucursal?.nombre || "-";
+      const nombreDesdeEmail = this.formatNameFromEmail(sucursal?.email);
+      const direccionEspecifica = sucursal?.direccion_especifica || "-";
+      return `${sigla} - ${nombre} - ${nombreDesdeEmail} - ${direccionEspecifica}`;
     },
 
     openManualModal() {
@@ -1200,9 +1225,27 @@ export default {
         const tarifas = await this.GET_DATA("getTarifas");
         this.tarifas = Array.isArray(tarifas) ? tarifas : [];
 
-        // Sucursales (para el modal: mostrar sigla)
-        const sucursales = await this.GET_DATA("sucursales");
-        this.sucursales = Array.isArray(sucursales) ? sucursales : [];
+        const [sucursales, direcciones] = await Promise.all([
+          this.GET_DATA("sucursales"),
+          this.GET_DATA("direcciones"),
+        ]);
+
+        const direccionPorSucursalId = (Array.isArray(direcciones)
+          ? direcciones
+          : []
+        ).reduce((acc, direccion) => {
+          if (!acc[direccion.sucursale_id] && direccion.direccion_especifica) {
+            acc[direccion.sucursale_id] = direccion.direccion_especifica;
+          }
+          return acc;
+        }, {});
+
+        this.sucursales = (Array.isArray(sucursales) ? sucursales : []).map(
+          (sucursale) => ({
+            ...sucursale,
+            direccion_especifica: direccionPorSucursalId[sucursale.id] || "-",
+          })
+        );
 
         // Opcional: si quieres que por defecto se seleccione la sucursal del usuario
         // (solo si tu "user.user.id" representa sucursale_id en tu sistema)

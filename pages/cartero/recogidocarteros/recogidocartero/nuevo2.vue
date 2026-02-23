@@ -38,10 +38,10 @@
     placeholder="Seleccionar sucursal..."
   >
     <template #option="option">
-      <div>{{ (option.nombre ?? '-') }}</div>
+      <div>{{ formatSucursalOption(option) }}</div>
     </template>
     <template #selected-option="option">
-      <div>{{ option.nombre }}</div>
+      <div>{{ formatSucursalOption(option) }}</div>
     </template>
   </v-select>
 </div>
@@ -589,6 +589,24 @@ export default {
       const res = await this.$api.$get(path, { params });
       return res;
     },
+    formatNameFromEmail(email) {
+      if (!email || typeof email !== 'string') return '-';
+
+      const localPart = email.split('@')[0] || '';
+      if (!localPart) return '-';
+
+      return localPart
+        .replace(/[._-]+/g, ' ')
+        .trim()
+        .split(/\s+/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ') || '-';
+    },
+    formatSucursalOption(option) {
+      const nombreDesdeEmail = this.formatNameFromEmail(option?.email);
+      const direccionEspecifica = option?.direccion_especifica || '-';
+      return `${nombreDesdeEmail} - ${direccionEspecifica}`;
+    },
     openModal(type) {
       if (process.client && type === 'direccion_d') {
         this.$refs.mapsModalD.show();
@@ -823,10 +841,23 @@ applyFrequentAddress(address) {
       this.getCurrentLocation();
 
       try {
-        const api = await this.GET_DATA('sucursales');
-        const sucursales = await this.GET_DATA('sucursales'); // Asegúrate de que esta ruta retorna todas las sucursales
+        const [sucursales, direcciones] = await Promise.all([
+          this.GET_DATA('sucursales'),
+          this.GET_DATA('direcciones'),
+        ]);
 
-        this.sucursales = sucursales;
+        const direccionPorSucursalId = (direcciones || []).reduce((acc, direccion) => {
+          if (!acc[direccion.sucursale_id] && direccion.direccion_especifica) {
+            acc[direccion.sucursale_id] = direccion.direccion_especifica;
+          }
+          return acc;
+        }, {});
+
+        this.sucursales = (sucursales || []).map(sucursale => ({
+          ...sucursale,
+          direccion_especifica: direccionPorSucursalId[sucursale.id] || '-',
+        }));
+
         const tarifas = await this.GET_DATA('getTarifas', { sucursale_id: this.sucursale_id_logueada });
         this.tarifas = tarifas;
       } catch (e) {
