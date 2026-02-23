@@ -275,7 +275,7 @@ export default {
         cartero: []
       },
       currentPage: 0,
-      itemsPerPage: 10,
+      itemsPerPage: 100,
       isModalNameVisible: false, // Controla la visibilidad del modal
       nombreGenerador: '',       // Variable para almacenar el nombre ingresado
       selectedForAssign: [],     // Paquetes seleccionados
