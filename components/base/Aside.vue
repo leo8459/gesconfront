@@ -159,6 +159,11 @@
                   <span class="sidenav-normal"> Eventos</span>
                 </nuxtLink>
               </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/cartero/bitacoracarteros/bitacoracartero">
+                  <span class="sidenav-normal"> Bitácoras</span>
+                </nuxtLink>
+              </li>
             </ul>
           </div>
 

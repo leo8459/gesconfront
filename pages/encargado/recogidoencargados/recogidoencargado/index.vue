@@ -4,6 +4,16 @@
     <AdminTemplate :page="page" :modulo="modulo">
       <div slot="body">
         <div class="row justify-content-end mb-3">
+          <div class="col-3">
+            <button @click="irAAsignarAdmin" class="btn btn-info btn-sm w-100">
+              <i class="fas fa-external-link-alt"></i> Ir a Asignar (Admin)
+            </button>
+          </div>
+          <div class="col-3">
+            <button @click="asignarCarterosSeleccionados" class="btn btn-primary btn-sm w-100" :disabled="!hasSelectedItems">
+              <i class="fas fa-user-check"></i> Asignar cartero a seleccionados
+            </button>
+          </div>
 
           <div class="col-3">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"
@@ -26,6 +36,9 @@
                   <table class="table table-sm table-bordered table-hover">
                     <thead>
                       <tr>
+                        <th class="py-0 px-1">
+                          <input type="checkbox" @click="selectAll($event, paginatedData)" />
+                        </th>
                         <th class="py-0 px-1">#</th>
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Guía</th>
@@ -47,6 +60,14 @@
                     </thead>
                     <tbody>
                       <tr v-for="(m, i) in paginatedData" :key="i" :class="rowStatusClass(m)">
+                        <td class="py-0 px-1">
+                          <input
+                            type="checkbox"
+                            :disabled="!m?.id"
+                            :checked="!!selected[m?.id]"
+                            @change="m?.id && $set(selected, m.id, $event.target.checked)"
+                          />
+                        </td>
                         <td class="py-0 px-1">{{ currentPage * itemsPerPage + i + 1 }}</td>
 
                         <td class="p-1">{{ m?.sucursale?.nombre ?? 'NULL' }}</td>
@@ -116,8 +137,8 @@
           <!-- Modal para ingresar el nombre y el departamento -->
           <b-modal v-model="isModalNameVisible" title="Generar CN-33" hide-footer>
             <div class="form-group">
-              <label for="nombreGenerador">Nombre de la persona que genera el CN-33</label>
-              <input v-model="nombreGenerador" type="text" class="form-control" placeholder="Escribe tu nombre..." />
+              <label for="nombreGenerador">Apellido de quien manda</label>
+              <input v-model="nombreGenerador" type="text" class="form-control" placeholder="Escribe el apellido..." />
             </div>
 
             <div class="form-group mt-3">
@@ -132,39 +153,11 @@
             </div>
 
             <div class="form-group mt-3">
-              <label for="transportadora">Transportadora</label>
-              <input id="transportadora" v-model="transporteForm.transportadora" type="text" class="form-control"
-                placeholder="Nombre de la transportadora" />
-            </div>
-
-            <div class="form-group mt-3">
-              <label for="provincia">Provincia</label>
-              <input id="provincia" v-model="transporteForm.provincia" type="text" class="form-control"
-                placeholder="Provincia" />
-            </div>
-
-            <div class="form-group mt-3">
-              <label for="n-recibo">N° Recibo</label>
-              <input id="n-recibo" v-model="transporteForm.n_recibo" type="text" class="form-control"
-                placeholder="Número de recibo" />
-            </div>
-
-            <div class="form-group mt-3">
-              <label for="n-factura">N° Factura</label>
-              <input id="n-factura" v-model="transporteForm.n_factura" type="text" class="form-control"
-                placeholder="Número de factura" />
-            </div>
-
-            <div class="form-group mt-3">
-              <label for="precio-total">Precio Total</label>
-              <input id="precio-total" v-model.number="transporteForm.precio_total" type="number" min="0" step="0.01"
-                class="form-control" placeholder="0.00" />
-            </div>
-
-            <div class="form-group mt-3">
-              <label for="peso-total">Peso Total</label>
-              <input id="peso-total" v-model.number="transporteForm.peso_total" type="number" min="0" step="0.01"
-                class="form-control" placeholder="0.00" />
+              <label for="tipoEnvioRegional">Tipo de envío</label>
+              <select id="tipoEnvioRegional" v-model="tipoEnvioRegional" class="form-control">
+                <option value="AEREO">AEREO</option>
+                <option value="TERRESTRE">TERRESTRE</option>
+              </select>
             </div>
 
             <div class="d-flex justify-content-end mt-3">
@@ -287,6 +280,7 @@ export default {
       selectedForDelivery: [],   // Paquetes para enviar
       load: true,                // Controla la carga
       departamentoSeleccionado: '',  // <-- NUEVO 
+      tipoEnvioRegional: 'AEREO',
       transporteForm: {
         transportadora: '',
         provincia: '',
@@ -393,6 +387,9 @@ export default {
     }
   },
   methods: {
+    irAAsignarAdmin() {
+      this.$router.push('/admin/solicitudes/solicitude/asignar');
+    },
     focusPesoInput() {
       this.$refs.pesoInput[0].focus(); // Asegúrate de que el campo de entrada esté enfocado
     },
@@ -509,6 +506,7 @@ export default {
         precio_total: Number(totalPrecio.toFixed(2)),
         peso_total: Number(totalPeso.toFixed(3)),
       };
+      this.tipoEnvioRegional = 'AEREO';
 
       this.isModalNameVisible = true;
     },
@@ -601,7 +599,7 @@ export default {
         this.$swal.fire({
           icon: 'warning',
           title: 'Campo vacío',
-          text: 'Por favor, ingrese el nombre de la persona que genera el CN-33',
+          text: 'Por favor, ingrese el apellido de quien manda el CN-33',
         });
         return;
       }
@@ -609,6 +607,39 @@ export default {
       // Cerrar el modal y llamar a la función que genera el Excel
       this.isModalNameVisible = false;
       this.confirmAllAssignments();
+    },
+    async asignarCarterosSeleccionados() {
+      const seleccionados = (this.list || [])
+        .filter(item => item?.id && this.selected[item.id])
+        .map(item => ({
+          id: item.id,
+          guia: item?.guia ?? 'SIN GUIA',
+          remitente: item?.remitente ?? '',
+          sucursale_nombre: item?.sucursale?.nombre ?? 'SIN SUCURSAL',
+          ciudad: item?.ciudad ?? '',
+          telefono_d: item?.telefono_d ?? '',
+        }));
+
+      if (!seleccionados.length) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Sin selección',
+          text: 'Selecciona al menos una solicitud para continuar.',
+        });
+        return;
+      }
+
+      try {
+        localStorage.setItem('asignar_carteros_recogido', JSON.stringify(seleccionados));
+        await this.$router.push('/encargado/recogidoencargados/recogidoencargado/asignarcarteros');
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo abrir la vista de asignación de carteros.',
+        });
+      }
     },
     async confirmAllAssignments() {
       this.load = true;
@@ -795,12 +826,17 @@ worksheet.getCell('A5').value = `${firstPackage?.sucursale?.origen ?? 'EMS'}`;
         worksheet.getCell('A8').style = headerStyle;
 
         worksheet.mergeCells('H8:M8');
-        worksheet.getCell('H8').value = 'X PRIORITARIO                  X POR AEREO';
+        const tipoEnvioExcel = (this.tipoEnvioRegional || 'AEREO').toUpperCase();
+        worksheet.getCell('H8').value = tipoEnvioExcel === 'TERRESTRE'
+          ? 'X PRIORITARIO                  X POR TERRESTRE'
+          : 'X PRIORITARIO                  X POR AEREO';
         worksheet.getCell('H8').style = headerStyle;
 
         // Séptima fila
         worksheet.mergeCells('A9:G10');
-        worksheet.getCell('A9').value = 'NUMERO DE VUELO LPB-OB-680';
+        worksheet.getCell('A9').value = tipoEnvioExcel === 'TERRESTRE'
+          ? 'TRANSPORTE TERRESTRE'
+          : 'NUMERO DE VUELO LPB-OB-680';
         worksheet.getCell('A9').style = headerStyle;
 
         worksheet.mergeCells('H9:M9');
@@ -1024,7 +1060,9 @@ worksheet.getCell(`G${currentRow}`).value = item?.sucursale?.nombre ?? 'EMS GLOB
     selectAll(event, group) {
       const isChecked = event.target.checked;
       group.forEach(item => {
-        this.$set(this.selected, item.id, isChecked);
+        if (item?.id) {
+          this.$set(this.selected, item.id, isChecked);
+        }
       });
     },
     toggleCollapse(estado) {

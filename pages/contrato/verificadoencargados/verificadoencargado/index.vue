@@ -392,7 +392,7 @@ export default {
     }
 
     // Estado válido (ajusta si usas otros)
-    const estadoValido = item.estado === 4 || item.estado === 7;
+    const estadoValido = item.estado === 3 || item.estado === 4 || item.estado === 7;
 
     // Búsqueda segura
     const matchSearch = [
@@ -573,7 +573,7 @@ export default {
     ,
 
     async exportToPDF() {
-      const filteredData = this.list.filter(m => (m.estado === 4 || m.estado === 7) && (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal));
+      const filteredData = this.list.filter(m => (m.estado === 3 || m.estado === 4 || m.estado === 7) && (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal));
 
       if (filteredData.length === 0) {
         Swal.fire({
@@ -2072,7 +2072,7 @@ export default {
         }
 
         // Filtrar los elementos por estado
-        this.list = this.list.filter(item => item.estado === 4 || item.estado === 7);
+        this.list = this.list.filter(item => item.estado === 3 || item.estado === 4 || item.estado === 7);
         console.log('Datos después del filtrado y recuperación de PDF:', this.list);
       } catch (e) {
         console.error('Error al recuperar PDFs desde IndexedDB:', e);

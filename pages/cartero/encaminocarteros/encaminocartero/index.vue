@@ -9,6 +9,11 @@
               <i class="fas fa-list"></i> Mandados a Provincia
             </button>
           </div>
+          <div class="col-12 col-md-3 mb-2 mb-md-0" v-if="hasSelectedItems">
+            <button @click="openBitacoraModal" class="btn btn-warning btn-sm w-100">
+              <i class="fas fa-book"></i> Añadir bitácora
+            </button>
+          </div>
           <div class="col-12 col-md-3" v-if="hasPrelistaTransportes">
             <button @click="openTransporteModal" class="btn btn-success btn-sm w-100">
               <i class="fas fa-truck"></i> Total / Registrar Transporte
@@ -294,6 +299,30 @@
         <button class="btn btn-primary ml-2" @click="confirmAssignSelected">Asignar</button>
       </div>
     </b-modal>
+
+    <b-modal v-model="isBitacoraModalVisible" title="Añadir Bitácora" hide-backdrop hide-footer>
+      <div v-if="!bitacoraItems.length" class="alert alert-warning mb-2">
+        No hay guías seleccionadas.
+      </div>
+      <div v-else>
+        <div v-for="item in bitacoraItems" :key="item.id" class="form-group">
+          <label :for="'bitacora-' + item.id">
+            Guía: {{ item.guia || ('ID ' + item.id) }}
+          </label>
+          <textarea
+            :id="'bitacora-' + item.id"
+            v-model="bitacoraForm[item.id]"
+            class="form-control"
+            rows="2"
+            placeholder="Escriba la bitácora para esta guía..."
+          ></textarea>
+        </div>
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isBitacoraModalVisible = false">Cancelar</button>
+        <button class="btn btn-primary ml-2" @click="guardarBitacora">Guardar bitácora</button>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -337,6 +366,9 @@ export default {
       prelistaTransportes: [],
       guiasEnPrelistaIds: [],
       isTransporteModalVisible: false,
+      isBitacoraModalVisible: false,
+      bitacoraItems: [],
+      bitacoraForm: {},
       transporteForm: {
         transportadora: '',
         provincia: '',
@@ -426,6 +458,73 @@ export default {
     }
   },
   methods: {
+    openBitacoraModal() {
+      const selectedIds = Object.keys(this.selected)
+        .filter(key => this.selected[key])
+        .map(id => Number(id))
+        .filter(Boolean);
+
+      this.bitacoraItems = (this.list || [])
+        .filter(item => selectedIds.includes(Number(item?.id)))
+        .map(item => ({ id: item.id, guia: item.guia }));
+
+      const nextForm = {};
+      this.bitacoraItems.forEach(item => {
+        nextForm[item.id] = this.bitacoraForm[item.id] || '';
+      });
+      this.bitacoraForm = nextForm;
+      this.isBitacoraModalVisible = true;
+    },
+    async guardarBitacora() {
+      if (!this.bitacoraItems.length) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Sin selección',
+          text: 'Seleccione al menos una guía.',
+        });
+        return;
+      }
+
+      const faltantes = this.bitacoraItems.filter(item => !(this.bitacoraForm[item.id] || '').trim());
+      if (faltantes.length) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Bitácora requerida',
+          text: `Complete la bitácora de todas las guías seleccionadas. Faltan: ${faltantes.map(x => x.guia).join(', ')}`,
+        });
+        return;
+      }
+
+      this.load = true;
+      try {
+        for (const item of this.bitacoraItems) {
+          const bitacoraTexto = (this.bitacoraForm[item.id] || '').trim();
+          await this.$api.$put(`${this.apiUrl}/${item.id}`, {
+            entrega_observacion: bitacoraTexto,
+          });
+        }
+
+        await this.GET_DATA(this.apiUrl);
+        this.isBitacoraModalVisible = false;
+        this.selected = {};
+        this.bitacoraItems = [];
+        this.bitacoraForm = {};
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Bitácora guardada',
+          text: 'Se guardó la bitácora de las guías seleccionadas.',
+        });
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo guardar la bitácora.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
     toggleMandadosProvincia() {
       this.showMandadosProvincia = !this.showMandadosProvincia;
     },

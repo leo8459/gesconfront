@@ -782,50 +782,79 @@ export default {
         const textX = barcodeX + (barcodeWidth - textWidth) / 2;
         doc.text(guia, textX, barcodeY - 3);
 
+        const paddingX = 2;
+        const lineHeight = 4;
+        const minTextHeight = 8;
+        const getCellHeight = (text, width, minHeight = minTextHeight) => {
+          const lines = doc.splitTextToSize(String(text ?? ''), Math.max(1, width - paddingX * 2));
+          return Math.max(minHeight, (lines.length * lineHeight) + 4);
+        };
+        const drawCell = (x, y, width, height, text) => {
+          const lines = doc.splitTextToSize(String(text ?? ''), Math.max(1, width - paddingX * 2));
+          doc.rect(x, y, width, height);
+          doc.text(lines, x + paddingX, y + 5);
+        };
+
         startY += cellHeight * 2;
-        doc.rect(startX, startY, col1Width + col2Width, cellHeight);
-        doc.text(`Remitente y origen:  ${remitente}   ${origen},`, startX + 2, startY + 7);
+        const leftRow1 = `Remitente y origen: ${remitente} ${origen}`;
+        const rightRow1 = `Destinatario y destino: ${destinatario} ${destino}`;
+        const row1H = Math.max(
+          getCellHeight(leftRow1, col1Width + col2Width, cellHeight),
+          getCellHeight(rightRow1, col3Width, cellHeight)
+        );
+        drawCell(startX, startY, col1Width + col2Width, row1H, leftRow1);
+        drawCell(startX + col1Width + col2Width, startY, col3Width, row1H, rightRow1);
 
-        doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
-        doc.text(`Destinatario y destino: ${destinatario}   ${destino}`, startX + col1Width + col2Width + 2, startY + 7);
+        startY += row1H;
+        const leftRow2 = `Direccion: ${direccionEspecifica}\nZona: ${zona}\nMunicipio: ${ciudad}`;
+        const rightRow2 = `Direccion: ${direccion_especifica_d}\nZona: ${zona_d}\nMunicipio: ${ciudad_d}`;
+        const row2H = Math.max(
+          getCellHeight(leftRow2, col1Width + col2Width, cellHeight),
+          getCellHeight(rightRow2, col3Width, cellHeight)
+        );
+        drawCell(startX, startY, col1Width + col2Width, row2H, leftRow2);
+        drawCell(startX + col1Width + col2Width, startY, col3Width, row2H, rightRow2);
 
-        startY += cellHeight;
-        doc.rect(startX, startY, col1Width + col2Width, cellHeight);
-        doc.text(`Dirección: ${direccionEspecifica}`, startX + 2, startY + 4);
-        doc.text(`Zona: ${zona}`, startX + 2, startY + 8);
+        startY += row2H;
+        const leftRow3 = `Telefono: ${telefono}`;
+        const rightRow3 = `Telefono: ${telefono_d}`;
+        const row3H = Math.max(
+          getCellHeight(leftRow3, col1Width + col2Width, cellHeight),
+          getCellHeight(rightRow3, col3Width, cellHeight)
+        );
+        drawCell(startX, startY, col1Width + col2Width, row3H, leftRow3);
+        drawCell(startX + col1Width + col2Width, startY, col3Width, row3H, rightRow3);
 
-        doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
-        doc.text(`Direccion: ${direccion_especifica_d}`, startX + col1Width + col2Width + 2, startY + 4);
-        doc.text(`Zona: ${zona_d}, Municipio: ${ciudad_d} `, startX + col1Width + col2Width + 2, startY + 8);
+        startY += row3H;
+        const leftRow4 = `Descripcion: ${contenido}`;
+        const midRow4 = `Fecha: ${fecha}`;
+        const rightRow4 = `Fecha entrega: ${fecha_entrega}`;
+        const row4LeftW = col1Width + col2Width;
+        const row4MidW = col3Width / 2;
+        const row4RightW = col3Width / 2;
+        const row4H = Math.max(
+          getCellHeight(leftRow4, row4LeftW, cellHeight),
+          getCellHeight(midRow4, row4MidW, cellHeight),
+          getCellHeight(rightRow4, row4RightW, cellHeight)
+        );
+        drawCell(startX, startY, row4LeftW, row4H, leftRow4);
+        drawCell(startX + row4LeftW, startY, row4MidW, row4H, midRow4);
+        drawCell(startX + row4LeftW + row4MidW, startY, row4RightW, row4H, rightRow4);
 
-        startY += cellHeight;
-        doc.rect(startX, startY, col1Width + col2Width, cellHeight);
-        doc.text(`Telefono: ${telefono}`, startX + 2, startY + 7);
+        startY += row4H;
+        const leftRow5 = `Contratos: ${importe}`;
+        const midRow5 = `Peso: ${peso}`;
+        const rightRow5 = 'Firma:';
+        const row5H = Math.max(
+          getCellHeight(leftRow5, col1Width, cellHeightFirma),
+          getCellHeight(midRow5, col2Width, cellHeightFirma),
+          getCellHeight(rightRow5, col3Width, cellHeightFirma2)
+        );
+        drawCell(startX, startY, col1Width, row5H, leftRow5);
+        drawCell(startX + col1Width, startY, col2Width, row5H, midRow5);
+        drawCell(startX + col1Width + col2Width, startY, col3Width, row5H, rightRow5);
 
-        doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeight);
-        doc.text(`Telefono: ${telefono_d}`, startX + col1Width + col2Width + 2, startY + 7);
-
-        startY += cellHeight;
-        doc.rect(startX, startY, col1Width + col2Width, cellHeight);
-        doc.text(`Descripcion: ${contenido}`, startX + 2, startY + 7);
-
-        doc.rect(startX + col1Width + col2Width, startY, col3Width / 2, cellHeight);
-        doc.text(`Fecha: ${fecha}`, startX + col1Width + col2Width + 2, startY + 7);
-
-        doc.rect(startX + col1Width + col2Width + col3Width / 2, startY, col3Width / 2, cellHeight);
-        doc.text(`Fecha entrega: ${fecha_entrega}`, startX + col1Width + col2Width + col3Width / 2 + 2, startY + 7);
-
-        startY += cellHeight;
-        doc.rect(startX, startY, col1Width, cellHeightFirma);
-        doc.text(`Contratos: ${importe}`, startX + 2, startY + 7);
-
-        doc.rect(startX + col1Width, startY, col2Width, cellHeightFirma);
-        doc.text(`Peso: ${peso}`, startX + col1Width + 2, startY + 7);
-
-        doc.rect(startX + col1Width + col2Width, startY, col3Width, cellHeightFirma2);
-        doc.text('Firma:', startX + col1Width + col2Width + 2, startY + 7);
-
-        return startY + cellHeightFirma2; // Devuelve la nueva posición de Y después de la última fila
+        return startY + row5H; // Devuelve la nueva posición de Y después de la última fila
       };
 
       // Dibuja la guía en la página actual del documento PDF
