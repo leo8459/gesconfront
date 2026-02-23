@@ -606,17 +606,6 @@ export default {
         return;
       }
 
-      const tieneRecibo = !!(this.transporteForm.n_recibo || '').trim();
-      const tieneFactura = !!(this.transporteForm.n_factura || '').trim();
-      if (!this.transporteForm.transportadora || (!tieneRecibo && !tieneFactura)) {
-        this.$swal.fire({
-          icon: 'warning',
-          title: 'Campos requeridos',
-          text: 'Completa transportadora y al menos uno: n° recibo o n° factura.',
-        });
-        return;
-      }
-
       // Cerrar el modal y llamar a la función que genera el Excel
       this.isModalNameVisible = false;
       this.confirmAllAssignments();
@@ -653,17 +642,25 @@ export default {
           return;
         }
 
-        await this.$encargados.$post('transportes', {
-          transportadora: this.transporteForm.transportadora,
-          provincia: (this.transporteForm.provincia || '').trim(),
-          cartero_id: carteroId,
-          n_recibo: (this.transporteForm.n_recibo || '').trim(),
-          n_factura: (this.transporteForm.n_factura || '').trim(),
-          precio_total: Number(this.transporteForm.precio_total || 0),
-          peso_total: Number(this.transporteForm.peso_total || 0),
-          solicitude_ids: solicitudesIds,
-          guias,
-        });
+        const transportadora = (this.transporteForm.transportadora || '').trim();
+        const provincia = (this.transporteForm.provincia || '').trim();
+        const nRecibo = (this.transporteForm.n_recibo || '').trim();
+        const nFactura = (this.transporteForm.n_factura || '').trim();
+        const hasTransporteData = !!(transportadora || nRecibo || nFactura);
+
+        if (hasTransporteData) {
+          await this.$encargados.$post('transportes', {
+            transportadora,
+            provincia,
+            cartero_id: carteroId,
+            n_recibo: nRecibo,
+            n_factura: nFactura,
+            precio_total: Number(this.transporteForm.precio_total || 0),
+            peso_total: Number(this.transporteForm.peso_total || 0),
+            solicitude_ids: solicitudesIds,
+            guias,
+          });
+        }
 
 
         for (let item of this.selectedForAssign) {
