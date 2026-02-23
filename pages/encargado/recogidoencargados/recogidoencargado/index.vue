@@ -43,6 +43,7 @@
                         <th class="py-0 px-1">Sucursal</th>
                         <th class="py-0 px-1">Guía</th>
                         <th class="py-0 px-1">Remitente</th>
+                        <th class="py-0 px-1">Destino</th>
                         <th class="py-0 px-1">Detalles de Domicilio</th>
 
                         <!-- Nueva columna para la dirección específica -->
@@ -73,6 +74,7 @@
                         <td class="p-1">{{ m?.sucursale?.nombre ?? 'NULL' }}</td>
                         <td class="py-0 px-1">{{ m?.guia ?? 'NULL' }}</td>
                         <td class="py-0 px-1">{{ m?.remitente ?? 'NULL' }}</td>
+                        <td class="py-0 px-1">{{ m?.reencaminamiento ?? 'NULL' }}</td>
 
                         <td class="py-0 px-1">{{ m?.direccion?.direccion_especifica ?? 'NULL' }}</td>
                         <td class="py-0 px-1">{{ m?.direccion?.zona ?? 'NULL' }}</td>
