@@ -269,6 +269,10 @@
     const direccion_especifica_d = data.direccion_especifica_d || '';
     const origen = data.sucursale ? data.sucursale.origen : '';
     const destino = (data.tarifa ? data.tarifa.departamento : '') || data.reencaminamiento || '';
+    const provinciaDestinatario = (data.ciudad || (this.model && this.model.ciudad) || '').trim();
+    const departamentoProvinciaDestinatario = provinciaDestinatario
+      ? `Departamento: ${destino || '-'} | Provincia: ${provinciaDestinatario}`
+      : `Departamento: ${destino || '-'}`;
     const direccionEspecifica = data.direccion ? data.direccion.direccion_especifica : '';
     const telefono = data.telefono || '';
     const telefono_d = data.telefono_d || '';
@@ -386,7 +390,7 @@
 
     startY += cellHeight;
     doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-    doc.text(`Departamento: ${destino}`, startX + cellWidth + 10, startY + 10);
+    drawWrappedLine(departamentoProvinciaDestinatario, startX + cellWidth + 10, startY + 10, cellWidth - 14, 1);
 
     // Línea final de puntos en el Footer
     startY += cellHeight;
