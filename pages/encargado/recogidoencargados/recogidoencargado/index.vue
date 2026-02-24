@@ -147,9 +147,15 @@
               <label for="departamentoSeleccionado">Departamento destino</label>
               <select v-model="departamentoSeleccionado" class="form-control">
                 <option disabled value="">Seleccione un departamento</option>
-                <option value="LPB">LPB</option>
-                <option value="SRZ">SRZ</option>
-                <option value="CBB">CBB</option>
+                <option value="LPB">La Paz (LPB)</option>
+                <option value="SRZ">Santa Cruz (SRZ)</option>
+                <option value="CBB">Cochabamba (CBB)</option>
+                <option value="ORU">Oruro (ORU)</option>
+                <option value="PTI">Potosi (PTI)</option>
+                <option value="TJA">Tarija (TJA)</option>
+                <option value="SRE">Sucre (SRE)</option>
+                <option value="BEN">Trinidad (TDD)</option>
+                <option value="CIJ">Cobija (CIJ)</option>
 
               </select>
             </div>
