@@ -196,7 +196,7 @@
             <label class="delivered-label">Sucursal</label>
             <select v-model="deliveredForm.sucursale_id" class="form-control delivered-control">
               <option value="">-- Seleccionar --</option>
-              <option v-for="s in sucursales" :key="s.id" :value="s.id">{{ s.nombre }}</option>
+              <option v-for="s in sucursales" :key="s.id" :value="s.id">{{ formatSucursalOption(s) }}</option>
             </select>
           </div>
 
@@ -411,6 +411,28 @@ sucursales: [],
     }
   },
   methods: {
+  formatNameFromEmail(email) {
+    if (!email || typeof email !== 'string') return '-';
+
+    const localPart = email.split('@')[0] || '';
+    if (!localPart) return '-';
+
+    return (
+      localPart
+        .replace(/[._-]+/g, ' ')
+        .trim()
+        .split(/\s+/)
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ') || '-'
+    );
+  },
+  formatSucursalOption(sucursal) {
+    const sigla = sucursal?.sigla || '-';
+    const nombre = sucursal?.nombre || '-';
+    const nombreDesdeEmail = this.formatNameFromEmail(sucursal?.email);
+    const direccionEspecifica = sucursal?.direccion_especifica || '-';
+    return `${nombre} - ${sigla} - ${nombreDesdeEmail} - ${direccionEspecifica}`;
+  },
   openAddDeliveredModal() {
   // limpiar form
   this.deliveredForm = {
@@ -930,8 +952,28 @@ async saveDeliveredManual() {
   mounted() {
     this.$nextTick(async () => {
       let user = localStorage.getItem('userAuth');
-      const sucursales = await this.GET_DATA('sucursales');
-      this.sucursales = Array.isArray(sucursales) ? sucursales : [];
+      const [sucursales, direcciones] = await Promise.all([
+        this.GET_DATA('sucursales'),
+        this.GET_DATA('direcciones')
+      ]);
+
+      const direccionPorSucursalId = (Array.isArray(direcciones) ? direcciones : []).reduce((acc, direccion) => {
+        if (!acc[direccion.sucursale_id] && direccion.direccion_especifica) {
+          acc[direccion.sucursale_id] = direccion.direccion_especifica;
+        }
+        return acc;
+      }, {});
+
+      this.sucursales = (Array.isArray(sucursales) ? sucursales : [])
+        .map((sucursale) => ({
+          ...sucursale,
+          direccion_especifica: direccionPorSucursalId[sucursale.id] || '-'
+        }))
+        .sort((a, b) =>
+          (a?.nombre || '').localeCompare(b?.nombre || '', 'es', {
+            sensitivity: 'base'
+          })
+        );
       if (user) {
         this.user = JSON.parse(user);
         console.log('Usuario cargado:', this.user);

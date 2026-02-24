@@ -20,6 +20,35 @@
               placeholder="Buscar..." />
           </div>
         </div>
+        <button
+          @click="openEmsModal"
+          style="
+            background-color: #f39c12;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+          "
+        >
+          <i class="fas fa-plus"></i>Añadir EMS
+        </button>
+
+        <button
+          @click="openManualModal"
+          style="
+            background-color: #f39c12;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+          "
+        >
+          Registro Contratos
+        </button>
         <div class="row">
           <div class="col-12">
             <div class="card border-rounded">
@@ -232,6 +261,173 @@
       </div>
     </b-modal>
 
+    <b-modal
+      v-model="isEmsModalVisible"
+      title="Registrar EMS"
+      hide-backdrop
+      hide-footer
+    >
+      <div class="form-group d-none">
+        <label>Tipo</label>
+        <input
+          class="form-control"
+          v-model="emsForm.tipo_correspondencia"
+          disabled
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Guía</label>
+        <input
+          class="form-control"
+          v-model="emsForm.guia"
+          placeholder="Ej: EMS123456BO"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Peso Correos (Kg)</label>
+        <input
+          class="form-control"
+          v-model="emsForm.peso_v"
+          placeholder="000.001"
+        />
+      </div>
+      <div class="form-group">
+        <label>Destino</label>
+        <select v-model="emsForm.reencaminamiento" class="form-control">
+          <option value="">-- Seleccione --</option>
+          <option value="LPB">La Paz (LPB)</option>
+          <option value="SRZ">Santa Cruz (SRZ)</option>
+          <option value="CBB">Cochabamba (CBB)</option>
+          <option value="ORU">Oruro (ORU)</option>
+          <option value="PTI">Potosí (PTI)</option>
+          <option value="TJA">Tarija (TJA)</option>
+          <option value="SRE">Sucre (SRE)</option>
+          <option value="BEN">Trinidad (TDD)</option>
+          <option value="CIJ">Cobija (CIJ)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Provincia</label>
+        <input
+          class="form-control"
+          v-model="emsForm.ciudad"
+          placeholder="Ej: La Paz"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Observación</label>
+        <textarea
+          class="form-control"
+          v-model="emsForm.observacion"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isEmsModalVisible = false">
+          Cancelar
+        </button>
+        <button class="btn btn-primary ml-2" @click="submitEMS">Guardar</button>
+      </div>
+    </b-modal>
+
+    <b-modal
+      v-model="isManualModalVisible"
+      title="Registro Manual de Solicitud"
+      hide-backdrop
+      hide-footer
+    >
+      <div class="form-group">
+        <label>Sucursal</label>
+        <select v-model="manualForm.sucursale_id" class="form-control">
+          <option value="">-- Seleccione --</option>
+          <option v-for="s in sucursales" :key="s.id" :value="s.id">
+            {{ formatSucursalOption(s) }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Departamento</label>
+        <select v-model="manualForm.tarifa_id" class="form-control">
+          <option value="">-- Seleccione --</option>
+          <option v-for="t in tarifasModal" :key="t.id" :value="t.id">
+            {{ t.departamento ?? '-' }} - {{ t.servicio ?? '-' }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Destino</label>
+        <select
+          v-model="manualForm.reencaminamiento"
+          class="form-control"
+          id="origen"
+        >
+          <option value="">-- Seleccione --</option>
+          <option value="LPB">La Paz (LPB)</option>
+          <option value="SRZ">Santa Cruz (SRZ)</option>
+          <option value="CBB">Cochabamba (CBB)</option>
+          <option value="ORU">Oruro (ORU)</option>
+          <option value="PTI">Potosí (PTI)</option>
+          <option value="TJA">Tarija (TJA)</option>
+          <option value="SRE">Sucre (SRE)</option>
+          <option value="BEN">Trinidad (TDD)</option>
+          <option value="CIJ">Cobija (CIJ)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Guía (manual)</label>
+        <input
+          v-model="manualForm.guia"
+          type="text"
+          class="form-control"
+          placeholder="Ej: 0101020001"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Peso Correos (Kg)</label>
+        <input
+          v-model="manualForm.peso_v"
+          type="text"
+          class="form-control"
+          placeholder="000.001"
+        />
+      </div>
+      <div class="form-group">
+        <label>Provincia</label>
+        <input
+          v-model="manualForm.ciudad"
+          type="text"
+          class="form-control"
+          placeholder="Ej: La Paz"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Observación</label>
+        <textarea
+          v-model="manualForm.observacion"
+          class="form-control"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="isManualModalVisible = false">
+          Cancelar
+        </button>
+        <button class="btn btn-primary ml-2" @click="submitManualSolicitude">
+          Guardar
+        </button>
+      </div>
+    </b-modal>
+
 
 
 
@@ -270,13 +466,34 @@ export default {
       url_editar: '/admin/solicitudescartero/solicitudecartero/editar/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',
       tarifas: [], // Inicializamos tarifas como un array vacío
+      tarifasModal: [],
       collapseState: {},
       isModalVisible: false,
+      isManualModalVisible: false,
+      isEmsModalVisible: false,
       currentId: null,
       selected: {},
       selectedItemsData: [],
       selectedForAssign: [],
       selectedForDelivery: [], // Nueva propiedad para almacenar los paquetes seleccionados para entregar
+      sucursales: [],
+      manualForm: {
+        sucursale_id: '',
+        tarifa_id: '',
+        guia: '',
+        ciudad: '',
+        reencaminamiento: '',
+        peso_v: '',
+        observacion: '',
+      },
+      emsForm: {
+        tipo_correspondencia: 'EMS',
+        guia: '',
+        ciudad: '',
+        reencaminamiento: '',
+        peso_v: '',
+        observacion: '',
+      },
       user: {
         cartero: []
       },
@@ -394,7 +611,184 @@ export default {
       return result;
     }
   },
+  watch: {
+    'manualForm.sucursale_id': {
+      immediate: true,
+      async handler(newVal) {
+        await this.loadTarifasForSucursal(newVal);
+      },
+    },
+  },
   methods: {
+    async loadTarifasForSucursal(sucursaleId) {
+      this.manualForm.tarifa_id = '';
+
+      if (!sucursaleId) {
+        this.tarifasModal = [];
+        return;
+      }
+
+      let tarifas = [];
+
+      try {
+        const res = await this.GET_DATA(`getTarifas?sucursale_id=${sucursaleId}`);
+        tarifas = Array.isArray(res) ? res : [];
+      } catch (e) {
+        console.error('Error cargando tarifas por sucursal:', e);
+      }
+
+      // Fallback: si el endpoint filtrado viene vacío, usar las tarifas ya cargadas.
+      if (!tarifas.length) {
+        const cacheTarifas = Array.isArray(this.tarifas) ? this.tarifas : [];
+        const filtradas = cacheTarifas.filter(
+          (t) => String(t?.sucursale_id ?? '') === String(sucursaleId)
+        );
+        tarifas = filtradas.length ? filtradas : cacheTarifas;
+      }
+
+      this.tarifasModal = tarifas.sort((a, b) =>
+        String(a?.departamento ?? '').localeCompare(String(b?.departamento ?? ''), 'es', {
+          sensitivity: 'base',
+        })
+      );
+
+      if (this.tarifasModal.length === 1) {
+        this.manualForm.tarifa_id = this.tarifasModal[0].id;
+      }
+    },
+    openEmsModal() {
+      this.emsForm = {
+        tipo_correspondencia: 'EMS',
+        guia: '',
+        ciudad: '',
+        reencaminamiento: '',
+        peso_v: '',
+        observacion: '',
+      };
+      this.isEmsModalVisible = true;
+    },
+    async submitEMS() {
+      if (!this.emsForm.guia) {
+        return this.$swal.fire({
+          icon: 'warning',
+          title: 'Falta guía',
+          text: 'La guía es obligatoria.',
+        });
+      }
+
+      this.load = true;
+      try {
+        const encargadoId = this.user?.user?.id;
+        await this.$encargados.$post('solicitudes/ems', {
+          guia: this.emsForm.guia,
+          ciudad: this.emsForm.ciudad,
+          reencaminamiento: this.emsForm.reencaminamiento,
+          peso_v: this.emsForm.peso_v,
+          observacion: this.emsForm.observacion,
+          cartero_recogida_id: encargadoId,
+        });
+
+        const data = await this.GET_DATA(this.apiUrl);
+        this.list = Array.isArray(data) ? data : [];
+
+        this.$swal.fire({
+          icon: 'success',
+          title: 'EMS registrado',
+          text: 'El envío EMS fue registrado correctamente.',
+        });
+        this.isEmsModalVisible = false;
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo registrar el EMS.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
+    formatNameFromEmail(email) {
+      if (!email || typeof email !== 'string') return '-';
+
+      const localPart = email.split('@')[0] || '';
+      if (!localPart) return '-';
+
+      return (
+        localPart
+          .replace(/[._-]+/g, ' ')
+          .trim()
+          .split(/\s+/)
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ') || '-'
+      );
+    },
+    formatSucursalOption(sucursal) {
+      const sigla = sucursal?.sigla || '-';
+      const nombre = sucursal?.nombre || '-';
+      return `${nombre} - ${sigla}`;
+    },
+    openManualModal() {
+      this.isManualModalVisible = true;
+
+      if (this.manualForm.sucursale_id) {
+        this.$nextTick(async () => {
+          await this.loadTarifasForSucursal(this.manualForm.sucursale_id);
+        });
+      }
+    },
+    async submitManualSolicitude() {
+      this.load = true;
+      try {
+        const encargadoId = this.user?.user?.id;
+        const payload = {
+          guia: this.manualForm.guia || null,
+          ciudad: this.manualForm.ciudad || null,
+          reencaminamiento: this.manualForm.reencaminamiento || null,
+          peso_v: this.manualForm.peso_v || null,
+          observacion: this.manualForm.observacion || null,
+          cartero_recogida_id: encargadoId,
+        };
+
+        if (this.manualForm.sucursale_id) {
+          payload.sucursale_id = this.manualForm.sucursale_id;
+        }
+        if (this.manualForm.tarifa_id) {
+          payload.tarifa_id = this.manualForm.tarifa_id;
+        }
+
+        await this.$encargados.$post('solicitudes/manual', payload);
+
+        const data = await this.GET_DATA(this.apiUrl);
+        this.list = Array.isArray(data) ? data : [];
+
+        this.$swal.fire({
+          icon: 'success',
+          title: 'Registrado',
+          text: 'Solicitud registrada correctamente.',
+        });
+
+        this.manualForm = {
+          sucursale_id: '',
+          tarifa_id: '',
+          guia: '',
+          ciudad: '',
+          reencaminamiento: '',
+          peso_v: '',
+          observacion: '',
+        };
+        this.isManualModalVisible = false;
+      } catch (e) {
+        console.error(e);
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo registrar la solicitud.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
     irAAsignarAdmin() {
       this.$router.push('/admin/solicitudes/solicitude/asignar');
     },
@@ -1109,6 +1503,15 @@ worksheet.getCell(`G${currentRow}`).value = item?.sucursale?.nombre ?? 'EMS GLOB
         } else {
           console.error('Las tarifas recuperadas no son un array:', tarifas);
         }
+
+        const sucursales = await this.GET_DATA('sucursales-simple');
+
+        this.sucursales = (Array.isArray(sucursales) ? sucursales : [])
+          .sort((a, b) =>
+            (a?.nombre || '').localeCompare(b?.nombre || '', 'es', {
+              sensitivity: 'base',
+            })
+          );
       } catch (e) {
         console.error('Error al obtener los datos:', e);
       } finally {

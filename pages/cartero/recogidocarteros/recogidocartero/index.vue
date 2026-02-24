@@ -803,7 +803,7 @@ export default {
       const nombre = sucursal?.nombre || "-";
       const nombreDesdeEmail = this.formatNameFromEmail(sucursal?.email);
       const direccionEspecifica = sucursal?.direccion_especifica || "-";
-      return `${sigla} - ${nombre} - ${nombreDesdeEmail} - ${direccionEspecifica}`;
+      return `${nombre} - ${sigla} - ${nombreDesdeEmail} - ${direccionEspecifica}`;
     },
 
     openManualModal() {
@@ -1240,12 +1240,16 @@ export default {
           return acc;
         }, {});
 
-        this.sucursales = (Array.isArray(sucursales) ? sucursales : []).map(
-          (sucursale) => ({
+        this.sucursales = (Array.isArray(sucursales) ? sucursales : [])
+          .map((sucursale) => ({
             ...sucursale,
             direccion_especifica: direccionPorSucursalId[sucursale.id] || "-",
-          })
-        );
+          }))
+          .sort((a, b) =>
+            (a?.nombre || "").localeCompare(b?.nombre || "", "es", {
+              sensitivity: "base",
+            })
+          );
 
         // Opcional: si quieres que por defecto se seleccione la sucursal del usuario
         // (solo si tu "user.user.id" representa sucursale_id en tu sistema)
