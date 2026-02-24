@@ -22,6 +22,9 @@
               <button class="btn btn-primary btn-sm ml-2" @click="openAddDeliveredModal">
                 <i class="fas fa-plus"></i> Añadir envios entregados
               </button>
+              <button class="btn btn-info btn-sm ml-2" @click="openTemplateModal">
+                <i class="fas fa-file-pdf"></i> Generar plantilla
+              </button>
             </div>
           </div>
 
@@ -275,6 +278,58 @@
         </div>
       </div>
     </b-modal>
+
+    <b-modal
+      v-model="isTemplateModalVisible"
+      title="Generar plantilla"
+      hide-backdrop
+      hide-footer
+      centered
+      modal-class="delivered-modal"
+      content-class="delivered-modal-content"
+    >
+      <div class="delivered-form">
+        <div class="row">
+          <div class="col-md-12 mb-3">
+            <label class="delivered-label">Sucursal</label>
+            <select v-model="templateForm.sucursale_id" class="form-control delivered-control">
+              <option value="">-- Seleccionar --</option>
+              <option v-for="s in sucursales" :key="`template-${s.id}`" :value="s.id">
+                {{ formatSucursalOption(s) }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="delivered-label">Destino</label>
+            <input v-model.trim="templateForm.destino" class="form-control delivered-control" />
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="delivered-label">Remitente</label>
+            <input v-model.trim="templateForm.remitente" class="form-control delivered-control" />
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="delivered-label">Departamento</label>
+            <select v-model="templateForm.departamento" class="form-control delivered-control">
+              <option value="">-- Seleccione --</option>
+              <option v-for="dep in departamentosNueve" :key="`dep-template-${dep.value}`" :value="dep.value">
+                {{ dep.label }}
+              </option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="d-flex justify-content-end mt-4 delivered-actions">
+          <button class="btn delivered-btn-cancel" @click="isTemplateModalVisible = false">Cancelar</button>
+          <button class="btn delivered-btn-save ml-2" @click="generateTemplateFromModal">
+            Generar PDF (2 copias)
+          </button>
+        </div>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -282,6 +337,8 @@
 import { BCollapse, BModal } from 'bootstrap-vue';
 import ExcelJS from 'exceljs';
 import Swal from 'sweetalert2';
+import jsPDF from 'jspdf';
+import EMSImage from '@/pages/sucursal/sucursales/sucursal/img/EMS.png';
 
 export default {
   name: "IndexPage",
@@ -313,6 +370,7 @@ export default {
       currentPage: 0,
       itemsPerPage: 10,
       isAddDeliveredVisible: false,
+      isTemplateModalVisible: false,
 deliveredForm: {
   sucursale_id: '',
   guia: '',
@@ -338,10 +396,19 @@ departamentosEnvio: [
   { value: 'BEN', label: 'Trinidad (TDD)' },
   { value: 'CIJ', label: 'Cobija (CIJ)' }
 ],
+templateForm: {
+  sucursale_id: '',
+  destino: '',
+  remitente: '',
+  departamento: ''
+},
 sucursales: [],
     };
   },
   computed: {
+    departamentosNueve() {
+      return (this.departamentosEnvio || []).filter(dep => dep?.value);
+    },
     filteredData() {
       const searchTerm = (this.searchTerm || '').toLowerCase();
       const carteroId = this.user?.user?.id;
@@ -432,6 +499,238 @@ sucursales: [],
     const nombreDesdeEmail = this.formatNameFromEmail(sucursal?.email);
     const direccionEspecifica = sucursal?.direccion_especifica || '-';
     return `${nombre} - ${sigla} - ${nombreDesdeEmail} - ${direccionEspecifica}`;
+  },
+  openTemplateModal() {
+    this.templateForm = {
+      sucursale_id: '',
+      destino: '',
+      remitente: '',
+      departamento: ''
+    };
+    this.isTemplateModalVisible = true;
+  },
+  getSelectedSucursalById(id) {
+    return (this.sucursales || []).find(s => String(s.id) === String(id)) || null;
+  },
+  getDepartamentoLabel(value) {
+    return (this.departamentosEnvio || []).find(dep => dep.value === value)?.label || value || '';
+  },
+  getLoggedCarteroId() {
+    return this.user?.user?.id || this.user?.id || null;
+  },
+  normalizeBarcodeDataUrl(barcodeValue) {
+    if (!barcodeValue) return '';
+    if (String(barcodeValue).startsWith('data:image')) return String(barcodeValue);
+    return `data:image/png;base64,${barcodeValue}`;
+  },
+  getCorrelativoFromGuia(guia) {
+    const match = String(guia || '').match(/(\d+)$/);
+    return match?.[1] || '-';
+  },
+  async generateTemplateFromModal() {
+    if (!this.templateForm.sucursale_id || !this.templateForm.destino || !this.templateForm.remitente || !this.templateForm.departamento) {
+      this.$swal.fire({
+        icon: 'warning',
+        title: 'Faltan datos',
+        text: 'Sucursal, destino, remitente y departamento son obligatorios.'
+      });
+      return;
+    }
+
+    this.load = true;
+    let guia = '';
+    let codigoBarrasDataUrl = '';
+    let correlativoFinal = '-';
+    const carteroEntregaId = this.getLoggedCarteroId();
+
+    if (!carteroEntregaId) {
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Usuario no identificado',
+        text: 'No se encontró el cartero logueado para registrar cartero_entrega.'
+      });
+      this.load = false;
+      return;
+    }
+
+    try {
+      // Crea la solicitud para que la guía se genere con el correlativo continuo real.
+      const payloadSolicitud = {
+        sucursale_id: this.templateForm.sucursale_id,
+        tarifa_id: null,
+        direccion_id: null,
+        guia: '',
+        peso_o: '0',
+        peso_v: '0',
+        remitente: this.templateForm.remitente,
+        telefono: '0',
+        contenido: 'Plantilla generada manualmente',
+        destinatario: this.templateForm.destino,
+        telefono_d: '0',
+        direccion_especifica_d: 'N/D',
+        zona_d: 'N/D',
+        reencaminamiento: this.templateForm.departamento,
+        estado: 2,
+        cartero_entrega_id: carteroEntregaId,
+        fecha: new Date().toLocaleString('es-BO', { hour12: false })
+      };
+
+      const savedSolicitud = await this.$api.$post('solicitudes', payloadSolicitud);
+
+      guia = String(savedSolicitud?.guia || '');
+      codigoBarrasDataUrl = this.normalizeBarcodeDataUrl(savedSolicitud?.codigo_barras || '');
+      correlativoFinal = this.getCorrelativoFromGuia(guia);
+
+      if (!guia) {
+        throw new Error('La API no devolvió guía al crear la solicitud.');
+      }
+    } catch (e) {
+      console.error('[PLANTILLA][CREATE_SOLICITUD_ERROR]', e);
+      this.$swal.fire({
+        icon: 'error',
+        title: 'No se pudo guardar',
+        text: 'No se pudo crear la solicitud con correlativo automático.'
+      });
+      this.load = false;
+      return;
+    }
+
+    try {
+      const sucursal = this.getSelectedSucursalById(this.templateForm.sucursale_id) || {};
+      const departamentoLabel = this.getDepartamentoLabel(this.templateForm.departamento);
+
+      this.generateTemplatePDF({
+        guia,
+        codigo_barras: codigoBarrasDataUrl,
+        remitente: this.templateForm.remitente,
+        destinatario: this.templateForm.destino,
+        sucursal_nombre: sucursal?.nombre || '',
+        departamento: departamentoLabel,
+        correlativo: correlativoFinal
+      });
+
+      this.isTemplateModalVisible = false;
+      this.$swal.fire({
+        icon: 'success',
+        title: 'Plantilla generada',
+        text: 'Se generó el PDF con 2 copias.'
+      });
+    } catch (e) {
+      console.error('[PLANTILLA][PDF_ERROR]', e);
+      this.$swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo generar la plantilla PDF.'
+      });
+    } finally {
+      this.load = false;
+    }
+  },
+  generateTemplatePDF(data) {
+    if (!data) {
+      console.error('No data provided to generate the PDF');
+      return;
+    }
+
+    const doc = new jsPDF('portrait', 'mm', 'letter');
+    const fontSize = 10;
+    doc.setFontSize(fontSize);
+
+    const guia = data.guia || '';
+    const codigoBarras = data.codigo_barras || '';
+    const remitente = data.remitente || '';
+    const destinatario = data.destinatario || '';
+    const sucursalNombre = data.sucursal_nombre || '';
+    const departamento = data.departamento || '';
+    const correlativo = data.correlativo || '-';
+
+    const fecha = new Date();
+    const fechaTexto = `${String(fecha.getDate()).padStart(2, '0')}/${String(fecha.getMonth() + 1).padStart(2, '0')}/${fecha.getFullYear()}`;
+
+    const startX = 20;
+    const startY = 10;
+    const cellHeight = 10;
+    const cellHeightFirma = 12;
+    const cellHeightFirma2 = 15;
+    const col1Width = 40;
+    const col2Width = 40;
+    const col3Width = 100;
+
+    const drawGuide = (x, y) => {
+      doc.setFontSize(fontSize);
+      doc.rect(x, y, col1Width + col2Width, cellHeight * 3);
+      doc.rect(x + col1Width + col2Width, y, col3Width, cellHeight * 3);
+
+      const barcodeX = x + col1Width + col2Width + 5;
+      const barcodeY = y + 10;
+      const barcodeWidth = 70;
+      const barcodeHeight = 8;
+
+      if (EMSImage) {
+        doc.addImage(EMSImage, 'PNG', x + 2, y + 2, 30, 10);
+      }
+
+      if (codigoBarras) {
+        doc.addImage(codigoBarras, 'PNG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
+      }
+
+      const textWidth = doc.getTextWidth(guia);
+      const textX = barcodeX + (barcodeWidth - textWidth) / 2;
+      doc.text(guia, textX, barcodeY - 3);
+
+      y += cellHeight * 2;
+      doc.rect(x, y, col1Width + col2Width, cellHeight);
+      doc.text(`Remitente y origen: ${remitente} / ${sucursalNombre}`, x + 2, y + 7);
+
+      doc.rect(x + col1Width + col2Width, y, col3Width, cellHeight);
+      doc.text(`Destinatario y destino: ${destinatario} / ${departamento}`, x + col1Width + col2Width + 2, y + 7);
+
+      y += cellHeight;
+      doc.rect(x, y, col1Width + col2Width, cellHeight);
+      doc.text(`Sucursal: ${sucursalNombre}`, x + 2, y + 7);
+
+      doc.rect(x + col1Width + col2Width, y, col3Width, cellHeight);
+      doc.text(`Departamento: ${departamento}`, x + col1Width + col2Width + 2, y + 7);
+
+      y += cellHeight;
+      doc.rect(x, y, col1Width + col2Width, cellHeight);
+      doc.text(`Guia: ${guia}`, x + 2, y + 7);
+
+      doc.rect(x + col1Width + col2Width, y, col3Width, cellHeight);
+      doc.text(`Fecha: ${fechaTexto}`, x + col1Width + col2Width + 2, y + 7);
+
+      y += cellHeight;
+      doc.rect(x, y, col1Width + col2Width, cellHeight);
+      doc.text('Esta plantilla fue generada manualmente', x + 2, y + 7);
+
+      doc.rect(x + col1Width + col2Width, y, col3Width / 2, cellHeight);
+      doc.text('Copias: 2', x + col1Width + col2Width + 2, y + 7);
+
+      doc.rect(x + col1Width + col2Width + col3Width / 2, y, col3Width / 2, cellHeight);
+      doc.text(`Corr.: ${correlativo}`, x + col1Width + col2Width + col3Width / 2 + 2, y + 7);
+
+      y += cellHeight;
+      doc.rect(x, y, col1Width, cellHeightFirma);
+      doc.text('Contratos:', x + 2, y + 7);
+
+      doc.rect(x + col1Width, y, col2Width, cellHeightFirma);
+      doc.text('Peso:', x + col1Width + 2, y + 7);
+
+      doc.rect(x + col1Width + col2Width, y, col3Width, cellHeightFirma2);
+      doc.text('Firma:', x + col1Width + col2Width + 2, y + 7);
+
+      return y + cellHeightFirma2;
+    };
+
+    let lastY = drawGuide(startX, startY);
+    doc.setFontSize(8);
+    doc.text('Esta guia debe ir en la correspondencia rotulada', startX + 2, lastY + 1);
+
+    lastY = drawGuide(startX, startY + 90);
+    doc.setFontSize(8);
+    doc.text('Copia de guia', startX + 2, lastY + 1);
+
+    doc.save(`Plantilla-${guia}.pdf`);
   },
   openAddDeliveredModal() {
   // limpiar form
