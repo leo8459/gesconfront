@@ -6,14 +6,14 @@
         <div class="row justify-content-end mb-3">
           <div class="col-3">
             <button @click="irAAsignarAdmin" class="btn btn-info btn-sm w-100">
-              <i class="fas fa-external-link-alt"></i> Ir a Asignar (Admin)
+              <i class="fas fa-external-link-alt"></i> Asignar carteros
             </button>
           </div>
-          <div class="col-3">
+          <!-- <div class="col-3">
             <button @click="asignarCarterosSeleccionados" class="btn btn-primary btn-sm w-100" :disabled="!hasSelectedItems">
               <i class="fas fa-user-check"></i> Asignar cartero a seleccionados
             </button>
-          </div>
+          </div> -->
 
           <div class="col-3">
             <input v-model="searchTerm" @keypress.enter="handleSearchEnter" type="text" class="form-control"

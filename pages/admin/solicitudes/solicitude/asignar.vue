@@ -10,11 +10,12 @@
               type="text"
               v-model="searchQuery"
               @keypress.enter.prevent="handleSearchEnter"
+              @paste.prevent="handleSearchPaste"
               class="form-control mb-3"
-              placeholder="Buscar solicitud..."
+              placeholder="Buscar o pegar codigo(s) de guia..."
             >
 
-            <div v-for="(group, estado) in groupedData" :key="estado" class="col-12">
+            <div v-if="mostrarPaquetes" v-for="(group, estado) in groupedData" :key="estado" class="col-12">
               <div class="card border-rounded">
                 <div class="card-header" @click="toggleCollapse(estado)">
                   {{
@@ -152,6 +153,7 @@ export default {
       collapseState: {},
       searchQuery: '',
       user: {},
+      mostrarPaquetes: false,
     };
   },
   computed: {
@@ -197,17 +199,55 @@ export default {
       );
     },
     handleSearchEnter() {
-      const guia = this.normalizeDept(this.searchQuery);
-      if (!guia) return;
+      this.processGuiasFromText(this.searchQuery);
+      this.searchQuery = '';
+    },
+    handleSearchPaste(event) {
+      const pastedText = event?.clipboardData?.getData('text') || '';
+      this.processGuiasFromText(pastedText);
+      this.searchQuery = '';
+    },
+    processGuiasFromText(rawText) {
+      const text = String(rawText ?? '');
+      const parts = text
+        .split(/[\s,;|]+/)
+        .map((p) => this.normalizeDept(p))
+        .filter(Boolean);
 
-      const solicitud = (this.list || []).find((item) => this.normalizeDept(item?.guia) === guia);
-      if (!solicitud) {
+      if (!parts.length) return;
+
+      let agregadas = 0;
+      const noEncontradas = [];
+
+      parts.forEach((guia) => {
+        const solicitud = (this.list || []).find(
+          (item) => this.normalizeDept(item?.guia) === guia
+        );
+
+        if (!solicitud) {
+          noEncontradas.push(guia);
+          return;
+        }
+
+        const antes = this.direccionesAsignadas.length;
+        this.addDireccion(solicitud);
+        if (this.direccionesAsignadas.length > antes) {
+          agregadas += 1;
+        }
+      });
+
+      if (parts.length === 1 && agregadas === 0 && noEncontradas.length === 1) {
         this.$swal.fire('Guia no encontrada', 'No existe en la lista disponible.', 'info');
         return;
       }
 
-      this.addDireccion(solicitud);
-      this.searchQuery = '';
+      if (noEncontradas.length) {
+        this.$swal.fire(
+          'Busqueda completada',
+          `Agregadas: ${agregadas}. No encontradas: ${noEncontradas.join(', ')}`,
+          'info'
+        );
+      }
     },
     async GET_DATA(path) {
       const res = await this.$encargados.$get(path);
