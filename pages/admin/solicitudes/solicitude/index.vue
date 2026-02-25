@@ -166,9 +166,22 @@ export default {
   computed: {
     filteredSolicitudes() {
       const term = (this.searchTerm || '').toLowerCase();
-      return this.list.filter(item =>
+      const filtered = this.list.filter(item =>
         JSON.stringify(item || {}).toLowerCase().includes(term)
       );
+
+      const toTime = (value) => {
+        if (!value) return 0;
+        const parsed = new Date(value).getTime();
+        return Number.isNaN(parsed) ? 0 : parsed;
+      };
+
+      return filtered.sort((a, b) => {
+        const timeA = toTime(a?.created_at || a?.fecha || a?.updated_at);
+        const timeB = toTime(b?.created_at || b?.fecha || b?.updated_at);
+        if (timeA !== timeB) return timeB - timeA;
+        return Number(b?.id || 0) - Number(a?.id || 0);
+      });
     },
     paginatedSolicitudes() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
