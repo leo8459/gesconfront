@@ -249,9 +249,12 @@
   
   //   doc.save(`Solicitud-${guia}.pdf`);
   // }
-  
   async generatePDF(data) {
-  if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') {
+      console.error('La generacion de PDF solo se puede realizar en el cliente.');
+      return;
+    }
+
     const { jsPDF } = await import('jspdf');
     if (!data) {
       console.error('No se proporcionaron datos para generar el PDF');
@@ -259,153 +262,158 @@
     }
 
     const doc = new jsPDF('landscape', 'mm', 'letter');
-    const fontSize = 16;
+    const fontSize = 13;
+    const lineHeight = 5;
+    const checkboxSize = 4;
     doc.setFontSize(fontSize);
 
     const guia = data.guia || '';
     const codigoBarras = data.codigo_barras || '';
     const remitente = data.remitente || '';
     const destinatario = data.destinatario || '';
-    const direccion_especifica_d = data.direccion_especifica_d || '';
-    const origen = data.sucursale ? data.sucursale.origen : '';
-    const destino = (data.tarifa ? data.tarifa.departamento : '') || data.reencaminamiento || '';
+    const direccionEspecifica = (data.direccion && data.direccion.direccion_especifica) || '';
+    const direccionDest = data.direccion_especifica_d || '';
+    const telefono = data.telefono || '';
+    const telefonoDest = data.telefono_d || '';
+    const origen = (data.sucursale && data.sucursale.origen) || '';
+    const destino = (data.tarifa && data.tarifa.departamento) || data.reencaminamiento || '';
     const provinciaDestinatario = (data.ciudad || (this.model && this.model.ciudad) || '').trim();
     const departamentoProvinciaDestinatario = provinciaDestinatario
       ? `Departamento: ${destino || '-'} | Provincia: ${provinciaDestinatario}`
       : `Departamento: ${destino || '-'}`;
-    const direccionEspecifica = data.direccion ? data.direccion.direccion_especifica : '';
-    const telefono = data.telefono || '';
-    const telefono_d = data.telefono_d || '';
-    const drawWrappedLine = (text, x, y, maxWidth, maxLines = 2) => {
-      const rawLines = doc.splitTextToSize(text || '', maxWidth);
-      const lines = rawLines.slice(0, maxLines);
-      if (rawLines.length > maxLines && lines.length) {
-        const last = lines[lines.length - 1];
-        lines[lines.length - 1] = `${last.slice(0, Math.max(0, last.length - 3))}...`;
-      }
-      doc.text(lines, x, y);
+
+    const startX = 10;
+    const leftWidth = 135;
+    const rightWidth = 135;
+    const halfLeft = leftWidth / 2;
+
+    const getWrappedLines = (text, maxWidth, maxLines = 0) => {
+      const rawText = (text || '').toString();
+      const lines = doc.splitTextToSize(rawText, maxWidth);
+      if (!maxLines || lines.length <= maxLines) return lines.length ? lines : [''];
+      const trimmed = lines.slice(0, maxLines);
+      const lastIndex = trimmed.length - 1;
+      const lastLine = (trimmed[lastIndex] || '').toString();
+      trimmed[lastIndex] = `${lastLine.substring(0, Math.max(0, lastLine.length - 3))}...`;
+      return trimmed;
     };
 
-    let startX = 10;
-    let startY = 10;
-    let cellHeight = 15;
-    let cellWidth = 135;
-    const checkboxSize = 4;  // Tamaño del checkbox
+    const getRowHeight = (lines, minHeight = 12, paddingY = 3) => {
+      return Math.max(minHeight, (lines.length * lineHeight) + (paddingY * 2));
+    };
 
-    // Sección de Remitente
-    doc.setFontSize(fontSize); // Aplica el nuevo tamaño de letra
-    doc.rect(startX, startY, cellWidth, cellHeight);
-    drawWrappedLine(`REMITENTE: ${remitente}`, startX + 2, startY + 8, cellWidth - 6, 2);
+    const drawCellWithLines = (x, y, width, height, lines, paddingX = 2, paddingTop = 4) => {
+      doc.rect(x, y, width, height);
+      lines.forEach((line, idx) => {
+        doc.text(line, x + paddingX, y + paddingTop + (idx * lineHeight));
+      });
+    };
 
-    const barcodeCellHeight = cellHeight * 3;
-    doc.rect(startX + cellWidth, startY, cellWidth, barcodeCellHeight);
-    doc.text('', startX + cellWidth + 10, startY + 10);
+    let y = 10;
 
+    const remitenteLines = getWrappedLines(`REMITENTE: ${remitente}`, leftWidth - 6, 3);
+    const telefonoLines = getWrappedLines(`TELEFONO: ${telefono}`, leftWidth - 6, 2);
+    const direccionOrigenLines = getWrappedLines(`Direccion: ${direccionEspecifica}`, leftWidth - 6, 3);
+    const departamentoOrigenLines = getWrappedLines(`Departamento: ${origen || '-'}`, leftWidth - 6, 2);
+
+    const hRem = getRowHeight(remitenteLines, 13);
+    const hTel = getRowHeight(telefonoLines, 11);
+    const hDir = getRowHeight(direccionOrigenLines, 13);
+    const hDept = getRowHeight(departamentoOrigenLines, 11);
+    const barcodeBlockHeight = hRem + hTel + hDir;
+
+    drawCellWithLines(startX, y, leftWidth, hRem, remitenteLines);
+    drawCellWithLines(startX, y + hRem, leftWidth, hTel, telefonoLines);
+    drawCellWithLines(startX, y + hRem + hTel, leftWidth, hDir, direccionOrigenLines);
+
+    doc.rect(startX + leftWidth, y, rightWidth, barcodeBlockHeight);
     if (codigoBarras) {
-        const barcodeX = startX + cellWidth + 15;
-        const barcodeY = startY + 18;
-        const barcodeWidth = 75;
-        const barcodeHeight = 10;
-        
-        doc.addImage(codigoBarras, 'JPEG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
-        const textWidth = doc.getTextWidth(guia);
-        const textX = barcodeX + (barcodeWidth - textWidth) / 2;
-        doc.text(guia, textX, barcodeY + barcodeHeight + 5);
+      const barcodeWidth = Math.min(75, rightWidth - 24);
+      const barcodeHeight = 10;
+      const barcodeX = startX + leftWidth + ((rightWidth - barcodeWidth) / 2);
+      const barcodeY = y + Math.max(8, (barcodeBlockHeight - barcodeHeight - 8) / 2);
+      doc.addImage(codigoBarras, 'JPEG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
+      const textWidth = doc.getTextWidth(guia);
+      const textX = barcodeX + ((barcodeWidth - textWidth) / 2);
+      const guiaY = Math.min(barcodeY + barcodeHeight + 5, y + barcodeBlockHeight - 2);
+      doc.text(guia, textX, guiaY);
     }
 
-    startY += cellHeight;
-    doc.rect(startX, startY, cellWidth, cellHeight);
-    doc.text(`TELEFONO: ${telefono}`, startX + 2, startY + 10);
+    y += barcodeBlockHeight;
+    drawCellWithLines(startX, y, leftWidth, hDept, departamentoOrigenLines);
+    y += hDept;
 
-    startY += cellHeight;
-    doc.rect(startX, startY, cellWidth, cellHeight);
-    doc.text(`Direccion: ${direccionEspecifica}`, startX + 2, startY + 10);
+    const destinatarioLines = getWrappedLines(`DESTINATARIO: ${destinatario}`, rightWidth - 6, 4);
+    const hDestinatario = getRowHeight(destinatarioLines, 20);
+    const hReturnBlock = Math.max(20, hDestinatario);
 
-    startY += cellHeight;
-    doc.rect(startX, startY, cellWidth, cellHeight);
-    doc.text(`Departamento: ${origen}`, startX + 2, startY + 10);
+    doc.rect(startX, y, halfLeft, hReturnBlock);
+    doc.text('DEVOLUCION', startX + 2, y + 7);
+    doc.text('RETOUR', startX + 2, y + 13);
 
-    startY += cellHeight;
-    doc.rect(startX, startY, cellWidth / 2, cellHeight * 2);
-    doc.text('DEVOLUCION', startX + 2, startY + 10);
-    doc.text('RETOUR', startX + 2, startY + 20);
+    doc.rect(startX + halfLeft, y, halfLeft, hReturnBlock);
+    doc.setFontSize(fontSize + 2);
+    doc.text('CN 15', startX + halfLeft + 10, y + (hReturnBlock / 2) + 1);
+    doc.setFontSize(fontSize);
 
-    doc.setFontSize(fontSize + 2); // Tamaño de letra más grande para "CN 15"
-    doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, cellHeight * 2);
-    doc.text('CN 15', startX + cellWidth / 2 + 10, startY + 15);
-    doc.setFontSize(fontSize); // Regresa al tamaño de letra base
+    drawCellWithLines(startX + leftWidth, y, rightWidth, hReturnBlock, destinatarioLines);
+    y += hReturnBlock;
 
-    doc.rect(startX + cellWidth, startY, cellWidth, cellHeight * 2);
-    drawWrappedLine(`DESTINATARIO: ${destinatario}`, startX + cellWidth + 2, startY + 8, cellWidth - 6, 2);
-
-    startY += cellHeight * 2;
-
-    // Configuración dinámica para el texto en las celdas de la izquierda con checkbox
     const leftCellTexts = [
-        { topText: 'Se Mudó', bottomText: 'Déménagé' },
-        { topText: 'Desconocido', bottomText: 'Inconnu' },
-        { topText: 'Direccion Insuficiente', bottomText: 'Adresse Insuffisante' }
+      { topText: 'Se Mudo', bottomText: 'Demenage' },
+      { topText: 'Desconocido', bottomText: 'Inconnu' },
+      { topText: 'Direccion Insuficiente', bottomText: 'Adresse Insuffisante' },
     ];
-
-    // Llenado dinámico de las celdas a la izquierda con checkbox dentro de la celda y alineado a la derecha
-    leftCellTexts.forEach(cell => {
-        doc.rect(startX, startY, cellWidth / 2, cellHeight); // Celda completa
-        doc.text(cell.topText, startX + 2, startY + 7);
-        doc.text(cell.bottomText, startX + 2, startY + 14);
-
-        // Checkbox alineado a la derecha dentro de la celda
-        doc.rect(startX + cellWidth / 2 - checkboxSize - 2, startY + (cellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
-        
-        startY += cellHeight;
-    });
-
-    // Configuración dinámica para el texto en las celdas de la derecha con checkbox
     const rightCellTexts = [
-        { topText: 'No Reclamado', bottomText: 'Non Réclamé' },
-        { topText: 'Rechazado', bottomText: 'Refusé' },
-        { topText: 'Se Asentó', bottomText: 'Parti' }
+      { topText: 'No Reclamado', bottomText: 'Non Reclamado' },
+      { topText: 'Rechazado', bottomText: 'Refuse' },
+      { topText: 'Se Asento', bottomText: 'Parti' },
     ];
 
-    // Llenado dinámico de las celdas a la derecha con checkbox dentro de la celda y alineado a la derecha
-    startY -= cellHeight * 3;  // Regresa al inicio de la sección para la derecha
-    rightCellTexts.forEach(cell => {
-        doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, cellHeight); // Celda completa
-        doc.text(cell.topText, startX + cellWidth / 2 + 2, startY + 7);
-        doc.text(cell.bottomText, startX + cellWidth / 2 + 2, startY + 14);
+    const rightInfoLines = [
+      getWrappedLines(`TELEFONO DESTINATARIO: ${telefonoDest}`, rightWidth - 12, 2),
+      getWrappedLines(`Direccion: ${direccionDest}`, rightWidth - 12, 3),
+      getWrappedLines(departamentoProvinciaDestinatario, rightWidth - 12, 3),
+    ];
+    const rowHeights = rightInfoLines.map(lines => getRowHeight(lines, 14));
 
-        // Checkbox alineado a la derecha dentro de la celda
-        doc.rect(startX + cellWidth - checkboxSize - 2, startY + (cellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
+    for (let i = 0; i < 3; i += 1) {
+      const rowHeight = rowHeights[i];
 
-        startY += cellHeight;
-    });
+      doc.rect(startX, y, halfLeft, rowHeight);
+      doc.text(leftCellTexts[i].topText, startX + 2, y + 6);
+      doc.text(leftCellTexts[i].bottomText, startX + 2, y + 12);
+      doc.rect(
+        startX + halfLeft - checkboxSize - 2,
+        y + ((rowHeight - checkboxSize) / 2),
+        checkboxSize,
+        checkboxSize
+      );
 
-    // Información del Destinatario
-    startY -= cellHeight * 3;  // Regresa para alinear con el inicio de las celdas de la izquierda
-    doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-    doc.text(`TELEFONO DESTINATARIO: ${telefono_d}`, startX + cellWidth + 10, startY + 10);
+      doc.rect(startX + halfLeft, y, halfLeft, rowHeight);
+      doc.text(rightCellTexts[i].topText, startX + halfLeft + 2, y + 6);
+      doc.text(rightCellTexts[i].bottomText, startX + halfLeft + 2, y + 12);
+      doc.rect(
+        startX + leftWidth - checkboxSize - 2,
+        y + ((rowHeight - checkboxSize) / 2),
+        checkboxSize,
+        checkboxSize
+      );
 
-    startY += cellHeight;
-    doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-    doc.text(`Direccion: ${direccion_especifica_d}`, startX + cellWidth + 10, startY + 10);
+      drawCellWithLines(startX + leftWidth, y, rightWidth, rowHeight, rightInfoLines[i], 10, 6);
+      y += rowHeight;
+    }
 
-    startY += cellHeight;
-    doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-    drawWrappedLine(departamentoProvinciaDestinatario, startX + cellWidth + 10, startY + 10, cellWidth - 14, 1);
-
-    // Línea final de puntos en el Footer
-    startY += cellHeight;
-    doc.rect(startX, startY, cellWidth * 2, cellHeight);
-    doc.text('................................................................................................................', startX + 2, startY + 10);
+    const footerHeight = 12;
+    doc.rect(startX, y, leftWidth + rightWidth, footerHeight);
+    doc.text(
+      '................................................................................................................',
+      startX + 2,
+      y + 8
+    );
 
     doc.save(`Solicitud-${guia}.pdf`);
-  } else {
-    console.error('La generación de PDF solo se puede realizar en el cliente.');
-  }}
-
-
-
-  
-  
+  }
     },
     mounted() {
       this.$nextTick(async () => {
