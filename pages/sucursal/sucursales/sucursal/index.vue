@@ -310,6 +310,10 @@ export default {
       const direccion_especifica_d = data.direccion_especifica_d || '';
       const origen = data.sucursale ? data.sucursale.origen : '';
       const destino = (data.tarifa ? data.tarifa.departamento : '') || data.reencaminamiento || '';
+      const provinciaDestinatario = (data.ciudad || '').trim();
+      const departamentoProvinciaDestinatario = provinciaDestinatario
+        ? `Departamento: ${destino || '-'} | Provincia: ${provinciaDestinatario}`
+        : `Departamento: ${destino || '-'}`;
       const direccionEspecifica = data.direccion ? data.direccion.direccion_especifica : '';
       const telefono = data.telefono || '';
       const telefono_d = data.telefono_d || '';
@@ -326,7 +330,7 @@ export default {
 
       let startX = 10;
       let startY = 10;
-      let cellHeight = 15;
+      let cellHeight = 18;
       let cellWidth = 135;
       const checkboxSize = 4;  // Tamaño del checkbox
 
@@ -424,15 +428,15 @@ export default {
       // Información del Destinatario
       startY -= cellHeight * 3;
       doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-      doc.text(`TELEFONO DESTINATARIO: ${telefono_d}`, startX + cellWidth + 10, startY + 10);
+      drawWrappedLine(`TELEFONO DESTINATARIO: ${telefono_d}`, startX + cellWidth + 6, startY + 11, cellWidth - 12, 1);
 
       startY += cellHeight;
       doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-      doc.text(`Direccion: ${direccion_especifica_d}`, startX + cellWidth + 10, startY + 10);
+      drawWrappedLine(`Direccion: ${direccion_especifica_d}`, startX + cellWidth + 6, startY + 7, cellWidth - 12, 2);
 
       startY += cellHeight;
       doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-      doc.text(`Departamento: ${destino}`, startX + cellWidth + 10, startY + 10);
+      drawWrappedLine(departamentoProvinciaDestinatario, startX + cellWidth + 6, startY + 11, cellWidth - 12, 1);
 
       // Línea final de puntos en el Footer
       startY += cellHeight;
@@ -745,6 +749,10 @@ export default {
       const tarifa = data.tarifa || {};
       const origen = sucursal.origen || '';
       const destino = tarifa.departamento || data.reencaminamiento || '';
+      const provinciaDestinatario = (data.ciudad || '').trim();
+      const destinoConProvincia = provinciaDestinatario
+        ? `${destino || '-'} | Provincia: ${provinciaDestinatario}`
+        : (destino || '-');
 
       const direccion = data.direccion || {};
       const direccionEspecifica = direccion.direccion_especifica || '';
@@ -797,7 +805,7 @@ export default {
 
         startY += cellHeight * 2;
         const leftRow1 = `Remitente y origen: ${remitente} ${origen}`;
-        const rightRow1 = `Destinatario y destino: ${destinatario} ${destino}`;
+        const rightRow1 = `Destinatario y destino: ${destinatario} ${destinoConProvincia}`;
         const row1H = Math.max(
           getCellHeight(leftRow1, col1Width + col2Width, cellHeight),
           getCellHeight(rightRow1, col3Width, cellHeight)
