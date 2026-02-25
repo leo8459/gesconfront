@@ -331,6 +331,7 @@ export default {
       let startX = 10;
       let startY = 10;
       let cellHeight = 18;
+      const detailCellHeight = 22;
       let cellWidth = 135;
       const checkboxSize = 4;  // Tamaño del checkbox
 
@@ -369,15 +370,15 @@ export default {
       // Continúa con el resto del contenido...
       startY += cellHeight;
       doc.rect(startX, startY, cellWidth, cellHeight);
-      doc.text(`TELEFONO: ${telefono}`, startX + 2, startY + 10);
+      drawWrappedLine(`TELEFONO: ${telefono}`, startX + 4, startY + 11, cellWidth - 8, 2);
 
       startY += cellHeight;
       doc.rect(startX, startY, cellWidth, cellHeight);
-      doc.text(`Direccion: ${direccionEspecifica}`, startX + 2, startY + 10);
+      drawWrappedLine(`Direccion: ${direccionEspecifica}`, startX + 4, startY + 7, cellWidth - 8, 2);
 
       startY += cellHeight;
       doc.rect(startX, startY, cellWidth, cellHeight);
-      doc.text(`Departamento: ${origen}`, startX + 2, startY + 10);
+      drawWrappedLine(`Departamento: ${origen}`, startX + 4, startY + 11, cellWidth - 8, 2);
 
       startY += cellHeight;
       doc.rect(startX, startY, cellWidth / 2, cellHeight * 2);
@@ -402,11 +403,11 @@ export default {
       ];
 
       leftCellTexts.forEach(cell => {
-        doc.rect(startX, startY, cellWidth / 2, cellHeight);
-        doc.text(cell.topText, startX + 2, startY + 7);
-        doc.text(cell.bottomText, startX + 2, startY + 14);
-        doc.rect(startX + cellWidth / 2 - checkboxSize - 2, startY + (cellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
-        startY += cellHeight;
+        doc.rect(startX, startY, cellWidth / 2, detailCellHeight);
+        doc.text(cell.topText, startX + 2, startY + 8);
+        doc.text(cell.bottomText, startX + 2, startY + 16);
+        doc.rect(startX + cellWidth / 2 - checkboxSize - 2, startY + (detailCellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
+        startY += detailCellHeight;
       });
 
       // Celdas de la derecha con checkbox
@@ -416,30 +417,30 @@ export default {
         { topText: 'Se Asentó', bottomText: 'Parti' }
       ];
 
-      startY -= cellHeight * 3;
+      startY -= detailCellHeight * 3;
       rightCellTexts.forEach(cell => {
-        doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, cellHeight);
-        doc.text(cell.topText, startX + cellWidth / 2 + 2, startY + 7);
-        doc.text(cell.bottomText, startX + cellWidth / 2 + 2, startY + 14);
-        doc.rect(startX + cellWidth - checkboxSize - 2, startY + (cellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
-        startY += cellHeight;
+        doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, detailCellHeight);
+        doc.text(cell.topText, startX + cellWidth / 2 + 2, startY + 8);
+        doc.text(cell.bottomText, startX + cellWidth / 2 + 2, startY + 16);
+        doc.rect(startX + cellWidth - checkboxSize - 2, startY + (detailCellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
+        startY += detailCellHeight;
       });
 
       // Información del Destinatario
-      startY -= cellHeight * 3;
-      doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-      drawWrappedLine(`TELEFONO DESTINATARIO: ${telefono_d}`, startX + cellWidth + 6, startY + 11, cellWidth - 12, 1);
+      startY -= detailCellHeight * 3;
+      doc.rect(startX + cellWidth, startY, cellWidth, detailCellHeight);
+      drawWrappedLine(`TELEFONO DESTINATARIO: ${telefono_d}`, startX + cellWidth + 6, startY + 11, cellWidth - 12, 3);
 
-      startY += cellHeight;
-      doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-      drawWrappedLine(`Direccion: ${direccion_especifica_d}`, startX + cellWidth + 6, startY + 7, cellWidth - 12, 2);
+      startY += detailCellHeight;
+      doc.rect(startX + cellWidth, startY, cellWidth, detailCellHeight);
+      drawWrappedLine(`Direccion: ${direccion_especifica_d}`, startX + cellWidth + 6, startY + 7, cellWidth - 12, 3);
 
-      startY += cellHeight;
-      doc.rect(startX + cellWidth, startY, cellWidth, cellHeight);
-      drawWrappedLine(departamentoProvinciaDestinatario, startX + cellWidth + 6, startY + 11, cellWidth - 12, 1);
+      startY += detailCellHeight;
+      doc.rect(startX + cellWidth, startY, cellWidth, detailCellHeight);
+      drawWrappedLine(departamentoProvinciaDestinatario, startX + cellWidth + 6, startY + 11, cellWidth - 12, 3);
 
       // Línea final de puntos en el Footer
-      startY += cellHeight;
+      startY += detailCellHeight;
       doc.rect(startX, startY, cellWidth * 2, cellHeight);
       doc.text('................................................................................................................', startX + 2, startY + 10);
     }
