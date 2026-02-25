@@ -312,40 +312,63 @@ export default {
       const destino = (data.tarifa ? data.tarifa.departamento : '') || data.reencaminamiento || '';
       const provinciaDestinatario = (data.ciudad || '').trim();
       const departamentoProvinciaDestinatario = provinciaDestinatario
-        ? `Departamento: ${destino || '-'} | Provincia: ${provinciaDestinatario}`
+        ? `Departamento: ${destino || '-'}\nProvincia: ${provinciaDestinatario}`
         : `Departamento: ${destino || '-'}`;
       const direccionEspecifica = data.direccion ? data.direccion.direccion_especifica : '';
       const telefono = data.telefono || '';
       const telefono_d = data.telefono_d || '';
-      const drawWrappedLine = (text, x, y, maxWidth, maxLines = 2) => {
-        const rawLines = doc.splitTextToSize(text || '', maxWidth);
-        const lines = rawLines.slice(0, maxLines);
-        if (rawLines.length > maxLines && lines.length) {
-          const last = lines[lines.length - 1];
-          lines[lines.length - 1] = `${last.slice(0, Math.max(0, last.length - 3))}...`;
+      const textLineHeight = 6;
+      const getWrappedLines = (text, maxWidth, maxLines = null) => {
+        const rawLines = doc.splitTextToSize(String(text || ''), maxWidth);
+        if (Number.isInteger(maxLines)) {
+          return rawLines.slice(0, maxLines);
         }
+        return rawLines;
+      };
+      const getCellHeight = (lines, minHeight) => {
+        return Math.max(minHeight, (lines.length * textLineHeight) + 6);
+      };
+      const drawWrappedLine = (text, x, y, maxWidth, maxLines = null) => {
+        const lines = getWrappedLines(text, maxWidth, maxLines);
         doc.text(lines, x, y);
+        return lines;
       };
       const imagenData = data.imagen || ''; // Se asume que `data.imagen` contiene la imagen en base64 o una URL válida.
 
       let startX = 10;
       let startY = 10;
       let cellHeight = 18;
-      const detailCellHeight = 22;
+      const detailCellMinHeight = 22;
       let cellWidth = 135;
       const checkboxSize = 4;  // Tamaño del checkbox
+      const leftTextX = startX + 4;
+      const rightTextX = startX + cellWidth + 6;
+      const leftTextWidth = cellWidth - 12;
+      const rightTextWidth = cellWidth - 16;
+      const senderRemitenteText = `REMITENTE:\n${remitente || '-'}`;
+      const senderRemitenteLines = getWrappedLines(senderRemitenteText, leftTextWidth);
+      const senderRemitenteRowHeight = getCellHeight(senderRemitenteLines, cellHeight);
+      const senderPhoneText = `TELEFONO: ${telefono || '-'}`;
+      const senderPhoneLines = getWrappedLines(senderPhoneText, leftTextWidth);
+      const senderPhoneRowHeight = getCellHeight(senderPhoneLines, cellHeight);
+      const senderAddressText = `Direccion:\n${direccionEspecifica || '-'}`;
+      const senderAddressLines = getWrappedLines(senderAddressText, leftTextWidth);
+      const senderAddressRowHeight = getCellHeight(senderAddressLines, cellHeight);
+      const senderDeptText = `Departamento: ${origen || '-'}`;
+      const senderDeptLines = getWrappedLines(senderDeptText, leftTextWidth);
+      const senderDeptRowHeight = getCellHeight(senderDeptLines, cellHeight);
+      const barcodeCellHeight = senderRemitenteRowHeight + senderPhoneRowHeight + senderAddressRowHeight + senderDeptRowHeight;
 
       // Sección de Remitente
       doc.setFontSize(fontSize);
-      doc.rect(startX, startY, cellWidth, cellHeight);
-      drawWrappedLine(`REMITENTE: ${remitente}`, startX + 2, startY + 8, cellWidth - 6, 2);
+      doc.rect(startX, startY, cellWidth, senderRemitenteRowHeight);
+      doc.text(senderRemitenteLines, leftTextX, startY + 7);
 
-      const barcodeCellHeight = cellHeight * 3;
       doc.rect(startX + cellWidth, startY, cellWidth, barcodeCellHeight);
 
       if (codigoBarras) {
         const barcodeX = startX + cellWidth + 15;
-        const barcodeY = startY + 18;
+        const barcodeY = startY + Math.max(10, (barcodeCellHeight / 2) - 7);
         const barcodeWidth = 75;
         const barcodeHeight = 10;
         doc.addImage(codigoBarras, 'JPEG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
@@ -368,32 +391,35 @@ export default {
       }
 
       // Continúa con el resto del contenido...
-      startY += cellHeight;
-      doc.rect(startX, startY, cellWidth, cellHeight);
-      drawWrappedLine(`TELEFONO: ${telefono}`, startX + 4, startY + 11, cellWidth - 8, 2);
+      startY += senderRemitenteRowHeight;
+      doc.rect(startX, startY, cellWidth, senderPhoneRowHeight);
+      doc.text(senderPhoneLines, leftTextX, startY + 7);
 
-      startY += cellHeight;
-      doc.rect(startX, startY, cellWidth, cellHeight);
-      drawWrappedLine(`Direccion: ${direccionEspecifica}`, startX + 4, startY + 7, cellWidth - 8, 2);
+      startY += senderPhoneRowHeight;
+      doc.rect(startX, startY, cellWidth, senderAddressRowHeight);
+      doc.text(senderAddressLines, leftTextX, startY + 7);
 
-      startY += cellHeight;
-      doc.rect(startX, startY, cellWidth, cellHeight);
-      drawWrappedLine(`Departamento: ${origen}`, startX + 4, startY + 11, cellWidth - 8, 2);
+      startY += senderAddressRowHeight;
+      doc.rect(startX, startY, cellWidth, senderDeptRowHeight);
+      doc.text(senderDeptLines, leftTextX, startY + 7);
 
-      startY += cellHeight;
-      doc.rect(startX, startY, cellWidth / 2, cellHeight * 2);
+      startY += senderDeptRowHeight;
+      const destinatarioText = `DESTINATARIO:\n${destinatario || '-'}`;
+      const destinatarioLines = getWrappedLines(destinatarioText, rightTextWidth);
+      const destinatarioRowHeight = getCellHeight(destinatarioLines, cellHeight * 2);
+      doc.rect(startX, startY, cellWidth / 2, destinatarioRowHeight);
       doc.text('DEVOLUCION', startX + 2, startY + 10);
       doc.text('RETOUR', startX + 2, startY + 20);
 
       doc.setFontSize(fontSize + 2); // Tamaño de letra más grande para "CN 15"
-      doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, cellHeight * 2);
+      doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, destinatarioRowHeight);
       doc.text('CN 15', startX + cellWidth / 2 + 10, startY + 15);
       doc.setFontSize(fontSize); // Regresa al tamaño de letra base
 
-      doc.rect(startX + cellWidth, startY, cellWidth, cellHeight * 2);
-      drawWrappedLine(`DESTINATARIO: ${destinatario}`, startX + cellWidth + 2, startY + 8, cellWidth - 6, 2);
+      doc.rect(startX + cellWidth, startY, cellWidth, destinatarioRowHeight);
+      doc.text(destinatarioLines, rightTextX, startY + 7);
 
-      startY += cellHeight * 2;
+      startY += destinatarioRowHeight;
 
       // Celdas de la izquierda con checkbox
       const leftCellTexts = [
@@ -401,13 +427,22 @@ export default {
         { topText: 'Desconocido', bottomText: 'Inconnu' },
         { topText: 'Direccion Insuficiente', bottomText: 'Adresse Insuffisante' }
       ];
+      const rightInfoLines = [
+        getWrappedLines(`TELEFONO DESTINATARIO: ${telefono_d || '-'}`, rightTextWidth),
+        getWrappedLines(`Direccion:\n${direccion_especifica_d || '-'}`, rightTextWidth),
+        getWrappedLines(departamentoProvinciaDestinatario, rightTextWidth)
+      ];
+      const detailRowHeights = rightInfoLines.map(lines => getCellHeight(lines, detailCellMinHeight));
+      const detailStartY = startY;
 
-      leftCellTexts.forEach(cell => {
-        doc.rect(startX, startY, cellWidth / 2, detailCellHeight);
-        doc.text(cell.topText, startX + 2, startY + 8);
-        doc.text(cell.bottomText, startX + 2, startY + 16);
-        doc.rect(startX + cellWidth / 2 - checkboxSize - 2, startY + (detailCellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
-        startY += detailCellHeight;
+      let leftY = detailStartY;
+      leftCellTexts.forEach((cell, idx) => {
+        const rowHeight = detailRowHeights[idx];
+        doc.rect(startX, leftY, cellWidth / 2, rowHeight);
+        doc.text(cell.topText, startX + 2, leftY + 8);
+        doc.text(cell.bottomText, startX + 2, leftY + 16);
+        doc.rect(startX + cellWidth / 2 - checkboxSize - 2, leftY + (rowHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
+        leftY += rowHeight;
       });
 
       // Celdas de la derecha con checkbox
@@ -417,30 +452,27 @@ export default {
         { topText: 'Se Asentó', bottomText: 'Parti' }
       ];
 
-      startY -= detailCellHeight * 3;
-      rightCellTexts.forEach(cell => {
-        doc.rect(startX + cellWidth / 2, startY, cellWidth / 2, detailCellHeight);
-        doc.text(cell.topText, startX + cellWidth / 2 + 2, startY + 8);
-        doc.text(cell.bottomText, startX + cellWidth / 2 + 2, startY + 16);
-        doc.rect(startX + cellWidth - checkboxSize - 2, startY + (detailCellHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
-        startY += detailCellHeight;
+      let rightCheckY = detailStartY;
+      rightCellTexts.forEach((cell, idx) => {
+        const rowHeight = detailRowHeights[idx];
+        doc.rect(startX + cellWidth / 2, rightCheckY, cellWidth / 2, rowHeight);
+        doc.text(cell.topText, startX + cellWidth / 2 + 2, rightCheckY + 8);
+        doc.text(cell.bottomText, startX + cellWidth / 2 + 2, rightCheckY + 16);
+        doc.rect(startX + cellWidth - checkboxSize - 2, rightCheckY + (rowHeight - checkboxSize) / 2, checkboxSize, checkboxSize);
+        rightCheckY += rowHeight;
       });
 
       // Información del Destinatario
-      startY -= detailCellHeight * 3;
-      doc.rect(startX + cellWidth, startY, cellWidth, detailCellHeight);
-      drawWrappedLine(`TELEFONO DESTINATARIO: ${telefono_d}`, startX + cellWidth + 6, startY + 11, cellWidth - 12, 3);
-
-      startY += detailCellHeight;
-      doc.rect(startX + cellWidth, startY, cellWidth, detailCellHeight);
-      drawWrappedLine(`Direccion: ${direccion_especifica_d}`, startX + cellWidth + 6, startY + 7, cellWidth - 12, 3);
-
-      startY += detailCellHeight;
-      doc.rect(startX + cellWidth, startY, cellWidth, detailCellHeight);
-      drawWrappedLine(departamentoProvinciaDestinatario, startX + cellWidth + 6, startY + 11, cellWidth - 12, 3);
+      let destY = detailStartY;
+      rightInfoLines.forEach((lines, idx) => {
+        const rowHeight = detailRowHeights[idx];
+        doc.rect(startX + cellWidth, destY, cellWidth, rowHeight);
+        doc.text(lines, rightTextX, destY + 7);
+        destY += rowHeight;
+      });
 
       // Línea final de puntos en el Footer
-      startY += detailCellHeight;
+      startY = detailStartY + detailRowHeights.reduce((acc, h) => acc + h, 0);
       doc.rect(startX, startY, cellWidth * 2, cellHeight);
       doc.text('................................................................................................................', startX + 2, startY + 10);
     }
