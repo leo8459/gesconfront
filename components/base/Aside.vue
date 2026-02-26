@@ -164,6 +164,11 @@
                   <span class="sidenav-normal"> Bitácoras</span>
                 </nuxtLink>
               </li>
+              <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/cartero/generardespachoscarteros/generardespachocartero">
+                  <span class="sidenav-normal"> Generar despachos</span>
+                </nuxtLink>
+              </li>
             </ul>
           </div>
 
@@ -178,6 +183,12 @@
           </a>
           <div class="collapse" id="perfil-cartero-regional">
             <ul class="nav flex-column submenu">
+              <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link"
+                  to="/cartero/recibirregionalcarteros/recibirregionalcartero">
+                  <span class="sidenav-normal"> Recibir de regional</span>
+                </nuxtLink>
+              </li>
               <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link"
                   to="/cartero/recogidoregionalcarteros/recogidoregionalcartero">
