@@ -116,17 +116,29 @@ export default {
   },
   computed: {
     filteredList() {
-      return this.list
-        .filter(item => {
-          const searchTerm = this.searchTerm.toLowerCase();
+      const term = String(this.searchTerm || '').toLowerCase().trim();
+      const toText = (value) => String(value ?? '').toLowerCase();
+
+      return (Array.isArray(this.list) ? this.list : [])
+        .filter((item) => {
+          const codigo = toText(item?.codigo);
+          const accion = toText(item?.accion);
+          const descripcion = toText(item?.descripcion);
+          const fechaHora = toText(item?.fecha_hora);
+
+          if (!term) return true;
           return (
-            item.codigo.toLowerCase().includes(searchTerm) ||
-            item.accion.toLowerCase().includes(searchTerm) ||
-            item.descripcion.toLowerCase().includes(searchTerm) ||
-            item.fecha_hora.toLowerCase().includes(searchTerm)
+            codigo.includes(term) ||
+            accion.includes(term) ||
+            descripcion.includes(term) ||
+            fechaHora.includes(term)
           );
         })
-        .sort((a, b) => new Date(b.fecha_hora) - new Date(a.fecha_hora));
+        .sort((a, b) => {
+          const fechaA = a?.fecha_hora ? new Date(a.fecha_hora).getTime() : 0;
+          const fechaB = b?.fecha_hora ? new Date(b.fecha_hora).getTime() : 0;
+          return fechaB - fechaA;
+        });
     },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;

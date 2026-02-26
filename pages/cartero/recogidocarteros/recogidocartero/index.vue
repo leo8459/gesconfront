@@ -654,14 +654,7 @@ export default {
           (item.tarifa_id === null || item.tarifa_id === undefined);
 
         // 4) Coincide con búsqueda (sin romper si hay nulls)
-        const coincideBusqueda =
-          Object.values(item).some((value) =>
-            String(value ?? "")
-              .toLowerCase()
-              .includes(searchTerm)
-          ) ||
-          (item.sucursale?.nombre &&
-            item.sucursale.nombre.toLowerCase().includes(searchTerm));
+        const coincideBusqueda = this.matchesSearch(item, searchTerm);
 
         // ✅ Retorna si cumple alguna regla y además coincide búsqueda
         return (
@@ -717,6 +710,18 @@ export default {
   },
 
   methods: {
+    matchesSearch(item, searchTerm = (this.searchTerm || "").toLowerCase()) {
+      return (
+        Object.values(item).some((value) =>
+          String(value ?? "")
+            .toLowerCase()
+            .includes(searchTerm)
+        ) ||
+        (item.sucursale?.nombre &&
+          item.sucursale.nombre.toLowerCase().includes(searchTerm))
+      );
+    },
+
     openEmsModal() {
       this.emsForm = {
         tipo_correspondencia: "EMS",
@@ -1088,7 +1093,17 @@ export default {
     },
 
     handleSearchEnter() {
-      const filteredItems = this.filteredData;
+      const term = (this.searchTerm || "").trim().toLowerCase();
+      const filteredItems = (term ? this.list : this.filteredData).filter(
+        (item) => this.matchesSearch(item, term)
+      );
+
+      filteredItems.sort((a, b) => {
+        const fa = a.fecha_recojo_c ? new Date(a.fecha_recojo_c).getTime() : 0;
+        const fb = b.fecha_recojo_c ? new Date(b.fecha_recojo_c).getTime() : 0;
+        return fb - fa;
+      });
+
       if (filteredItems.length > 0) {
         const item = filteredItems[0];
 
@@ -1107,6 +1122,12 @@ export default {
         ];
 
         this.isModalVisible = true;
+      } else {
+        this.$swal.fire({
+          icon: "info",
+          title: "Sin resultados",
+          text: "No se encontró ninguna solicitud con ese criterio.",
+        });
       }
     },
 

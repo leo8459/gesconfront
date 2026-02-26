@@ -43,7 +43,7 @@
                       <ul v-if="remitenteSuggestions.length" class="suggestions-list">
                         <li v-for="(suggestion, index) in remitenteSuggestions" :key="index"
                           @click="applyFrequentRemitente(suggestion)">
-                          {{ (suggestion.remitente ?? '-') }} - {{ (suggestion.direccion_r ?? '-') }}, Zona: {{ (suggestion.zona_r ?? '-') }}
+                          {{ (suggestion.remitente ?? '-') }} - {{ (suggestion.direccion_r ?? '-') }} | Dpto: {{ (suggestion.reencaminamiento_label ?? getDepartamentoLabel(suggestion.reencaminamiento) ?? '-') }}
                           <button @click.stop="deleteFrequentRemitente(index)" class="delete-btn">X</button>
                         </li>
                       </ul>
@@ -61,14 +61,7 @@
                         placeholder="Ej: Documentos">
                     </div>
 
-                    <div class="form-group col-12">
-                      <label for="reencaminamiento">Departamento destino</label>
-                      <select id="reencaminamiento" v-model="model.reencaminamiento" class="form-control">
-                        <option v-for="departamento in departamentosEnvio" :key="departamento.value" :value="departamento.value">
-                          {{ departamento.label }}
-                        </option>
-                      </select>
-                    </div>
+                  
 
                     <div class="form-group col-12">
                       <label for="direccion">Dirección de Recojo</label>
@@ -121,6 +114,7 @@
                           @click="applyFrequentAddress(suggestion)">
                           <span>{{ suggestion.destinatario }} - {{ suggestion.direccion_especifica_d }}, Zona: {{
                             suggestion.zona_d
+                            }} | Dpto: {{ suggestion.reencaminamiento_label ?? getDepartamentoLabel(suggestion.reencaminamiento) ?? '-'
                             }}</span>
                           <button @click.stop="deleteFrequentAddress(index)" class="delete-btn">X</button>
                         </li>
@@ -129,7 +123,14 @@
 
 
                     </div>
-
+ <div class="form-group col-12">
+                      <label for="reencaminamiento">Departamento destino</label>
+                      <select id="reencaminamiento" v-model="model.reencaminamiento" class="form-control">
+                        <option v-for="departamento in departamentosEnvio" :key="departamento.value" :value="departamento.value">
+                          {{ departamento.label }}
+                        </option>
+                      </select>
+                    </div>
 
                     <div class="form-group col-12">
                       <label for="telefono_d">Teléfono Destinatario</label>
@@ -333,6 +334,10 @@ export default {
     }
   },
   methods: {
+    getDepartamentoLabel(value) {
+      const departamento = this.departamentosEnvio.find((d) => d.value === value);
+      return departamento ? departamento.label : '';
+    },
     mostrarModalCargaMasiva() {
       this.$refs.modalCargaMasiva.show();
     },
@@ -394,23 +399,39 @@ export default {
     // Método para guardar remitente frecuente
     saveFrequentRemitente() {
       let frequentRemitentes = JSON.parse(localStorage.getItem('frequentRemitentes')) || [];
-      const exists = frequentRemitentes.some(
-        remitente => remitente.remitente.toLowerCase() === this.model.remitente.toLowerCase()
+      const remitenteInput = String(this.model.remitente || '').trim();
+      if (!remitenteInput) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Ingrese un remitente para guardar',
+          showConfirmButton: false,
+          timer: 1500
+        });
+        return;
+      }
+
+      const selectedDireccion = this.direcciones.find(d => d.id === this.model.direccion_id) || {};
+      const newRemitente = {
+        remitente: remitenteInput,
+        telefono: this.model.telefono,
+        contenido: this.model.contenido,
+        reencaminamiento: this.model.reencaminamiento,
+        reencaminamiento_label: this.getDepartamentoLabel(this.model.reencaminamiento),
+        direccion_id: this.model.direccion_id,
+        direccion_r: selectedDireccion.nombre || '',
+        direccion_r_lat: selectedDireccion.latitud || selectedDireccion.direccion_lat || '',
+        direccion_r_lng: selectedDireccion.longitud || selectedDireccion.direccion_lng || '',
+        peso_o: this.model.peso_o,
+        precio: this.precioSeleccionado,
+        sucursale_id: this.model.sucursale_id,
+        sucursale_nombre: this.model.sucursale_nombre
+      };
+
+      const existingIndex = frequentRemitentes.findIndex(
+        remitente => String(remitente.remitente || '').toLowerCase() === remitenteInput.toLowerCase()
       );
 
-      if (!exists) {
-        const newRemitente = {
-          remitente: this.model.remitente,
-          telefono: this.model.telefono,
-          contenido: this.model.contenido,
-          reencaminamiento: this.model.reencaminamiento,
-          direccion_id: this.model.direccion_id,
-          peso_o: this.model.peso_o,
-          precio: this.precioSeleccionado,
-          direccion_r: this.direcciones.find(d => d.id === this.model.direccion_id)?.nombre || '',
-          zona_r: this.model.zona_r || '',
-          ciudad_r: this.model.ciudad || ''
-        };
+      if (existingIndex === -1) {
         frequentRemitentes.push(newRemitente);
         localStorage.setItem('frequentRemitentes', JSON.stringify(frequentRemitentes));
         Swal.fire({
@@ -420,9 +441,11 @@ export default {
           timer: 1500
         });
       } else {
+        frequentRemitentes.splice(existingIndex, 1, newRemitente);
+        localStorage.setItem('frequentRemitentes', JSON.stringify(frequentRemitentes));
         Swal.fire({
-          icon: 'info',
-          title: 'El remitente ya está guardado',
+          icon: 'success',
+          title: 'Remitente frecuente actualizado',
           showConfirmButton: false,
           timer: 1500
         });
@@ -442,7 +465,7 @@ export default {
     loadFrequentRemitentes(query) {
       const frequentRemitentes = JSON.parse(localStorage.getItem('frequentRemitentes')) || [];
       return frequentRemitentes.filter(remitente =>
-        remitente.remitente.toLowerCase().includes(query.toLowerCase())
+        String(remitente.remitente || '').toLowerCase().includes(query.toLowerCase())
       );
     },
 
@@ -459,8 +482,8 @@ export default {
       this.model.direccion = remitente.direccion_r;
       this.model.direccion_lat = remitente.direccion_r_lat;
       this.model.direccion_lng = remitente.direccion_r_lng;
-      this.model.zona_r = remitente.zona_r;
-      this.model.ciudad = remitente.ciudad_r;
+      this.model.sucursale_id = remitente.sucursale_id || this.model.sucursale_id;
+      this.model.sucursale_nombre = remitente.sucursale_nombre || this.model.sucursale_nombre;
 
       // Limpia las sugerencias después de seleccionar
       this.remitenteSuggestions = [];
@@ -698,20 +721,35 @@ export default {
     ,
     saveFrequentAddress() {
       let frequentAddresses = JSON.parse(localStorage.getItem('frequentAddresses')) || [];
-      const exists = frequentAddresses.some(
-        address => address.destinatario.toLowerCase() === this.model.destinatario.toLowerCase()
+      const destinatarioInput = String(this.model.destinatario || '').trim();
+      if (!destinatarioInput) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Ingrese un destinatario para guardar',
+          showConfirmButton: false,
+          timer: 1500
+        });
+        return;
+      }
+
+      const newAddress = {
+        destinatario: destinatarioInput,
+        reencaminamiento: this.model.reencaminamiento,
+        reencaminamiento_label: this.getDepartamentoLabel(this.model.reencaminamiento),
+        telefono_d: this.model.telefono_d,
+        direccion_d: this.model.direccion_d,
+        direccion_especifica_d: this.model.direccion_especifica_d,
+        direccion_d_lat: this.model.direccion_d_lat,
+        direccion_d_lng: this.model.direccion_d_lng,
+        zona_d: this.model.zona_d,
+        ciudad: this.model.ciudad
+      };
+
+      const existingIndex = frequentAddresses.findIndex(
+        address => String(address.destinatario || '').toLowerCase() === destinatarioInput.toLowerCase()
       );
 
-      if (!exists) {
-        const newAddress = {
-          destinatario: this.model.destinatario,
-          telefono_d: this.model.telefono_d,
-          direccion_especifica_d: this.model.direccion_especifica_d,
-          direccion_d_lat: this.model.direccion_d_lat,
-          direccion_d_lng: this.model.direccion_d_lng,
-          zona_d: this.model.zona_d,
-          ciudad: this.model.ciudad,
-        };
+      if (existingIndex === -1) {
         frequentAddresses.push(newAddress);
         localStorage.setItem('frequentAddresses', JSON.stringify(frequentAddresses));
         Swal.fire({
@@ -721,9 +759,11 @@ export default {
           timer: 1500
         });
       } else {
+        frequentAddresses.splice(existingIndex, 1, newAddress);
+        localStorage.setItem('frequentAddresses', JSON.stringify(frequentAddresses));
         Swal.fire({
-          icon: 'info',
-          title: 'La dirección ya está guardada',
+          icon: 'success',
+          title: 'Dirección frecuente actualizada',
           showConfirmButton: false,
           timer: 1500
         });
@@ -746,8 +786,10 @@ export default {
 //   this.suggestions = [];
 // },
 applyFrequentAddress(address) {
+  this.model.reencaminamiento = address.reencaminamiento || this.model.reencaminamiento;
   this.model.destinatario = address.destinatario;
   this.model.telefono_d = address.telefono_d;
+  this.model.direccion_d = address.direccion_d || '';
   this.model.direccion_especifica_d = address.direccion_especifica_d;
   this.model.direccion_d_lat = address.direccion_d_lat;
   this.model.direccion_d_lng = address.direccion_d_lng;
@@ -755,7 +797,11 @@ applyFrequentAddress(address) {
   this.model.ciudad = address.ciudad;
 
   // Formatear la dirección incluyendo las coordenadas
-  this.model.direccion_d = `${address.direccion_d_lat}, ${address.direccion_d_lng}`;
+  if (!this.model.direccion_d && address.direccion_d_lat && address.direccion_d_lng) {
+    this.model.direccion_d = `${address.direccion_d_lat}, ${address.direccion_d_lng}`;
+  }
+  this.currentLat_d = address.direccion_d_lat || null;
+  this.currentLng_d = address.direccion_d_lng || null;
 
   // Limpia las sugerencias después de seleccionar
   this.suggestions = [];
@@ -772,7 +818,7 @@ applyFrequentAddress(address) {
     loadFrequentAddresses(query) {
       const frequentAddresses = JSON.parse(localStorage.getItem('frequentAddresses')) || [];
       return frequentAddresses.filter(address =>
-        address.destinatario.toLowerCase().includes(query.toLowerCase())
+        String(address.destinatario || '').toLowerCase().includes(query.toLowerCase())
       );
     },
     getCurrentLocation() {
