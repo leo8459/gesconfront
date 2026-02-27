@@ -234,7 +234,7 @@
     </AdminTemplate>
 
     <!-- Modal para añadir observación -->
-    <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop hide-footer>
+    <b-modal v-model="isObservationModalVisible" title="Agregar Observación" hide-backdrop hide-footer no-enforce-focus>
       <div class="form-group">
         <label for="observacion">Observación</label>
         <textarea id="observacion" v-model="observacion" class="form-control" rows="3"
@@ -811,22 +811,30 @@ export default {
           this.uploadedImage = e.target.result;
         };
         reader.readAsDataURL(file);
+      } else {
+        this.uploadedImage = '';
       }
     },
     async confirmRechazar() {
       this.load = true;
 
       try {
-        const originalImage = this.uploadedImage;
-        const optimizedImage = await this.optimizeImage(originalImage);
+        const originalImage = this.uploadedImage || null;
+        const optimizedImage = originalImage ? await this.optimizeImage(originalImage) : null;
         const formattedDate = this.getFormattedDate();
-
-        await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, {
+        const payload = {
           observacion: this.observacion,
           fecha_d: formattedDate,
-          imagen: optimizedImage,
-          imagen_original: originalImage,
-        });
+        };
+
+        if (optimizedImage) {
+          payload.imagen = optimizedImage;
+        }
+        if (originalImage) {
+          payload.imagen_original = originalImage;
+        }
+
+        await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, payload);
 
         await this.GET_DATA(this.apiUrl);
         this.showSuccessMessage();
@@ -840,6 +848,10 @@ export default {
     },
 
     async optimizeImage(imageDataUrl) {
+      if (!imageDataUrl) {
+        return null;
+      }
+
       const pica = Pica();
       const img = new Image();
       img.src = imageDataUrl;
@@ -915,6 +927,7 @@ export default {
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
       this.list = Array.isArray(res) ? res : [];
+      return res;
     },
     async EliminarItem(id) {
       this.load = true;

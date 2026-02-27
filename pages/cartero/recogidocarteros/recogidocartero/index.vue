@@ -901,6 +901,8 @@ export default {
           this.uploadedImage = e.target.result;
         };
         reader.readAsDataURL(file);
+      } else {
+        this.uploadedImage = "";
       }
     },
     // Método para abrir el modal de observación
@@ -913,16 +915,24 @@ export default {
       this.load = true;
 
       try {
-        const originalImage = this.uploadedImage;
-        const optimizedImage = await this.optimizeImage(originalImage);
+        const originalImage = this.uploadedImage || null;
+        const optimizedImage = originalImage
+          ? await this.optimizeImage(originalImage)
+          : null;
         const formattedDate = this.getFormattedDate();
-
-        await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, {
+        const payload = {
           observacion: this.observacion,
           fecha_d: formattedDate,
-          imagen: optimizedImage,
-          imagen_original: originalImage,
-        });
+        };
+
+        if (optimizedImage) {
+          payload.imagen = optimizedImage;
+        }
+        if (originalImage) {
+          payload.imagen_original = originalImage;
+        }
+
+        await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, payload);
 
         await this.GET_DATA(this.apiUrl);
         this.showSuccessMessage();
@@ -936,6 +946,10 @@ export default {
     },
     // Método para optimizar la imagen
     async optimizeImage(imageDataUrl) {
+      if (!imageDataUrl) {
+        return null;
+      }
+
       const pica = Pica();
       const img = new Image();
       img.src = imageDataUrl;
