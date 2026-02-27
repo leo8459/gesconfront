@@ -71,6 +71,12 @@
                 </nuxtLink>
               </li>
               <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/admin/contratos/contrato">
+                  <span class="sidenav-mini-icon"> Contratos </span>
+                  <span class="sidenav-normal full-width-text"> Contratos </span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/admin/tarifas/tarifa">
                   <span class="sidenav-mini-icon"> Variables </span>
                   <span class="sidenav-normal full-width-text"> Variables </span>
