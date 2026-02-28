@@ -73,16 +73,16 @@
                     <td class="py-0 px-1">{{ (m.guia ?? '-') }}</td>
                     <td class="py-0 px-1">{{ m.peso_r ? m.peso_r : m.peso_v }}</td>
                     <td class="py-0 px-1">{{ (m.remitente ?? '-') }}</td>
-                    <td class="py-0 px-1">{{ (m.direccion.direccion_especifica ?? '-') }}</td>
+                    <td class="py-0 px-1">{{ (m?.direccion?.direccion_especifica ?? '-') }}</td>
                     <!-- Mostrar la dirección específica -->
-                    <td class="py-0 px-1">{{ (m.direccion.zona ?? '-') }}</td> <!-- Mostrar la zona -->
+                    <td class="py-0 px-1">{{ (m?.direccion?.zona ?? '-') }}</td> <!-- Mostrar la zona -->
                     <td class="py-0 px-1">
-                      <a v-if="isCoordinates(m.direccion.direccion)"
+                      <a v-if="m?.direccion?.direccion && isCoordinates(m.direccion.direccion)"
                         :href="'https://www.google.com/maps/search/?api=1&query=' + m.direccion.direccion"
                         target="_blank" class="btn btn-primary btn-sm">
                         Ver mapa
                       </a>
-                      <span v-else>{{ (m.direccion.direccion ?? '-') }}</span>
+                      <span v-else>{{ (m?.direccion?.direccion ?? '-') }}</span>
                     </td>
                     <td class="py-0 px-1">{{ (m.contenido ?? '-') }}</td>
                     <td class="py-0 px-1">{{ (m.fecha_recojo_c ?? '-') }}</td>

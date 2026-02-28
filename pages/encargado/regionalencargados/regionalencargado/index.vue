@@ -288,6 +288,22 @@ export default {
     }
   },
   methods: {
+    resolveStoredPeso(item) {
+      const candidates = [item?.peso_r, item?.peso_v, item?.peso_o];
+
+      for (const candidate of candidates) {
+        if (candidate === null || candidate === undefined || candidate === '') {
+          continue;
+        }
+
+        const value = parseFloat(String(candidate).replace(',', '.'));
+        if (!isNaN(value) && value > 0) {
+          return value.toFixed(3);
+        }
+      }
+
+      return '';
+    },
 
     handleAgregarPaquetes() {
       if (this.selectedItemsData.length > 0) {
@@ -446,12 +462,13 @@ export default {
     },
     openAssignModal() {
       this.selectedItemsData = this.list.filter(item => this.selected[item.id]).map(item => {
-        const precio = this.calculatePrice(item.tarifa_id, item.peso_r);
+        const storedPeso = this.resolveStoredPeso(item);
+        const precio = this.calculatePrice(item.tarifa_id, storedPeso);
         return {
           id: item.id,
           guia: item.guia,
           sucursale: item.sucursale,
-          peso_r: item.peso_r !== undefined && item.peso_r !== null && item.peso_r !== 0 ? item.peso_r : '',
+          peso_r: storedPeso,
           tarifa_id: item.tarifa_id,
           tarifa: this.getTarifaLabel(item.tarifa_id),
           nombre_d: precio,
@@ -467,16 +484,17 @@ export default {
       const filteredItems = this.filteredData;
       if (filteredItems.length > 0) {
         const item = filteredItems[0];
+        const storedPeso = this.resolveStoredPeso(item);
         this.selectedItemsData = [{
           id: item.id,
           guia: item.guia,
           sucursale: item.sucursale,
-          peso_r: item.peso_r || 0,
-          peso_v: item.peso_v || 0,
+          peso_r: storedPeso,
+          peso_v: item.peso_v ?? null,
           peso_o: item.peso_o,
           tarifa_id: item.tarifa_id,
           tarifa: this.getTarifaLabel(item.tarifa_id),
-          precio: this.calculatePrice(item.tarifa_id, item.peso_r),
+          precio: this.calculatePrice(item.tarifa_id, storedPeso),
           estado: item.estado // Incluir 'estado' aquí
         }];
         this.isModalVisible = true;
