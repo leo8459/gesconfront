@@ -72,7 +72,7 @@
               <label for="cartero-select" class="section-label">Seleccionar Cartero</label>
               <select v-model="selectedCartero" id="cartero-select" class="form-control mb-0">
               <option :value="null" disabled>Seleccione un cartero</option>
-              <option v-for="cartero in carteros" :key="cartero.id" :value="cartero.id">
+              <option v-for="cartero in filteredCarteros" :key="cartero.id" :value="cartero.id">
                 {{ cartero.nombre || cartero.nombre2 || ('Cartero #' + cartero.id) }}
               </option>
               </select>
@@ -157,6 +157,29 @@ export default {
     };
   },
   computed: {
+    loggedUserDepartment() {
+      return this.normalizeDept(
+        this.user?.user?.departamento_cartero ??
+        this.user?.departamento_cartero ??
+        this.user?.user?.departamento ??
+        this.user?.departamento
+      );
+    },
+    filteredCarteros() {
+      const department = this.loggedUserDepartment;
+      const source = Array.isArray(this.carteros) ? this.carteros : [];
+
+      if (!department) {
+        return [];
+      }
+
+      return source.filter((cartero) => {
+        const carteroDepartment = this.normalizeDept(
+          cartero?.departamento_cartero ?? cartero?.departamento
+        );
+        return carteroDepartment === department;
+      });
+    },
     groupedData() {
       const grouped = {};
       (this.list || []).forEach((item) => {
@@ -170,7 +193,7 @@ export default {
       return grouped;
     },
     selectedCarteroNombre() {
-      const cartero = (this.carteros || []).find((c) => Number(c.id) === Number(this.selectedCartero));
+      const cartero = (this.filteredCarteros || []).find((c) => Number(c.id) === Number(this.selectedCartero));
       if (!cartero) return '';
       return cartero.nombre || cartero.nombre2 || `Cartero #${cartero.id}`;
     },
@@ -280,6 +303,18 @@ export default {
     async guardarAsignaciones() {
       if (!this.selectedCartero || this.direccionesAsignadas.length === 0) {
         this.$swal.fire('Seleccione un cartero y anada direcciones primero', '', 'warning');
+        return;
+      }
+
+      const carteroPermitido = this.filteredCarteros.some(
+        (c) => Number(c.id) === Number(this.selectedCartero)
+      );
+      if (!carteroPermitido) {
+        this.$swal.fire(
+          'Cartero no permitido',
+          'Solo puede asignar carteros del mismo departamento que el usuario logueado.',
+          'warning'
+        );
         return;
       }
 
