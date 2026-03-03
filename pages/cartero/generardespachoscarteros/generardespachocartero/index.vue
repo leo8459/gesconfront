@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <JcLoader :load="load"></JcLoader>
     <AdminTemplate :page="page" :modulo="modulo">
@@ -71,7 +71,7 @@
               <thead>
                 <tr>
                   <th class="py-0 px-1">#</th>
-                  <th class="py-0 px-1">GuÃ­a</th>
+                  <th class="py-0 px-1">Guía</th>
                   <th class="py-0 px-1">Sucursal</th>
                   <th class="py-0 px-1">Tarifa</th>
                   <th class="py-0 px-1">Peso Correos (Kg)</th>
@@ -149,7 +149,7 @@
           <option value="SRZ">Santa Cruz (SRZ)</option>
           <option value="CBB">Cochabamba (CBB)</option>
           <option value="ORU">Oruro (ORU)</option>
-          <option value="PTI">PotosÃ­ (PTI)</option>
+          <option value="PTI">Potosí (PTI)</option>
           <option value="TJA">Tarija (TJA)</option>
           <option value="SRE">Sucre (SRE)</option>
           <option value="BEN">Trinidad (TDD)</option>
@@ -158,7 +158,7 @@
       </div>
 
       <div class="form-group mt-3">
-        <label for="tipoEnvioRegional">Tipo de envÃ­o</label>
+        <label for="tipoEnvioRegional">Tipo de envío</label>
         <select id="tipoEnvioRegional" v-model="tipoEnvioRegional" class="form-control">
           <option value="AEREO">AEREO</option>
           <option value="TERRESTRE">TERRESTRE</option>
@@ -205,29 +205,11 @@ export default {
   },
   computed: {
     availableData() {
-      const departamentoActual =
-        this.user?.user?.departamento_cartero || this.user?.user?.departamento || null;
-
       return (this.list || [])
-        .filter((item) => {
-          const cumpleEstado5 =
-            item?.estado === 5 && item?.sucursale?.origen === departamentoActual;
-
-          const cumpleEstado10_11_13 =
-            [10, 11, 13].includes(item?.estado) &&
-            item?.reencaminamiento === departamentoActual;
-
-          const cumpleEMSGlobal =
-            [5, 10, 11, 13].includes(item?.estado) &&
-            String(item?.tipo_correspondencia || "").toUpperCase() === "EMS" &&
-            item?.sucursale_id == null &&
-            item?.tarifa_id == null;
-
-          return cumpleEstado5 || cumpleEstado10_11_13 || cumpleEMSGlobal;
-        })
+        .filter((item) => Number(item?.id) > 0)
         .sort((a, b) => {
-          const fa = a?.fecha_recojo_c ? new Date(a.fecha_recojo_c).getTime() : 0;
-          const fb = b?.fecha_recojo_c ? new Date(b.fecha_recojo_c).getTime() : 0;
+          const fa = a?.fecha_recojo_c ? new Date(a.fecha_recojo_c).getTime() : Number(a?.id || 0);
+          const fb = b?.fecha_recojo_c ? new Date(b.fecha_recojo_c).getTime() : Number(b?.id || 0);
           return fb - fa;
         });
     },
@@ -261,6 +243,7 @@ export default {
     },
     itemMatchesSearch(item, term) {
       return (
+        String(item?.id || "").toLowerCase().includes(term) ||
         String(item?.guia || "").toLowerCase().includes(term) ||
         String(item?.remitente || "").toLowerCase().includes(term) ||
         String(item?.destinatario || "").toLowerCase().includes(term) ||
@@ -292,9 +275,11 @@ export default {
         return;
       }
 
-      const exact = this.availableData.find(
-        (item) => String(item?.guia || "").toLowerCase() === term
-      );
+      const exact = this.availableData.find((item) => {
+        const guia = String(item?.guia || "").toLowerCase();
+        const id = String(item?.id || "").toLowerCase();
+        return guia === term || id === term;
+      });
       const partial = this.availableData.find((item) => this.itemMatchesSearch(item, term));
       const found = exact || partial;
 
@@ -315,7 +300,7 @@ export default {
         this.$swal.fire({
           icon: "info",
           title: "Ya seleccionada",
-          text: "La guia ya estÃ¡ en la pre-lista.",
+          text: "La guia ya está en la pre-lista.",
         });
         this.searchTerm = "";
         return;
@@ -363,7 +348,7 @@ export default {
         this.$swal.fire({
           icon: "warning",
           title: "Sin seleccion",
-          text: "Seleccione al menos una guÃ­a.",
+          text: "Seleccione al menos una guía.",
         });
         return;
       }
@@ -584,37 +569,29 @@ export default {
       saveAs(blob, "designado_operador_postal.xlsx");
     },
     async sendToRegional(item, userId, fechaEnvioRegional) {
-      const payloads = [
-        {
-          cartero_recogida_id: userId || null,
-          peso_v: item.peso_v ?? "0.001",
-          nombre_d: item.nombre_d ?? null,
-          fecha_envio_regional: item?.fecha_envio_regional || fechaEnvioRegional,
-          reencaminamiento: this.departamentoSeleccionado,
-          estado: 8,
-        },
-        {
-          cartero_recogida_id: userId || null,
-          peso_v: item.peso_v ?? "0.001",
-          nombre_d: item.nombre_d ?? null,
-          fecha_envio_regional: item?.fecha_envio_regional || fechaEnvioRegional,
-          reencaminamiento: this.departamentoSeleccionado,
-          estado: 8,
-        },
-        {
-          cartero_recogida_id: userId || null,
-          peso_v: item.peso_v ?? "0.001",
-          nombre_d: item.nombre_d ?? null,
-          fecha_envio_regional: item?.fecha_envio_regional || fechaEnvioRegional,
-          reencaminamiento: this.departamentoSeleccionado,
-          estado: 8,
-        },
+      const payload = {
+        cartero_recogida_id: userId || null,
+        peso_v: item.peso_v ?? "0.001",
+        nombre_d: item.nombre_d ?? null,
+        fecha_envio_regional: item?.fecha_envio_regional || fechaEnvioRegional,
+        reencaminamiento: this.departamentoSeleccionado,
+        estado: 8,
+      };
+
+      const requests = [
+        () => this.$api.$put(`mandarregional/${item.id}`, payload),
+        () => this.$api.$put(`solicitudesregional/${item.id}`, payload),
+        () => this.$api.$put(`solicitudesregional5/${item.id}`, payload),
+        () => this.$api.$put(`solicitudes/${item.id}/cambiar-estado`, { estado: 8 }),
       ];
 
       let lastError = null;
-      for (const payload of payloads) {
+      for (const request of requests) {
         try {
-          await this.$api.$put(`mandarregional/${item.id}`, payload);
+          await request();
+          this.list = (this.list || []).map((row) =>
+            Number(row?.id) === Number(item?.id) ? { ...row, estado: 8 } : row
+          );
           return;
         } catch (e) {
           lastError = e;
@@ -743,4 +720,5 @@ export default {
   min-height: 380px;
 }
 </style>
+
 

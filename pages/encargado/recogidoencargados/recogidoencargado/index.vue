@@ -49,6 +49,79 @@
         >
           Registro Contratos
         </button>
+
+        <div class="mt-3 mb-2" v-if="selectedForAssign.length > 0">
+          <button class="btn btn-primary" @click="openRegionalModal">
+            MANDAR A REGIONAL
+          </button>
+
+          <!-- Modal para ingresar el nombre -->
+          <!-- Modal para ingresar el nombre y el departamento -->
+          <b-modal v-model="isModalNameVisible" title="Generar CN-33" hide-footer>
+            <div class="form-group">
+              <label for="nombreGenerador">Apellido de quien manda</label>
+              <input v-model="nombreGenerador" type="text" class="form-control" placeholder="Escribe el apellido..." />
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="departamentoSeleccionado">Departamento destino</label>
+              <select v-model="departamentoSeleccionado" class="form-control">
+                <option disabled value="">Seleccione un departamento</option>
+                <option value="LPB">La Paz (LPB)</option>
+                <option value="SRZ">Santa Cruz (SRZ)</option>
+                <option value="CBB">Cochabamba (CBB)</option>
+                <option value="ORU">Oruro (ORU)</option>
+                <option value="PTI">Potosi (PTI)</option>
+                <option value="TJA">Tarija (TJA)</option>
+                <option value="SRE">Sucre (SRE)</option>
+                <option value="BEN">Trinidad (TDD)</option>
+                <option value="CIJ">Cobija (CIJ)</option>
+
+              </select>
+            </div>
+
+            <div class="form-group mt-3">
+              <label for="tipoEnvioRegional">Tipo de envío</label>
+              <select id="tipoEnvioRegional" v-model="tipoEnvioRegional" class="form-control">
+                <option value="AEREO">AEREO</option>
+                <option value="TERRESTRE">TERRESTRE</option>
+              </select>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+              <button class="btn btn-secondary" @click="isModalNameVisible = false">Cancelar</button>
+              <button class="btn btn-primary ml-2" @click="confirmNameAndGenerate">Generar Reporte</button>
+            </div>
+          </b-modal>
+        </div>
+
+        <!-- Lista de paquetes seleccionados -->
+        <div v-if="selectedForDelivery.length > 0" class="mt-3">
+          <h5>Paquetes para enviar</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead>
+                <tr>
+                  <th class="py-0 px-1">#</th>
+                  <th class="py-0 px-1">Guía</th>
+                  <th class="py-0 px-1">Sucursal</th>
+                  <th class="py-0 px-1">Tarifa</th>
+                  <th class="py-0 px-1">Peso Correos (Kg)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, index) in selectedForDelivery" :key="index">
+                  <td class="py-0 px-1">{{ index + 1 }}</td>
+                  <td class="py-0 px-1">{{ (item.guia ?? '-') }}</td>
+                  <td class="py-0 px-1">{{ item?.sucursale?.nombre ?? 'NULL' }}</td>
+                  <td class="py-0 px-1">{{ item?.tarifa ?? 'NULL' }}</td>
+                  <td class="py-0 px-1">{{ (item.peso_v ?? '-') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <div class="row">
           <div class="col-12">
             <div class="card border-rounded">
@@ -157,78 +230,6 @@
                 </li>
               </ul>
             </nav>
-          </div>
-        </div>
-        <div class="col-3" v-if="selectedForAssign.length > 0">
-          <button class="btn btn-primary" @click="openRegionalModal">
-            MANDAR A REGIONAL
-          </button>
-
-          <!-- Modal para ingresar el nombre -->
-          <!-- Modal para ingresar el nombre y el departamento -->
-          <b-modal v-model="isModalNameVisible" title="Generar CN-33" hide-footer>
-            <div class="form-group">
-              <label for="nombreGenerador">Apellido de quien manda</label>
-              <input v-model="nombreGenerador" type="text" class="form-control" placeholder="Escribe el apellido..." />
-            </div>
-
-            <div class="form-group mt-3">
-              <label for="departamentoSeleccionado">Departamento destino</label>
-              <select v-model="departamentoSeleccionado" class="form-control">
-                <option disabled value="">Seleccione un departamento</option>
-                <option value="LPB">La Paz (LPB)</option>
-                <option value="SRZ">Santa Cruz (SRZ)</option>
-                <option value="CBB">Cochabamba (CBB)</option>
-                <option value="ORU">Oruro (ORU)</option>
-                <option value="PTI">Potosi (PTI)</option>
-                <option value="TJA">Tarija (TJA)</option>
-                <option value="SRE">Sucre (SRE)</option>
-                <option value="BEN">Trinidad (TDD)</option>
-                <option value="CIJ">Cobija (CIJ)</option>
-
-              </select>
-            </div>
-
-            <div class="form-group mt-3">
-              <label for="tipoEnvioRegional">Tipo de envío</label>
-              <select id="tipoEnvioRegional" v-model="tipoEnvioRegional" class="form-control">
-                <option value="AEREO">AEREO</option>
-                <option value="TERRESTRE">TERRESTRE</option>
-              </select>
-            </div>
-
-            <div class="d-flex justify-content-end mt-3">
-              <button class="btn btn-secondary" @click="isModalNameVisible = false">Cancelar</button>
-              <button class="btn btn-primary ml-2" @click="confirmNameAndGenerate">Generar Reporte</button>
-            </div>
-          </b-modal>
-
-
-        </div>
-        <!-- Nueva tabla para mostrar los paquetes seleccionados para entregar -->
-        <div v-if="selectedForDelivery.length > 0" class="mt-4">
-          <h5>Paquetes para enviar</h5>
-          <div class="table-responsive">
-            <table class="table table-sm table-bordered">
-              <thead>
-                <tr>
-                  <th class="py-0 px-1">#</th>
-                  <th class="py-0 px-1">Guía</th>
-                  <th class="py-0 px-1">Sucursal</th>
-                  <th class="py-0 px-1">Tarifa</th>
-                  <th class="py-0 px-1">Peso Correos (Kg)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, index) in selectedForDelivery" :key="index">
-                  <td class="py-0 px-1">{{ index + 1 }}</td>
-                  <td class="py-0 px-1">{{ (item.guia ?? '-') }}</td>
-                  <td class="py-0 px-1">{{ item?.sucursale?.nombre ?? 'NULL' }}</td>
-                  <td class="py-0 px-1">{{ item?.tarifa ?? 'NULL' }}</td>
-                  <td class="py-0 px-1">{{ (item.peso_v ?? '-') }}</td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
@@ -519,33 +520,17 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = (this.searchTerm || '').toLowerCase();
-
+      const searchTerm = String(this.searchTerm || '').toLowerCase().trim();
+      const hasSearch = searchTerm.length > 0;
       const departamentoCartero = this.user?.user?.departamento ?? null;
 
       return (this.list || [])
         .filter(item => {
-          // ---- ESTADOS (igual que tú) ----
-          const cumpleEstado5 =
-            item?.estado === 5 &&
-            item?.sucursale?.origen &&
-            departamentoCartero &&
-            item.sucursale.origen === departamentoCartero;
-
-          const cumpleEstado10 =
-            item?.estado === 10 &&
-            departamentoCartero &&
-            item?.reencaminamiento === departamentoCartero;
-
-          const cumpleEstado11 =
-            item?.estado === 11 &&
-            departamentoCartero &&
-            item?.reencaminamiento === departamentoCartero;
-
-          const cumpleEstado13 =
-            item?.estado === 13 &&
-            departamentoCartero &&
-            item?.reencaminamiento === departamentoCartero;
+          // Estados válidos de esta vista
+          const cumpleEstado5 = item?.estado === 5;
+          const cumpleEstado10 = item?.estado === 10;
+          const cumpleEstado11 = item?.estado === 11;
+          const cumpleEstado13 = item?.estado === 13;
 
           // ✅ EMS GLOBAL (sucursale_id y tarifa_id en NULL) + estado (ajusta si quieres otros estados)
           const cumpleEMSGlobal =
@@ -553,6 +538,16 @@ export default {
             String(item?.tipo_correspondencia ?? '').toUpperCase() === 'EMS' &&
             (item?.sucursale_id == null) &&
             (item?.tarifa_id == null);
+
+          const estadoValido =
+            cumpleEstado5 || cumpleEstado10 || cumpleEstado11 || cumpleEstado13 || cumpleEMSGlobal;
+
+          const coincideDepartamento =
+            (cumpleEstado5 && item?.sucursale?.origen && departamentoCartero && item.sucursale.origen === departamentoCartero) ||
+            ((cumpleEstado10 || cumpleEstado11 || cumpleEstado13) &&
+              departamentoCartero &&
+              item?.reencaminamiento === departamentoCartero) ||
+            cumpleEMSGlobal;
 
           // ---- BÚSQUEDA NULL-SAFE ----
           const coincideBusqueda =
@@ -567,7 +562,8 @@ export default {
             : true;
 
           return (
-            (cumpleEstado5 || cumpleEstado10 || cumpleEstado11 || cumpleEstado13 || cumpleEMSGlobal) &&
+            estadoValido &&
+            (hasSearch ? true : coincideDepartamento) &&
             coincideSucursal &&
             coincideBusqueda
           );
