@@ -948,23 +948,83 @@ export default {
   this.isModalVisible = true;
 },
 
-    handleSearchEnter() {
-      const filteredItems = this.filteredData;
-      if (filteredItems.length > 0) {
-        const item = filteredItems[0]; // Seleccionar el primer elemento filtrado
-        this.selectedItemsData = [{
-          id: item.id,
-          guia: item.guia,
-          sucursale: item.sucursale,
-          peso_v: item.peso_v || 0,
-          tarifa_id: item.tarifa_id,
-          tarifa: this.getTarifaLabel(item.tarifa_id), // Añadir la tarifa al objeto
-          precio: this.calculatePrice(item.tarifa_id, item.peso_v), // Calcular el precio inicial
-          peso_o: item.peso_o, // Incluye peso aquí
-
-        }];
-        this.isModalVisible = true;
+    matchesSearchTerm(item, term) {
+      return (
+        String(item?.id ?? '').toLowerCase().includes(term) ||
+        String(item?.guia ?? '').toLowerCase().includes(term) ||
+        String(item?.remitente ?? '').toLowerCase().includes(term) ||
+        String(item?.destinatario ?? '').toLowerCase().includes(term) ||
+        String(item?.reencaminamiento ?? '').toLowerCase().includes(term) ||
+        String(item?.sucursale?.nombre ?? '').toLowerCase().includes(term) ||
+        String(item?.ciudad ?? '').toLowerCase().includes(term)
+      );
+    },
+    findInDataset(dataset, term) {
+      const rows = Array.isArray(dataset) ? dataset : [];
+      const exact = rows.find((item) => {
+        const guia = String(item?.guia ?? '').toLowerCase();
+        const id = String(item?.id ?? '').toLowerCase();
+        return guia === term || id === term;
+      });
+      if (exact) return exact;
+      return rows.find((item) => this.matchesSearchTerm(item, term)) || null;
+    },
+    async handleSearchEnter() {
+      const term = String(this.searchTerm || '').trim().toLowerCase();
+      if (!term) {
+        this.searchTerm = '';
+        return;
       }
+
+      let item =
+        this.findInDataset(this.filteredData, term) ||
+        this.findInDataset(this.list, term);
+
+      if (!item) {
+        try {
+          const data = await this.GET_DATA(this.apiUrl);
+          this.list = Array.isArray(data) ? data : [];
+          item = this.findInDataset(this.list, term);
+        } catch (e) {
+          console.error('Error al buscar solicitud global:', e);
+        }
+      }
+
+      if (!item?.id) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Guía no encontrada',
+          text: 'No se encontró una solicitud con ese criterio.',
+        });
+        this.searchTerm = '';
+        return;
+      }
+
+      const alreadySelected = (this.selectedForAssign || []).some(
+        (selectedItem) => Number(selectedItem?.id) === Number(item?.id)
+      );
+      if (alreadySelected) {
+        this.$swal.fire({
+          icon: 'info',
+          title: 'Ya seleccionada',
+          text: 'La guía ya está en la pre-lista.',
+        });
+        this.searchTerm = '';
+        return;
+      }
+
+      this.selectedItemsData = [{
+        id: item.id,
+        guia: item.guia,
+        sucursale: item.sucursale,
+        peso_v: item.peso_v || 0,
+        tarifa_id: item.tarifa_id,
+        tarifa: this.getTarifaLabel(item.tarifa_id),
+        precio: this.calculatePrice(item.tarifa_id, item.peso_v),
+        peso_o: item.peso_o,
+      }];
+      this.isModalVisible = true;
+      this.searchTerm = '';
     },
     confirmAssignSelected() {
       this.selectedForAssign = [...this.selectedForAssign, ...this.selectedItemsData.map(item => {
