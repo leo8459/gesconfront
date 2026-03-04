@@ -14,6 +14,11 @@
               <i class="fas fa-book"></i> Añadir bitácora
             </button>
           </div>
+          <div class="col-12 col-md-3 mb-2 mb-md-0" v-if="hasSelectedItems">
+            <button @click="devolverSeleccionadosAlmacen" class="btn btn-danger btn-sm w-100">
+              <i class="fas fa-undo"></i> Devolver a ALMACEN
+            </button>
+          </div>
           <div class="col-12 col-md-3" v-if="hasPrelistaTransportes">
             <button @click="openTransporteModal" class="btn btn-success btn-sm w-100">
               <i class="fas fa-truck"></i> Total / Registrar Transporte
@@ -458,6 +463,84 @@ export default {
     }
   },
   methods: {
+    async marcarDevueltoAlmacenSeleccionados() {
+      const selectedIds = Object.keys(this.selected)
+        .filter(key => this.selected[key])
+        .map(id => Number(id))
+        .filter(Boolean);
+
+      if (!selectedIds.length) {
+        this.$swal.fire({
+          icon: 'warning',
+          title: 'Sin selección',
+          text: 'Seleccione al menos una guía para devolver.',
+        });
+        return;
+      }
+
+      this.load = true;
+      const okIds = [];
+      const errorIds = [];
+
+      try {
+        for (const id of selectedIds) {
+          try {
+            await this.$api.$put(`devueltoalmacen/${id}`, {});
+            okIds.push(id);
+          } catch (e) {
+            console.error(`Error al devolver solicitud ${id}:`, e);
+            errorIds.push(id);
+          }
+        }
+
+        await this.GET_DATA(this.apiUrl);
+        this.selected = {};
+        this.prelistaTransportes = this.prelistaTransportes.filter(item => !selectedIds.includes(item.id));
+        this.guiasEnPrelistaIds = this.guiasEnPrelistaIds.filter(id => !selectedIds.includes(id));
+
+        if (okIds.length && !errorIds.length) {
+          this.$swal.fire({
+            icon: 'success',
+            title: 'Devuelto al almacén',
+            text: `Se devolvieron ${okIds.length} paquete(s) correctamente.`,
+          });
+          return;
+        }
+
+        if (okIds.length && errorIds.length) {
+          this.$swal.fire({
+            icon: 'warning',
+            title: 'Resultado parcial',
+            text: `Se devolvieron ${okIds.length} paquete(s) y fallaron ${errorIds.length}.`,
+          });
+          return;
+        }
+
+        this.$swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo devolver ningún paquete al almacén.',
+        });
+      } finally {
+        this.load = false;
+      }
+    },
+    async devolverSeleccionadosAlmacen() {
+      const result = await this.$swal.fire({
+        title: '¿Devolver al almacén?',
+        text: 'Se devolverán todos los paquetes seleccionados.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, devolver',
+        cancelButtonText: 'Cancelar',
+      });
+
+      if (!result.isConfirmed) {
+        return;
+      }
+
+      await this.marcarDevueltoAlmacenSeleccionados();
+    },
     openBitacoraModal() {
       const selectedIds = Object.keys(this.selected)
         .filter(key => this.selected[key])
@@ -978,7 +1061,13 @@ export default {
       }));
       this.isModalVisible = true;
     },
-    handleSearchEnter() {
+    async handleSearchEnter() {
+      const cleanTerm = (this.searchTerm || '').trim();
+      if (!cleanTerm && this.hasSelectedItems) {
+        await this.marcarDevueltoAlmacenSeleccionados();
+        return;
+      }
+
       const term = (this.searchTerm || '').trim().toLowerCase();
       if (!term) return;
 
@@ -1005,6 +1094,10 @@ export default {
         });
         this.searchTerm = '';
         return;
+      }
+
+      if (item?.id) {
+        this.$set(this.selected, item.id, true);
       }
 
       this.prelistaTransportes.push({
