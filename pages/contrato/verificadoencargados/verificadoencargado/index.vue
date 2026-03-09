@@ -27,12 +27,12 @@
         </div>
         <div class="row justify-content-end mb-3">
           <!-- Filtro Fecha Inicio -->
-          <div class="col-md-3">
+          <div class="col-md-2">
             <label for="startDate" class="form-label">Fecha Inicio</label>
             <input v-model="startDate" type="date" id="startDate" class="form-control" />
           </div>
           <!-- Filtro Fecha Fin -->
-          <div class="col-md-3">
+          <div class="col-md-2">
             <label for="endDate" class="form-label">Fecha Fin</label>
             <input v-model="endDate" type="date" id="endDate" class="form-control" />
           </div>
@@ -53,11 +53,22 @@
               </template>
             </v-select>
           </div>
+          <!-- Filtro Empresa -->
+          <div class="col-md-2">
+            <label for="empresa" class="form-label">Empresa</label>
+            <select v-model="selectedEmpresa" class="form-control" id="empresa">
+              <option value="">Todas</option>
+              <option v-for="empresa in empresaOptions" :key="empresa.value" :value="empresa.value">
+                {{ empresa.label }}
+              </option>
+            </select>
+          </div>
           <!-- Filtro Departamento de la Sucursal -->
           <div class="col-md-2">
             <label for="origen" class="form-label">Departamento de la sucursal</label>
             <select v-model="selectedOrigen" class="form-control" id="origen">
               <option value="">Todos</option>
+              <option value="LPB_SRZ">La Paz + Santa Cruz (LPB/SRZ)</option>
               <option value="LPB">La Paz (LPB)</option>
               <option value="SRZ">Santa Cruz (SRZ)</option>
               <option value="CBB">Cochabamba (CBB)</option>
@@ -69,20 +80,14 @@
               <option value="CIJ">Cobija (CIJ)</option>
             </select>
           </div>
-          <!-- Filtro Departamento de Envío -->
+          <!-- Filtro Numero de Contrato -->
           <div class="col-md-2">
-            <label for="departamento" class="form-label">Departamento de envío</label>
-            <select v-model="selectedDepartamento" class="form-control" id="departamento">
+            <label for="numeroContrato" class="form-label">Numero de contrato</label>
+            <select v-model="selectedNumeroContrato" class="form-control" id="numeroContrato">
               <option value="">Todos</option>
-              <option value="LPB">La Paz (LPB)</option>
-              <option value="SRZ">Santa Cruz (SRZ)</option>
-              <option value="CBB">Cochabamba (CBB)</option>
-              <option value="ORU">Oruro (ORU)</option>
-              <option value="PTI">Potosí (PTI)</option>
-              <option value="TJA">Tarija (TJA)</option>
-              <option value="SRE">Sucre (SRE)</option>
-              <option value="BEN">Trinidad (TDD)</option>
-              <option value="CIJ">Cobija (CIJ)</option>
+              <option v-for="numero in numeroContratoOptions" :key="numero.value" :value="numero.value">
+                {{ numero.label }}
+              </option>
             </select>
           </div>
         </div>
@@ -172,7 +177,7 @@
     </td>
 
     <td class="py-0 px-1">{{ m?.zona_d ?? '-' }}</td>
-    <td class="py-0 px-1">{{ m?.ciudad ?? '-' }}</td>
+    <td class="py-0 px-1">{{ m?.reencaminamiento ?? m?.ciudad ?? '-' }}</td>
 
     <td class="py-0 px-1">
       <img v-if="m?.firma_d" :src="m.firma_d" alt="Firma Destino" width="100" />
@@ -375,42 +380,120 @@ export default {
       currentPage: 1,
       itemsPerPage: 10,
       selectedOrigen: '', // Nuevo filtro Origen
-      selectedDepartamento: '', // Nuevo filtro Departamento
-      origenes: ['Origen 1', 'Origen 2', 'Origen 3'], // Ejemplo de datos para Origen
-      departamentos: ['Departamento 1', 'Departamento 2', 'Departamento 3'], // Ejemplo de datos para Departamento
+      selectedEmpresa: '',
+      selectedNumeroContrato: '',
     };
   },
   computed: {
- filteredData() {
-  const searchTerm = (this.searchTerm || '').toLowerCase();
+    empresaOptions() {
+      const empresas = [];
+      const seen = new Set();
 
-  return (this.list || []).filter(item => {
+      (this.list || []).forEach((item) => {
+        const empresa = this.getEmpresaFromItem(item);
+        if (!empresa || seen.has(empresa)) return;
+        seen.add(empresa);
+        empresas.push({ value: empresa, label: empresa });
+      });
 
-    // 🔴 FILTRO CLAVE: SOLO CON SUCURSAL
-    if (!item?.sucursale || !item?.sucursale?.id) {
-      return false;
-    }
+      return empresas.sort((a, b) => a.label.localeCompare(b.label, 'es'));
+    },
 
-    // Estado válido (ajusta si usas otros)
-    const estadoValido = item.estado === 3 || item.estado === 4 || item.estado === 7;
+    numeroContratoOptions() {
+      const contratos = [];
+      const seen = new Set();
 
-    // Búsqueda segura
-    const matchSearch = [
-      item.guia,
-      item.remitente,
-      item.destinatario,
-      item.telefono,
-      item.telefono_d,
-      item.ciudad,
-      item.zona_d,
-      item.sucursale.nombre
-    ]
-      .filter(v => v !== null && v !== undefined)
-      .some(v => String(v).toLowerCase().includes(searchTerm));
+      (this.list || []).forEach((item) => {
+        const numero = this.getNumeroContratoFromItem(item);
+        if (!numero || seen.has(numero)) return;
+        seen.add(numero);
+        contratos.push({ value: numero, label: numero });
+      });
 
-    return estadoValido && matchSearch;
-  });
-},
+      return contratos.sort((a, b) => a.label.localeCompare(b.label, 'es'));
+    },
+
+    filteredData() {
+      const searchTerm = (this.searchTerm || '').toLowerCase().trim();
+      const selectedSucursales = (this.selectedSucursales || []).map((id) => String(id));
+      const selectedOrigenes = this.getOrigenesSeleccionados(this.selectedOrigen);
+      const startDate = this.startDate ? new Date(this.startDate) : null;
+      const endDate = this.endDate ? new Date(this.endDate) : null;
+
+      if (endDate) {
+        endDate.setDate(endDate.getDate() + 1);
+      }
+
+      return (this.list || []).filter((item) => {
+        if (!item?.sucursale?.id) {
+          return false;
+        }
+
+        const estadoValido = item.estado === 3 || item.estado === 4 || item.estado === 7;
+        if (!estadoValido) {
+          return false;
+        }
+
+        if (selectedSucursales.length > 0 && !selectedSucursales.includes(String(item.sucursale?.id))) {
+          return false;
+        }
+
+        const origenItem = this.getOrigenFromItem(item);
+        if (selectedOrigenes.length > 0 && !selectedOrigenes.includes(origenItem)) {
+          return false;
+        }
+
+        const empresaItem = this.getEmpresaFromItem(item);
+        if (this.selectedEmpresa && empresaItem !== this.selectedEmpresa) {
+          return false;
+        }
+
+        const numeroContratoItem = this.getNumeroContratoFromItem(item);
+        if (this.selectedNumeroContrato && numeroContratoItem !== this.selectedNumeroContrato) {
+          return false;
+        }
+
+        if (startDate || endDate) {
+          const fechas = [item.fecha, item.fecha_recojo_c, item.fecha_d]
+            .map((value) => this.parseDate(value))
+            .filter((value) => value !== null);
+
+          const isWithinDateRange = fechas.some((fecha) => {
+            if (startDate && endDate) return fecha >= startDate && fecha <= endDate;
+            if (startDate) return fecha >= startDate;
+            if (endDate) return fecha <= endDate;
+            return true;
+          });
+
+          if (!isWithinDateRange) {
+            return false;
+          }
+        }
+
+        if (!searchTerm) {
+          return true;
+        }
+
+        const searchableFields = [
+          item.guia,
+          item.remitente,
+          item.destinatario,
+          item.telefono,
+          item.telefono_d,
+          item.reencaminamiento,
+          item.ciudad,
+          item.zona_d,
+          item.sucursale?.nombre,
+          numeroContratoItem,
+          empresaItem,
+          this.getDepartamentoLabel(this.getDepartamentoFromItem(item)),
+        ];
+
+        return searchableFields
+          .filter((value) => value !== null && value !== undefined)
+          .some((value) => String(value).toLowerCase().includes(searchTerm));
+      });
+    },
 
 
 
@@ -461,6 +544,269 @@ export default {
 
   },
   methods: {
+    getOrigenesSeleccionados(origenValue, includeDefaultForReport = false) {
+      const todosLosOrigenes = ['LPB', 'SRZ', 'CBB', 'ORU', 'PTI', 'TJA', 'SRE', 'BEN', 'CIJ'];
+      const rawValue = String(origenValue || '').trim();
+      if (!rawValue) {
+        return includeDefaultForReport ? todosLosOrigenes : [];
+      }
+      if (rawValue === 'LPB_SRZ') {
+        return ['LPB', 'SRZ'];
+      }
+      if (rawValue === 'TODOS') {
+        return todosLosOrigenes;
+      }
+      return [this.normalizeDepartamento(rawValue)];
+    },
+
+    normalizeDepartamento(value) {
+      if (!value) return '';
+      const cleaned = String(value).trim().toUpperCase();
+      const text = cleaned.replace(/\s+/g, ' ');
+
+      if (text.includes('LA PAZ') || text.includes('LPB') || text.includes('LPZ')) return 'LPB';
+      if (text.includes('SANTA CRUZ') || text.includes('SRZ') || text.includes('SCZ')) return 'SRZ';
+      if (text.includes('COCHABAMBA') || text.includes('CBB')) return 'CBB';
+      if (text.includes('ORURO') || text.includes('ORU')) return 'ORU';
+      if (text.includes('POTOSI') || text.includes('POTOSÍ') || text.includes('PTI')) return 'PTI';
+      if (text.includes('TARIJA') || text.includes('TJA')) return 'TJA';
+      if (text.includes('SUCRE') || text.includes('SRE')) return 'SRE';
+      if (text.includes('BENI') || text.includes('TRINIDAD') || text.includes('TDD') || text.includes('BEN')) return 'BEN';
+      if (text.includes('COBIJA') || text.includes('CIJ')) return 'CIJ';
+
+      const equivalencias = {
+        'LA PAZ': 'LPB',
+        LPZ: 'LPB',
+        LPB: 'LPB',
+        'SANTA CRUZ': 'SRZ',
+        SCZ: 'SRZ',
+        SRZ: 'SRZ',
+        'COCHABAMBA': 'CBB',
+        CBB: 'CBB',
+        ORURO: 'ORU',
+        ORU: 'ORU',
+        POTOSI: 'PTI',
+        POTOSÍ: 'PTI',
+        PTI: 'PTI',
+        TARIJA: 'TJA',
+        TJA: 'TJA',
+        SUCRE: 'SRE',
+        SRE: 'SRE',
+        BENI: 'BEN',
+        TRINIDAD: 'BEN',
+        TDD: 'BEN',
+        BEN: 'BEN',
+        COBIJA: 'CIJ',
+        CIJ: 'CIJ',
+      };
+      return equivalencias[cleaned] || cleaned;
+    },
+
+    getDepartamentoLabel(codigo) {
+      const code = this.normalizeDepartamento(codigo);
+      const labels = {
+        LPB: 'LA PAZ',
+        SRZ: 'SANTA CRUZ',
+        CBB: 'COCHABAMBA',
+        ORU: 'ORURO',
+        PTI: 'POTOSÍ',
+        TJA: 'TARIJA',
+        SRE: 'SUCRE',
+        BEN: 'TRINIDAD',
+        CIJ: 'COBIJA',
+      };
+      return labels[code] || (code || 'SIN DEPARTAMENTO');
+    },
+
+    getDepartamentoFromItem(item) {
+      return this.normalizeDepartamento(item?.tarifa?.departamento || item?.ciudad || '');
+    },
+
+    getOrigenFromItem(item) {
+      return this.normalizeDepartamento(item?.sucursale?.origen || item?.sucursale?.nombre || '');
+    },
+
+    getCiudadReporteFromItem(item) {
+      const ciudad = item?.reencaminamiento || item?.ciudad || '';
+      return String(ciudad || '').trim() || 'S/N';
+    },
+
+    getCiudadCodigoReporteFromItem(item) {
+      const raw = String(item?.reencaminamiento || item?.ciudad || '').trim();
+      if (!raw) return 'S/N';
+      const normalizado = this.normalizeDepartamento(raw);
+      const codigos = ['LPB', 'SRZ', 'CBB', 'ORU', 'PTI', 'TJA', 'SRE', 'BEN', 'CIJ'];
+      if (codigos.includes(normalizado)) return normalizado;
+      return raw.toUpperCase();
+    },
+
+    getRuralReporteFromItem(item) {
+      const rural = item?.provincia || item?.tarifa?.provincia || item?.direccion?.provincia || '';
+      return String(rural || '').trim().toUpperCase();
+    },
+
+    getOrigenRuralReporteFromItem(item) {
+      const rural = item?.sucursale?.provincia || '';
+      return String(rural || '').trim().toUpperCase();
+    },
+
+    getTipoEnvioReporteFromItem(item) {
+      const tipo = String(item?.tipo_correspondencia || '').trim().toUpperCase();
+      if (tipo) return tipo;
+      const contenido = String(item?.contenido || '').trim().toUpperCase();
+      if (!contenido) return 'DOC';
+      if (contenido.includes('CAJA')) return 'CAJA';
+      return 'DOC';
+    },
+
+    getTarifarioMontosFromItem(item) {
+      const total = Number.parseFloat(item?.nombre_d);
+      const totalVal = Number.isNaN(total) ? 0 : total;
+      const servicioTarifa = String(item?.tarifa?.servicio || item?.tipo_correspondencia || '').toUpperCase();
+
+      if (servicioTarifa.includes('EXPRESS')) {
+        return { express: totalVal, total: totalVal };
+      }
+      return { express: 0, total: totalVal };
+    },
+
+    parseDateTimeFromAny(value) {
+      if (!value) return null;
+      if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? null : value;
+      }
+
+      const raw = String(value).trim();
+      if (!raw) return null;
+
+      const ddmmyyyy = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+      if (ddmmyyyy) {
+        const day = Number(ddmmyyyy[1]);
+        const month = Number(ddmmyyyy[2]) - 1;
+        const year = Number(ddmmyyyy[3]);
+        const hour = Number(ddmmyyyy[4] || 0);
+        const minute = Number(ddmmyyyy[5] || 0);
+        const second = Number(ddmmyyyy[6] || 0);
+        const parsed = new Date(year, month, day, hour, minute, second);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      const parsed = new Date(raw);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    },
+
+    getFechaHoraEntregaFromItem(item) {
+      const parsed = this.parseDateTimeFromAny(item?.fecha_d);
+      if (!parsed) return { fecha: 'S/N', hora: 'S/N' };
+      const dd = String(parsed.getDate()).padStart(2, '0');
+      const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+      const yyyy = parsed.getFullYear();
+      const hh = String(parsed.getHours()).padStart(2, '0');
+      const min = String(parsed.getMinutes()).padStart(2, '0');
+      return {
+        fecha: `${dd}/${mm}/${yyyy}`,
+        hora: `${hh}:${min}`,
+      };
+    },
+
+    getFechaEnvioFromItem(item) {
+      const parsed = this.parseDateTimeFromAny(item?.fecha_recojo_c || item?.fecha || item?.fecha_d);
+      if (!parsed) return 'S/N';
+      const dd = String(parsed.getDate()).padStart(2, '0');
+      const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+      const yy = String(parsed.getFullYear()).slice(-2);
+      return `${dd}-${mm}-${yy}`;
+    },
+
+    getEmpresaFromItem(item) {
+      const empresa = item?.sucursale?.empresa?.nombre || item?.sucursale?.pagador || item?.sucursale?.nombre;
+      return String(empresa || 'SIN EMPRESA').trim();
+    },
+
+    getNumeroContratoFromItem(item) {
+      const numero = item?.sucursale?.n_contrato || item?.n_contrato || item?.numero_contrato || '';
+      return String(numero || '').trim();
+    },
+
+    parseDate(value) {
+      if (!value) return null;
+
+      if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? null : value;
+      }
+
+      const raw = String(value).trim();
+      if (!raw) return null;
+
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
+        const [day, month, year] = raw.split('/');
+        const parsed = new Date(`${year}-${month}-${day}T00:00:00`);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      const parsed = new Date(raw);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    },
+
+    getOrigenesParaReporte(data) {
+      const origenes = [];
+      const seen = new Set();
+
+      data.forEach((item) => {
+        const codigo = this.getOrigenFromItem(item);
+        if (!codigo || seen.has(codigo)) return;
+        seen.add(codigo);
+        origenes.push({
+          codigo,
+          nombre: this.getDepartamentoLabel(codigo),
+        });
+      });
+
+      return origenes;
+    },
+
+    getNumeroContratoLabelForData(data) {
+      const contratos = [...new Set(
+        (data || [])
+          .map((item) => this.getNumeroContratoFromItem(item))
+          .filter((value) => Boolean(value))
+      )];
+
+      if (this.selectedNumeroContrato) {
+        return this.selectedNumeroContrato;
+      }
+
+      if (contratos.length === 1) {
+        return contratos[0];
+      }
+
+      return 'VARIOS';
+    },
+
+    getSafeSheetName(baseName, usedSheetNames) {
+      const rawName = String(baseName || 'Hoja').replace(/[\\/*?:[\]]/g, '').trim() || 'Hoja';
+      const truncated = rawName.slice(0, 31);
+      if (!usedSheetNames.has(truncated)) {
+        usedSheetNames.add(truncated);
+        return truncated;
+      }
+
+      let index = 2;
+      while (index < 1000) {
+        const suffix = `_${index}`;
+        const candidate = `${truncated.slice(0, 31 - suffix.length)}${suffix}`;
+        if (!usedSheetNames.has(candidate)) {
+          usedSheetNames.add(candidate);
+          return candidate;
+        }
+        index += 1;
+      }
+
+      const fallback = `Hoja_${Date.now()}`.slice(0, 31);
+      usedSheetNames.add(fallback);
+      return fallback;
+    },
+
     downloadPDF(pdfDataUrl) {
       const link = document.createElement('a');
       link.href = pdfDataUrl;
@@ -573,7 +919,7 @@ export default {
     ,
 
     async exportToPDF() {
-      const filteredData = this.list.filter(m => (m.estado === 3 || m.estado === 4 || m.estado === 7) && (!this.selectedSucursal || m.sucursale?.id === this.selectedSucursal));
+      const filteredData = this.filteredData;
 
       if (filteredData.length === 0) {
         Swal.fire({
@@ -598,7 +944,7 @@ export default {
           ['Sucursal', m.sucursale?.nombre || 'N/A'],
           ['Dirección', m.direccion_especifica || 'N/A'],
           ['Departamento/Servicio', m.tarifa?.departamento || 'N/A'],
-          ['Ciudad', m.ciudad || 'N/A'],
+          ['Ciudad', this.getCiudadReporteFromItem(m)],
           ['Zona', m.zona_d || 'N/A'],
           ['Contenido', m.contenido || 'N/A'],
           ['Peso (Kg)', (m.peso_v && !isNaN(m.peso_v)) ? parseFloat(m.peso_v).toFixed(2) : 'N/A'],
@@ -742,9 +1088,11 @@ export default {
     async generarReporteResumido() {
       const workbook = new ExcelJS.Workbook();
       const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
-
-      // Filtrar los datos según las sucursales seleccionadas
-      const filteredData = this.filteredData.filter(item => this.selectedSucursales.includes(item.sucursale?.id));
+      const origenesReporte = this.getOrigenesSeleccionados(this.selectedOrigen, true);
+      const filteredData = this.filteredData.filter((item) =>
+        origenesReporte.includes(this.getOrigenFromItem(item))
+      );
+      const origenesParaReporte = this.getOrigenesParaReporte(filteredData);
 
       if (filteredData.length === 0) {
         await Swal.fire({
@@ -755,13 +1103,27 @@ export default {
         return;
       }
 
-      // Generar hojas por cada sucursal seleccionada
-      for (let sucursalId of this.selectedSucursales) {
-        const sucursalData = filteredData.filter(item => item.sucursale?.id === sucursalId);
-        if (sucursalData.length === 0) continue;
+      if (origenesParaReporte.length === 0) {
+        await Swal.fire({
+          icon: 'info',
+          title: 'Sin orígenes',
+          text: 'No hay departamentos de origen para generar el reporte.',
+        });
+        return;
+      }
 
-        const sucursalName = sucursalData[0].sucursale.nombre || 'Sucursal';
-        const worksheet = workbook.addWorksheet(sucursalName);
+      const usedSheetNames = new Set();
+
+      for (let origen of origenesParaReporte) {
+        const origenData = filteredData.filter(
+          (item) => this.getOrigenFromItem(item) === origen.codigo
+        );
+        if (origenData.length === 0) continue;
+        const numeroContratoLabel = this.getNumeroContratoLabelForData(origenData);
+
+        const worksheet = workbook.addWorksheet(
+          this.getSafeSheetName(`${origen.nombre} (${origen.codigo})`, usedSheetNames)
+        );
 
         const imageId = workbook.addImage({
           base64: base64Image,
@@ -779,19 +1141,19 @@ export default {
 
         worksheet.mergeCells('A11:B11');
         worksheet.getCell('A11').value = 'ORIGEN:';
-        worksheet.getCell('C11').value = sucursalData[0].sucursale.origen || 'S/N';
+        worksheet.getCell('C11').value = origen.nombre;
 
         worksheet.mergeCells('A12:B12');
-        worksheet.getCell('A12').value = 'SERVICIO:';
-        worksheet.getCell('C12').value = sucursalData[0].tarifa?.servicio || 'S/N';
+        worksheet.getCell('A12').value = 'NUMERO DE CONTRATO:';
+        worksheet.getCell('C12').value = numeroContratoLabel;
 
         worksheet.mergeCells('A13:B13');
-        worksheet.getCell('A13').value = 'CLIENTE:';
-        worksheet.getCell('C13').value = 'EBA LA PAZ';
+        worksheet.getCell('A13').value = 'SUCURSAL:';
+        worksheet.getCell('C13').value = 'TODAS LAS SUCURSALES';
 
         worksheet.mergeCells('A14:B14');
         worksheet.getCell('A14').value = 'PERIODO:';
-        worksheet.getCell('C14').value = `${this.startDate} - ${this.endDate}`;
+        worksheet.getCell('C14').value = `${this.startDate || 'S/N'} - ${this.endDate || 'S/N'}`;
 
         // Añadir los encabezados de las columnas en la fila 17
         const headerRow = worksheet.getRow(17);
@@ -835,7 +1197,7 @@ export default {
         ];
 
         // Añadir los datos
-        sucursalData.forEach((m, index) => {
+        origenData.forEach((m, index) => {
           const peso = m.peso_r ? parseFloat(m.peso_r) : (m.peso_v ? parseFloat(m.peso_v) : 0);
           const precio = m.nombre_d ? parseFloat(m.nombre_d) : 0;
 
@@ -843,11 +1205,11 @@ export default {
             index: index + 1,
             fecha: m.fecha_d || 'S/N',
             guia: m.guia || 'S/N',
-            sucursal_origen: m.sucursale?.origen || 'S/N',
+            sucursal_origen: m.sucursale?.nombre || m.sucursale?.origen || 'S/N',
             direccion: m.direccion_especifica ? 'X' : 'S/N',
             local: m.direccion && m.direccion.zona ? 'X' : 'S/N',
-            servicio: m.tarifa?.departamento || 'S/N',
-            ciudad: m.ciudad ? 'X' : 'S/N',
+            servicio: this.getDepartamentoLabel(this.getDepartamentoFromItem(m)),
+            ciudad: this.getCiudadReporteFromItem(m),
             zona: m.zona_d ? 'X' : 'S/N',
             contenido: m.contenido || 'S/N',
             peso: peso.toFixed(3),
@@ -858,7 +1220,7 @@ export default {
       }
 
       // Crear la hoja resumen
-      const resumenSheet = workbook.addWorksheet('Resumen');
+      const resumenSheet = workbook.addWorksheet(this.getSafeSheetName('Resumen', usedSheetNames));
 
       // Agregar el logo en el resumen
       const imageId = workbook.addImage({
@@ -888,14 +1250,15 @@ export default {
       // Agregar columnas del resumen
       resumenSheet.columns = [
         { key: 'index', width: 5 },
-        { key: 'sucursal', width: 30 },
+        { key: 'origen', width: 30 },
+        { key: 'numero_contrato', width: 18 },
         { key: 'peso_total', width: 15 },
         { key: 'total_guias', width: 15 },
         { key: 'subtotal', width: 20 }
       ];
 
       const headerRowResumen = resumenSheet.getRow(13);
-      headerRowResumen.values = ['#', 'Sucursal', 'Peso Total (Kg)', 'Total Guías', 'Subtotal (Bs)'];
+      headerRowResumen.values = ['#', 'Origen', 'Numero Contrato', 'Peso Total (Kg)', 'Total Guías', 'Subtotal (Bs)'];
       headerRowResumen.eachCell((cell) => {
         cell.font = { bold: true };
         cell.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -910,38 +1273,34 @@ export default {
       let totalGuias = 0;
       let totalSubtotal = 0;
 
-      const sucursalesMap = {};
-      filteredData.forEach(item => {
-        const sucursalId = item.sucursale.id;
-        const sucursalNombre = item.sucursale.nombre;
-        const peso = item.peso_r ? parseFloat(item.peso_r) : parseFloat(item.peso_v) || 0;
-        const subtotal = parseFloat(item.nombre_d) || 0;
+      origenesParaReporte.forEach((origen, index) => {
+        const origenData = filteredData.filter(
+          (item) => this.getOrigenFromItem(item) === origen.codigo
+        );
+        if (origenData.length === 0) return;
+        const numeroContratoLabel = this.getNumeroContratoLabelForData(origenData);
 
-        if (!sucursalesMap[sucursalId]) {
-          sucursalesMap[sucursalId] = {
-            nombre: sucursalNombre,
-            peso: 0,
-            totalGuias: 0,
-            subtotal: 0
-          };
-        }
+        const peso = origenData.reduce((acc, item) => {
+          const value = item.peso_r ? parseFloat(item.peso_r) : parseFloat(item.peso_v);
+          return acc + (Number.isNaN(value) ? 0 : value);
+        }, 0);
+        const totalGuiasDepto = origenData.length;
+        const subtotal = origenData.reduce((acc, item) => {
+          const value = parseFloat(item.nombre_d);
+          return acc + (Number.isNaN(value) ? 0 : value);
+        }, 0);
 
-        sucursalesMap[sucursalId].peso += peso;
-        sucursalesMap[sucursalId].totalGuias += 1;
-        sucursalesMap[sucursalId].subtotal += subtotal;
-      });
-
-      Object.values(sucursalesMap).forEach((sucursal, index) => {
-        totalPeso += sucursal.peso;
-        totalGuias += sucursal.totalGuias;
-        totalSubtotal += sucursal.subtotal;
+        totalPeso += peso;
+        totalGuias += totalGuiasDepto;
+        totalSubtotal += subtotal;
 
         const row = resumenSheet.addRow({
           index: index + 1,
-          sucursal: sucursal.nombre,
-          peso_total: sucursal.peso.toFixed(3),
-          total_guias: sucursal.totalGuias,
-          subtotal: sucursal.subtotal.toFixed(2)
+          origen: `${origen.nombre} (${origen.codigo})`,
+          numero_contrato: numeroContratoLabel,
+          peso_total: peso.toFixed(3),
+          total_guias: totalGuiasDepto,
+          subtotal: subtotal.toFixed(2)
         });
 
         row.eachCell((cell) => {
@@ -957,7 +1316,7 @@ export default {
 
       // Fila de totales
       const totalRow = resumenSheet.addRow({
-        sucursal: 'TOTAL',
+        origen: 'TOTAL',
         peso_total: totalPeso.toFixed(3),
         total_guias: totalGuias,
         subtotal: totalSubtotal.toFixed(2)
@@ -985,10 +1344,11 @@ export default {
 
       // FIRMAS
       const firmaRow = resumenSheet.addRow([]);
+      const nombreCompleto = `${this.user?.user?.nombre || ''} ${this.user?.user?.apellidos || ''}`.trim() || 'SIN NOMBRE';
 
       // Aquí reemplazamos por el nombre y apellido del usuario logueado
       resumenSheet.mergeCells(`B${firmaRow.number}:C${firmaRow.number}`);
-      resumenSheet.getCell(`B${firmaRow.number}`).value = `${this.user.user.nombre} ${this.user.user.apellidos}`;
+      resumenSheet.getCell(`B${firmaRow.number}`).value = nombreCompleto;
       resumenSheet.getCell(`B${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
       resumenSheet.getCell(`B${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
 
@@ -1019,7 +1379,7 @@ export default {
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'Reporte_Multiples_Sucursales_Resumido.xlsx';
+      link.download = 'Reporte_Sucursales_Origen_Resumido.xlsx';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1057,20 +1417,8 @@ export default {
 
     async generarReporteMultiplesSucursales() {
       const workbook = new ExcelJS.Workbook();
-
-      // Función para cargar la imagen en base64
-      async function loadImageAsBase64(path) {
-        const response = await fetch(path);
-        const blob = await response.blob();
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-      }
-
       const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
+
       // Formatear las fechas de inicio y fin del periodo
       const formatDate = (date) => {
         if (!date) return 'S/N';
@@ -1091,8 +1439,11 @@ export default {
       // Obtener el mes en texto a partir de la fecha de inicio
       const selectedMonth = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(startDate);
 
-      // Filtrar los datos según las sucursales seleccionadas
-      const filteredData = this.filteredData.filter(item => this.selectedSucursales.includes(item.sucursale?.id));
+      const origenesReporte = this.getOrigenesSeleccionados(this.selectedOrigen, true);
+      const filteredData = this.filteredData.filter((item) =>
+        origenesReporte.includes(this.getOrigenFromItem(item))
+      );
+      const origenesParaReporte = this.getOrigenesParaReporte(filteredData);
 
       if (filteredData.length === 0) {
         await Swal.fire({
@@ -1103,17 +1454,29 @@ export default {
         return;
       }
 
-      // Generar hojas por cada sucursal seleccionada
-      for (let sucursalId of this.selectedSucursales) {
-        const sucursalData = filteredData.filter(item => item.sucursale?.id === sucursalId);
-        if (sucursalData.length === 0) continue;
+      if (origenesParaReporte.length === 0) {
+        await Swal.fire({
+          icon: 'info',
+          title: 'Sin orígenes',
+          text: 'No hay departamentos de origen para generar el reporte.',
+        });
+        return;
+      }
 
-        const sucursalName = sucursalData[0].sucursale.nombre || 'Sucursal';
+      const usedSheetNames = new Set();
 
-        // Crear una nueva hoja para cada sucursal
-        const worksheet = workbook.addWorksheet(sucursalName);
+      for (let origen of origenesParaReporte) {
+        const origenData = filteredData.filter(
+          (item) => this.getOrigenFromItem(item) === origen.codigo
+        );
+        if (origenData.length === 0) continue;
+        const numeroContratoLabel = this.getNumeroContratoLabelForData(origenData);
 
-        // Agregar el logo e información de la sucursal
+        const worksheet = workbook.addWorksheet(
+          this.getSafeSheetName(`${origen.nombre} (${origen.codigo})`, usedSheetNames)
+        );
+
+        // Agregar el logo e información de la hoja
         const imageId = workbook.addImage({
           base64: base64Image,
           extension: 'png',
@@ -1128,103 +1491,140 @@ export default {
           worksheet.addRow([]);
         }
 
-        // Añadir información de origen, servicio y cliente
+        // Añadir información de origen, codigo y sucursal
         worksheet.mergeCells('A11:B11');
         worksheet.getCell('A11').value = 'ORIGEN:';
-        worksheet.getCell('C11').value = sucursalData[0].sucursale.origen || 'S/N';
+        worksheet.getCell('C11').value = origen.nombre;
 
         worksheet.mergeCells('A12:B12');
-        worksheet.getCell('A12').value = 'SERVICIO:';
-        worksheet.getCell('C12').value = sucursalData[0].tarifa?.servicio || 'S/N';
+        worksheet.getCell('A12').value = 'NUMERO DE CONTRATO:';
+        worksheet.getCell('C12').value = numeroContratoLabel;
 
         worksheet.mergeCells('A13:B13');
-        worksheet.getCell('A13').value = 'CLIENTE:';
-        worksheet.getCell('C13').value = 'EBA LA PAZ';
+        worksheet.getCell('A13').value = 'SUCURSAL:';
+        worksheet.getCell('C13').value = 'TODAS LAS SUCURSALES';
 
         // Añadir periodo
         worksheet.mergeCells('A14:B14');
         worksheet.getCell('A14').value = 'PERIODO:';
         worksheet.getCell('C14').value = `${formattedStartDate} - ${formattedEndDateAdjusted}`;
 
-        // Definir las columnas del reporte
         worksheet.columns = [
-          { header: '#', key: 'index', width: 5 },
-          { header: 'Fecha de Envío', key: 'fecha', width: 20 },
-          { header: 'Número de Envío', key: 'guia', width: 20 },
-          { header: 'Sucursal Origen', key: 'sucursal_origen', width: 20 },
-          { header: 'Dirección', key: 'direccion', width: 15 },
-          { header: 'Local', key: 'local', width: 10 },
-          { header: 'Servicio', key: 'servicio', width: 15 },
-          { header: 'Ciudad', key: 'ciudad', width: 10 },
-          { header: 'Zona', key: 'zona', width: 15 },
-          { header: 'Contenido', key: 'contenido', width: 20 },
-          { header: 'Peso (Kg)', key: 'peso', width: 10 },
-          { header: 'Precio (Bs)', key: 'precio', width: 10 },
-          { header: 'Servicio T.', key: 'servicioT', width: 15 },
-          { header: 'Fecha y Hora Entrega', key: 'fecha_entrega', width: 20 },
-          { header: 'Destinatario', key: 'destinatario', width: 20 },
-          { header: 'Cartero', key: 'cartero', width: 20 },
-          { header: 'Observaciones', key: 'observacion', width: 25 },
+          { key: 'nro', width: 6 },
+          { key: 'fecha_envio', width: 12 },
+          { key: 'num_envio', width: 16 },
+          { key: 'origen_ciudad', width: 9 },
+          { key: 'origen_rural', width: 12 },
+          { key: 'origen_local', width: 7 },
+          { key: 'destino_ciudad', width: 9 },
+          { key: 'destino_rural', width: 12 },
+          { key: 'destino_local', width: 7 },
+          { key: 'pieza', width: 7 },
+          { key: 'tipo_envio', width: 12 },
+          { key: 'peso', width: 9 },
+          { key: 'express', width: 9 },
+          { key: 'total', width: 9 },
+          { key: 'fecha_entrega', width: 16 },
+          { key: 'hora_entrega', width: 12 },
+          { key: 'a_quien', width: 14 },
+          { key: 'cartero', width: 14 },
+          { key: 'observaciones', width: 18 },
         ];
 
-        // Encabezados agrupados para "Envío" y "Entrega"
-        worksheet.mergeCells('A16:M16');
-        worksheet.getCell('A16').value = 'Envío';
-        worksheet.getCell('A16').alignment = { horizontal: 'center', vertical: 'middle' };
-        worksheet.getCell('A16').font = { bold: true, size: 14 };
-        worksheet.getCell('A16').fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FF9BBB59' } // Color verde
-        };
+        // Encabezado por bloques (formato solicitado)
+        worksheet.mergeCells('A16:N16');
+        worksheet.getCell('A16').value = 'ENVIO';
+        worksheet.mergeCells('O16:S16');
+        worksheet.getCell('O16').value = 'ENTREGA';
 
-        worksheet.mergeCells('N16:R16');
-        worksheet.getCell('N16').value = 'Entrega';
-        worksheet.getCell('N16').alignment = { horizontal: 'center', vertical: 'middle' };
-        worksheet.getCell('N16').font = { bold: true, size: 14 };
-        worksheet.getCell('N16').fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFC0504D' } // Color rojo
-        };
+        worksheet.mergeCells('D17:F17');
+        worksheet.getCell('D17').value = 'ORIGEN';
+        worksheet.mergeCells('G17:I17');
+        worksheet.getCell('G17').value = 'DESTINO';
+        worksheet.mergeCells('M17:N17');
+        worksheet.getCell('M17').value = 'TARIFARIO';
 
-        // Añadir los encabezados de las columnas en la fila 17
-        const headerRow = worksheet.getRow(17);
+        const headerRow = worksheet.getRow(18);
         headerRow.values = [
-          '#', 'Fecha de Envío', 'Número de Envío', 'Sucursal Origen', 'Dirección', 'Local',
-          'Servicio', 'Ciudad', 'Zona', 'Contenido', 'Peso (Kg)', 'Precio (Bs)', 'Servicio T.',
-          'Fecha y Hora Entrega', 'Destinatario', 'Cartero', 'Observaciones'
+          'N°', 'FECHA DE ENVIO', 'NUM. DE ENVIO',
+          'CIUDAD', 'RURAL', 'LOCAL',
+          'CIUDAD', 'RURAL', 'LOCAL',
+          'PIEZA', 'TIPO ENVIO', 'PESO',
+          'EXPRESS', 'TOTAL',
+          'FECHA DE ENTREGA', 'HORA DE ENTREGA', 'A QUIEN SE ENTREGO', 'NOMBRE DEL CARTERO', 'OBSERVACIONES',
         ];
 
-        // Procesar y añadir los datos de cada sucursal
-        sucursalData.forEach((m, index) => {
-          const peso = m.peso_r ? parseFloat(m.peso_r) : (m.peso_v ? parseFloat(m.peso_v) : 0);
-          const precio = m.nombre_d ? parseFloat(m.nombre_d) : 0;
+        const styleCell = (cell) => {
+            cell.font = { bold: true, color: { argb: 'FF000000' } };
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' },
+            };
+        };
 
-          worksheet.addRow({
-            index: index + 1,
-            fecha: m.fecha_d || 'S/N',
-            guia: m.guia || 'S/N',
-            sucursal_origen: m.sucursale?.origen || 'S/N',
-            direccion: m.direccion_especifica ? 'X' : 'S/N',
-            local: m.direccion && m.direccion.zona ? 'X' : 'S/N',
-            servicio: m.tarifa?.departamento || 'S/N',
-            ciudad: m.ciudad ? 'X' : 'S/N',
-            zona: m.zona_d ? 'X' : 'S/N',
-            contenido: m.contenido || 'S/N',
-            peso: peso.toFixed(3),
-            precio: precio.toFixed(2),
-            servicioT: m.tarifa?.servicio || 'S/N',
-            fecha_entrega: m.fecha_d || 'S/N',
-            destinatario: m.destinatario || 'S/N',
+        const styleRowSegment = (rowNumber, fromCol, toCol) => {
+          for (let col = fromCol; col <= toCol; col += 1) {
+            styleCell(worksheet.getRow(rowNumber).getCell(col));
+          }
+        };
+
+        styleRowSegment(16, 1, 19);
+        styleRowSegment(17, 1, 19);
+        styleRowSegment(18, 1, 19);
+
+        const dataStartRow = 19;
+
+        origenData.forEach((m, index) => {
+          const peso = m.peso_r ? parseFloat(m.peso_r) : (m.peso_v ? parseFloat(m.peso_v) : 0);
+          const pesoVal = Number.isNaN(peso) ? 0 : peso;
+          const { express, total } = this.getTarifarioMontosFromItem(m);
+          const { fecha: fechaEntrega, hora: horaEntrega } = this.getFechaHoraEntregaFromItem(m);
+
+          const origenRural = this.getOrigenRuralReporteFromItem(m);
+          const destinoRural = this.getRuralReporteFromItem(m);
+
+          const row = worksheet.addRow({
+            nro: index + 1,
+            fecha_envio: this.getFechaEnvioFromItem(m),
+            num_envio: m.guia || 'S/N',
+            origen_ciudad: this.getOrigenFromItem(m) || 'S/N',
+            origen_rural: origenRural || '',
+            origen_local: origenRural ? '' : 'X',
+            destino_ciudad: this.getCiudadCodigoReporteFromItem(m),
+            destino_rural: destinoRural || '',
+            destino_local: destinoRural ? '' : 'X',
+            pieza: 1,
+            tipo_envio: this.getTipoEnvioReporteFromItem(m),
+            peso: pesoVal.toFixed(3),
+            express: express.toFixed(2),
+            total: total.toFixed(2),
+            fecha_entrega: fechaEntrega,
+            hora_entrega: horaEntrega,
+            a_quien: m.destinatario || 'S/N',
             cartero: m.cartero_entrega ? m.cartero_entrega.nombre : 'Por asignar',
-            observacion: m.observacion || 'S/N',
+            observaciones: m.observacion || 'S/N',
+          });
+
+          row.eachCell((cell) => {
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' },
+            };
           });
         });
+
+        // Filtro para la fila de cabecera
+        worksheet.autoFilter = `A18:S${Math.max(dataStartRow, worksheet.rowCount)}`;
       }
 
       // Crear la hoja resumen final
-      const resumenSheet = workbook.addWorksheet('Resumen');
+      const resumenSheet = workbook.addWorksheet(this.getSafeSheetName('Resumen', usedSheetNames));
 
       // Agregar el logo en el resumen
       const imageId = workbook.addImage({
@@ -1241,11 +1641,6 @@ export default {
       resumenSheet.getCell('B1').value = 'Resumen';
       resumenSheet.getCell('B1').alignment = { horizontal: 'center', vertical: 'middle' };
       resumenSheet.getCell('B1').font = { bold: true, size: 14 };
-      resumenSheet.getCell('B1').fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFFFD700' } // Color amarillo como en la imagen
-      };
 
       // Campo del Mes
       resumenSheet.mergeCells('B11:F11');
@@ -1256,7 +1651,8 @@ export default {
       // Agregar las columnas del resumen
       resumenSheet.columns = [
         { key: 'index', width: 5 },
-        { key: 'sucursal', width: 30 },
+        { key: 'origen', width: 30 },
+        { key: 'numero_contrato', width: 18 },
         { key: 'peso_total', width: 15 },
         { key: 'total_guias', width: 15 },
         { key: 'subtotal', width: 20 }
@@ -1264,55 +1660,44 @@ export default {
 
       // Añadir encabezados
       const headerRow = resumenSheet.getRow(13); // Colocado después de las filas vacías
-      headerRow.values = ['#', 'Sucursal', 'Peso Total (Kg)', 'Total Guías', 'Subtotal (Bs)'];
+      headerRow.values = ['#', 'Origen', 'Numero Contrato', 'Peso Total (Kg)', 'Total Guías', 'Subtotal (Bs)'];
       headerRow.eachCell((cell) => {
         cell.font = { bold: true };
         cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FF9BBB59' } // Color verde claro como en la imagen
-        };
       });
 
       let totalPeso = 0;
       let totalGuias = 0;
       let totalSubtotal = 0;
 
-      // Agrupar los datos por sucursal y añadir las filas
-      const sucursalesMap = {};
-      filteredData.forEach(item => {
-        const sucursalId = item.sucursale.id;
-        const sucursalNombre = item.sucursale.nombre;
-        const peso = item.peso_r ? parseFloat(item.peso_r) : parseFloat(item.peso_v) || 0;
-        const subtotal = parseFloat(item.nombre_d) || 0;
+      origenesParaReporte.forEach((origen, index) => {
+        const origenData = filteredData.filter(
+          (item) => this.getOrigenFromItem(item) === origen.codigo
+        );
+        if (origenData.length === 0) return;
+        const numeroContratoLabel = this.getNumeroContratoLabelForData(origenData);
 
-        if (!sucursalesMap[sucursalId]) {
-          sucursalesMap[sucursalId] = {
-            nombre: sucursalNombre,
-            peso: 0,
-            totalGuias: 0,
-            subtotal: 0
-          };
-        }
+        const peso = origenData.reduce((acc, item) => {
+          const value = item.peso_r ? parseFloat(item.peso_r) : parseFloat(item.peso_v);
+          return acc + (Number.isNaN(value) ? 0 : value);
+        }, 0);
+        const totalGuiasDepto = origenData.length;
+        const subtotal = origenData.reduce((acc, item) => {
+          const value = parseFloat(item.nombre_d);
+          return acc + (Number.isNaN(value) ? 0 : value);
+        }, 0);
 
-        sucursalesMap[sucursalId].peso += peso;
-        sucursalesMap[sucursalId].totalGuias += 1;
-        sucursalesMap[sucursalId].subtotal += subtotal;
-      });
-
-      // Añadir filas al resumen
-      Object.values(sucursalesMap).forEach((sucursal, index) => {
-        totalPeso += sucursal.peso;
-        totalGuias += sucursal.totalGuias;
-        totalSubtotal += sucursal.subtotal;
+        totalPeso += peso;
+        totalGuias += totalGuiasDepto;
+        totalSubtotal += subtotal;
 
         const row = resumenSheet.addRow({
           index: index + 1,
-          sucursal: sucursal.nombre,
-          peso_total: sucursal.peso.toFixed(3),
-          total_guias: sucursal.totalGuias,
-          subtotal: sucursal.subtotal.toFixed(2)
+          origen: `${origen.nombre} (${origen.codigo})`,
+          numero_contrato: numeroContratoLabel,
+          peso_total: peso.toFixed(3),
+          total_guias: totalGuiasDepto,
+          subtotal: subtotal.toFixed(2)
         });
 
         row.eachCell((cell) => {
@@ -1328,7 +1713,7 @@ export default {
 
       // Fila de totales
       const totalRow = resumenSheet.addRow({
-        sucursal: 'TOTAL',
+        origen: 'TOTAL',
         peso_total: totalPeso.toFixed(3),
         total_guias: totalGuias,
         subtotal: totalSubtotal.toFixed(2)
@@ -1336,11 +1721,6 @@ export default {
 
       totalRow.eachCell({ includeEmpty: true }, (cell) => {
         cell.font = { bold: true };
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFFFD700' } // Color amarillo claro como en la imagen para los totales
-        };
         cell.border = {
           top: { style: 'thin' },
           left: { style: 'thin' },
@@ -1356,9 +1736,10 @@ export default {
 
       // Añadir espacio para firmas en la hoja de resumen
       const firmaRow = resumenSheet.addRow([]);
+      const nombreCompleto = `${this.user?.user?.nombre || ''} ${this.user?.user?.apellidos || ''}`.trim() || 'SIN NOMBRE';
 
       resumenSheet.mergeCells(`B${firmaRow.number}:C${firmaRow.number}`);
-      resumenSheet.getCell(`B${firmaRow.number}`).value = `${this.user.user.nombre} ${this.user.user.apellidos}`;
+      resumenSheet.getCell(`B${firmaRow.number}`).value = nombreCompleto;
       resumenSheet.getCell(`B${firmaRow.number}`).font = { bold: true, italic: true, size: 12 };
       resumenSheet.getCell(`B${firmaRow.number}`).alignment = { horizontal: 'center', vertical: 'middle' };
 
@@ -1388,7 +1769,7 @@ export default {
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'Reporte_Multiples_Sucursales_Resumen.xlsx';
+      link.download = 'Reporte_Sucursales_Origen_Detallado.xlsx';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1561,7 +1942,7 @@ export default {
           direccion: m.direccion_especifica ? 'X' : 'S/N',
           local: m.direccion && m.direccion.zona ? 'X' : 'S/N',
           servicio: m.tarifa?.departamento || 'S/N',
-          ciudad: m.ciudad ? 'X' : 'S/N',
+          ciudad: this.getCiudadReporteFromItem(m),
           zona: m.zona_d ? 'X' : 'S/N',
           contenido: m.contenido || 'S/N',
           peso: peso.toFixed(3),
@@ -1911,7 +2292,7 @@ export default {
           direccion: m.direccion_especifica ? 'X' : 'S/N',
           local: m.direccion && m.direccion.zona ? 'X' : 'S/N',
           servicio: m.tarifa?.departamento || 'S/N',
-          ciudad: m.ciudad ? 'X' : 'S/N',
+          ciudad: this.getCiudadReporteFromItem(m),
           zona: m.zona_d ? 'X' : 'S/N',
           contenido: m.contenido || 'S/N',
           peso: !isNaN(peso) ? peso.toFixed(3) : 'S/N',
