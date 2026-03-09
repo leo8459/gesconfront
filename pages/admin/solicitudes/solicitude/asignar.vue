@@ -46,7 +46,7 @@
                           <tr v-for="(m, i) in filteredList(group)" :key="m.id || i">
                             <td class="py-0 px-1">{{ i + 1 }}</td>
                             <td class="py-0 px-1">{{ m.guia }}</td>
-                            <td class="p-1">{{ m?.sucursale?.nombre ?? '-' }}</td>
+                            <td class="p-1">{{ getSucursalLabel(m) }}</td>
                             <td class="py-0 px-1">{{ m.direccion_d }}</td>
                             <td class="py-0 px-1">{{ m.ciudad }}</td>
                             <td class="py-0 px-1">
@@ -210,13 +210,52 @@ export default {
     normalizeDept(value) {
       return String(value ?? '').trim().toUpperCase();
     },
+    isEmsSolicitude(item) {
+      return String(item?.tipo_correspondencia ?? '').trim().toUpperCase() === 'EMS';
+    },
+    isWithoutSucursalSolicitude(item) {
+      return item?.sucursale_id == null && item?.sucursale?.id == null;
+    },
+    getSucursalLabel(item) {
+      if (item?.sucursale?.nombre) {
+        return item.sucursale.nombre;
+      }
+
+      if (this.isEmsSolicitude(item)) {
+        return 'EMS GLOBAL';
+      }
+
+      return this.isWithoutSucursalSolicitude(item) ? 'SIN SUCURSAL' : '-';
+    },
+    mergeSolicitudes(primaryList, allSolicitudes) {
+      const merged = new Map();
+
+      (Array.isArray(primaryList) ? primaryList : []).forEach((item) => {
+        if (item?.id != null) {
+          merged.set(item.id, item);
+        }
+      });
+
+      (Array.isArray(allSolicitudes) ? allSolicitudes : []).forEach((item) => {
+        const estado = Number(item?.estado);
+        if (item?.id == null) {
+          return;
+        }
+
+        if ((this.isEmsSolicitude(item) || this.isWithoutSucursalSolicitude(item)) && [5, 10].includes(estado)) {
+          merged.set(item.id, item);
+        }
+      });
+
+      return Array.from(merged.values());
+    },
     filteredList(group) {
       if (!this.searchQuery) return group;
 
       const term = this.searchQuery.toLowerCase();
       return group.filter((item) =>
         String(item?.guia ?? '').toLowerCase().includes(term) ||
-        String(item?.sucursale?.nombre ?? '').toLowerCase().includes(term) ||
+        String(this.getSucursalLabel(item)).toLowerCase().includes(term) ||
         String(item?.direccion_d ?? '').toLowerCase().includes(term) ||
         String(item?.ciudad ?? '').toLowerCase().includes(term)
       );
@@ -276,6 +315,22 @@ export default {
       const res = await this.$encargados.$get(path);
       return this.extractArrayPayload(res);
     },
+    async TRY_GET_DATA(path) {
+      try {
+        return await this.GET_DATA(path);
+      } catch (e) {
+        console.warn(`No se pudo cargar ${path}:`, e?.response?.status || e?.message || e);
+        return [];
+      }
+    },
+    getRequestErrorMessage(error, fallbackMessage) {
+      return (
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        (typeof error?.response?.data === 'string' ? error.response.data : '') ||
+        fallbackMessage
+      );
+    },
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
     },
@@ -333,23 +388,30 @@ export default {
         const asignadasIds = [];
 
         for (const direccion of this.direccionesAsignadas) {
-          await this.$encargados.$put(`${this.apiUrl}/${direccion.id}`, {
+          await this.$encargados.$put(`solicitudesentrega5/${direccion.id}`, {
             cartero_entrega_id: Number(this.selectedCartero),
             peso_v: direccion?.peso_v ?? null,
-            estado: 2,
           });
 
           asignadasIds.push(direccion.id);
         }
 
-        this.list = await this.GET_DATA(this.apiUrl);
+        const [solicitudesData, todasLasSolicitudes] = await Promise.all([
+          this.GET_DATA(this.apiUrl),
+          this.TRY_GET_DATA('solicitudes'),
+        ]);
+        this.list = this.mergeSolicitudes(solicitudesData, todasLasSolicitudes);
         this.direccionesAsignadas = this.direccionesAsignadas.filter((item) => !asignadasIds.includes(item.id));
         this.solicitudesAsignadas = this.solicitudesAsignadas.filter((item) => !asignadasIds.includes(item.id));
         this.selectedCartero = null;
         this.$swal.fire('Cartero asignado', '', 'success');
       } catch (e) {
         console.log(e);
-        this.$swal.fire('Error al asignar cartero', '', 'error');
+        this.$swal.fire(
+          'Error al asignar cartero',
+          this.getRequestErrorMessage(e, 'No se pudo completar la asignación.'),
+          'error'
+        );
       } finally {
         this.load = false;
       }
@@ -361,12 +423,13 @@ export default {
         const user = localStorage.getItem('userAuth');
         this.user = user ? JSON.parse(user) : {};
 
-        const [solicitudesData, carterosData] = await Promise.all([
+        const [solicitudesData, todasLasSolicitudes, carterosData] = await Promise.all([
           this.GET_DATA(this.apiUrl),
+          this.TRY_GET_DATA('solicitudes'),
           this.GET_DATA(this.carterosApiUrl),
         ]);
 
-        this.list = Array.isArray(solicitudesData) ? solicitudesData : [];
+        this.list = this.mergeSolicitudes(solicitudesData, todasLasSolicitudes);
         this.carteros = Array.isArray(carterosData) ? carterosData : [];
 
         Object.keys(this.groupedData).forEach((estado) => {
@@ -374,8 +437,7 @@ export default {
         });
 
         if (!this.list.length) {
-          const fallbackSolicitudes = await this.GET_DATA('solicitudes');
-          this.list = Array.isArray(fallbackSolicitudes) ? fallbackSolicitudes : [];
+          this.list = this.mergeSolicitudes([], todasLasSolicitudes);
         }
         if (!this.carteros.length) {
           const fallbackCarteros = await this.GET_DATA('carteros');
