@@ -43,8 +43,28 @@
         load: false,
       };
     },
-    methods: {
-        async Save() {
+  methods: {
+    buildRequestErrorMessage(error) {
+      const responseData = error?.response?.data || {};
+      const apiError = responseData.error || responseData.message || '';
+      const normalizedError = String(apiError).toLowerCase();
+      const isDuplicateGuia = error?.response?.status === 422 && (
+        normalizedError.includes('guia ya existe') ||
+        normalizedError.includes('guias duplicadas') ||
+        normalizedError.includes('numero de guia repetido') ||
+        normalizedError.includes('número de guía repetido') ||
+        Boolean(responseData.guia)
+      );
+
+      if (isDuplicateGuia) {
+        return responseData.guia
+          ? `Número de guía repetido (${responseData.guia}), por favor revise el número de guía.`
+          : 'Número de guía repetido, por favor revise el número de guía.';
+      }
+
+      return apiError || 'Ocurrió un error al guardar.';
+    },
+    async Save() {
     // Validar que los campos requeridos estén llenos
    
     if (!this.model.remitente) {
@@ -106,6 +126,7 @@
         });
     } catch (e) {
       console.log(e);
+      this.showAlert(this.buildRequestErrorMessage(e));
     } finally {
       this.load = false;
     }
