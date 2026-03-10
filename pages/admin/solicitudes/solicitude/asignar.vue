@@ -319,7 +319,7 @@ export default {
       try {
         return await this.GET_DATA(path);
       } catch (e) {
-        console.warn(`No se pudo cargar ${path}:`, e?.response?.status || e?.message || e);
+        this.logApiError(`No se pudo cargar ${path}`, e, { path });
         return [];
       }
     },
@@ -330,6 +330,26 @@ export default {
         (typeof error?.response?.data === 'string' ? error.response.data : '') ||
         fallbackMessage
       );
+    },
+    buildApiUrl(path) {
+      const baseURL = this.$encargados?.defaults?.baseURL || '';
+      return `${baseURL}${path}`;
+    },
+    logApiRequest(context, path, payload = null) {
+      console.info(`[asignar] ${context}`, {
+        url: this.buildApiUrl(path),
+        payload,
+      });
+    },
+    logApiError(context, error, extra = {}) {
+      console.error(`[asignar] ${context}`, {
+        ...extra,
+        url: extra.path ? this.buildApiUrl(extra.path) : undefined,
+        message: error?.message,
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        response: error?.response?.data,
+      });
     },
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
@@ -388,10 +408,15 @@ export default {
         const asignadasIds = [];
 
         for (const direccion of this.direccionesAsignadas) {
-          await this.$encargados.$put(`solicitudesentrega5/${direccion.id}`, {
+          const path = `solicitudesentrega5/${direccion.id}`;
+          const payload = {
             cartero_entrega_id: Number(this.selectedCartero),
             peso_v: direccion?.peso_v ?? null,
-          });
+          };
+
+          this.logApiRequest(`Asignando guía ${direccion?.guia ?? direccion.id}`, path, payload);
+          const response = await this.$encargados.$put(path, payload);
+          console.info(`[asignar] Respuesta asignación ${direccion?.guia ?? direccion.id}`, response);
 
           asignadasIds.push(direccion.id);
         }
@@ -406,7 +431,14 @@ export default {
         this.selectedCartero = null;
         this.$swal.fire('Cartero asignado', '', 'success');
       } catch (e) {
-        console.log(e);
+        this.logApiError('Fallo al asignar cartero', e, {
+          selectedCartero: this.selectedCartero,
+          direcciones: this.direccionesAsignadas.map((item) => ({
+            id: item?.id,
+            guia: item?.guia,
+            peso_v: item?.peso_v,
+          })),
+        });
         this.$swal.fire(
           'Error al asignar cartero',
           this.getRequestErrorMessage(e, 'No se pudo completar la asignación.'),
@@ -444,7 +476,10 @@ export default {
           this.carteros = Array.isArray(fallbackCarteros) ? fallbackCarteros : [];
         }
       } catch (e) {
-        console.error('Error al obtener los datos:', e);
+        this.logApiError('Error al obtener los datos iniciales', e, {
+          solicitudesPath: this.apiUrl,
+          carterosPath: this.carterosApiUrl,
+        });
         this.$swal.fire('Error de carga', 'No se pudieron recuperar solicitudes/carteros desde la API.', 'error');
       } finally {
         this.load = false;

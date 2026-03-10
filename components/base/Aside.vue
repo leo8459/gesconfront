@@ -156,6 +156,11 @@
                 </nuxtLink>
               </li>
               <li class="nav-item">
+                <nuxtLink class="nav-link full-width-link" to="/cartero/darbajapaquetescarteros/darbajapaquetecartero">
+                  <span class="sidenav-normal"> Dar de baja paquetes</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item">
                 <nuxtLink class="nav-link full-width-link" to="/cartero/entregadocarteros/entregadocartero">
                   <span class="sidenav-normal"> Entregados</span>
                 </nuxtLink>
