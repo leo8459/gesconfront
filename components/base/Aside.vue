@@ -287,6 +287,11 @@
                 </nuxtLink>
               </li>
               <li class="nav-item" v-if="isSucursale">
+                <nuxtLink class="nav-link full-width-link" to="/sucursal/paquetesjustificadossucursales/paquetesjustificadosucursal">
+                  <span class="sidenav-normal full-width-text">Paquetes justificados</span>
+                </nuxtLink>
+              </li>
+              <li class="nav-item" v-if="isSucursale">
                 <nuxtLink class="nav-link full-width-link" to="/sucursal/eventossucursales/eventossucursale">
                   <span class="sidenav-normal full-width-text">Tracking</span>
                 </nuxtLink>

@@ -11,16 +11,19 @@
               </div>
               <div class="card-body">
                 <div slot="body" class="row">
-                 
                   <div class="form-group col-12">
-                    <label for="">Justificación</label>
-                    <input type="text" v-model="model.justificacion" class="form-control" id="justificacion" >
+                    <label for="justificacion">Justificacion</label>
+                    <input id="justificacion" v-model="model.justificacion" type="text" class="form-control">
                   </div>
-                  
                 </div>
 
-                <!-- Input para la imagen de justificación -->
-                <input type="text" v-model.trim="model.imagen_justificacion" class="form-control" id="imagen_justificacion" placeholder="Imagen">
+                <input
+                  id="imagen_justificacion"
+                  v-model.trim="model.imagen_justificacion"
+                  type="text"
+                  class="form-control"
+                  placeholder="Imagen"
+                >
 
                 <div id="div2" class="mb-3 text-center">
                   <label class="border border-black rounded-2 w-100 bg-white pt-5 pb-5">
@@ -30,12 +33,10 @@
                         <p>Sacar Foto</p>
                       </div>
                     </div>
-                    <input type="file" accept="image/*" id="capturephoto" capture="camera" class="d-none">
+                    <input id="capturephoto" type="file" accept="image/*" capture="camera" class="d-none">
                   </label>
                 </div>
 
-               
-                <!-- Nuevo botón para subir PDF -->
                 <div id="pdf-upload" class="mb-3 text-center">
                   <label class="border border-black rounded-2 w-100 bg-white pt-5 pb-5">
                     <div class="d-flex justify-content-center">
@@ -48,9 +49,10 @@
                   </label>
                 </div>
 
-                <!-- Botón para descargar PDF -->
                 <div class="mb-3 text-center">
-                  <button v-if="model.pdf_justificacion" @click="descargarPDF" class="btn btn-primary">Descargar PDF Subido</button>
+                  <button v-if="model.pdf_justificacion" @click="descargarPDF" class="btn btn-primary">
+                    Descargar PDF Subido
+                  </button>
                 </div>
 
                 <button class="btn btn-danger" @click="darDeBaja">Entregar Correspondencia</button>
@@ -63,17 +65,19 @@
   </div>
 </template>
 
-
 <script>
-import SignaturePad from 'signature_pad';
 import Swal from 'sweetalert2';
 import { openDB } from 'idb';
 
+const PDF_DB_NAME = 'pdf-storage';
+const PDF_DB_VERSION = 2;
+const PDF_STORE_NAME = 'pdfs';
+
 export default {
-  name: "IndexPage",
+  name: 'IndexPage',
   head() {
     return {
-      title: "solicitudes",
+      title: 'solicitudes',
     };
   },
   data() {
@@ -103,12 +107,11 @@ export default {
         imagen: '',
         imagen_justificacion: '',
         justificacion: '',
-        pdf_justificacion: '', // Campo para almacenar el PDF subido
-
+        pdf_justificacion: '',
       },
-      apiUrl: "solicitudes4",
-      page: "solicitudes",
-      modulo: "Agbc",
+      apiUrl: 'solicitudes4',
+      page: 'solicitudes',
+      modulo: 'Agbc',
       sucursales: [],
       carteros: [],
       ini_vigencia: '',
@@ -116,53 +119,75 @@ export default {
     };
   },
   methods: {
-    async handlePDFUpload(event) {
-  const file = event.target.files[0];
-
-  if (file && file.type === "application/pdf") {
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const fileContent = reader.result;
-
-      // Guardar el archivo PDF en IndexedDB
-      const db = await openDB('pdf-storage', 1, {
+    async getPdfDb() {
+      return openDB(PDF_DB_NAME, PDF_DB_VERSION, {
         upgrade(db) {
-          db.createObjectStore('pdfs', { keyPath: 'id' });
+          if (!db.objectStoreNames.contains(PDF_STORE_NAME)) {
+            db.createObjectStore(PDF_STORE_NAME, { keyPath: 'id' });
+          }
         },
       });
+    },
 
-      // Almacenar el PDF en el caché del navegador (IndexedDB)
-      await db.put('pdfs', { id: this.model.id, content: fileContent });
-      this.model.pdf_justificacion = fileContent; // Actualizar el modelo para visualizar el PDF
+    async handlePDFUpload(event) {
+      const file = event?.target?.files?.[0];
 
-      // Mostrar alerta de éxito
-      Swal.fire({
-        icon: "success",
-        title: "PDF subido con éxito",
-        text: "El archivo PDF ha sido guardado temporalmente.",
+      if (!file || file.type !== 'application/pdf') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Archivo invalido',
+          text: 'Solo se permiten archivos PDF.',
+        });
+        return;
+      }
+
+      try {
+        const fileContent = await this.readFileAsDataUrl(file);
+        const db = await this.getPdfDb();
+        await db.put(PDF_STORE_NAME, { id: this.model.id, content: fileContent });
+        this.model.pdf_justificacion = fileContent;
+
+        Swal.fire({
+          icon: 'success',
+          title: 'PDF subido correctamente',
+          text: 'El PDF esta subido correctamente.',
+        });
+      } catch (error) {
+        console.error('Error al subir PDF:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo guardar el PDF.',
+        });
+      } finally {
+        event.target.value = '';
+      }
+    },
+
+    readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
       });
-    };
+    },
 
-    reader.readAsDataURL(file); // Leer el archivo como base64
-  } else {
-    Swal.fire({
-      icon: "error",
-      title: "Archivo inválido",
-      text: "Solo se permiten archivos PDF.",
-    });
-  }
-},
-
-
-    // Método para descargar el PDF almacenado en IndexedDB
     async descargarPDF() {
-      const db = await openDB('pdf-storage', 1);
-      const pdfData = await db.get('pdfs', 'uploadedPDF');
+      const db = await this.getPdfDb();
+      const pdfData = await db.get(PDF_STORE_NAME, this.model.id);
 
       if (pdfData && pdfData.content) {
         const link = document.createElement('a');
         link.href = pdfData.content;
-        link.download = 'justificacion.pdf'; // Nombre del archivo descargado
+        link.download = 'justificacion.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else if (this.model.pdf_justificacion) {
+        const link = document.createElement('a');
+        link.href = this.model.pdf_justificacion;
+        link.download = 'justificacion.pdf';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -170,7 +195,7 @@ export default {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'No se encontró ningún PDF almacenado.',
+          text: 'No se encontro ningun PDF almacenado.',
         });
       }
     },
@@ -181,12 +206,11 @@ export default {
     },
 
     async darDeBaja() {
-    
       try {
         this.model.estado = 4;
         const now = new Date();
         const day = String(now.getDate()).padStart(2, '0');
-        const month = String(now.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
+        const month = String(now.getMonth() + 1).padStart(2, '0');
         const year = now.getFullYear();
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
@@ -194,7 +218,7 @@ export default {
         await this.$contratos.$put(`${this.apiUrl}/${this.model.id}`, this.model);
         Swal.fire({
           icon: 'success',
-          title: 'Éxito',
+          title: 'Exito',
           text: 'El registro ha sido dado Justificado.'
         }).then(() => {
           window.history.back();
@@ -207,77 +231,92 @@ export default {
           text: 'Hubo un error al dar de baja el registro.'
         });
       }
+    },
+
+    bindImageCapture() {
+      const fileInput = document.getElementById('capturephoto');
+      if (!fileInput) {
+        return;
+      }
+
+      fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            const maxWidth = 1000;
+            const maxHeight = 1000;
+
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+              }
+            } else if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            let quality = 0.4;
+            let dataurl = canvas.toDataURL('image/webp', quality);
+
+            while (dataurl.length > 100000 && quality > 0.01) {
+              quality -= 0.01;
+              dataurl = canvas.toDataURL('image/webp', quality);
+            }
+
+            this.model.imagen_justificacion = dataurl;
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    },
+
+    async hydrateStoredPdf() {
+      if (!this.model?.id) {
+        return;
+      }
+
+      try {
+        const db = await this.getPdfDb();
+        const pdfData = await db.get(PDF_STORE_NAME, this.model.id);
+        if (pdfData?.content) {
+          this.model.pdf_justificacion = pdfData.content;
+        }
+      } catch (error) {
+        console.error('Error al recuperar PDF:', error);
+      }
     }
   },
   mounted() {
     this.$nextTick(async () => {
-  try {
-    const routeData = await this.GET_DATA(this.apiUrl + '/' + this.$route.params.id);
-    this.model = routeData;
-  } catch (e) {
-    console.log(e);
-  } finally {
-    this.load = false;
-  }
+      try {
+        const routeData = await this.GET_DATA(this.apiUrl + '/' + this.$route.params.id);
+        this.model = routeData;
+        await this.hydrateStoredPdf();
+      } catch (e) {
+        console.log(e);
+      } finally {
+        this.load = false;
+      }
 
- 
-
-  // Manejo de la captura de foto con límite de tamaño muy bajo
-  var fileInput = document.getElementById('capturephoto');
-
-  fileInput.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-
-                // Definir una resolución baja
-                const maxWidth = 1000; // Ancho máximo
-                const maxHeight = 1000; // Alto máximo
-
-                let width = img.width;
-                let height = img.height;
-
-                // Escalar la imagen_justificacion a las dimensiones más pequeñas posibles
-                if (width > height) {
-                    if (width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    }
-                } else {
-                    if (height > maxHeight) {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-
-                // Comprimir la imagen_justificacion en formato WebP lo máximo posible
-                let quality = 0.4; // Calidad baja
-                let dataurl = canvas.toDataURL('image/webp', quality);
-
-                // Intentar reducir el tamaño por debajo de 1 KB
-                while (dataurl.length > 100000 && quality > 0.01) {
-                    quality -= 0.01;
-                    dataurl = canvas.toDataURL('image/webp', quality);
-                }
-
-                console.log('imagen_justificacion final en base64:', dataurl);
-                this.model.imagen_justificacion = dataurl; // Guardar la imagen_justificacion comprimida en el modelo
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-});
-
+      this.bindImageCapture();
     });
   }
 };
