@@ -161,14 +161,15 @@ export default {
         .filter((item) => {
           const carteroEntregaId = Number(item?.cartero_entrega_id ?? item?.cartero_entrega?.id ?? 0);
           const mismaAsignacion = carteroEntregaId === userId;
-          const estadoPendiente = Number(item?.estado) === 2;
+          const estadoActual = Number(item?.estado ?? 0);
+          const estadoVisible = ![3, 4].includes(estadoActual);
           const matchesSearch =
             String(item?.guia ?? '').toLowerCase().includes(term) ||
             String(item?.destinatario ?? '').toLowerCase().includes(term) ||
             String(item?.sucursale?.nombre ?? '').toLowerCase().includes(term) ||
             String(item?.direccion_especifica_d ?? '').toLowerCase().includes(term);
 
-          return mismaAsignacion && estadoPendiente && matchesSearch;
+          return mismaAsignacion && estadoVisible && matchesSearch;
         })
         .sort((a, b) => Number(b?.id || 0) - Number(a?.id || 0));
     },
