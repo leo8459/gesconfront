@@ -427,8 +427,9 @@ export default {
         sucursale_nombre: this.model.sucursale_nombre
       };
 
+      const normalizedRemitenteInput = String(remitenteInput || '').toLowerCase();
       const existingIndex = frequentRemitentes.findIndex(
-        remitente => String(remitente.remitente || '').toLowerCase() === remitenteInput.toLowerCase()
+        remitente => String(remitente.remitente || '').toLowerCase() === normalizedRemitenteInput
       );
 
       if (existingIndex === -1) {
@@ -464,8 +465,9 @@ export default {
     // Cargar remitentes frecuentes desde el almacenamiento local
     loadFrequentRemitentes(query) {
       const frequentRemitentes = JSON.parse(localStorage.getItem('frequentRemitentes')) || [];
+      const normalizedQuery = String(query || '').toLowerCase();
       return frequentRemitentes.filter(remitente =>
-        String(remitente.remitente || '').toLowerCase().includes(query.toLowerCase())
+        String(remitente.remitente || '').toLowerCase().includes(normalizedQuery)
       );
     },
 
@@ -745,8 +747,9 @@ export default {
         ciudad: this.model.ciudad
       };
 
+      const normalizedDestinatarioInput = String(destinatarioInput || '').toLowerCase();
       const existingIndex = frequentAddresses.findIndex(
-        address => String(address.destinatario || '').toLowerCase() === destinatarioInput.toLowerCase()
+        address => String(address.destinatario || '').toLowerCase() === normalizedDestinatarioInput
       );
 
       if (existingIndex === -1) {
@@ -817,8 +820,9 @@ applyFrequentAddress(address) {
     },
     loadFrequentAddresses(query) {
       const frequentAddresses = JSON.parse(localStorage.getItem('frequentAddresses')) || [];
+      const normalizedQuery = String(query || '').toLowerCase();
       return frequentAddresses.filter(address =>
-        String(address.destinatario || '').toLowerCase().includes(query.toLowerCase())
+        String(address.destinatario || '').toLowerCase().includes(normalizedQuery)
       );
     },
     getCurrentLocation() {

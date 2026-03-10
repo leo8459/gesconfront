@@ -321,121 +321,62 @@ export default {
     };
   },
   computed: {
-   filteredData() {
-  const searchTerm = (this.searchTerm || '').toLowerCase();
+    filteredData() {
+      const searchTerm = (this.searchTerm || '').toLowerCase();
+      const startDate = this.startDate ? new Date(this.startDate) : null;
+      const endDate = this.endDate ? new Date(this.endDate) : null;
 
-  // 🔒 Seguridad: si list no es array
-  if (!Array.isArray(this.list)) {
-    return [];
-  }
-
-  return this.list.filter(item => {
-
-    // ===============================
-    // ✅ FILTROS OBLIGATORIOS
-    // ===============================
-
-    // ❌ SIN SUCURSAL → FUERA
-    if (!item?.sucursale?.id) {
-      return false;
-    }
-
-    // ❌ SIN TARIFA (EMS) → FUERA
-    if (!item?.tarifa_id && !item?.tarifa) {
-      return false;
-    }
-
-    // ❌ SIN FECHA DE RECOJO → FUERA
-    if (!item?.fecha_recojo_c) {
-      return false;
-    }
-
-    // ❌ SIN SERVICIO → FUERA (evita crash)
-    const servicio = (item?.tarifa?.servicio ?? '').trim();
-    if (!servicio) {
-      return false;
-    }
-
-    // ===============================
-    // ⏱️ LÓGICA DE TIEMPOS (TU CÓDIGO)
-    // ===============================
-
-    let fechaLimite;
-
-    const serviciosPorDias = [
-      "SERVICIO COURIER NACIONAL (Normal)",
-      "SERVICIO COURIER LOCAL (Normal)",
-      "SERVICIO DE PROVINCIAS A NIVEL NACIONAL"
-    ];
-
-    const serviciosPorHoras = [
-      "SERVICIO COURIER NACIONAL (Expreso)",
-      "SERVICIO COURIER LOCAL (Expreso)"
-    ];
-
-    const recojoDate = new Date(item.fecha_recojo_c);
-
-    if (isNaN(recojoDate.getTime())) {
-      return false;
-    }
-
-    // 📆 SERVICIOS POR DÍAS
-    if (serviciosPorDias.includes(servicio)) {
-      const diasEntrega = (item?.tarifa?.dias_entrega ?? 0) / 24;
-      fechaLimite = this.addBusinessDays(recojoDate, diasEntrega);
-      fechaLimite.setHours(20, 0, 0, 0);
-    }
-
-    // ⏰ SERVICIOS POR HORAS
-    else if (serviciosPorHoras.includes(servicio)) {
-      fechaLimite = new Date(recojoDate);
-
-      if (recojoDate.getDay() === 5 && recojoDate.getHours() >= 17) {
-        fechaLimite = this.addBusinessDays(recojoDate, 1);
-        fechaLimite.setHours(9, 30, 0, 0);
-      } 
-      else if (recojoDate.getHours() >= 8 && recojoDate.getHours() < 10) {
-        fechaLimite.setHours(19, 0, 0, 0);
-      } 
-      else if (recojoDate.getHours() >= 17 && recojoDate.getHours() < 23) {
-        fechaLimite = this.addBusinessDays(recojoDate, 1);
-        fechaLimite.setHours(9, 30, 0, 0);
-      } 
-      else {
-        fechaLimite = new Date(
-          recojoDate.getTime() + (item?.tarifa?.dias_entrega ?? 0) * 60 * 60 * 1000
-        );
-
-        if (fechaLimite.getDay() === 6) {
-          fechaLimite = this.addBusinessDays(fechaLimite, 2);
-          fechaLimite.setHours(10, 0, 0, 0);
-        } 
-        else if (fechaLimite.getDay() === 0) {
-          fechaLimite = this.addBusinessDays(fechaLimite, 1);
-          fechaLimite.setHours(10, 0, 0, 0);
-        }
+      if (endDate) {
+        endDate.setDate(endDate.getDate() + 1);
       }
-    }
 
-    // ❌ SERVICIO DESCONOCIDO
-    else {
-      return false;
-    }
+      if (!Array.isArray(this.list)) {
+        return [];
+      }
 
-    // ===============================
-    // ✅ VALIDACIONES FINALES
-    // ===============================
+      const filtered = this.list.filter(item => {
+        const isMatchingSucursal = !this.selectedSucursal || item?.sucursale?.id === this.selectedSucursal;
 
-    const isLate = new Date() > fechaLimite;
-    const isValidState = [1, 2, 5, 8, 9].includes(item.estado);
+        let isWithinDateRange = true;
+        if (startDate || endDate) {
+          const datesToCheck = [];
+          if (item?.fecha) datesToCheck.push(new Date(item.fecha));
+          if (item?.fecha_recojo_c) datesToCheck.push(new Date(item.fecha_recojo_c));
+          if (item?.fecha_d) datesToCheck.push(new Date(item.fecha_d));
 
-    const matchesSearch = Object.values(item)
-      .some(v => String(v ?? '').toLowerCase().includes(searchTerm));
+          isWithinDateRange = datesToCheck.length > 0 && datesToCheck.some(date => {
+            if (Number.isNaN(date.getTime())) {
+              return false;
+            }
+            if (startDate && endDate) return date >= startDate && date < endDate;
+            if (startDate) return date >= startDate;
+            if (endDate) return date < endDate;
+            return true;
+          });
+        }
 
-    return isLate && isValidState && matchesSearch;
-  });
-}
-,
+        const matchesSearch = Object.values(item)
+          .some(value => String(value ?? '').toLowerCase().includes(searchTerm));
+
+        return isMatchingSucursal && isWithinDateRange && matchesSearch;
+      });
+
+      filtered.sort((a, b) => {
+        const getLatestDate = (item) => {
+          const dates = [item?.fecha, item?.fecha_recojo_c, item?.fecha_d]
+            .filter(Boolean)
+            .map(value => new Date(value))
+            .filter(date => !Number.isNaN(date.getTime()))
+            .map(date => date.getTime());
+
+          return dates.length > 0 ? Math.max(...dates) : 0;
+        };
+
+        return getLatestDate(b) - getLatestDate(a);
+      });
+
+      return filtered;
+    },
 
 
     paginatedData() {

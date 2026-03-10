@@ -126,17 +126,18 @@ export default {
   },
   computed: {
     filteredList() {
+      const searchTerm = String(this.searchTerm || '').toLowerCase();
+
       return this.list
         .filter(item => {
-          const searchTerm = this.searchTerm.toLowerCase();
           return (
-            item.codigo.toLowerCase().includes(searchTerm) ||
-            item.accion.toLowerCase().includes(searchTerm) ||
-            item.descripcion.toLowerCase().includes(searchTerm) ||
-            item.fecha_hora.toLowerCase().includes(searchTerm)
+            String(item?.codigo ?? '').toLowerCase().includes(searchTerm) ||
+            String(item?.accion ?? '').toLowerCase().includes(searchTerm) ||
+            String(item?.descripcion ?? '').toLowerCase().includes(searchTerm) ||
+            String(item?.fecha_hora ?? '').toLowerCase().includes(searchTerm)
           );
         })
-        .sort((a, b) => new Date(b.fecha_hora) - new Date(a.fecha_hora));
+        .sort((a, b) => new Date(b?.fecha_hora || 0) - new Date(a?.fecha_hora || 0));
     },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
