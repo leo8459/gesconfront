@@ -8,18 +8,6 @@
             <div class="card">
               <div class="card-header">
                 <h3>Agregar Solicitud Digital</h3>
-                <!-- Botón para subir masivamente -->
-                <div class="form-group col-12">
-                  <button class="btn btn-primary" @click="mostrarModalCargaMasiva">Subir Masivamente</button>
-                </div>
-
-                <!-- Modal para carga masiva -->
-                <b-modal ref="modalCargaMasiva" title="Subir Solicitudes Masivamente" hide-footer>
-                  <div>
-                    <input type="file" @change="procesarArchivo" accept=".xlsx, .xls, .csv" />
-                    <button class="btn btn-primary mt-3" @click="subirArchivo">Subir Archivo</button>
-                  </div>
-                </b-modal>
               </div>
 
               <div class="card-body">
@@ -302,10 +290,7 @@ export default {
       direcciones: [],
       suggestions: [],
       remitenteSuggestions: [],
-      archivo: null,
-      isUploading: false, // Nueva variable para el estado de carga
-
-
+      
     };
   },
   computed: {
@@ -337,64 +322,6 @@ export default {
     getDepartamentoLabel(value) {
       const departamento = this.departamentosEnvio.find((d) => d.value === value);
       return departamento ? departamento.label : '';
-    },
-    mostrarModalCargaMasiva() {
-      this.$refs.modalCargaMasiva.show();
-    },
-    procesarArchivo(event) {
-      this.archivo = event.target.files[0];
-    },
-    async subirArchivo() {
-      if (!this.archivo) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Por favor seleccione un archivo',
-          showConfirmButton: false,
-          timer: 1500,
-        });
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('file', this.archivo);
-      formData.append('sucursale_id', this.model.sucursale_id);
-
-      try {
-        // Muestra el mensaje de "Subiendo archivo..."
-        this.isUploading = true;
-        Swal.fire({
-          title: 'Subiendo archivo...',
-          text: 'Por favor espera',
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
-        });
-
-        const response = await this.$sucursales.$post('/solicitudes2/carga-masiva', formData);
-
-        // Cierra el mensaje de carga y muestra el éxito
-        Swal.close();
-        Swal.fire({
-          icon: 'success',
-          title: 'Solicitudes subidas con éxito',
-          text: `Se han creado ${response.data.creados} solicitudes`,
-          showConfirmButton: true,
-        });
-
-        this.$refs.modalCargaMasiva.hide();
-      } catch (error) {
-  // Cierra el mensaje de carga y muestra el error
-  Swal.close();
-  console.error('Error al subir el archivo:', error);
-  Swal.fire({
-    icon: 'success',
-    title: 'Solicitudes subidas con éxito',
-    text: error.response?.data?.message || 'Se subido todos los archivos con exito',
-    showConfirmButton: true,
-  });
-}
-
     },
     // Método para guardar remitente frecuente
     saveFrequentRemitente() {

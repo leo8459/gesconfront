@@ -298,6 +298,7 @@
     const telefonoDest = data.telefono_d || '';
     const origen = (data.sucursale && data.sucursale.origen) || '';
     const destino = (data.tarifa && data.tarifa.departamento) || data.reencaminamiento || '';
+    const fechaSolicitud = data.fecha || this.model.fecha || '';
     const provinciaDestinatario = (data.ciudad || (this.model && this.model.ciudad) || '').trim();
     const departamentoProvinciaDestinatario = provinciaDestinatario
       ? `Departamento: ${destino || '-'} | Provincia: ${provinciaDestinatario}`
@@ -394,7 +395,11 @@
     const rightInfoLines = [
       getWrappedLines(`TELEFONO DESTINATARIO: ${telefonoDest}`, rightWidth - 12, 2),
       getWrappedLines(`Direccion: ${direccionDest}`, rightWidth - 12, 3),
-      getWrappedLines(departamentoProvinciaDestinatario, rightWidth - 12, 3),
+      getWrappedLines(
+        `${departamentoProvinciaDestinatario} | Fecha y hora de solicitud: ${fechaSolicitud || '-'}`,
+        rightWidth - 12,
+        4
+      ),
     ];
     const rowHeights = rightInfoLines.map(lines => getRowHeight(lines, 14));
 
