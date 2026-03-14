@@ -580,7 +580,7 @@ export default {
       load: true,
       list: [],
       searchTerm: "",
-      apiUrl: "solicitudes",
+      apiUrl: "solicitudes5",
       page: "Enviar Paquetes",
       modulo: "Enviar Paquetes",
       url_nuevo: "/admin/solicitudesj/solicitudej/nuevo",
@@ -630,40 +630,7 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = (this.searchTerm || "").toLowerCase();
-
-      // Si no hay usuario o departamento, igual devolvemos EMS global
-      const departamentoCartero = this.user?.user?.departamento_cartero || null;
-
-      const filtered = this.list.filter((item) => {
-        // 1) Estado 5 por sucursal.origen = departamento del cartero
-        const cumpleEstado5 =
-          item.estado === 5 && item.sucursale?.origen === departamentoCartero;
-
-        // 2) Estados 10, 11, 13 por reencaminamiento = departamento del cartero
-        const cumpleEstado10_11_13 =
-          [10, 11, 13].includes(item.estado) &&
-          item.reencaminamiento === departamentoCartero;
-
-        // 3) ✅ EMS GLOBAL (sucursale_id y tarifa_id en NULL)
-        //    (puedes ajustar el estado si quieres solo estado 5)
-        const cumpleEMSGlobal =
-          item.estado === 5 &&
-          (item.tipo_correspondencia || "").toUpperCase() === "EMS" &&
-          (item.sucursale_id === null || item.sucursale_id === undefined) &&
-          (item.tarifa_id === null || item.tarifa_id === undefined);
-
-        // 4) Coincide con búsqueda (sin romper si hay nulls)
-        const coincideBusqueda = this.matchesSearch(item, searchTerm);
-
-        // ✅ Retorna si cumple alguna regla y además coincide búsqueda
-        return (
-          (cumpleEstado5 || cumpleEstado10_11_13 || cumpleEMSGlobal) &&
-          coincideBusqueda
-        );
-      });
-
-      // Ordenamos por fecha_recojo_c descendente (si es null, manda al final)
+      const filtered = [...(this.list || [])];
       filtered.sort((a, b) => {
         const fa = a.fecha_recojo_c ? new Date(a.fecha_recojo_c).getTime() : 0;
         const fb = b.fecha_recojo_c ? new Date(b.fecha_recojo_c).getTime() : 0;
@@ -710,16 +677,26 @@ export default {
   },
 
   methods: {
-    matchesSearch(item, searchTerm = (this.searchTerm || "").toLowerCase()) {
-      return (
-        Object.values(item).some((value) =>
-          String(value ?? "")
-            .toLowerCase()
-            .includes(searchTerm)
-        ) ||
-        (item.sucursale?.nombre &&
-          item.sucursale.nombre.toLowerCase().includes(searchTerm))
-      );
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    buildListPath() {
+      const params = new URLSearchParams();
+      const search = (this.searchTerm || "").trim();
+      if (search) {
+        params.set("search", search);
+      }
+      const query = params.toString();
+      return query ? `${this.apiUrl}?${query}` : this.apiUrl;
+    },
+    async fetchList() {
+      const data = await this.GET_DATA(this.buildListPath());
+      this.list = this.normalizeArrayPayload(data);
+      this.currentPage = 0;
+      return this.list;
     },
 
     openEmsModal() {
@@ -755,8 +732,7 @@ export default {
           cartero_recogida_id: carteroId,
         });
 
-        const data = await this.GET_DATA(this.apiUrl);
-        this.list = Array.isArray(data) ? data : [];
+        await this.fetchList();
 
         this.$swal.fire({
           icon: "success",
@@ -854,7 +830,7 @@ export default {
           cartero_recogida_id: carteroId,
         });
 
-        await this.GET_DATA(this.apiUrl).then((data) => (this.list = data));
+        await this.fetchList();
 
         this.$swal.fire({
           icon: "success",
@@ -934,7 +910,7 @@ export default {
 
         await this.$api.$put(`rechazado/${this.selectedSolicitudeId}`, payload);
 
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
         this.showSuccessMessage();
         this.resetForm();
       } catch (e) {
@@ -1006,13 +982,13 @@ export default {
           `solicitudesrecojo/${solicitudeId}`,
           { cartero_recogida_id: carteroId }
         );
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
         this.$swal.fire({
           icon: "success",
           title: "Cartero asignado",
           text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
         });
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.fetchList();
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -1069,7 +1045,7 @@ export default {
       try {
         const res = await this.$api.$delete(this.apiUrl + "/" + id);
         await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0];
+          this.list = this.normalizeArrayPayload(v[0]);
         });
       } catch (e) {
         console.log(e);
@@ -1106,17 +1082,8 @@ export default {
       this.isModalVisible = true;
     },
 
-    handleSearchEnter() {
-      const term = (this.searchTerm || "").trim().toLowerCase();
-      const filteredItems = (term ? this.list : this.filteredData).filter(
-        (item) => this.matchesSearch(item, term)
-      );
-
-      filteredItems.sort((a, b) => {
-        const fa = a.fecha_recojo_c ? new Date(a.fecha_recojo_c).getTime() : 0;
-        const fb = b.fecha_recojo_c ? new Date(b.fecha_recojo_c).getTime() : 0;
-        return fb - fa;
-      });
+    async handleSearchEnter() {
+      const filteredItems = await this.fetchList();
 
       if (filteredItems.length > 0) {
         const item = filteredItems[0];
@@ -1191,7 +1158,7 @@ export default {
             nombre_d: item.nombre_d, // Incluir nombre_d en el envío
           });
         }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.fetchList();
         this.$swal.fire({
           icon: "success",
           title: "Carteros asignados",
@@ -1253,8 +1220,7 @@ export default {
       // 2) Cargar data (solicitudes, tarifas, sucursales)
       try {
         // Solicitudes
-        const data = await this.GET_DATA(this.apiUrl);
-        this.list = Array.isArray(data) ? data : [];
+        await this.fetchList();
 
         // Tarifas
         const tarifas = await this.GET_DATA("getTarifas");

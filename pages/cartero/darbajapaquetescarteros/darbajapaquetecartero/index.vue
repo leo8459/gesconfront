@@ -138,6 +138,7 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
+      apiUrl: 'solicitudes3',
       page: 'Dar de baja paquetes',
       modulo: 'Dar de baja paquetes',
       currentPage: 0,
@@ -154,24 +155,7 @@ export default {
   },
   computed: {
     filteredData() {
-      const term = String(this.searchTerm || '').toLowerCase();
-      const userId = Number(this.user?.user?.id || 0);
-
-      return (this.list || [])
-        .filter((item) => {
-          const carteroEntregaId = Number(item?.cartero_entrega_id ?? item?.cartero_entrega?.id ?? 0);
-          const mismaAsignacion = carteroEntregaId === userId;
-          const estadoActual = Number(item?.estado ?? 0);
-          const estadoVisible = ![3, 4].includes(estadoActual);
-          const matchesSearch =
-            String(item?.guia ?? '').toLowerCase().includes(term) ||
-            String(item?.destinatario ?? '').toLowerCase().includes(term) ||
-            String(item?.sucursale?.nombre ?? '').toLowerCase().includes(term) ||
-            String(item?.direccion_especifica_d ?? '').toLowerCase().includes(term);
-
-          return mismaAsignacion && estadoVisible && matchesSearch;
-        })
-        .sort((a, b) => Number(b?.id || 0) - Number(a?.id || 0));
+      return [...(this.list || [])].sort((a, b) => Number(b?.id || 0) - Number(a?.id || 0));
     },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
@@ -182,9 +166,30 @@ export default {
     },
   },
   methods: {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    buildListPath() {
+      const params = new URLSearchParams();
+      const search = String(this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      const query = params.toString();
+      return query ? `${this.apiUrl}?${query}` : this.apiUrl;
+    },
+    async fetchList() {
+      const data = await this.GET_DATA(this.buildListPath());
+      this.list = this.normalizeArrayPayload(data);
+      this.currentPage = 0;
+      return this.list;
+    },
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
-      return Array.isArray(res) ? res : [];
+      return this.normalizeArrayPayload(res);
     },
     openDarBajaModal(item) {
       this.selectedPackage = item;
@@ -288,7 +293,7 @@ export default {
         };
 
         await this.$api.$put(`solicitudes/${this.selectedPackage.id}`, payload);
-        this.list = await this.GET_DATA('solicitudes');
+        await this.fetchList();
         this.$swal.fire('Paquete dado de baja', `Código: ${this.selectedPackage?.guia ?? '-'}`, 'success');
         this.closeDarBajaModal();
       } catch (e) {
@@ -322,7 +327,7 @@ export default {
       this.user = rawUser ? JSON.parse(rawUser) : {};
 
       try {
-        this.list = await this.GET_DATA('solicitudes');
+        await this.fetchList();
       } catch (e) {
         console.error('Error al cargar paquetes asignados:', e);
         this.$swal.fire('Error', 'No se pudieron cargar los paquetes asignados.', 'error');
@@ -330,6 +335,11 @@ export default {
         this.load = false;
       }
     });
+  },
+  watch: {
+    searchTerm() {
+      this.fetchList();
+    },
   },
 };
 </script>

@@ -176,7 +176,7 @@ export default {
       selectedSucursal: '',
       sucursales: [],
       filteredSucursales: [],
-      apiUrl: 'solicitudes',
+      apiUrl: 'solicitudes1',
       page: 'Recoger Envio',
       modulo: 'Recoger Envio',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -203,7 +203,7 @@ export default {
       const sucursalIds = new Set();
       const uniqueSucursales = [];
 
-      this.filteredData.forEach(item => {
+      (this.list || []).forEach(item => {
         if (item.sucursale && !sucursalIds.has(item.sucursale.id)) {
           sucursalIds.add(item.sucursale.id);
           uniqueSucursales.push(item.sucursale);
@@ -216,20 +216,7 @@ export default {
       return Object.keys(this.selected).some(key => this.selected[key]);
     },
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      const departamentoCartero = this.user.departamento_cartero;
-      return this.list.filter(item =>
-        item.estado === 1 &&
-        item.sucursale &&
-        item.sucursale.origen === departamentoCartero &&
-        (
-          (this.selectedSucursal ? item.sucursale.id === this.selectedSucursal : true) && // Filtra por sucursal seleccionada
-          (Object.values(item).some(value =>
-            String(value).toLowerCase().includes(searchTerm)
-          ) ||
-            (item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)))
-        )
-      ).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      return [...(this.list || [])].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
     },
 
     paginatedData() {
@@ -243,6 +230,31 @@ export default {
     }
   },
   methods: {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    buildListPath() {
+      const params = new URLSearchParams();
+      const search = (this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      if (this.selectedSucursal) {
+        params.set('sucursale_id', this.selectedSucursal);
+      }
+      const query = params.toString();
+      return query ? `${this.apiUrl}?${query}` : this.apiUrl;
+    },
+    async fetchList() {
+      const data = await this.GET_DATA(this.buildListPath());
+      this.list = this.normalizeArrayPayload(data);
+      this.filteredSucursales = this.getUniqueSucursales(this.list);
+      this.currentPage = 0;
+      return this.list;
+    },
     reprintPDF(data) {
       const doc = new jsPDF('portrait', 'mm', 'letter');
     const fontSize = 10;
@@ -399,9 +411,8 @@ export default {
   
     doc.save(`Solicitud-${guia}.pdf`);
   },
-    handleSucursalChange() {
-      this.selectedItemsData = this.filteredData; // Actualiza los datos filtrados al cambiar de sucursal
-      this.currentPage = 0; // Reinicia a la primera página
+    async handleSucursalChange() {
+      this.selectedItemsData = await this.fetchList();
 
       if (this.selectedItemsData.length > 0) {
         this.isSelectedSimpleModalVisible = true; // Abre el modal si hay resultados
@@ -418,13 +429,13 @@ export default {
       try {
         const carteroId = this.user.user.id;
         const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
         this.$swal.fire({
           icon: 'success',
           title: 'Cartero asignado',
           text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
         });
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.fetchList();
       } catch (e) {
         this.$swal.fire({
           icon: 'error',
@@ -439,9 +450,9 @@ export default {
       this.load = true;  // Comienza la carga
       try {
         const res = await this.$api.$get(path);
-        this.list = res;
-        this.filteredSucursales = this.getUniqueSucursales(this.list.filter(item => item.estado === 1));
+        return this.normalizeArrayPayload(res);
       } catch (error) {
+        return [];
       } finally {
         this.load = false;  // Termina la carga
       }
@@ -464,9 +475,7 @@ export default {
       this.load = true;
       try {
         const res = await this.$api.$delete(this.apiUrl + '/' + id);
-        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0];
-        });
+        await this.fetchList();
       } catch (e) {
       } finally {
         this.load = false;
@@ -495,9 +504,9 @@ export default {
           item.estado = response.estado; // Actualizar estado desde la respuesta
           item.cartero_entrega_id = response.cartero_entrega_id; // Actualizar cartero de entrega desde la respuesta
           item.peso_v = response.peso_v; // Actualizar peso desde la respuesta
-          await this.GET_DATA(this.apiUrl);
+          await this.fetchList();
         }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.fetchList();
       } catch (e) {
       } finally {
         this.load = false;
@@ -554,7 +563,7 @@ openSelectedSimpleModal() {
         }
       }
 
-      await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+      await this.fetchList();
       this.$swal.fire({
         icon: 'success',
         title: 'Recogido',
@@ -578,9 +587,10 @@ openSelectedSimpleModal() {
 
 
 
-    handleSearchEnter() {
+    async handleSearchEnter() {
+      await this.fetchList();
       if (this.selectedSucursal) {
-        this.selectedItemsData = this.list.filter(item => item.estado === 1 && item.sucursale && item.sucursale.id === this.selectedSucursal).map(item => ({
+        this.selectedItemsData = this.list.filter(item => item.sucursale && item.sucursale.id === this.selectedSucursal).map(item => ({
           id: item.id,
           guia: item.guia,
           sucursale: item.sucursale
@@ -593,10 +603,7 @@ openSelectedSimpleModal() {
 
 
     filterBySucursal() {
-      const selectedSucursalId = this.selectedSucursal;
-      this.filteredData = this.list.filter(item =>
-        item.estado === 1 && item.sucursale && (item.sucursale.id === selectedSucursalId)
-      );
+      return this.fetchList();
     },
     selectAll(event) {
       const isChecked = event.target.checked;
@@ -637,7 +644,7 @@ openSelectedSimpleModal() {
 
         if (parsedUser.user && parsedUser.user.departamento_cartero) {
           this.user = parsedUser.user;
-          await this.GET_DATA(this.apiUrl);
+          await this.fetchList();
         } else {
           console.error("El usuario o departamento del cartero no está definido.");
         }
