@@ -309,8 +309,9 @@ export default {
     return {
       load: true,
       list: [],
+      mandadosRegionalList: [],
       searchTerm: '',
-      apiUrl: 'solicitudes',
+      apiUrl: 'solicitudes9',
       page: 'Envios en Camino',
       modulo: 'Envios en Camino',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -344,22 +345,8 @@ export default {
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-    return this.list
-      .filter(item =>
-        item.estado === 9 &&
-        item.cartero_entrega && item.cartero_entrega.id === this.user.user.id &&
-        (
-          (item.guia && item.guia.toLowerCase().includes(searchTerm)) ||
-          (item.sucursale && item.sucursale.nombre && item.sucursale.nombre.toLowerCase().includes(searchTerm)) ||
-          (item.remitente && item.remitente.toLowerCase().includes(searchTerm)) ||
-          (item.direccion_especifica_d && item.direccion_especifica_d.toLowerCase().includes(searchTerm)) ||
-          (item.ciudad && item.ciudad.toLowerCase().includes(searchTerm)) ||
-          (item.zona_d && item.zona_d.toLowerCase().includes(searchTerm))
-        )
-      )
-      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordena del más reciente al más antiguo
-  },
+      return [...(this.list || [])].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    },
     paginatedData() {
       const start = this.currentPage * this.itemsPerPage;
       const end = start + this.itemsPerPage;
@@ -372,16 +359,39 @@ export default {
       return Object.keys(this.selected).some(key => this.selected[key]);
     },
     mandadosRegionalData() {
-      const carteroId = Number(this.user?.user?.id);
-      return this.list
-        .filter(item => {
-          const idEntrega = Number(item?.cartero_entrega_id ?? item?.cartero_entrega?.id);
-          return Number(item?.estado) === 14 && (idEntrega === carteroId || !idEntrega);
-        })
-        .sort((a, b) => (b?.id || 0) - (a?.id || 0));
+      return [...(this.mandadosRegionalList || [])].sort((a, b) => (b?.id || 0) - (a?.id || 0));
     }
   },
   methods: {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    buildListPath(scope = 'encamino') {
+      const params = new URLSearchParams();
+      params.set('scope', scope);
+      const search = (this.searchTerm || '').toString().trim();
+      if (search) {
+        params.set('search', search);
+      }
+      return `${this.apiUrl}?${params.toString()}`;
+    },
+    async fetchMainList() {
+      const data = await this.GET_DATA(this.buildListPath('encamino'));
+      this.list = this.normalizeArrayPayload(data);
+      this.currentPage = 0;
+      return this.list;
+    },
+    async fetchRegionalList() {
+      const data = await this.GET_DATA(this.buildListPath('regional'));
+      this.mandadosRegionalList = this.normalizeArrayPayload(data);
+      return this.mandadosRegionalList;
+    },
+    async fetchAllLists() {
+      await Promise.all([this.fetchMainList(), this.fetchRegionalList()]);
+    },
     toggleMandadosRegional() {
       this.showMandadosRegional = !this.showMandadosRegional;
     },
@@ -563,7 +573,7 @@ export default {
           imagen_original: originalImage,
         });
 
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchAllLists();
         this.showSuccessMessage();
         this.resetForm();
       } catch (e) {
@@ -629,13 +639,13 @@ export default {
       try {
         const carteroId = this.user.user.id;
         await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchAllLists();
         this.$swal.fire({
           icon: 'success',
           title: 'Cartero asignado',
           text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
         });
-        await this.GET_DATA(this.apiUrl); 
+        await this.fetchAllLists(); 
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -649,13 +659,13 @@ export default {
     },
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
-      this.list = Array.isArray(res) ? res : [];
+      return this.normalizeArrayPayload(res);
     },
     async EliminarItem(id) {
       this.load = true;
       try {
         await this.$api.$delete(this.apiUrl + '/' + id);
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchAllLists();
       } catch (e) {
         console.log(e);
       } finally {
@@ -683,7 +693,7 @@ export default {
         if (item) {
           const response = await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
           Object.assign(item, response); 
-          await this.GET_DATA(this.apiUrl);
+          await this.fetchAllLists();
         }
       } catch (e) {
         console.log(e);
@@ -710,10 +720,11 @@ export default {
       };
       this.isTransporteModalVisible = true;
     },
-    handleSearchEnter() {
+    async handleSearchEnter() {
       const term = (this.searchTerm || '').toString().trim().toLowerCase();
       if (!term) return;
 
+      await this.fetchMainList();
       const exact = this.filteredData.find(item => String(item?.guia ?? '').toLowerCase() === term);
       const partial = this.filteredData.find(item => String(item?.guia ?? '').toLowerCase().includes(term));
       const target = exact || partial;
@@ -764,7 +775,7 @@ export default {
           solicitude_ids: solicitudesIds,
           guias,
         });
-        await this.GET_DATA(this.apiUrl); 
+        await this.fetchAllLists(); 
         this.$swal.fire({
           icon: 'success',
           title: 'Envíos registrados',
@@ -773,7 +784,7 @@ export default {
         this.isTransporteModalVisible = false;
         this.selected = {}; 
         this.selectedItemsData = [];
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchAllLists();
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -831,12 +842,7 @@ export default {
       this.user = JSON.parse(user);
 
       try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
+        await this.fetchAllLists();
       } catch (e) {
         console.error('Error al obtener los datos:', e);
       } finally {
