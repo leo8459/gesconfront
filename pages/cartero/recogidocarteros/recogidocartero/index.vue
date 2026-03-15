@@ -10,6 +10,7 @@
                 <input
                   v-model="searchTerm"
                   @keypress.enter="handleSearchEnter"
+                  @paste="handleSearchPaste"
                   type="text"
                   class="form-control search-input"
                   placeholder="Buscar..."
@@ -605,6 +606,7 @@ export default {
       pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
       // Nuevas propiedades para la observación y la imagen
       isObservationModalVisible: false,
+      isEmsModalVisible: false,
       observacion: "",
       uploadedImage: "",
       selectedSolicitudeId: null,
@@ -696,22 +698,44 @@ export default {
       this.itemsPerPage = pagination.per_page;
       this.currentPage = Math.max(0, pagination.current_page - 1);
     },
-    buildListPath(page = this.currentPage + 1) {
+    buildListPath(page = this.currentPage + 1, search = this.searchTerm) {
       const params = new URLSearchParams();
       params.set('page', page);
       params.set('per_page', this.itemsPerPage);
-      const search = (this.searchTerm || "").trim();
-      if (search) {
-        params.set("search", search);
+      const normalizedSearch = String(search || "").trim();
+      if (normalizedSearch) {
+        params.set("search", normalizedSearch);
       }
       const query = params.toString();
       return query ? `${this.apiUrl}?${query}` : this.apiUrl;
     },
-    async fetchList(page = this.currentPage + 1) {
-      const payload = await this.GET_DATA(this.buildListPath(page));
+    async fetchList(page = this.currentPage + 1, search = this.searchTerm) {
+      const payload = await this.GET_DATA(this.buildListPath(page, search));
       this.list = this.normalizeArrayPayload(payload);
       this.applyPaginationPayload(payload);
       return this.list;
+    },
+    buildSearchAnyPath(search) {
+      const params = new URLSearchParams();
+      params.set("search", String(search || "").trim());
+      return `solicitudes-busqueda?${params.toString()}`;
+    },
+    async searchAnySolicitude(search) {
+      try {
+        return await this.GET_DATA(this.buildSearchAnyPath(search));
+      } catch (e) {
+        const statusCode = Number(e?.response?.status || 0);
+        if (statusCode === 404) {
+          return null;
+        }
+        throw e;
+      }
+    },
+    normalizeSearchTerm(value) {
+      return String(value || "").replace(/\s+/g, "").trim();
+    },
+    handleSearchPaste() {
+      this.$nextTick(() => this.handleSearchEnter());
     },
 
     openEmsModal() {
@@ -1096,34 +1120,113 @@ export default {
 
       this.isModalVisible = true;
     },
+    itemMatchesSearch(item, term) {
+      return (
+        String(item?.id || "").toLowerCase() === term ||
+        String(item?.guia || "").toLowerCase() === term ||
+        String(item?.guia || "").toLowerCase().includes(term)
+      );
+    },
+    mapItemForAssign(item) {
+      const pesoBase = item?.peso_v || item?.peso_o || "";
+      const precio = this.calculatePrice(item.tarifa_id, pesoBase);
+
+      return {
+        id: item.id,
+        guia: item.guia,
+        sucursale: item.sucursale ?? { nombre: "SIN SUCURSAL" },
+        peso_v: pesoBase,
+        tarifa_id: item.tarifa_id,
+        tarifa: item.tarifa_id ? this.getTarifaLabel(item.tarifa_id) : "SIN TARIFA",
+        nombre_d: precio,
+        precio,
+      };
+    },
+    openAssignModalForItem(item) {
+      const prepared = this.mapItemForAssign(item);
+      const alreadySelected = this.selectedForAssign.some(
+        (selectedItem) => Number(selectedItem?.id) === Number(prepared.id)
+      );
+
+      if (alreadySelected) {
+        this.$swal.fire({
+          icon: "info",
+          title: "Ya seleccionada",
+          text: "La guía ya está en la pre-lista.",
+        });
+        this.searchTerm = "";
+        return false;
+      }
+
+      this.selectedItemsData = [prepared];
+      this.isModalVisible = true;
+      return true;
+    },
+    addItemToPrelist(item) {
+      const prepared = this.mapItemForAssign(item);
+      const alreadySelected = this.selectedForAssign.some(
+        (selectedItem) => Number(selectedItem?.id) === Number(prepared.id)
+      );
+
+      if (alreadySelected) {
+        this.$swal.fire({
+          icon: "info",
+          title: "Ya seleccionada",
+          text: "La guía ya está en la pre-lista.",
+        });
+        this.searchTerm = "";
+        return false;
+      }
+
+      let peso = parseFloat(prepared.peso_v);
+      if (isNaN(peso) || peso < 0.001) {
+        peso = 0.001;
+      } else if (peso > 25) {
+        peso = 25;
+      }
+
+      prepared.peso_v = peso.toFixed(3);
+      prepared.precio = this.calculatePrice(prepared.tarifa_id, prepared.peso_v);
+      prepared.nombre_d = prepared.precio;
+
+      this.selectedForAssign = [...this.selectedForAssign, prepared];
+      this.selectedForDelivery = [...this.selectedForAssign];
+      this.list = this.list.filter(
+        (listItem) => Number(listItem?.id) !== Number(prepared.id)
+      );
+      this.selected = {};
+      this.selectedItemsData = [];
+      this.isModalVisible = false;
+      this.searchTerm = "";
+      return true;
+    },
 
     async handleSearchEnter() {
-      const filteredItems = await this.fetchList();
+      const rawTerm = this.normalizeSearchTerm(this.searchTerm);
+      if (!rawTerm) {
+        this.searchTerm = "";
+        return;
+      }
 
-      if (filteredItems.length > 0) {
-        const item = filteredItems[0];
+      let item = null;
+      this.load = true;
+      try {
+        item = await this.searchAnySolicitude(rawTerm);
+      } catch (e) {
+        console.error("Error buscando solicitudes de recojo:", e);
+      } finally {
+        this.load = false;
+      }
 
-        this.selectedItemsData = [
-          {
-            id: item.id,
-            guia: item.guia,
-            sucursale: item.sucursale ?? { nombre: "SIN SUCURSAL" },
-            peso_v: item.peso_v || "",
-            tarifa_id: item.tarifa_id,
-            tarifa: item.tarifa_id
-              ? this.getTarifaLabel(item.tarifa_id)
-              : "SIN TARIFA",
-            precio: this.calculatePrice(item.tarifa_id, item.peso_v),
-          },
-        ];
-
-        this.isModalVisible = true;
+      if (item?.id) {
+        this.openAssignModalForItem(item);
       } else {
         this.$swal.fire({
           icon: "info",
           title: "Sin resultados",
           text: "No se encontró ninguna solicitud con ese criterio.",
         });
+        this.searchTerm = "";
       }
     },
 
@@ -1166,7 +1269,7 @@ export default {
       try {
         const carteroId = this.user.user.id;
         for (let item of this.selectedForAssign) {
-          await this.$api.$put(`solicitudesentrega/${item.id}`, {
+          await this.$api.$put(`solicitudesentrega-busqueda/${item.id}`, {
             cartero_entrega_id: carteroId,
             peso_v: item.peso_v,
             precio: item.precio,

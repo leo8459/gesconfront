@@ -240,6 +240,22 @@ export default {
       this.list = Array.isArray(data) ? data : [];
       return this.list;
     },
+    buildSearchAnyPath(search) {
+      const params = new URLSearchParams();
+      params.set("search", String(search || "").trim());
+      return `solicitudes-busqueda?${params.toString()}`;
+    },
+    async searchAnySolicitude(search) {
+      try {
+        return await this.$api.$get(this.buildSearchAnyPath(search));
+      } catch (e) {
+        const statusCode = Number(e?.response?.status || 0);
+        if (statusCode === 404) {
+          return null;
+        }
+        throw e;
+      }
+    },
     getTarifaLabel(tarifaId) {
       if (!tarifaId) return "SIN TARIFA";
       const tarifa = (this.tarifas || []).find((t) => Number(t?.id) === Number(tarifaId));
@@ -286,32 +302,84 @@ export default {
         fecha_envio_regional: item?.fecha_envio_regional || null,
       };
     },
+    prepareItemForAssign(item) {
+      const mapped = this.mapItemForAssign(item);
+      let peso = parseFloat(mapped.peso_v || item?.peso_o || 0.001);
+      if (isNaN(peso) || peso < 0.001) peso = 0.001;
+      if (peso > 25) peso = 25;
+
+      const pesoFormateado = peso.toFixed(3);
+      return {
+        ...mapped,
+        peso_v: pesoFormateado,
+        precio: this.calculatePrice(mapped.tarifa_id, pesoFormateado),
+        nombre_d: this.calculatePrice(mapped.tarifa_id, pesoFormateado),
+      };
+    },
+    addItemToPrelist(item) {
+      const prepared = this.prepareItemForAssign(item);
+      const alreadySelected = this.selectedForAssign.some(
+        (selectedItem) => Number(selectedItem?.id) === Number(prepared.id)
+      );
+
+      if (alreadySelected) {
+        this.$swal.fire({
+          icon: "info",
+          title: "Ya seleccionada",
+          text: "La guia ya está en la pre-lista.",
+        });
+        this.searchTerm = "";
+        return false;
+      }
+
+      this.selectedForAssign = [...this.selectedForAssign, prepared];
+      this.selectedForDelivery = [...this.selectedForAssign];
+      this.selectedItemsData = [];
+      this.isModalVisible = false;
+      this.searchTerm = "";
+      return true;
+    },
     handlePasteDetect() {
       this.$nextTick(() => this.handleSearchEnter());
     },
+    normalizeSearchTerm(value) {
+      return String(value || "").replace(/\s+/g, "").trim();
+    },
+    openAssignModalForItem(item) {
+      const alreadySelected = this.selectedForAssign.some(
+        (selectedItem) => Number(selectedItem?.id) === Number(item?.id)
+      );
+
+      if (alreadySelected) {
+        this.$swal.fire({
+          icon: "info",
+          title: "Ya seleccionada",
+          text: "La guia ya está en la pre-lista.",
+        });
+        this.searchTerm = "";
+        return false;
+      }
+
+      this.selectedItemsData = [this.mapItemForAssign(item)];
+      this.isModalVisible = true;
+      return true;
+    },
     async handleSearchEnter() {
-      const term = String(this.searchTerm || "").trim().toLowerCase();
-      if (!term) {
+      const rawTerm = this.normalizeSearchTerm(this.searchTerm);
+      if (!rawTerm) {
         this.searchTerm = "";
         return;
       }
 
+      let found = null;
       this.load = true;
       try {
-        await this.fetchList(term);
+        found = await this.searchAnySolicitude(rawTerm);
       } catch (e) {
         console.error("Error buscando solicitudes para despacho:", e);
       } finally {
         this.load = false;
       }
-
-      const exact = this.availableData.find((item) => {
-        const guia = String(item?.guia || "").toLowerCase();
-        const id = String(item?.id || "").toLowerCase();
-        return guia === term || id === term;
-      });
-      const partial = this.availableData.find((item) => this.itemMatchesSearch(item, term));
-      const found = exact || partial;
 
       if (!found?.id) {
         this.$swal.fire({
@@ -323,21 +391,7 @@ export default {
         return;
       }
 
-      const alreadySelected = this.selectedForAssign.some(
-        (item) => Number(item?.id) === Number(found.id)
-      );
-      if (alreadySelected) {
-        this.$swal.fire({
-          icon: "info",
-          title: "Ya seleccionada",
-          text: "La guia ya está en la pre-lista.",
-        });
-        this.searchTerm = "";
-        return;
-      }
-
-      this.selectedItemsData = [this.mapItemForAssign(found)];
-      this.isModalVisible = true;
+      this.openAssignModalForItem(found);
     },
     focusPesoInput() {
       this.$nextTick(() => {

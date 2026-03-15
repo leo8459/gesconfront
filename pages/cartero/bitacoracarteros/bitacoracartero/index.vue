@@ -66,7 +66,7 @@
       </div>
     </AdminTemplate>
 
-    <b-modal v-model="isTransporteModalVisible" title="Datos De Transporte" hide-backdrop hide-footer>
+    <b-modal v-model="isTransporteModalVisible" title="Datos De Transporte" hide-backdrop hide-footer no-enforce-focus>
       <div class="form-group">
         <label for="transportadora">Transportadora</label>
         <input
@@ -154,6 +154,7 @@ export default {
       modulo: 'Bitacoras',
       apiUrl: 'solicitudes6',
       list: [],
+      preselectedItems: [],
       searchTerm: '',
       selected: {},
       bitacoraForm: {},
@@ -177,7 +178,11 @@ export default {
       const ids = Object.keys(this.selected)
         .filter(key => this.selected[key])
         .map(id => Number(id));
-      return this.availableData.filter(item => ids.includes(Number(item?.id)));
+      const combined = [...(this.preselectedItems || []), ...(this.availableData || [])]
+        .filter((item, index, items) => (
+          items.findIndex((candidate) => Number(candidate?.id) === Number(item?.id)) === index
+        ));
+      return combined.filter(item => ids.includes(Number(item?.id)));
     },
   },
   methods: {
@@ -187,19 +192,35 @@ export default {
       if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
       return [];
     },
-    buildListPath() {
+    buildListPath(search = this.searchTerm) {
       const params = new URLSearchParams();
-      const search = (this.searchTerm || '').trim();
-      if (search) {
-        params.set('search', search);
+      const normalizedSearch = String(search || '').trim();
+      if (normalizedSearch) {
+        params.set('search', normalizedSearch);
       }
       const query = params.toString();
       return query ? `${this.apiUrl}?${query}` : this.apiUrl;
     },
-    async fetchList() {
-      const data = await this.GET_DATA(this.buildListPath());
+    async fetchList(search = this.searchTerm) {
+      const data = await this.GET_DATA(this.buildListPath(search));
       this.list = this.normalizeArrayPayload(data);
       return this.list;
+    },
+    buildSearchAnyPath(search) {
+      const params = new URLSearchParams();
+      params.set('search', String(search || '').trim());
+      return `solicitudes-busqueda?${params.toString()}`;
+    },
+    async searchAnySolicitude(search) {
+      try {
+        return await this.$api.$get(this.buildSearchAnyPath(search));
+      } catch (e) {
+        const statusCode = Number(e?.response?.status || 0);
+        if (statusCode === 404) {
+          return null;
+        }
+        throw e;
+      }
     },
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
@@ -208,16 +229,45 @@ export default {
     handlePasteDetect() {
       this.$nextTick(() => this.handleSearchEnter());
     },
-    handleSearchEnter() {
-      const term = (this.searchTerm || '').trim().toLowerCase();
-      if (!term) {
+    normalizeSearchTerm(value) {
+      return String(value || '').replace(/\s+/g, '').trim();
+    },
+    itemMatchesSearch(item, term) {
+      return (
+        String(item?.id || '').toLowerCase() === term ||
+        String(item?.guia || '').toLowerCase() === term ||
+        String(item?.guia || '').toLowerCase().includes(term)
+      );
+    },
+    ensureItemInPrelist(item) {
+      if (!item?.id) {
+        return;
+      }
+
+      const exists = (this.preselectedItems || []).some(
+        (currentItem) => Number(currentItem?.id) === Number(item.id)
+      );
+
+      if (!exists) {
+        this.preselectedItems = [item, ...(this.preselectedItems || [])];
+      }
+    },
+    async handleSearchEnter() {
+      const rawTerm = this.normalizeSearchTerm(this.searchTerm);
+      if (!rawTerm) {
         this.searchTerm = '';
         return;
       }
 
-      const exact = this.availableData.find(item => String(item?.guia ?? '').toLowerCase() === term);
-      const partial = this.availableData.find(item => String(item?.guia ?? '').toLowerCase().includes(term));
-      const found = exact || partial;
+      let found = null;
+      this.load = true;
+      try {
+        found = await this.searchAnySolicitude(rawTerm);
+      } catch (e) {
+        console.error('Error buscando guias para bitacora:', e);
+      } finally {
+        this.load = false;
+      }
 
       if (!found?.id) {
         this.$swal.fire({
@@ -229,12 +279,21 @@ export default {
         return;
       }
 
+      if (this.selected[found.id]) {
+        this.searchTerm = '';
+        return;
+      }
+
+      this.ensureItemInPrelist(found);
       this.$set(this.selected, found.id, true);
       this.searchTerm = '';
     },
     quitarSeleccion(id) {
       this.$delete(this.selected, id);
       this.$delete(this.bitacoraForm, id);
+      this.preselectedItems = (this.preselectedItems || []).filter(
+        (item) => Number(item?.id) !== Number(id)
+      );
     },
     openTransporteModal() {
       if (!this.selectedItems.length) {
@@ -290,13 +349,14 @@ export default {
         });
 
         for (const item of this.selectedItems) {
-          await this.$api.$put(`${this.apiUrl}/${item.id}`, {
+          await this.$api.$put(`solicitudes/${item.id}`, {
             entrega_observacion: (this.bitacoraForm[item.id] || '').trim(),
           });
         }
 
         await this.fetchList();
         this.selected = {};
+        this.preselectedItems = [];
         this.bitacoraForm = {};
         this.isTransporteModalVisible = false;
         this.$swal.fire({
@@ -306,6 +366,7 @@ export default {
         });
       } catch (e) {
         console.error(e);
+        this.isTransporteModalVisible = false;
         this.$swal.fire({
           icon: 'error',
           title: 'Error',

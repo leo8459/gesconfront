@@ -460,7 +460,7 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'solicitudes5',
+      apiUrl: 'solicitudes-recogido',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -500,6 +500,7 @@ export default {
       },
       currentPage: 0,
       itemsPerPage: 100,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 100 },
       isModalNameVisible: false, // Controla la visibilidad del modal
       nombreGenerador: '',       // Variable para almacenar el nombre ingresado
       selectedForAssign: [],     // Paquetes seleccionados
@@ -520,71 +521,21 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = String(this.searchTerm || '').toLowerCase().trim();
-      const hasSearch = searchTerm.length > 0;
-      const departamentoCartero = this.user?.user?.departamento ?? null;
-
-      return (this.list || [])
-        .filter(item => {
-          // Estados válidos de esta vista
-          const cumpleEstado5 = item?.estado === 5;
-          const cumpleEstado10 = item?.estado === 10;
-          const cumpleEstado11 = item?.estado === 11;
-          const cumpleEstado13 = item?.estado === 13;
-
-          // ✅ EMS GLOBAL (sucursale_id y tarifa_id en NULL) + estado (ajusta si quieres otros estados)
-          const cumpleEMSGlobal =
-            [5, 10, 11, 13].includes(item?.estado) &&
-            String(item?.tipo_correspondencia ?? '').toUpperCase() === 'EMS' &&
-            (item?.sucursale_id == null) &&
-            (item?.tarifa_id == null);
-
-          const estadoValido =
-            cumpleEstado5 || cumpleEstado10 || cumpleEstado11 || cumpleEstado13 || cumpleEMSGlobal;
-
-          const coincideDepartamento =
-            (cumpleEstado5 && item?.sucursale?.origen && departamentoCartero && item.sucursale.origen === departamentoCartero) ||
-            ((cumpleEstado10 || cumpleEstado11 || cumpleEstado13) &&
-              departamentoCartero &&
-              item?.reencaminamiento === departamentoCartero) ||
-            cumpleEMSGlobal;
-
-          // ---- BÚSQUEDA NULL-SAFE ----
-          const coincideBusqueda =
-            Object.values(item || {}).some(v =>
-              String(v ?? '').toLowerCase().includes(searchTerm)
-            ) ||
-            String(item?.sucursale?.nombre ?? '').toLowerCase().includes(searchTerm);
-
-          // Si usas selectedSucursal, que no reviente si no existe
-          const coincideSucursal = this.selectedSucursal
-            ? item?.sucursale?.id === this.selectedSucursal
-            : true;
-
-          return (
-            estadoValido &&
-            (hasSearch ? true : coincideDepartamento) &&
-            coincideSucursal &&
-            coincideBusqueda
-          );
-        })
-        .sort((a, b) => {
-          const fa = a?.fecha ? new Date(a.fecha).getTime() : 0;
-          const fb = b?.fecha ? new Date(b.fecha).getTime() : 0;
-          return fb - fa;
-        });
+      return [...(this.list || [])].sort((a, b) => {
+        const fa = a?.fecha ? new Date(a.fecha).getTime() : 0;
+        const fb = b?.fecha ? new Date(b.fecha).getTime() : 0;
+        return fb - fa;
+      });
     },
 
 
 
 
     paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
@@ -652,6 +603,38 @@ export default {
         this.manualForm.tarifa_id = this.tarifasModal[0].id;
       }
     },
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 100),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = Math.max(0, pagination.current_page - 1);
+    },
+    buildListPath(page = this.currentPage + 1, searchOverride = null) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const search = searchOverride !== null
+        ? String(searchOverride || '').trim()
+        : String(this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      return `${this.apiUrl}?${params.toString()}`;
+    },
     openEmsModal() {
       this.emsForm = {
         tipo_correspondencia: 'EMS',
@@ -684,8 +667,7 @@ export default {
           cartero_recogida_id: encargadoId,
         });
 
-        const data = await this.GET_DATA(this.apiUrl);
-        this.list = Array.isArray(data) ? data : [];
+        await this.fetchList();
 
         this.$swal.fire({
           icon: 'success',
@@ -755,8 +737,7 @@ export default {
 
         await this.$encargados.$post('solicitudes/manual', payload);
 
-        const data = await this.GET_DATA(this.apiUrl);
-        this.list = Array.isArray(data) ? data : [];
+        await this.fetchList();
 
         this.$swal.fire({
           icon: 'success',
@@ -912,13 +893,17 @@ export default {
       const res = await this.$encargados.$get(path);
       return res;
     },
+    async fetchList(page = this.currentPage + 1, searchOverride = null) {
+      const payload = await this.GET_DATA(this.buildListPath(page, searchOverride));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
+    },
     async EliminarItem(id) {
       this.load = true;
       try {
-        const res = await this.$encargados.$delete(this.apiUrl + '/' + id);
-        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0];
-        });
+        const res = await this.$encargados.$delete('solicitudes5/' + id);
+        await this.fetchList();
       } catch (e) {
         console.log(e);
       } finally {
@@ -982,8 +967,7 @@ export default {
 
       if (!item) {
         try {
-          const data = await this.GET_DATA(this.apiUrl);
-          this.list = Array.isArray(data) ? data : [];
+          await this.fetchList(1, term);
           item = this.findInDataset(this.list, term);
         } catch (e) {
           console.error('Error al buscar solicitud global:', e);
@@ -1526,18 +1510,18 @@ worksheet.getCell(`G${currentRow}`).value = item?.sucursale?.nombre ?? 'EMS GLOB
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
     },
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages - 1) {
-        this.currentPage++;
+        await this.fetchList(this.currentPage + 2);
       }
     },
-    previousPage() {
+    async previousPage() {
       if (this.currentPage > 0) {
-        this.currentPage--;
+        await this.fetchList(this.currentPage);
       }
     },
-    goToPage(page) {
-      this.currentPage = page;
+    async goToPage(page) {
+      await this.fetchList(page + 1);
     }
   },
   mounted() {
@@ -1545,12 +1529,7 @@ worksheet.getCell(`G${currentRow}`).value = item?.sucursale?.nombre ?? 'EMS GLOB
       let user = localStorage.getItem('userAuth');
       this.user = JSON.parse(user);
       try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
+        await this.fetchList();
         // Obtener tarifas para los nombres de tarifa
         const tarifas = await this.GET_DATA('getTarifas');
         if (Array.isArray(tarifas)) {

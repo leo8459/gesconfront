@@ -88,10 +88,10 @@
         </div>
 
             <div class="d-flex justify-content-between align-items-center mt-3">
-              <button class="btn btn-secondary" :disabled="currentPage === 1" @click="currentPage--">Anterior</button>
+              <button class="btn btn-secondary" :disabled="currentPage === 1" @click="previousPage">Anterior</button>
               <span>Página {{ (currentPage ?? '-') }} de {{ (totalPages ?? '-') }}</span>
               <button class="btn btn-secondary" :disabled="currentPage === totalPages"
-                @click="currentPage++">Siguiente</button>
+                @click="nextPage">Siguiente</button>
             </div>
           </div>
         </div>
@@ -139,7 +139,7 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'solicitudes5',
+      apiUrl: 'solicitudes-encamino',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -154,37 +154,25 @@ export default {
       user: {},
       currentPage: 1,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
       observacion: '',
       selectedSolicitudeId: null,
     };
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm.toLowerCase();
-
-    // Filtrar los datos por estado y término de búsqueda
-    const filtered = this.list.filter(item =>
-      (item.estado === 2 || item.estado === 9) && // Filtrar por estado 2 o 9
-      Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm)
-      )
-    );
-
-    // Ordenar por fecha de la más nueva a la más antigua
-    return filtered.sort((a, b) => {
+    return (this.list || []).slice().sort((a, b) => {
       const dateA = new Date(a.fecha);
       const dateB = new Date(b.fecha);
-      return dateB - dateA; // Orden descendente
+      return dateB - dateA;
     });
   },
 
     paginatedData() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
@@ -277,7 +265,7 @@ export default {
       this.load = true;
       try {
         await this.$encargados.$put(`rechazado5/${solicitudeId}`);
-        await this.GET_DATA(this.apiUrl); // Actualizar la lista después de la operación
+        await this.fetchList();
         this.$swal.fire({
           icon: 'success',
           title: 'Solicitud rechazada',
@@ -294,16 +282,53 @@ export default {
         this.load = false;
       }
     },
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = pagination.current_page;
+    },
+    buildListPath(page = this.currentPage, searchOverride = null) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const search = searchOverride !== null
+        ? String(searchOverride || '').trim()
+        : String(this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      return `${this.apiUrl}?${params.toString()}`;
+    },
     async GET_DATA(path) {
       const res = await this.$encargados.$get(path);
-      this.list = Array.isArray(res) ? res : [];
-      console.log('Datos recuperados:', this.list); // Log para verificar los datos
+      return res;
+    },
+    async fetchList(page = this.currentPage, searchOverride = null) {
+      const payload = await this.GET_DATA(this.buildListPath(page, searchOverride));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
     },
     async EliminarItem(id) {
       this.load = true;
       try {
         await this.$encargados.$delete(this.apiUrl + '/' + id);
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
       } catch (e) {
         console.log(e);
       } finally {
@@ -331,7 +356,7 @@ export default {
         if (item) {
           const response = await this.$encargados.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
           Object.assign(item, response); // Actualizar con los datos de la respuesta
-          await this.GET_DATA(this.apiUrl);
+          await this.fetchList();
         }
       } catch (e) {
         console.log(e);
@@ -352,11 +377,8 @@ export default {
       this.selectedSolicitudeId = id;
       this.isObservationModalVisible = true;
     },
-    handleSearchEnter() {
-      this.selectedItemsData = this.filteredData;
-      if (this.selectedItemsData.length > 0) {
-        this.isModalVisible = true;
-      }
+    async handleSearchEnter() {
+      await this.fetchList(1, this.searchTerm);
     },
     async confirmAssignSelected() {
       this.load = true;
@@ -369,7 +391,7 @@ export default {
             console.error('Item inválido:', item);
           }
         }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.fetchList();
         this.$swal.fire({
           icon: 'success',
           title: 'Carteros asignados',
@@ -377,7 +399,7 @@ export default {
         });
         this.isModalVisible = false;
         this.selected = {}; // Limpiar la selección después de asignar
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.fetchList();
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -402,7 +424,7 @@ export default {
           observacion: this.observacion,
           fecha_d: formattedDate // Envía la fecha y hora actuales en formato dd/MM/yyyy HH:mm
         });
-        await this.GET_DATA(this.apiUrl); // Actualizar la lista después de la operación
+        await this.fetchList();
         this.$swal.fire({
           icon: 'success',
           title: 'Solicitud a sido Retornada',
@@ -431,20 +453,24 @@ export default {
     },
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
+    },
+    async nextPage() {
+      if (this.currentPage < this.totalPages) {
+        await this.fetchList(this.currentPage + 1);
+      }
+    },
+    async previousPage() {
+      if (this.currentPage > 1) {
+        await this.fetchList(this.currentPage - 1);
+      }
     }
   },
   mounted() {
     this.$nextTick(async () => {
       let user = localStorage.getItem('userAuth');
       this.user = JSON.parse(user);
-      console.log('Usuario recuperado:', this.user); // Log para verificar el usuario
       try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
+        await this.fetchList();
       } catch (e) {
         console.error('Error al obtener los datos:', e);
       } finally {
