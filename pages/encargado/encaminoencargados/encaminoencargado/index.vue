@@ -161,12 +161,8 @@ export default {
   },
   computed: {
     filteredData() {
-    return (this.list || []).slice().sort((a, b) => {
-      const dateA = new Date(a.fecha);
-      const dateB = new Date(b.fecha);
-      return dateB - dateA;
-    });
-  },
+      return Array.isArray(this.list) ? this.list : [];
+    },
 
     paginatedData() {
       return this.filteredData;
@@ -178,21 +174,12 @@ export default {
       return Object.keys(this.selected).some(key => this.selected[key]);
     },
     alertsCercaLimite() {
-      const result = [];
-      (this.filteredData || []).forEach(item => {
-        const greenLimit = this.getGreenLimitHours(item);
-        if (!greenLimit) return;
-        const diffHours = this.getHoursSinceRecojo(item);
-        if (diffHours === null) return;
-        const horasRestantes = Math.ceil(greenLimit - diffHours);
-        if (horasRestantes <= 10 && horasRestantes > 0) {
-          result.push({
-            guia: item?.guia ?? 'SIN GUIA',
-            horasRestantes,
-          });
-        }
-      });
-      return result;
+      return (this.filteredData || [])
+        .filter(item => Number(item?.horas_restantes_alerta || 0) > 0)
+        .map(item => ({
+          guia: item?.guia ?? 'SIN GUIA',
+          horasRestantes: Number(item?.horas_restantes_alerta || 0),
+        }));
     }
   },
   methods: {
@@ -200,66 +187,8 @@ export default {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
-    getHoursSinceRecojo(item) {
-      const rawDate = item?.fecha_recojo_c;
-      if (!rawDate) return null;
-      const date = this.parseFecha(rawDate);
-      if (Number.isNaN(date.getTime())) return null;
-      return Math.max(0, (Date.now() - date.getTime()) / 36e5);
-    },
-    parseFecha(value) {
-      if (value instanceof Date) return value;
-      if (typeof value === 'number') return new Date(value);
-      const str = String(value).trim();
-
-      // Soporta: dd/MM/yyyy HH:mm[:ss]
-      const m1 = str.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
-      if (m1) {
-        const [, dd, mm, yyyy, hh = '00', min = '00', ss = '00'] = m1;
-        return new Date(
-          Number(yyyy),
-          Number(mm) - 1,
-          Number(dd),
-          Number(hh),
-          Number(min),
-          Number(ss)
-        );
-      }
-
-      // Soporta: yyyy-MM-dd HH:mm[:ss] o yyyy-MM-ddTHH:mm[:ss]
-      const m2 = str.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?$/);
-      if (m2) {
-        const [, yyyy, mm, dd, hh = '00', min = '00', ss = '00'] = m2;
-        return new Date(
-          Number(yyyy),
-          Number(mm) - 1,
-          Number(dd),
-          Number(hh),
-          Number(min),
-          Number(ss)
-        );
-      }
-
-      return new Date(str);
-    },
-    getGreenLimitHours(item) {
-      const hasCiudad = String(item?.ciudad ?? '').trim() !== '';
-      return hasCiudad ? 92 : 48;
-    },
     rowStatusClass(item) {
-      const diffHours = this.getHoursSinceRecojo(item);
-      if (diffHours === null) return '';
-      const hasCiudad = String(item?.ciudad ?? '').trim() !== '';
-
-      if (hasCiudad) {
-        if (diffHours <= 92) return 'row-green';
-        if (diffHours <= 114) return 'row-orange';
-        return 'row-red';
-      }
-
-      if (diffHours <= 48) return 'row-green';
-      if (diffHours <= 72) return 'row-orange';
-      return 'row-red';
+      return item?.row_status_class || '';
     },
     async markAsRejected(solicitudeId) {
       this.load = true;

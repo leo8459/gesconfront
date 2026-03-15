@@ -236,7 +236,7 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'solicitudes5',
+      apiUrl: 'solicitudes-verificado',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -252,56 +252,18 @@ export default {
       },
       currentPage: 1,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
     };
   },
   computed: {
     filteredData() {
-    const searchTerm = this.searchTerm ? this.searchTerm.toLowerCase() : '';
-
-    if (typeof window !== 'undefined' && localStorage.getItem('userAuth')) {
-      const user = JSON.parse(localStorage.getItem('userAuth'));
-      const userDepartment = user && user.user ? user.user.departamento : null;
-
-      if (!userDepartment) {
-        return [];
-      }
-
-      const filtered = this.list.filter(item => {
-        if (!item.cartero_entrega || !item.cartero_entrega.departamento_cartero) {
-          return false;
-        }
-
-        const matchesDepartment = item.cartero_entrega.departamento_cartero === userDepartment;
-        const matchesEstado = item.estado === 4;
-
-        const matchesSearchTerm = Object.values(item).some(value => {
-          return String(value).toLowerCase().includes(searchTerm);
-        });
-
-        return matchesDepartment && matchesEstado && matchesSearchTerm;
-      });
-
-      // Ordenar por fecha_d de la más nueva a la más antigua
-      return filtered.sort((a, b) => {
-        const dateA = new Date(a.fecha_d);
-        const dateB = new Date(b.fecha_d);
-        return dateB - dateA; // Orden descendente
-      });
-    }
-
-    // Si no hay acceso a `localStorage`, devolver un array vacío (SSR o no autenticado)
-    return [];
-  },
-
-
-
+      return Array.isArray(this.list) ? this.list : [];
+    },
     paginatedData() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     totalPagesArray() {
       return Array.from({ length: this.totalPages }, (_, i) => i + 1);
@@ -311,71 +273,94 @@ export default {
     }
   },
   methods: {
-    prevPage() {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = pagination.current_page;
+    },
+    buildListPath(page = this.currentPage, searchOverride = null) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const search = searchOverride !== null
+        ? String(searchOverride || '').trim()
+        : String(this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      return `${this.apiUrl}?${params.toString()}`;
+    },
+    async prevPage() {
       if (this.currentPage > 1) {
-        this.currentPage -= 1;
+        await this.fetchList(this.currentPage - 1);
       }
     },
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages) {
-        this.currentPage += 1;
+        await this.fetchList(this.currentPage + 1);
       }
     },
-    goToPage(pageNumber) {
-      this.currentPage = pageNumber;
+    async goToPage(pageNumber) {
+      await this.fetchList(pageNumber);
     },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
     async GET_DATA(path) {
-      try {
-        const res = await this.$encargados.$get(path);
-        if (Array.isArray(res)) {
-          this.list = res;
-        } else {
-          console.error('Los datos recuperados no son un array:', res);
-        }
-      } catch (e) {
-        console.error('Error al obtener los datos:', e);
-      }
+      const res = await this.$encargados.$get(path);
+      return res;
     },
-   
-   
-    
-    
-   
-  
-    
-    
+    async fetchList(page = this.currentPage, searchOverride = null) {
+      const payload = await this.GET_DATA(this.buildListPath(page, searchOverride));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
+    },
+    selectAll(event, group) {
+      const isChecked = event.target.checked;
+      group.forEach(item => {
+        if (item?.id) {
+          this.$set(this.selected, item.id, isChecked);
+        }
+      });
+    },
   },
   mounted() {
     this.$nextTick(async () => {
-    if (typeof window !== 'undefined') { // Verificamos si estamos en el navegador
-      let user = localStorage.getItem('userAuth');
-      if (user) {
-        this.user = JSON.parse(user);
-        console.log('Usuario cargado:', this.user);
-      } else {
-        console.error('No se encontró el usuario en el almacenamiento local');
-        this.user = { cartero: null };
+      if (typeof window !== 'undefined') {
+        const user = localStorage.getItem('userAuth');
+        this.user = user ? JSON.parse(user) : { cartero: null };
       }
-    }
 
-    try {
-      const data = await this.GET_DATA(this.apiUrl);
-      if (Array.isArray(data)) {
-        this.list = data;
-        console.log('Datos cargados:', this.list);
-      } else {
-        console.error('Los datos recuperados no son un array:', data);
+      try {
+        await this.fetchList();
+      } catch (e) {
+        console.error('Error al obtener los datos:', e);
+      } finally {
+        this.load = false;
       }
-    } catch (e) {
-      console.error('Error al obtener los datos:', e);
-    } finally {
-      this.load = false;
-    }
-  });
+    });
+  },
+  watch: {
+    searchTerm() {
+      this.fetchList(1, this.searchTerm);
+    },
   },
 };
 </script>

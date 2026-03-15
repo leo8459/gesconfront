@@ -216,7 +216,7 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'solicitudes5',
+      apiUrl: 'solicitudes-regional',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -235,6 +235,7 @@ export default {
       },
       currentPage: 0,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
     };
   },
   computed: {
@@ -250,38 +251,13 @@ export default {
       return 'Asignar Peso Correos (Kg)';
     },
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-      const departamento = this.user?.user?.departamento;
-
-      if (!departamento) {
-        return [];
-      }
-
-      // Filtrado y ordenación
-      return this.list
-        .filter(item => {
-          const matchesReencaminamiento = item.reencaminamiento && item.reencaminamiento === departamento;
-          const matchesDepartamento = item.tarifa?.departamento === departamento;
-
-          const matchesSearchTerm = Object.values(item).some(value =>
-            String(value).toLowerCase().includes(searchTerm)
-          );
-
-          return (matchesReencaminamiento || matchesDepartamento) && matchesSearchTerm && (item.estado === 8 || item.estado === 12);
-        })
-        .sort((a, b) => {
-          const dateA = new Date(a.fecha_envio_regional);
-          const dateB = new Date(b.fecha_envio_regional);
-          return dateB - dateA; // Orden descendente
-        });
+      return Array.isArray(this.list) ? this.list : [];
     },
     paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
@@ -399,19 +375,7 @@ export default {
       return Math.max(0, (Date.now() - date.getTime()) / 36e5);
     },
     rowStatusClass(item) {
-      const diffHours = this.getHoursSinceRecojo(item);
-      if (diffHours === null) return '';
-      const hasCiudad = String(item?.ciudad ?? '').trim() !== '';
-
-      if (hasCiudad) {
-        if (diffHours <= 92) return 'row-green';
-        if (diffHours <= 114) return 'row-orange';
-        return 'row-red';
-      }
-
-      if (diffHours <= 48) return 'row-green';
-      if (diffHours <= 72) return 'row-orange';
-      return 'row-red';
+      return item?.row_status_class || '';
     },
     getTarifaLabel(tarifa_id) {
       if (!this.tarifas) {
@@ -443,9 +407,47 @@ export default {
       item.precio = this.calculatePrice(item.tarifa_id, peso);
       item.nombre_d = item.precio;
     },
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = Math.max(0, pagination.current_page - 1);
+    },
+    buildListPath(page = this.currentPage + 1, searchOverride = null) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const search = searchOverride !== null
+        ? String(searchOverride || '').trim()
+        : String(this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      return `${this.apiUrl}?${params.toString()}`;
+    },
     async GET_DATA(path) {
       const res = await this.$encargados.$get(path);
       return res;
+    },
+    async fetchList(page = this.currentPage + 1, searchOverride = null) {
+      const payload = await this.GET_DATA(this.buildListPath(page, searchOverride));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
     },
     async EliminarItem(id) {
       this.load = true;
@@ -480,8 +482,8 @@ export default {
       });
       this.isModalVisible = true;
     },
-    handleSearchEnter() {
-      const filteredItems = this.filteredData;
+    async handleSearchEnter() {
+      const filteredItems = await this.fetchList(1, this.searchTerm);
       if (filteredItems.length > 0) {
         const item = filteredItems[0];
         const storedPeso = this.resolveStoredPeso(item);
@@ -531,7 +533,7 @@ export default {
             nombre_d: item.nombre_d
           });
         }
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
         this.$swal.fire({
           icon: 'success',
           title: 'Carteros asignados',
@@ -634,16 +636,16 @@ export default {
     },
     nextPage() {
       if (this.currentPage < this.totalPages - 1) {
-        this.currentPage++;
+        this.fetchList(this.currentPage + 2);
       }
     },
     previousPage() {
       if (this.currentPage > 0) {
-        this.currentPage--;
+        this.fetchList(this.currentPage);
       }
     },
     goToPage(page) {
-      this.currentPage = page;
+      this.fetchList(page + 1);
     }
   },
   mounted() {
@@ -651,12 +653,7 @@ export default {
       let user = localStorage.getItem('userAuth');
       this.user = JSON.parse(user);
       try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
+        await this.fetchList();
         const tarifas = await this.GET_DATA('getTarifas');
         if (Array.isArray(tarifas)) {
           this.tarifas = tarifas;
@@ -670,6 +667,11 @@ export default {
         this.load = false;
       }
     });
+  },
+  watch: {
+    searchTerm() {
+      this.fetchList(1, this.searchTerm);
+    },
   },
 };
 </script>

@@ -200,9 +200,20 @@ export default {
       const query = params.toString();
       return query ? `${this.apiUrl}?${query}` : this.apiUrl;
     },
+    buildSearchAnyPath(search) {
+      const params = new URLSearchParams();
+      params.set("search", search);
+      return `solicitudes-busqueda?${params.toString()}`;
+    },
+    normalizeSearchTerm(value) {
+      return String(value || "").replace(/\s+/g, "").trim();
+    },
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
       return res;
+    },
+    async searchAnySolicitude(search) {
+      return await this.$api.$get(this.buildSearchAnyPath(search));
     },
     async fetchList(search = "", page = this.currentPage + 1) {
       const payload = await this.GET_DATA(this.buildListPath(search, page));
@@ -249,7 +260,7 @@ export default {
       this.$nextTick(() => this.handleSearchEnter());
     },
     async handleSearchEnter() {
-      const term = String(this.searchTerm || "").trim();
+      const term = this.normalizeSearchTerm(this.searchTerm);
       if (!term) {
         this.searchTerm = "";
         return;
@@ -258,8 +269,7 @@ export default {
       this.load = true;
       let found = null;
       try {
-        const data = await this.fetchList(term);
-        found = Array.isArray(data) && data.length > 0 ? data[0] : null;
+        found = await this.searchAnySolicitude(term);
       } catch (e) {
         console.error("Error buscando paquete regional:", e);
       } finally {

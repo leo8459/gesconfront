@@ -144,7 +144,7 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'solicitudes5',
+      apiUrl: 'solicitudes-entregado',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -160,43 +160,19 @@ export default {
       },
       currentPage: 1,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
     };
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-
-      if (typeof window !== 'undefined' && localStorage.getItem('userAuth')) {
-        const user = JSON.parse(localStorage.getItem('userAuth'));
-        const userDepartment = user && user.user ? user.user.departamento : null;
-
-
-        const filteredList = this.list.filter(item => {
-          const isEstadoValid = item.estado === 3 || item.estado === 10;
-          const hasCarteroEntrega = item.cartero_entrega;
-          const isDepartmentMatch = hasCarteroEntrega && item.cartero_entrega.departamento_cartero === userDepartment;
-          const isSearchTermMatch = Object.values(item).some(value =>
-            String(value).toLowerCase().includes(searchTerm)
-          );
-
-
-          // Devuelve verdadero solo si todos los criterios se cumplen
-          return isEstadoValid && isDepartmentMatch && isSearchTermMatch;
-        });
-
-        return filteredList;
-      }
-
-      return [];
+      return Array.isArray(this.list) ? this.list : [];
     },
 
     paginatedData() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     totalPagesArray() {
       return Array.from({ length: this.totalPages }, (_, i) => i + 1);
@@ -206,18 +182,50 @@ export default {
     }
   },
   methods: {
-    prevPage() {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = pagination.current_page;
+    },
+    buildListPath(page = this.currentPage, searchOverride = null) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const search = searchOverride !== null
+        ? String(searchOverride || '').trim()
+        : String(this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      return `${this.apiUrl}?${params.toString()}`;
+    },
+    async prevPage() {
       if (this.currentPage > 1) {
-        this.currentPage -= 1;
+        await this.fetchList(this.currentPage - 1);
       }
     },
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages) {
-        this.currentPage += 1;
+        await this.fetchList(this.currentPage + 1);
       }
     },
-    goToPage(pageNumber) {
-      this.currentPage = pageNumber;
+    async goToPage(pageNumber) {
+      await this.fetchList(pageNumber);
     },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
@@ -226,12 +234,16 @@ export default {
     async GET_DATA(path) {
       try {
         const res = await this.$encargados.$get(path);
-        if (Array.isArray(res)) {
-          this.list = res;
-        } else {
-        }
+        return res;
       } catch (e) {
+        throw e;
       }
+    },
+    async fetchList(page = this.currentPage, searchOverride = null) {
+      const payload = await this.GET_DATA(this.buildListPath(page, searchOverride));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
     },
 
 
@@ -252,7 +264,7 @@ export default {
 
         }
 
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
 
         this.$swal.fire({
           icon: 'success',
@@ -284,9 +296,9 @@ export default {
     }
   },
   mounted() {
-    this.$nextTick(async () => {
-      if (typeof window !== 'undefined') { // Verificar si estamos en el navegador
-        const user = localStorage.getItem('userAuth');
+      this.$nextTick(async () => {
+        if (typeof window !== 'undefined') { // Verificar si estamos en el navegador
+          const user = localStorage.getItem('userAuth');
         if (user) {
           this.user = JSON.parse(user);
         } else {
@@ -295,16 +307,17 @@ export default {
       }
 
       try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-        } else {
-        }
+        await this.fetchList();
       } catch (e) {
       } finally {
         this.load = false;
       }
     });
+  },
+  watch: {
+    searchTerm() {
+      this.fetchList(1, this.searchTerm);
+    },
   },
 };
 </script>

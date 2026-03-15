@@ -65,7 +65,7 @@
                         </td>
 
                         <td class="py-0 px-1">
-                          {{ currentPage * itemsPerPage + i + 1 }}
+                          {{ i + 1 + (currentPage - 1) * itemsPerPage }}
                         </td>
 
                         <td class="p-1">
@@ -150,15 +150,15 @@
             <!-- Paginación -->
             <nav aria-label="Page navigation">
               <ul class="pagination justify-content-between">
-                <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                  <button class="page-link" @click="previousPage" :disabled="currentPage === 0">&lt;</button>
+                <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                  <button class="page-link" @click="previousPage" :disabled="currentPage === 1">&lt;</button>
                 </li>
                 <li class="page-item" v-for="page in totalPages" :key="page"
-                  :class="{ active: currentPage === page - 1 }">
-                  <button class="page-link" @click="goToPage(page - 1)">{{ (page ?? '-') }}</button>
+                  :class="{ active: currentPage === page }">
+                  <button class="page-link" @click="goToPage(page)">{{ (page ?? '-') }}</button>
                 </li>
-                <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
-                  <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages - 1">&gt;</button>
+                <li class="page-item" :class="{ disabled: currentPage >= totalPages }">
+                  <button class="page-link" @click="nextPage" :disabled="currentPage >= totalPages">&gt;</button>
                 </li>
               </ul>
             </nav>
@@ -233,7 +233,7 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'solicitudes5',
+      apiUrl: 'solicitudes-recibido-regional',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -250,36 +250,21 @@ export default {
       user: {
         cartero: []
       },
-      currentPage: 0,
+      currentPage: 1,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
     };
   },
   computed: {
     filteredData() {
-      const searchTerm = (this.searchTerm || '').toLowerCase();
-
-      return (this.list || []).filter(item => {
-        if (!item) return false;
-
-        // estado 10 (Recibidos)
-        const matchesEstado = item.estado === 10;
-
-        // búsqueda segura
-        const matchesSearch = JSON.stringify(item)
-          .toLowerCase()
-          .includes(searchTerm);
-
-        return matchesEstado && matchesSearch;
-      });
+      return Array.isArray(this.list) ? this.list : [];
     },
 
     paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
@@ -287,11 +272,7 @@ export default {
     alertsCercaLimite() {
       const result = [];
       (this.filteredData || []).forEach(item => {
-        const greenLimit = this.getGreenLimitHours(item);
-        if (!greenLimit) return;
-        const diffHours = this.getHoursSinceRecojo(item);
-        if (diffHours === null) return;
-        const horasRestantes = Math.ceil(greenLimit - diffHours);
+        const horasRestantes = Number(item?.horas_restantes_alerta);
         if (horasRestantes <= 10 && horasRestantes > 0) {
           result.push({
             guia: item?.guia ?? 'SIN GUIA',
@@ -313,66 +294,8 @@ export default {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
-    getHoursSinceRecojo(item) {
-      const rawDate = item?.fecha_recojo_c;
-      if (!rawDate) return null;
-      const date = this.parseFecha(rawDate);
-      if (Number.isNaN(date.getTime())) return null;
-      return Math.max(0, (Date.now() - date.getTime()) / 36e5);
-    },
-    parseFecha(value) {
-      if (value instanceof Date) return value;
-      if (typeof value === 'number') return new Date(value);
-      const str = String(value).trim();
-
-      // Soporta: dd/MM/yyyy HH:mm[:ss]
-      const m1 = str.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
-      if (m1) {
-        const [, dd, mm, yyyy, hh = '00', min = '00', ss = '00'] = m1;
-        return new Date(
-          Number(yyyy),
-          Number(mm) - 1,
-          Number(dd),
-          Number(hh),
-          Number(min),
-          Number(ss)
-        );
-      }
-
-      // Soporta: yyyy-MM-dd HH:mm[:ss] o yyyy-MM-ddTHH:mm[:ss]
-      const m2 = str.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?$/);
-      if (m2) {
-        const [, yyyy, mm, dd, hh = '00', min = '00', ss = '00'] = m2;
-        return new Date(
-          Number(yyyy),
-          Number(mm) - 1,
-          Number(dd),
-          Number(hh),
-          Number(min),
-          Number(ss)
-        );
-      }
-
-      return new Date(str);
-    },
-    getGreenLimitHours(item) {
-      const hasCiudad = String(item?.ciudad ?? '').trim() !== '';
-      return hasCiudad ? 92 : 48;
-    },
     rowStatusClass(item) {
-      const diffHours = this.getHoursSinceRecojo(item);
-      if (diffHours === null) return '';
-      const hasCiudad = String(item?.ciudad ?? '').trim() !== '';
-
-      if (hasCiudad) {
-        if (diffHours <= 92) return 'row-green';
-        if (diffHours <= 114) return 'row-orange';
-        return 'row-red';
-      }
-
-      if (diffHours <= 48) return 'row-green';
-      if (diffHours <= 72) return 'row-orange';
-      return 'row-red';
+      return item?.row_status_class || '';
     },
     getTarifaLabel(tarifa_id) {
       if (!this.tarifas) {
@@ -404,17 +327,53 @@ export default {
       item.precio = this.calculatePrice(item.tarifa_id, item.peso_v);
       item.nombre_d = item.precio;
     },
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = pagination.current_page;
+    },
+    buildListPath(page = this.currentPage, searchOverride = null) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const search = searchOverride !== null
+        ? String(searchOverride || '').trim()
+        : String(this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      return `${this.apiUrl}?${params.toString()}`;
+    },
     async GET_DATA(path) {
       const res = await this.$encargados.$get(path);
       return res;
     },
+    async fetchList(page = this.currentPage, searchOverride = null) {
+      const payload = await this.GET_DATA(this.buildListPath(page, searchOverride));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
+    },
     async EliminarItem(id) {
       this.load = true;
       try {
-        const res = await this.$encargados.$delete(this.apiUrl + '/' + id);
-        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0];
-        });
+        await this.$encargados.$delete(this.apiUrl + '/' + id);
+        await this.fetchList();
       } catch (e) {
         console.log(e);
       } finally {
@@ -437,8 +396,8 @@ export default {
       });
       this.isModalVisible = true;
     },
-    handleSearchEnter() {
-      const filteredItems = this.filteredData;
+    async handleSearchEnter() {
+      const filteredItems = await this.fetchList(1, this.searchTerm);
       if (!filteredItems || filteredItems.length === 0) return;
 
       const item = filteredItems[0];
@@ -488,7 +447,7 @@ export default {
             nombre_d: item.nombre_d
           });
         }
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
         this.$swal.fire({
           icon: 'success',
           title: 'Carteros asignados',
@@ -515,7 +474,7 @@ export default {
             await this.$encargados.$put(`recibirpaquetes5/${itemId}`);
           }
         }
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
         this.$swal.fire({
           icon: 'success',
           title: 'Paquetes recibidos',
@@ -542,18 +501,18 @@ export default {
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
     },
-    nextPage() {
-      if (this.currentPage < this.totalPages - 1) {
-        this.currentPage++;
+    async nextPage() {
+      if (this.currentPage < this.totalPages) {
+        await this.fetchList(this.currentPage + 1);
       }
     },
-    previousPage() {
-      if (this.currentPage > 0) {
-        this.currentPage--;
+    async previousPage() {
+      if (this.currentPage > 1) {
+        await this.fetchList(this.currentPage - 1);
       }
     },
-    goToPage(page) {
-      this.currentPage = page;
+    async goToPage(page) {
+      await this.fetchList(page);
     }
   },
   mounted() {
@@ -561,12 +520,7 @@ export default {
       let user = localStorage.getItem('userAuth');
       this.user = JSON.parse(user);
       try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
+        await this.fetchList();
         const tarifas = await this.GET_DATA('getTarifas');
         if (Array.isArray(tarifas)) {
           this.tarifas = tarifas;
@@ -580,6 +534,11 @@ export default {
         this.load = false;
       }
     });
+  },
+  watch: {
+    searchTerm() {
+      this.fetchList(1, this.searchTerm);
+    },
   },
 };
 </script>

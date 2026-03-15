@@ -110,7 +110,7 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'solicitudes5',
+      apiUrl: 'solicitudes-rechazado',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -126,48 +126,18 @@ export default {
       },
       currentPage: 1,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
     };
   },
   computed: {
     filteredData() {
-      const searchTerm = (this.searchTerm || '').toLowerCase();
-
-      return (this.list || [])
-        .filter(item => {
-          // ✅ solo rechazados
-          const estadoOk = item?.estado === 6;
-
-          // ✅ EMS o Contrato (no excluye nada, solo evita null issues)
-          const esEMS = ((item?.tipo_correspondencia ?? '') + '').toUpperCase() === 'EMS';
-          const esContrato = !esEMS; // si no es EMS lo tratamos como "contrato/normal"
-
-          // ✅ búsqueda NULL-safe (NO revienta con nulls)
-          const valuesMatch = Object.values(item || {}).some(v =>
-            String(v ?? '').toLowerCase().includes(searchTerm)
-          );
-
-          // ✅ búsquedas específicas por relaciones (sucursale / cartero)
-          const sucursalMatch = String(item?.sucursale?.nombre ?? '').toLowerCase().includes(searchTerm);
-          const carteroMatch = String(item?.cartero_entrega?.nombre ?? '').toLowerCase().includes(searchTerm);
-
-          const coincideBusqueda = valuesMatch || sucursalMatch || carteroMatch;
-
-          return estadoOk && coincideBusqueda && (esEMS || esContrato);
-        })
-        // ✅ orden (si tienes fecha, usa la fecha, si no, no rompe)
-        .sort((a, b) => {
-          const fa = new Date(a?.fecha ?? 0).getTime() || 0;
-          const fb = new Date(b?.fecha ?? 0).getTime() || 0;
-          return fb - fa;
-        });
+      return Array.isArray(this.list) ? this.list : [];
     },
     paginatedData() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     totalPagesArray() {
       return Array.from({ length: this.totalPages }, (_, i) => i + 1);
@@ -220,18 +190,50 @@ export default {
       link.click();
       document.body.removeChild(link);
     },
-    prevPage() {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = pagination.current_page;
+    },
+    buildListPath(page = this.currentPage, searchOverride = null) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const search = searchOverride !== null
+        ? String(searchOverride || '').trim()
+        : String(this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      return `${this.apiUrl}?${params.toString()}`;
+    },
+    async prevPage() {
       if (this.currentPage > 1) {
-        this.currentPage -= 1;
+        await this.fetchList(this.currentPage - 1);
       }
     },
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages) {
-        this.currentPage += 1;
+        await this.fetchList(this.currentPage + 1);
       }
     },
-    goToPage(pageNumber) {
-      this.currentPage = pageNumber;
+    async goToPage(pageNumber) {
+      await this.fetchList(pageNumber);
     },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
@@ -240,14 +242,16 @@ export default {
     async GET_DATA(path) {
       try {
         const res = await this.$encargados.$get(path);
-        if (Array.isArray(res)) {
-          this.list = res;
-        } else {
-          console.error('Los datos recuperados no son un array:', res);
-        }
+        return res;
       } catch (e) {
-        console.error('Error al obtener los datos:', e);
+        throw e;
       }
+    },
+    async fetchList(page = this.currentPage, searchOverride = null) {
+      const payload = await this.GET_DATA(this.buildListPath(page, searchOverride));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
     },
 
 
@@ -270,19 +274,19 @@ export default {
       }
 
       try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-          console.log('Datos cargados:', this.list);
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
+        await this.fetchList();
+        console.log('Datos cargados:', this.list);
       } catch (e) {
         console.error('Error al obtener los datos:', e);
       } finally {
         this.load = false;
       }
     });
+  },
+  watch: {
+    searchTerm() {
+      this.fetchList(1, this.searchTerm);
+    },
   },
 };
 </script>

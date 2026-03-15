@@ -112,40 +112,25 @@ export default {
   data() {
     return {
       load: true,
-      list: [], // Aquí estarán los datos completos
-      searchTerm: '', // Término de búsqueda
-      apiUrl: 'eventos5',
+      list: [],
+      searchTerm: '',
+      apiUrl: 'eventos-encargado',
       page: 'Eventos',
       modulo: 'AGBC',
-      currentPage: 0, // Página actual
-      itemsPerPage: 10, // Elementos por página
+      currentPage: 0,
+      itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
     };
   },
   computed: {
     filteredList() {
-      // Filtrar la lista según el término de búsqueda
-      return this.list.filter(item => {
-        const searchTerm = this.searchTerm.toLowerCase();
-        return (
-          item.codigo.toLowerCase().includes(searchTerm) ||
-          item.accion.toLowerCase().includes(searchTerm) ||
-          item.descripcion.toLowerCase().includes(searchTerm) ||
-          item.fecha_hora.toLowerCase().includes(searchTerm)
-        );
-      })
-      .sort((a, b) => {
-          // Ordenar por fecha_hora de más reciente a más antiguo
-          return new Date(b.fecha_hora) - new Date(a.fecha_hora);
-        });
+      return Array.isArray(this.list) ? this.list : [];
     },
     paginatedData() {
-      // Datos paginados
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredList.slice(start, end);
+      return this.filteredList;
     },
     totalPages() {
-      return Math.ceil(this.filteredList.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     pagesToShow() {
     const firstPages = [1, 2, 3];
@@ -170,36 +155,76 @@ export default {
   }
   },
   methods: {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.eventos)) return payload.eventos;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = Math.max(0, pagination.current_page - 1);
+    },
+    buildListPath(page = this.currentPage + 1) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const search = String(this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      const query = params.toString();
+      return query ? `${this.apiUrl}?${query}` : this.apiUrl;
+    },
     async GET_DATA(path) {
       const res = await this.$encargados.$get(path);
       return res;
     },
-    nextPage() {
+    async fetchList(page = this.currentPage + 1) {
+      const payload = await this.GET_DATA(this.buildListPath(page));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
+    },
+    async nextPage() {
       if (this.currentPage < this.totalPages - 1) {
-        this.currentPage++;
+        await this.fetchList(this.currentPage + 2);
       }
     },
-    previousPage() {
+    async previousPage() {
       if (this.currentPage > 0) {
-        this.currentPage--;
+        await this.fetchList(this.currentPage);
       }
     },
-    goToPage(page) {
-      this.currentPage = page;
+    async goToPage(page) {
+      await this.fetchList(page + 1);
     },
   },
   mounted() {
     this.$nextTick(async () => {
       try {
-        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0]; // Almacenar la lista completa
-        });
+        await this.fetchList();
       } catch (e) {
         console.log(e);
       } finally {
         this.load = false;
       }
     });
+  },
+  watch: {
+    searchTerm() {
+      this.fetchList(1);
+    },
   },
 };
 </script>

@@ -187,7 +187,7 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'solicitudes5',
+      apiUrl: 'solicitudes-verificar-devuelto',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -203,6 +203,7 @@ export default {
       },
       currentPage: 1,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
       pesoReencaminar: 0,          // Campo para el peso de reencaminamiento
       selectedReencaminar: null,    // Campo para seleccionar el destino de reencaminamiento
       selected: {},
@@ -211,54 +212,15 @@ export default {
   },
   computed: {
    filteredData() {
-  const searchTerm = (this.searchTerm || '').toLowerCase();
-
-  // ✅ estados que quieres ver (ajusta si necesitas más)
-  const estadosPermitidos = [11]; // ejemplo: return
-  // si quieres ver varios: const estadosPermitidos = [11, 10, 5, 13];
-
-  return (this.list || [])
-    .filter(item => {
-      const estadoOk = estadosPermitidos.includes(item?.estado);
-
-      // ✅ EMS GLOBAL: sucursale_id y tarifa_id null
-      const esEMS = (item?.tipo_correspondencia ?? '').toUpperCase() === 'EMS';
-      const esEMSGlobal =
-        esEMS &&
-        (item?.sucursale_id === null || item?.sucursale_id === undefined) &&
-        (item?.tarifa_id === null || item?.tarifa_id === undefined);
-
-      // ✅ contratos normales (con sucursal) o EMS global
-      const visible = (item?.sucursale != null) || esEMSGlobal;
-
-      // ✅ búsqueda segura (no revienta con null)
-      const coincideBusqueda =
-        String(item?.guia ?? '').toLowerCase().includes(searchTerm) ||
-        String(item?.remitente ?? '').toLowerCase().includes(searchTerm) ||
-        String(item?.destinatario ?? '').toLowerCase().includes(searchTerm) ||
-        String(item?.telefono ?? '').toLowerCase().includes(searchTerm) ||
-        String(item?.telefono_d ?? '').toLowerCase().includes(searchTerm) ||
-        String(item?.contenido ?? '').toLowerCase().includes(searchTerm) ||
-        String(item?.ciudad ?? '').toLowerCase().includes(searchTerm) ||
-        String(item?.zona_d ?? '').toLowerCase().includes(searchTerm) ||
-        String(item?.direccion_especifica_d ?? '').toLowerCase().includes(searchTerm) ||
-        String(item?.sucursale?.nombre ?? '').toLowerCase().includes(searchTerm) ||
-        String(item?.direccion?.direccion ?? '').toLowerCase().includes(searchTerm) ||
-        String(item?.direccion?.zona ?? '').toLowerCase().includes(searchTerm) ||
-        String(item?.direccion?.direccion_especifica ?? '').toLowerCase().includes(searchTerm);
-
-      return estadoOk && visible && coincideBusqueda;
-    });
-},
+    return Array.isArray(this.list) ? this.list : [];
+   },
 
 
     paginatedData() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     totalPagesArray() {
       return Array.from({ length: this.totalPages }, (_, i) => i + 1);
@@ -312,18 +274,50 @@ export default {
       document.body.removeChild(link);
     },
 
-    prevPage() {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = pagination.current_page;
+    },
+    buildListPath(page = this.currentPage, searchOverride = null) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const search = searchOverride !== null
+        ? String(searchOverride || '').trim()
+        : String(this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      return `${this.apiUrl}?${params.toString()}`;
+    },
+    async prevPage() {
       if (this.currentPage > 1) {
-        this.currentPage -= 1;
+        await this.fetchList(this.currentPage - 1);
       }
     },
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages) {
-        this.currentPage += 1;
+        await this.fetchList(this.currentPage + 1);
       }
     },
-    goToPage(pageNumber) {
-      this.currentPage = pageNumber;
+    async goToPage(pageNumber) {
+      await this.fetchList(pageNumber);
     },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
@@ -332,14 +326,16 @@ export default {
     async GET_DATA(path) {
       try {
         const res = await this.$encargados.$get(path);
-        if (Array.isArray(res)) {
-          this.list = res;
-        } else {
-          console.error('Los datos recuperados no son un array:', res);
-        }
+        return res;
       } catch (e) {
-        console.error('Error al obtener los datos:', e);
+        throw e;
       }
+    },
+    async fetchList(page = this.currentPage, searchOverride = null) {
+      const payload = await this.GET_DATA(this.buildListPath(page, searchOverride));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
     },
 
 
@@ -371,7 +367,7 @@ export default {
             });
           }
 
-          await this.GET_DATA(this.apiUrl); // Actualiza la lista después de reencaminar
+          await this.fetchList(); // Actualiza la lista después de reencaminar
           this.$swal.fire({
             icon: 'success',
             title: 'Solicitudes reencaminadas',
@@ -404,7 +400,7 @@ export default {
         for (let id of selectedIds) {
           await this.$encargados.$put(`verificarreturn5/${id}`);
         }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.fetchList(); // Forzar actualización de la lista
         this.$swal.fire({
           icon: 'success',
           title: 'Solicitudes verificadas',
@@ -444,19 +440,19 @@ export default {
       }
 
       try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-          console.log('Datos cargados:', this.list);
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
+        await this.fetchList();
+        console.log('Datos cargados:', this.list);
       } catch (e) {
         console.error('Error al obtener los datos:', e);
       } finally {
         this.load = false;
       }
     });
+  },
+  watch: {
+    searchTerm() {
+      this.fetchList(1, this.searchTerm);
+    },
   },
 };
 </script>

@@ -915,7 +915,15 @@ export default {
 
       try {
         const originalImage = this.uploadedImage || null;
-        const optimizedImage = originalImage ? await this.optimizeImage(originalImage) : null;
+        let optimizedImage = null;
+        if (originalImage) {
+          try {
+            optimizedImage = await this.optimizeImage(originalImage);
+          } catch (imageError) {
+            console.error('Error optimizando imagen, se usara fallback:', imageError);
+            optimizedImage = originalImage;
+          }
+        }
         const formattedDate = this.getFormattedDate();
         const payload = {
           observacion: this.observacion,
@@ -947,21 +955,49 @@ export default {
         return null;
       }
 
-      const pica = Pica();
       const img = new Image();
       img.src = imageDataUrl;
 
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         img.onload = resolve;
+        img.onerror = reject;
       });
 
-      const canvas = document.createElement('canvas');
-      canvas.width = 750;
-      canvas.height = img.height * (750 / img.width);
+      const targetWidth = Math.min(750, img.width || 750);
+      const targetHeight = Math.max(1, Math.round((img.height || 1) * (targetWidth / (img.width || targetWidth))));
 
-      await pica.resize(img, canvas);
-      const optimizedImageDataUrl = canvas.toDataURL('image/webp', 0.3);
-      return optimizedImageDataUrl;
+      try {
+        const pica = Pica();
+        const canvas = document.createElement('canvas');
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+
+        await pica.resize(img, canvas);
+        return canvas.toDataURL('image/webp', 0.3);
+      } catch (error) {
+        console.error('Pica fallo, usando canvas normal:', error);
+        return this.optimizeImageWithCanvas(img, targetWidth, targetHeight);
+      }
+    },
+
+    optimizeImageWithCanvas(img, targetWidth, targetHeight) {
+      const canvas = document.createElement('canvas');
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        return this.uploadedImage || null;
+      }
+
+      ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+      try {
+        return canvas.toDataURL('image/webp', 0.3);
+      } catch (error) {
+        console.error('Canvas fallback fallo, se usara imagen original:', error);
+        return this.uploadedImage || null;
+      }
     },
 
     getFormattedDate() {

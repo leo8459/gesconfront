@@ -30,7 +30,7 @@
                     <tbody>
                       <tr v-for="(m, i) in paginatedList" :key="m?.id ?? i">
                         <td class="py-0 px-1">
-                          {{ currentPage * itemsPerPage + i + 1 }}
+                          {{ (currentPage - 1) * itemsPerPage + i + 1 }}
                         </td>
 
                         <td class="p-1">
@@ -78,16 +78,16 @@
                 <!-- Paginación -->
                 <nav aria-label="Page navigation">
                   <ul class="pagination justify-content-between">
-                    <li class="page-item" :class="{ disabled: currentPage === 0 }">
-                      <button class="page-link" @click="previousPage" :disabled="currentPage === 0">&lt;</button>
+                    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                      <button class="page-link" @click="previousPage" :disabled="currentPage === 1">&lt;</button>
                     </li>
                     <li class="page-item" v-for="page in totalPages" :key="page"
-                      :class="{ active: currentPage === page - 1 }">
-                      <button class="page-link" @click="goToPage(page - 1)">{{ (page ?? '-') }}</button>
+                      :class="{ active: currentPage === page }">
+                      <button class="page-link" @click="goToPage(page)">{{ (page ?? '-') }}</button>
                     </li>
-                    <li class="page-item" :class="{ disabled: currentPage >= totalPages - 1 }">
+                    <li class="page-item" :class="{ disabled: currentPage >= totalPages }">
                       <button class="page-link" @click="nextPage"
-                        :disabled="currentPage >= totalPages - 1">&gt;</button>
+                        :disabled="currentPage >= totalPages">&gt;</button>
                     </li>
                   </ul>
                 </nav>
@@ -112,7 +112,7 @@ export default {
     return {
       load: true,
       list: [],
-      apiUrl: 'solicitudes5',
+      apiUrl: 'solicitudes-devuelto',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/sucursal/sucursales/sucursal/nuevo',
@@ -120,33 +120,52 @@ export default {
       user: {
         sucursale: []
       },
-      currentPage: 0,
+      currentPage: 1,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
     };
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm ? this.searchTerm.toLowerCase() : '';
-      return this.list.filter(item =>
-        item.estado === 7 && Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        )
-      );
+      return Array.isArray(this.list) ? this.list : [];
     },
     sortedList() {
-      // Asegúrate de que filteredData retorne un array antes de intentar ordenarlo
-      return this.filteredData.slice().sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      return this.filteredData;
     },
     paginatedList() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.sortedList.slice(start, end);
+      return this.sortedList;
     },
     totalPages() {
-      return Math.ceil(this.sortedList.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     }
   },
   methods: {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = pagination.current_page;
+    },
+    buildListPath(page = this.currentPage) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      return `${this.apiUrl}?${params.toString()}`;
+    },
     generateThumbnail(base64Image) {
       const img = new Image();
       img.src = base64Image;
@@ -195,13 +214,17 @@ export default {
       const res = await this.$encargados.$get(path);
       return res;
     },
+    async fetchList(page = this.currentPage) {
+      const payload = await this.GET_DATA(this.buildListPath(page));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
+    },
     async EliminarItem(id) {
       this.load = true;
       try {
         const res = await this.$encargados.$delete(this.apiUrl + '/' + id);
-        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0];
-        });
+        await this.fetchList();
       } catch (e) {
         console.log(e);
       } finally {
@@ -224,13 +247,11 @@ export default {
     async DarDeBaja(id) {
       this.load = true;
       try {
-        const item = this.list.find(m => m.id === id);
-        if (item) {
-          item.estado = 3; // Cambiar estado a 3 (Entregado)
-          await this.$encargados.$put(this.apiUrl + '/' + id, item);
-          await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-            this.list = v[0];
-          });
+          const item = this.list.find(m => m.id === id);
+          if (item) {
+            item.estado = 3; // Cambiar estado a 3 (Entregado)
+            await this.$encargados.$put(this.apiUrl + '/' + id, item);
+          await this.fetchList();
         }
       } catch (e) {
         console.log(e);
@@ -258,18 +279,18 @@ export default {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
-    nextPage() {
-      if (this.currentPage < this.totalPages - 1) {
-        this.currentPage++;
+    async nextPage() {
+      if (this.currentPage < this.totalPages) {
+        await this.fetchList(this.currentPage + 1);
       }
     },
-    previousPage() {
-      if (this.currentPage > 0) {
-        this.currentPage--;
+    async previousPage() {
+      if (this.currentPage > 1) {
+        await this.fetchList(this.currentPage - 1);
       }
     },
-    goToPage(page) {
-      this.currentPage = page;
+    async goToPage(page) {
+      await this.fetchList(page);
     }
   },
   mounted() {
@@ -277,12 +298,7 @@ export default {
       let user = localStorage.getItem('userAuth');
       this.user = JSON.parse(user);
       try {
-        const data = await this.GET_DATA(this.apiUrl);
-        if (Array.isArray(data)) {
-          this.list = data;
-        } else {
-          console.error('Los datos recuperados no son un array:', data);
-        }
+        await this.fetchList();
       } catch (e) {
         console.error('Error al obtener los datos:', e);
       } finally {
