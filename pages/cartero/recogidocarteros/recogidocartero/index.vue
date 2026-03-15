@@ -602,6 +602,7 @@ export default {
       },
       currentPage: 0,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
       // Nuevas propiedades para la observación y la imagen
       isObservationModalVisible: false,
       observacion: "",
@@ -641,12 +642,10 @@ export default {
     },
 
     paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some((key) => this.selected[key]);
@@ -683,8 +682,24 @@ export default {
       if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
       return [];
     },
-    buildListPath() {
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = Math.max(0, pagination.current_page - 1);
+    },
+    buildListPath(page = this.currentPage + 1) {
       const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
       const search = (this.searchTerm || "").trim();
       if (search) {
         params.set("search", search);
@@ -692,10 +707,10 @@ export default {
       const query = params.toString();
       return query ? `${this.apiUrl}?${query}` : this.apiUrl;
     },
-    async fetchList() {
-      const data = await this.GET_DATA(this.buildListPath());
-      this.list = this.normalizeArrayPayload(data);
-      this.currentPage = 0;
+    async fetchList(page = this.currentPage + 1) {
+      const payload = await this.GET_DATA(this.buildListPath(page));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
       return this.list;
     },
 

@@ -139,7 +139,7 @@ export default {
       list: [],
       tarifas: [],
       searchTerm: "",
-      apiUrl: "solicitudes",
+      apiUrl: "solicitudes8",
       page: "Recibir de regional",
       modulo: "Recibir de regional",
       isModalVisible: false,
@@ -149,30 +149,12 @@ export default {
       user: {},
       currentPage: 0,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
     };
   },
   computed: {
     filteredData() {
-      const search = String(this.searchTerm || "").toLowerCase();
-      const departamento =
-        this.user?.user?.departamento_cartero || this.user?.user?.departamento || null;
-
-      if (!departamento) return [];
-
       return (this.list || [])
-        .filter((item) => {
-          const matchesReencaminamiento = item?.reencaminamiento === departamento;
-          const matchesDepartamento = item?.tarifa?.departamento === departamento;
-
-          const matchesSearch =
-            String(item?.guia ?? "").toLowerCase().includes(search) ||
-            String(item?.remitente ?? "").toLowerCase().includes(search) ||
-            String(item?.destinatario ?? "").toLowerCase().includes(search) ||
-            String(item?.sucursale?.nombre ?? "").toLowerCase().includes(search) ||
-            String(item?.reencaminamiento ?? "").toLowerCase().includes(search);
-
-          return (matchesReencaminamiento || matchesDepartamento) && matchesSearch && [8, 12].includes(Number(item?.estado));
-        })
         .sort((a, b) => {
           const da = a?.fecha_envio_regional ? new Date(a.fecha_envio_regional).getTime() : 0;
           const db = b?.fecha_envio_regional ? new Date(b.fecha_envio_regional).getTime() : 0;
@@ -180,17 +162,53 @@ export default {
         });
     },
     paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      return this.filteredData.slice(start, start + this.itemsPerPage);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
   },
   methods: {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = Math.max(0, pagination.current_page - 1);
+    },
+    buildListPath(search = "", page = this.currentPage + 1) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const normalizedSearch = String(search || "").trim();
+      if (normalizedSearch) {
+        params.set("search", normalizedSearch);
+      }
+      const query = params.toString();
+      return query ? `${this.apiUrl}?${query}` : this.apiUrl;
+    },
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
-      return Array.isArray(res) ? res : [];
+      return res;
+    },
+    async fetchList(search = "", page = this.currentPage + 1) {
+      const payload = await this.GET_DATA(this.buildListPath(search, page));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
     },
     getTarifaLabel(tarifaId) {
       const tarifa = (this.tarifas || []).find((t) => Number(t?.id) === Number(tarifaId));
@@ -230,8 +248,24 @@ export default {
     handlePasteDetect() {
       this.$nextTick(() => this.handleSearchEnter());
     },
-    handleSearchEnter() {
-      const found = this.filteredData.length > 0 ? this.filteredData[0] : null;
+    async handleSearchEnter() {
+      const term = String(this.searchTerm || "").trim();
+      if (!term) {
+        this.searchTerm = "";
+        return;
+      }
+
+      this.load = true;
+      let found = null;
+      try {
+        const data = await this.fetchList(term);
+        found = Array.isArray(data) && data.length > 0 ? data[0] : null;
+      } catch (e) {
+        console.error("Error buscando paquete regional:", e);
+      } finally {
+        this.load = false;
+      }
+
       if (!found?.id) {
         this.searchTerm = "";
         return;
@@ -326,7 +360,7 @@ export default {
         this.selectedForAssign = [];
         this.selectedForDelivery = [];
         this.searchTerm = "";
-        this.list = await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
       } catch (e) {
         console.error(e);
         const msg =
@@ -342,14 +376,14 @@ export default {
         this.load = false;
       }
     },
-    nextPage() {
-      if (this.currentPage < this.totalPages - 1) this.currentPage++;
+    async nextPage() {
+      if (this.currentPage < this.totalPages - 1) await this.fetchList(this.searchTerm, this.currentPage + 2);
     },
-    previousPage() {
-      if (this.currentPage > 0) this.currentPage--;
+    async previousPage() {
+      if (this.currentPage > 0) await this.fetchList(this.searchTerm, this.currentPage);
     },
-    goToPage(pageNo) {
-      this.currentPage = pageNo;
+    async goToPage(pageNo) {
+      await this.fetchList(this.searchTerm, pageNo + 1);
     },
   },
   mounted() {
@@ -358,7 +392,7 @@ export default {
       this.user = rawUser ? JSON.parse(rawUser) : {};
       try {
         const [solicitudes, tarifas] = await Promise.all([
-          this.GET_DATA(this.apiUrl),
+          this.fetchList(),
           this.GET_DATA("getTarifas"),
         ]);
         this.list = solicitudes;

@@ -107,46 +107,27 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'eventos',
+      apiUrl: 'eventos1',
       page: 'Eventos',
       modulo: 'AGBC',
       currentPage: 0,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
     };
   },
   computed: {
     filteredList() {
-      const term = String(this.searchTerm || '').toLowerCase().trim();
-      const toText = (value) => String(value ?? '').toLowerCase();
-
-      return (Array.isArray(this.list) ? this.list : [])
-        .filter((item) => {
-          const codigo = toText(item?.codigo);
-          const accion = toText(item?.accion);
-          const descripcion = toText(item?.descripcion);
-          const fechaHora = toText(item?.fecha_hora);
-
-          if (!term) return true;
-          return (
-            codigo.includes(term) ||
-            accion.includes(term) ||
-            descripcion.includes(term) ||
-            fechaHora.includes(term)
-          );
-        })
-        .sort((a, b) => {
-          const fechaA = a?.fecha_hora ? new Date(a.fecha_hora).getTime() : 0;
-          const fechaB = b?.fecha_hora ? new Date(b.fecha_hora).getTime() : 0;
-          return fechaB - fechaA;
-        });
+      return (Array.isArray(this.list) ? this.list : []).sort((a, b) => {
+        const fechaA = a?.fecha_hora ? new Date(a.fecha_hora).getTime() : 0;
+        const fechaB = b?.fecha_hora ? new Date(b.fecha_hora).getTime() : 0;
+        return fechaB - fechaA;
+      });
     },
     paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredList.slice(start, end);
+      return this.filteredList;
     },
     totalPages() {
-      return Math.ceil(this.filteredList.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     pagesToShow() {
       return [1, 2, 3];
@@ -168,36 +149,76 @@ export default {
     },
   },
   methods: {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.eventos)) return payload.eventos;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = Math.max(0, pagination.current_page - 1);
+    },
+    buildListPath(page = this.currentPage + 1) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const search = String(this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      const query = params.toString();
+      return query ? `${this.apiUrl}?${query}` : this.apiUrl;
+    },
+    async fetchList(page = this.currentPage + 1) {
+      const payload = await this.GET_DATA(this.buildListPath(page));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
+    },
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
       return res;
     },
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages - 1) {
-        this.currentPage++;
+        await this.fetchList(this.currentPage + 2);
       }
     },
-    previousPage() {
+    async previousPage() {
       if (this.currentPage > 0) {
-        this.currentPage--;
+        await this.fetchList(this.currentPage);
       }
     },
-    goToPage(page) {
-      this.currentPage = page;
+    async goToPage(page) {
+      await this.fetchList(page + 1);
     },
   },
   mounted() {
     this.$nextTick(async () => {
       try {
-        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0]; // Almacenar la lista completa
-        });
+        await this.fetchList();
       } catch (e) {
         console.log(e);
       } finally {
         this.load = false;
       }
     });
+  },
+  watch: {
+    searchTerm() {
+      this.fetchList();
+    },
   },
 };
 </script>

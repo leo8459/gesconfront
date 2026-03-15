@@ -188,7 +188,7 @@ export default {
       load: true,
       page: "Generar despachos",
       modulo: "Generar despachos",
-      apiUrl: "solicitudes",
+      apiUrl: "solicitudes7",
       list: [],
       tarifas: [],
       searchTerm: "",
@@ -215,9 +215,30 @@ export default {
     },
   },
   methods: {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    buildListPath(search = "") {
+      const params = new URLSearchParams();
+      const normalizedSearch = String(search || "").trim();
+      if (normalizedSearch) {
+        params.set("search", normalizedSearch);
+      }
+      const query = params.toString();
+      return query ? `${this.apiUrl}?${query}` : this.apiUrl;
+    },
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
-      return Array.isArray(res) ? res : [];
+      return this.normalizeArrayPayload(res);
+    },
+    async fetchList(search = "") {
+      const path = this.buildListPath(search);
+      const data = await this.GET_DATA(path);
+      this.list = Array.isArray(data) ? data : [];
+      return this.list;
     },
     getTarifaLabel(tarifaId) {
       if (!tarifaId) return "SIN TARIFA";
@@ -268,11 +289,20 @@ export default {
     handlePasteDetect() {
       this.$nextTick(() => this.handleSearchEnter());
     },
-    handleSearchEnter() {
+    async handleSearchEnter() {
       const term = String(this.searchTerm || "").trim().toLowerCase();
       if (!term) {
         this.searchTerm = "";
         return;
+      }
+
+      this.load = true;
+      try {
+        await this.fetchList(term);
+      } catch (e) {
+        console.error("Error buscando solicitudes para despacho:", e);
+      } finally {
+        this.load = false;
       }
 
       const exact = this.availableData.find((item) => {
@@ -649,8 +679,7 @@ export default {
         this.selectedForAssign = [];
         this.selectedForDelivery = [];
         this.searchTerm = "";
-
-        this.list = await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
       } catch (e) {
         console.error(e);
         const backendMessage =
@@ -686,7 +715,7 @@ export default {
 
       try {
         const [solicitudes, tarifas] = await Promise.all([
-          this.GET_DATA(this.apiUrl),
+          this.fetchList(),
           this.GET_DATA("getTarifas"),
         ]);
         this.list = solicitudes;

@@ -351,7 +351,7 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'solicitudes',
+      apiUrl: 'solicitudes4',
       page: 'Envios Entregados',
       modulo: 'Envios Entregados',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -369,6 +369,7 @@ export default {
       },
       currentPage: 0,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
       isAddDeliveredVisible: false,
       isTemplateModalVisible: false,
 deliveredForm: {
@@ -410,31 +411,7 @@ sucursales: [],
       return (this.departamentosEnvio || []).filter(dep => dep?.value);
     },
     filteredData() {
-      const searchTerm = (this.searchTerm || '').toLowerCase();
-      const carteroId = this.user?.user?.id;
-
       return (this.list || [])
-        .filter(item => {
-          const estadoOk = [3, 4, 10, 7].includes(item?.estado);
-
-          // ✅ mismo cartero (si es null no entra)
-          const mismoCartero = item?.cartero_entrega?.id === carteroId;
-
-          // ✅ contratos + EMS (ambos pasan, solo filtramos por estado y cartero)
-          const esEMS = (item?.tipo_correspondencia ?? '').toUpperCase() === 'EMS';
-          const esContrato = !esEMS; // si quieres separar después
-
-          // ✅ búsqueda segura (no revienta con nulls)
-          const coincideBusqueda =
-            Object.values(item || {}).some(v =>
-              String(v ?? '').toLowerCase().includes(searchTerm)
-            ) ||
-            String(item?.sucursale?.nombre ?? '').toLowerCase().includes(searchTerm) ||
-            String(item?.direccion?.direccion ?? '').toLowerCase().includes(searchTerm);
-
-          // ✅ mantiene estados + cartero + búsqueda + muestra contratos y EMS
-          return estadoOk && mismoCartero && coincideBusqueda && (esContrato || esEMS);
-        })
         .sort((a, b) => {
           const parseFecha = (str) => {
             if (!str) return 0;
@@ -466,18 +443,59 @@ sucursales: [],
     }
     ,
     paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
     }
   },
   methods: {
+  normalizeArrayPayload(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data)) return payload.data;
+    if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+    return [];
+  },
+  normalizePaginationPayload(payload) {
+    return {
+      current_page: Number(payload?.current_page || 1),
+      last_page: Number(payload?.last_page || 1),
+      total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+      per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+    };
+  },
+  applyPaginationPayload(payload) {
+    const pagination = this.normalizePaginationPayload(payload);
+    this.pagination = pagination;
+    this.itemsPerPage = pagination.per_page;
+    this.currentPage = Math.max(0, pagination.current_page - 1);
+  },
+  buildListPath(page = this.currentPage + 1) {
+    const params = new URLSearchParams();
+    params.set('page', page);
+    params.set('per_page', this.itemsPerPage);
+    const search = (this.searchTerm || '').trim();
+    if (search) {
+      params.set('search', search);
+    }
+    if (this.startDate) {
+      params.set('start_date', this.startDate);
+    }
+    if (this.endDate) {
+      params.set('end_date', this.endDate);
+    }
+    const query = params.toString();
+    return query ? `${this.apiUrl}?${query}` : this.apiUrl;
+  },
+  async fetchList(page = this.currentPage + 1) {
+    const payload = await this.GET_DATA(this.buildListPath(page));
+    this.list = this.normalizeArrayPayload(payload);
+    this.applyPaginationPayload(payload);
+    return this.list;
+  },
   formatNameFromEmail(email) {
     if (!email || typeof email !== 'string') return '-';
 
@@ -851,7 +869,7 @@ async saveDeliveredManual() {
       console.log('[ENTREGADOS][PUT_IMAGEN_RESPONSE]', updateRes);
     }
 
-    await this.GET_DATA(this.apiUrl);
+    await this.fetchList();
     this.isAddDeliveredVisible = false;
 
     this.$swal.fire({
@@ -1104,13 +1122,13 @@ async saveDeliveredManual() {
       try {
         const carteroId = this.user.id;
         const response = await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
         this.$swal.fire({
           icon: 'success',
           title: 'Cartero asignado',
           text: `La solicitud ${solicitudeId} ha sido marcada como 'En camino'.`,
         });
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.fetchList();
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -1125,22 +1143,17 @@ async saveDeliveredManual() {
     async GET_DATA(path) {
       try {
         const res = await this.$api.$get(path);
-        if (path === this.apiUrl && Array.isArray(res)) {
-          this.list = res;
-        }
         return res;
       } catch (e) {
         console.error('Error al obtener los datos:', e);
-        return null;
+        return [];
       }
     },
     async EliminarItem(id) {
       this.load = true;
       try {
         const res = await this.$api.$delete(this.apiUrl + '/' + id);
-        await Promise.all([this.GET_DATA(this.apiUrl)]).then((v) => {
-          this.list = v[0];
-        });
+        await this.fetchList();
       } catch (e) {
         console.log(e);
       } finally {
@@ -1170,9 +1183,9 @@ async saveDeliveredManual() {
           item.estado = response.estado; // Actualizar estado desde la respuesta
           item.cartero_entrega_id = response.cartero_entrega_id; // Actualizar cartero de entrega desde la respuesta
           item.peso_v = response.peso_v; // Actualizar peso desde la respuesta
-          await this.GET_DATA(this.apiUrl);
+          await this.fetchList();
         }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.fetchList();
       } catch (e) {
         console.log(e);
       } finally {
@@ -1205,7 +1218,7 @@ async saveDeliveredManual() {
             console.error('Item inválido:', item);
           }
         }
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.fetchList();
         this.$swal.fire({
           icon: 'success',
           title: 'Carteros asignados',
@@ -1213,7 +1226,7 @@ async saveDeliveredManual() {
         });
         this.isModalVisible = false;
         this.selected = {}; // Limpiar la selección después de asignar
-        await this.GET_DATA(this.apiUrl); // Forzar actualización de la lista
+        await this.fetchList();
       } catch (e) {
         console.error(e);
         this.$swal.fire({
@@ -1234,18 +1247,18 @@ async saveDeliveredManual() {
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
     },
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages - 1) {
-        this.currentPage++;
+        await this.fetchList(this.currentPage + 2);
       }
     },
-    previousPage() {
+    async previousPage() {
       if (this.currentPage > 0) {
-        this.currentPage--;
+        await this.fetchList(this.currentPage);
       }
     },
-    goToPage(page) {
-      this.currentPage = page;
+    async goToPage(page) {
+      await this.fetchList(page + 1);
     }
   },
   mounted() {
@@ -1282,7 +1295,7 @@ async saveDeliveredManual() {
       }
 
       try {
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
         console.log('Datos cargados:', this.list);
       } catch (e) {
         console.error('Error al obtener los datos:', e);

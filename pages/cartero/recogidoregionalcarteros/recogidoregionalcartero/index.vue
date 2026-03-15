@@ -201,13 +201,12 @@ export default {
       load: true,
       list: [],
       searchTerm: '',
-      apiUrl: 'solicitudes',
+      apiUrl: 'solicitudes10',
       page: 'Enviar Paquetes',
       modulo: 'Enviar Paquetes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
       url_editar: '/admin/solicitudescartero/solicitudecartero/editar/',
       url_asignar: '/admin/solicitudes/solicitude/asignar',
-      tarifas: [],
       collapseState: {},
       isModalVisible: false,
       currentId: null,
@@ -222,38 +221,52 @@ export default {
       },
       currentPage: 0,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
     };
   },
   computed: {
     filteredData() {
-      const departamentoCartero = this.user?.user?.departamento_cartero;
-      if (!departamentoCartero) {
-        return [];
-      }
-
-      const searchTerm = this.searchTerm.toLowerCase();
-
-      return this.list.filter(item => {
-        const matchesDepartamento = item?.tarifa?.departamento === departamentoCartero;
-        const matchesReencaminamiento = item.reencaminamiento && item.reencaminamiento === departamentoCartero;
-
-        const matchesSearchTerm = Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        );
-
-        return item.estado === 10 && (matchesDepartamento || matchesReencaminamiento) && matchesSearchTerm;
-      });
+      return this.list;
     },
     paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     }
   },
   methods: {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = Math.max(0, pagination.current_page - 1);
+    },
+    buildListPath(search = '', page = this.currentPage + 1) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const normalizedSearch = String(search || '').trim();
+      if (normalizedSearch) {
+        params.set('search', normalizedSearch);
+      }
+      const query = params.toString();
+      return query ? `${this.apiUrl}?${query}` : this.apiUrl;
+    },
     toggleSelection(item) {
       const index = this.selectedForDelivery.indexOf(item);
       if (index === -1) {
@@ -286,9 +299,9 @@ export default {
           title: 'Envíos en camino',
           text: 'Todos los envíos seleccionados han sido marcados como en camino.',
           confirmButtonText: 'OK'
-        }).then(() => {
-          // Recargar la página una vez que se cierre la alerta
-          location.reload();
+        }).then(async () => {
+          this.selectedForDelivery = [];
+          await this.fetchList();
         });
 
       } catch (error) {
@@ -303,8 +316,23 @@ export default {
     }
     ,
 
-    handleSearchEnter() {
-      const filteredItems = this.filteredData;
+    async handleSearchEnter() {
+      const term = String(this.searchTerm || '').trim();
+      if (!term) {
+        this.searchTerm = '';
+        return;
+      }
+
+      this.load = true;
+      let filteredItems = [];
+      try {
+        filteredItems = await this.fetchList(term);
+      } catch (e) {
+        console.error('Error buscando recogido regional:', e);
+      } finally {
+        this.load = false;
+      }
+
       if (!filteredItems || filteredItems.length === 0) return;
 
       const item = filteredItems[0];
@@ -320,22 +348,28 @@ export default {
       const res = await this.$api.$get(path);
       return res;
     },
+    async fetchList(search = '', page = this.currentPage + 1) {
+      const payload = await this.GET_DATA(this.buildListPath(search, page));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
+    },
     isCoordinates(address) {
       const regex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
       return regex.test(address);
     },
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages - 1) {
-        this.currentPage++;
+        await this.fetchList(this.searchTerm, this.currentPage + 2);
       }
     },
-    previousPage() {
+    async previousPage() {
       if (this.currentPage > 0) {
-        this.currentPage--;
+        await this.fetchList(this.searchTerm, this.currentPage);
       }
     },
-    goToPage(page) {
-      this.currentPage = page;
+    async goToPage(page) {
+      await this.fetchList(this.searchTerm, page + 1);
     }
   },
   mounted() {
@@ -349,14 +383,7 @@ export default {
         }
 
         try {
-          const data = await this.GET_DATA(this.apiUrl);
-          if (Array.isArray(data)) {
-            this.list = data;
-          }
-          const tarifas = await this.GET_DATA('getTarifas');
-          if (Array.isArray(tarifas)) {
-            this.tarifas = tarifas;
-          }
+          await this.fetchList();
         } catch (e) {
         } finally {
           this.load = false;

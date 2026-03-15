@@ -143,6 +143,7 @@ export default {
       modulo: 'Dar de baja paquetes',
       currentPage: 0,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
       user: {},
       isDarBajaModalVisible: false,
       selectedPackage: null,
@@ -158,11 +159,10 @@ export default {
       return [...(this.list || [])].sort((a, b) => Number(b?.id || 0) - Number(a?.id || 0));
     },
     paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      return this.filteredData.slice(start, start + this.itemsPerPage);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
   },
   methods: {
@@ -172,8 +172,24 @@ export default {
       if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
       return [];
     },
-    buildListPath() {
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = Math.max(0, pagination.current_page - 1);
+    },
+    buildListPath(page = this.currentPage + 1) {
       const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
       const search = String(this.searchTerm || '').trim();
       if (search) {
         params.set('search', search);
@@ -181,15 +197,15 @@ export default {
       const query = params.toString();
       return query ? `${this.apiUrl}?${query}` : this.apiUrl;
     },
-    async fetchList() {
-      const data = await this.GET_DATA(this.buildListPath());
-      this.list = this.normalizeArrayPayload(data);
-      this.currentPage = 0;
+    async fetchList(page = this.currentPage + 1) {
+      const payload = await this.GET_DATA(this.buildListPath(page));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
       return this.list;
     },
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
-      return this.normalizeArrayPayload(res);
+      return res;
     },
     openDarBajaModal(item) {
       this.selectedPackage = item;
@@ -307,18 +323,18 @@ export default {
         this.load = false;
       }
     },
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages - 1) {
-        this.currentPage += 1;
+        await this.fetchList(this.currentPage + 2);
       }
     },
-    previousPage() {
+    async previousPage() {
       if (this.currentPage > 0) {
-        this.currentPage -= 1;
+        await this.fetchList(this.currentPage);
       }
     },
-    goToPage(pageNumber) {
-      this.currentPage = pageNumber;
+    async goToPage(pageNumber) {
+      await this.fetchList(pageNumber + 1);
     },
   },
   mounted() {

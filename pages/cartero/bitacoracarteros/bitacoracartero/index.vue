@@ -152,7 +152,7 @@ export default {
       load: true,
       page: 'Bitacoras',
       modulo: 'Bitacoras',
-      apiUrl: 'solicitudes',
+      apiUrl: 'solicitudes6',
       list: [],
       searchTerm: '',
       selected: {},
@@ -171,10 +171,7 @@ export default {
   },
   computed: {
     availableData() {
-      const carteroId = Number(this.user?.user?.id);
-      return (this.list || [])
-        .filter(item => Number(item?.cartero_entrega_id ?? item?.cartero_entrega?.id) === carteroId)
-        .sort((a, b) => Number(b?.id || 0) - Number(a?.id || 0));
+      return (this.list || []).sort((a, b) => Number(b?.id || 0) - Number(a?.id || 0));
     },
     selectedItems() {
       const ids = Object.keys(this.selected)
@@ -184,10 +181,29 @@ export default {
     },
   },
   methods: {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    buildListPath() {
+      const params = new URLSearchParams();
+      const search = (this.searchTerm || '').trim();
+      if (search) {
+        params.set('search', search);
+      }
+      const query = params.toString();
+      return query ? `${this.apiUrl}?${query}` : this.apiUrl;
+    },
+    async fetchList() {
+      const data = await this.GET_DATA(this.buildListPath());
+      this.list = this.normalizeArrayPayload(data);
+      return this.list;
+    },
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
-      this.list = Array.isArray(res) ? res : [];
-      return this.list;
+      return this.normalizeArrayPayload(res);
     },
     handlePasteDetect() {
       this.$nextTick(() => this.handleSearchEnter());
@@ -279,7 +295,7 @@ export default {
           });
         }
 
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
         this.selected = {};
         this.bitacoraForm = {};
         this.isTransporteModalVisible = false;
@@ -306,13 +322,18 @@ export default {
       this.user = rawUser ? JSON.parse(rawUser) : {};
 
       try {
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
       } catch (e) {
         console.error(e);
       } finally {
         this.load = false;
       }
     });
+  },
+  watch: {
+    searchTerm() {
+      this.fetchList();
+    },
   },
 };
 </script>

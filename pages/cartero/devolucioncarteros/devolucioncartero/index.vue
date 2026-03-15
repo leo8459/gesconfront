@@ -220,7 +220,7 @@ export default {
       searchTerm: '',
       sucursales: [], // Almacena la lista de sucursales
       selectedSucursal: '', // Almacena la sucursal seleccionada
-      apiUrl: 'solicitudes',
+      apiUrl: 'solicitudes11',
       page: 'Envios en Devolucion',
       modulo: 'Envios en Devolucion',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -234,6 +234,7 @@ export default {
       user: {},
       currentPage: 0,
       itemsPerPage: 10,
+      pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
       isObservationModalVisible: false,
       observacion: '',
       uploadedImage: '', // Añadido para manejar la imagen subida
@@ -251,31 +252,11 @@ export default {
   },
   computed: {
     filteredData() {
-      const searchTerm = this.searchTerm.toLowerCase();
-
-      return this.list
-        .filter(item => {
-          // Filtrar por estado (6 o 13)
-          const isCorrectState = item.estado === 6 || item.estado === 13;
-
-          // Filtrar por término de búsqueda
-          const matchesSearchTerm = Object.values(item).some(value =>
-            String(value).toLowerCase().includes(searchTerm)
-          );
-
-          // Filtrar por sucursal seleccionada (si hay alguna seleccionada)
-          const matchesSucursal = this.selectedSucursal
-            ? item.sucursale.id === this.selectedSucursal
-            : true; // Si no hay sucursal seleccionada, mostrar todas
-
-          return isCorrectState && matchesSearchTerm && matchesSucursal;
-        })
-        .sort((a, b) => {
-          // Ordenar por `fecha_recojo_c` de forma descendente
-          const dateA = new Date(a.fecha_recojo_c);
-          const dateB = new Date(b.fecha_recojo_c);
-          return dateB - dateA; // Orden descendente
-        });
+      return [...(this.list || [])].sort((a, b) => {
+        const dateA = a?.fecha_recojo_c ? new Date(a.fecha_recojo_c).getTime() : 0;
+        const dateB = b?.fecha_recojo_c ? new Date(b.fecha_recojo_c).getTime() : 0;
+        return dateB - dateA;
+      });
     },
 
     uniqueSucursalesInTable() {
@@ -292,18 +273,56 @@ export default {
       return uniqueSucursales;
     },
     paginatedData() {
-      const start = this.currentPage * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      return this.filteredData.slice(start, end);
+      return this.filteredData;
     },
     totalPages() {
-      return Math.ceil(this.filteredData.length / this.itemsPerPage);
+      return Number(this.pagination?.last_page || 1);
     },
     hasSelectedItems() {
       return Object.keys(this.selected).some(key => this.selected[key]);
     }
   },
   methods: {
+    normalizeArrayPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.solicitudes)) return payload.solicitudes;
+      return [];
+    },
+    normalizePaginationPayload(payload) {
+      return {
+        current_page: Number(payload?.current_page || 1),
+        last_page: Number(payload?.last_page || 1),
+        total: Number(payload?.total || this.normalizeArrayPayload(payload).length || 0),
+        per_page: Number(payload?.per_page || this.itemsPerPage || 10),
+      };
+    },
+    applyPaginationPayload(payload) {
+      const pagination = this.normalizePaginationPayload(payload);
+      this.pagination = pagination;
+      this.itemsPerPage = pagination.per_page;
+      this.currentPage = Math.max(0, pagination.current_page - 1);
+    },
+    buildListPath(page = this.currentPage + 1) {
+      const params = new URLSearchParams();
+      params.set('page', page);
+      params.set('per_page', this.itemsPerPage);
+      const search = (this.searchTerm || '').toString().trim();
+      if (search) {
+        params.set('search', search);
+      }
+      if (this.selectedSucursal) {
+        params.set('sucursale_id', this.selectedSucursal);
+      }
+      const query = params.toString();
+      return query ? `${this.apiUrl}?${query}` : this.apiUrl;
+    },
+    async fetchList(page = this.currentPage + 1) {
+      const payload = await this.GET_DATA(this.buildListPath(page));
+      this.list = this.normalizeArrayPayload(payload);
+      this.applyPaginationPayload(payload);
+      return this.list;
+    },
     initializeSignaturePad() {
       const canvasFirmaO = document.getElementById('canvas_firma_o');
 
@@ -343,7 +362,7 @@ export default {
       }
     },
     handleSucursalChange() {
-      this.currentPage = 0; // Reiniciar la paginación cuando se selecciona una nueva sucursal
+      this.fetchList();
     },
     async confirmRechazar() {
       this.load = true;
@@ -361,6 +380,7 @@ export default {
           firma_o: this.model.firma_o // Incluye la firma del operador
         });
 
+        await this.fetchList();
         this.showSuccessMessage();
         this.resetForm();
       } catch (e) {
@@ -505,7 +525,7 @@ export default {
       try {
         const carteroId = this.user.user.id;
         await this.$api.$put(`solicitudesrecojo/${solicitudeId}`, { cartero_recogida_id: carteroId });
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
         this.$swal.fire({
           icon: 'success',
           title: 'Cartero asignado',
@@ -525,14 +545,14 @@ export default {
 
     async GET_DATA(path) {
       const res = await this.$api.$get(path);
-      this.list = Array.isArray(res) ? res : [];
+      return res;
     },
 
     async EliminarItem(id) {
       this.load = true;
       try {
         await this.$api.$delete(this.apiUrl + '/' + id);
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
       } catch (e) {
         console.log(e);
       } finally {
@@ -561,7 +581,7 @@ export default {
         const item = this.list.find(m => m.id === id);
         if (item) {
           await this.$api.$put(`solicitudesentrega/${id}`, { cartero_entrega_id: carteroId, peso_v: item.peso_v });
-          await this.GET_DATA(this.apiUrl);
+          await this.fetchList();
         }
       } catch (e) {
         console.log(e);
@@ -580,7 +600,8 @@ export default {
       this.isModalVisible = true;
     },
 
-    handleSearchEnter() {
+    async handleSearchEnter() {
+      await this.fetchList();
       this.selectedItemsData = this.filteredData;
       if (this.selectedItemsData.length > 0) {
         this.isModalVisible = true;
@@ -598,7 +619,7 @@ export default {
             console.error('Item inválido:', item);
           }
         }
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
         this.$swal.fire({
           icon: 'success',
           title: 'Carteros asignados',
@@ -629,20 +650,20 @@ export default {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
     },
 
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages - 1) {
-        this.currentPage++;
+        await this.fetchList(this.currentPage + 2);
       }
     },
 
-    previousPage() {
+    async previousPage() {
       if (this.currentPage > 0) {
-        this.currentPage--;
+        await this.fetchList(this.currentPage);
       }
     },
 
-    goToPage(page) {
-      this.currentPage = page;
+    async goToPage(page) {
+      await this.fetchList(page + 1);
     }
   },
 
@@ -650,7 +671,7 @@ export default {
     this.$nextTick(async () => {
       let user = localStorage.getItem('userAuth');
       this.user = JSON.parse(user); try {
-        await this.GET_DATA(this.apiUrl);
+        await this.fetchList();
       } catch (e) {
         console.error(e);
       } finally {
