@@ -831,6 +831,32 @@ handleDeliveredPhotoUpload(event) {
   reader.readAsDataURL(file);
 },
 
+buildDeliveredSaveErrorMessage(error) {
+  const responseData = error?.response?.data || {};
+  const apiError = String(responseData.error || responseData.message || responseData.mensaje || '');
+  const normalizedError = apiError.toLowerCase();
+  const guia = responseData.guia || this.deliveredForm?.guia || '';
+  const isDuplicateGuia =
+    error?.response?.status === 422 && (
+      normalizedError.includes('guia ya existe') ||
+      normalizedError.includes('guia duplicada') ||
+      normalizedError.includes('guias duplicadas') ||
+      normalizedError.includes('numero de guia repetido') ||
+      normalizedError.includes('numero de guia duplicado') ||
+      normalizedError.includes('número de guía repetido') ||
+      normalizedError.includes('número de guía duplicado') ||
+      Boolean(responseData.guia)
+    );
+
+  if (isDuplicateGuia) {
+    return guia
+      ? `La guia ${guia} ya existe. Asigne el paquete para la entrega.`
+      : 'La guia ya existe. Asigne el paquete para la entrega.';
+  }
+
+  return apiError || 'No se pudo guardar el envio entregado.';
+},
+
 async saveDeliveredManual() {
   if (!this.deliveredForm.guia) {
     this.$swal.fire({ icon: 'warning', title: 'Falta guía', text: 'La guía es obligatoria.' });
@@ -890,7 +916,7 @@ async saveDeliveredManual() {
     this.$swal.fire({
       icon: 'error',
       title: 'Error',
-      text: `No se pudo guardar el envío entregado. Revisa consola (F12). Status: ${errorPayload.status ?? 'N/A'}`
+      text: this.buildDeliveredSaveErrorMessage(e)
     });
   } finally {
     this.load = false;
