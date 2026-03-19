@@ -41,9 +41,14 @@
                     <td class="py-0 px-1">{{ item?.direccion_especifica_d ?? item?.direccion_d ?? '-' }}</td>
                     <td class="py-0 px-1">{{ item?.ciudad ?? '-' }}</td>
                     <td class="py-0 px-1">
-                      <button class="btn btn-danger btn-sm w-100" @click="openDarBajaModal(item)">
-                        Dar baja
-                      </button>
+                      <div class="d-flex flex-column action-buttons">
+                        <button class="btn btn-danger btn-sm w-100" @click="openDarBajaModal(item)">
+                          Dar baja
+                        </button>
+                        <button class="btn btn-warning btn-sm w-100" @click="openDevolucionModal(item)">
+                          Devolver a origen
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   <tr v-if="!paginatedData.length">
@@ -122,6 +127,37 @@
         <button class="btn btn-danger ml-2" @click="submitDarBaja">Confirmar baja</button>
       </div>
     </b-modal>
+    <b-modal v-model="isDevolucionModalVisible" title="Devolver a origen" hide-backdrop hide-footer>
+      <div v-if="selectedReturnPackage">
+        <div class="form-group">
+          <label>Codigo del paquete</label>
+          <input class="form-control" :value="selectedReturnPackage?.guia ?? '-'" disabled>
+        </div>
+        <div class="form-group">
+          <label>Observacion</label>
+          <textarea
+            v-model.trim="devolucionForm.observacion"
+            class="form-control"
+            rows="3"
+            placeholder="Detalle por que se devuelve a origen"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label>Foto</label>
+          <input
+            type="file"
+            accept="image/*"
+            class="form-control-file"
+            @change="handleDevolucionImageUpload"
+          >
+          <img v-if="devolucionForm.imagen" :src="devolucionForm.imagen" class="img-fluid mt-2 preview-image" />
+        </div>
+      </div>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary" @click="closeDevolucionModal">Cancelar</button>
+        <button class="btn btn-warning ml-2" @click="submitDevolucion">Confirmar devolucion</button>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -146,9 +182,15 @@ export default {
       pagination: { current_page: 1, last_page: 1, total: 0, per_page: 10 },
       user: {},
       isDarBajaModalVisible: false,
+      isDevolucionModalVisible: false,
       selectedPackage: null,
+      selectedReturnPackage: null,
       darBajaForm: {
         recibidoPor: '',
+        observacion: '',
+        imagen: '',
+      },
+      devolucionForm: {
         observacion: '',
         imagen: '',
       },
@@ -225,6 +267,22 @@ export default {
         imagen: '',
       };
     },
+    openDevolucionModal(item) {
+      this.selectedReturnPackage = item;
+      this.devolucionForm = {
+        observacion: item?.observacion ?? '',
+        imagen: '',
+      };
+      this.isDevolucionModalVisible = true;
+    },
+    closeDevolucionModal() {
+      this.isDevolucionModalVisible = false;
+      this.selectedReturnPackage = null;
+      this.devolucionForm = {
+        observacion: '',
+        imagen: '',
+      };
+    },
     handleImageUpload(event) {
       const file = event?.target?.files?.[0];
       if (!file) {
@@ -235,6 +293,19 @@ export default {
       const reader = new FileReader();
       reader.onload = (e) => {
         this.darBajaForm.imagen = e?.target?.result || '';
+      };
+      reader.readAsDataURL(file);
+    },
+    handleDevolucionImageUpload(event) {
+      const file = event?.target?.files?.[0];
+      if (!file) {
+        this.devolucionForm.imagen = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.devolucionForm.imagen = e?.target?.result || '';
       };
       reader.readAsDataURL(file);
     },
@@ -323,6 +394,43 @@ export default {
         this.load = false;
       }
     },
+    async submitDevolucion() {
+      if (!this.selectedReturnPackage?.id) {
+        this.$swal.fire('Paquete invalido', 'No se encontro el paquete seleccionado.', 'error');
+        return;
+      }
+
+      this.load = true;
+      try {
+        const originalImage = this.devolucionForm.imagen || null;
+        const optimizedImage = originalImage ? await this.optimizeImage(originalImage) : null;
+        const payload = {
+          observacion: this.devolucionForm.observacion || null,
+          fecha_d: this.getFormattedDate(),
+        };
+
+        if (optimizedImage) {
+          payload.imagen = optimizedImage;
+        }
+        if (originalImage) {
+          payload.imagen_original = originalImage;
+        }
+
+        await this.$api.$put(`rechazado/${this.selectedReturnPackage.id}`, payload);
+        await this.fetchList();
+        this.$swal.fire('Paquete devuelto', `Codigo: ${this.selectedReturnPackage?.guia ?? '-'}`, 'success');
+        this.closeDevolucionModal();
+      } catch (e) {
+        console.error('Error al devolver el paquete a origen:', e);
+        this.$swal.fire(
+          'Error al devolver',
+          e?.response?.data?.message || e?.response?.data?.error || 'No se pudo devolver el paquete a origen.',
+          'error'
+        );
+      } finally {
+        this.load = false;
+      }
+    },
     async nextPage() {
       if (this.currentPage < this.totalPages - 1) {
         await this.fetchList(this.currentPage + 2);
@@ -383,5 +491,9 @@ export default {
 .preview-image {
   max-height: 220px;
   object-fit: contain;
+}
+
+.action-buttons > * + * {
+  margin-top: 0.35rem;
 }
 </style>

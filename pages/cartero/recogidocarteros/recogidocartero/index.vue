@@ -612,6 +612,8 @@ export default {
       selectedSolicitudeId: null,
       isManualModalVisible: false,
       sucursales: [],
+      searchDebounceId: null,
+      suppressSearchWatch: false,
       manualForm: {
         sucursale_id: "",
         guia: "",
@@ -654,6 +656,18 @@ export default {
     },
   },
   watch: {
+    searchTerm(newValue, oldValue) {
+      if (this.suppressSearchWatch) {
+        this.suppressSearchWatch = false;
+        return;
+      }
+
+      if (newValue === oldValue) {
+        return;
+      }
+
+      this.scheduleListSearch(newValue);
+    },
     "manualForm.sucursale_id": {
       immediate: true,
       async handler(newVal) {
@@ -735,7 +749,27 @@ export default {
       return String(value || "").replace(/\s+/g, "").trim();
     },
     handleSearchPaste() {
-      this.$nextTick(() => this.handleSearchEnter());
+      this.$nextTick(() => this.scheduleListSearch(this.searchTerm));
+    },
+    scheduleListSearch(search) {
+      if (this.searchDebounceId) {
+        clearTimeout(this.searchDebounceId);
+      }
+
+      this.searchDebounceId = setTimeout(async () => {
+        this.load = true;
+        try {
+          await this.fetchList(1, search);
+        } catch (e) {
+          console.error("Error filtrando solicitudes de recojo:", e);
+        } finally {
+          this.load = false;
+        }
+      }, 250);
+    },
+    clearSearchTermSilently() {
+      this.suppressSearchWatch = true;
+      this.searchTerm = "";
     },
 
     openEmsModal() {
@@ -1154,7 +1188,7 @@ export default {
           title: "Ya seleccionada",
           text: "La guía ya está en la pre-lista.",
         });
-        this.searchTerm = "";
+        this.clearSearchTermSilently();
         return false;
       }
 
@@ -1174,7 +1208,7 @@ export default {
           title: "Ya seleccionada",
           text: "La guía ya está en la pre-lista.",
         });
-        this.searchTerm = "";
+        this.clearSearchTermSilently();
         return false;
       }
 
@@ -1197,14 +1231,19 @@ export default {
       this.selected = {};
       this.selectedItemsData = [];
       this.isModalVisible = false;
-      this.searchTerm = "";
+      this.clearSearchTermSilently();
       return true;
     },
 
     async handleSearchEnter() {
+      if (this.searchDebounceId) {
+        clearTimeout(this.searchDebounceId);
+        this.searchDebounceId = null;
+      }
+
       const rawTerm = this.normalizeSearchTerm(this.searchTerm);
       if (!rawTerm) {
-        this.searchTerm = "";
+        this.clearSearchTermSilently();
         return;
       }
 
@@ -1226,7 +1265,7 @@ export default {
           title: "Sin resultados",
           text: "No se encontró ninguna solicitud con ese criterio.",
         });
-        this.searchTerm = "";
+        this.clearSearchTermSilently();
       }
     },
 
@@ -1262,7 +1301,7 @@ export default {
       this.selected = {}; // Limpiar la selección después de asignar
 
       // Limpiar el campo de búsqueda
-      this.searchTerm = "";
+      this.clearSearchTermSilently();
     },
     async confirmAllAssignments() {
       this.load = true;
@@ -1304,19 +1343,39 @@ export default {
     toggleCollapse(estado) {
       this.$set(this.collapseState, estado, !this.collapseState[estado]);
     },
-    nextPage() {
+    async nextPage() {
       if (this.currentPage < this.totalPages - 1) {
-        this.currentPage++;
+        this.load = true;
+        try {
+          await this.fetchList(this.currentPage + 2);
+        } finally {
+          this.load = false;
+        }
       }
     },
-    previousPage() {
+    async previousPage() {
       if (this.currentPage > 0) {
-        this.currentPage--;
+        this.load = true;
+        try {
+          await this.fetchList(this.currentPage);
+        } finally {
+          this.load = false;
+        }
       }
     },
-    goToPage(page) {
-      this.currentPage = page;
+    async goToPage(page) {
+      this.load = true;
+      try {
+        await this.fetchList(page + 1);
+      } finally {
+        this.load = false;
+      }
     },
+  },
+  beforeDestroy() {
+    if (this.searchDebounceId) {
+      clearTimeout(this.searchDebounceId);
+    }
   },
   mounted() {
     this.$nextTick(async () => {
