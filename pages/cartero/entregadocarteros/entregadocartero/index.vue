@@ -652,6 +652,11 @@ sucursales: [],
 
     const doc = new jsPDF('portrait', 'mm', 'letter');
     const fontSize = 10;
+    const lineHeight = 4.2;
+    const cellPaddingX = 2;
+    const cellPaddingTop = 4.5;
+    const compactFontSize = 8;
+    const compactLineHeight = 3.3;
     doc.setFontSize(fontSize);
 
     const guia = data.guia || '';
@@ -667,22 +672,66 @@ sucursales: [],
 
     const startX = 20;
     const startY = 10;
-    const cellHeight = 10;
+    const headerHeight = 24;
     const cellHeightFirma = 12;
     const cellHeightFirma2 = 15;
     const col1Width = 40;
     const col2Width = 40;
     const col3Width = 100;
+    const leftWidth = col1Width + col2Width;
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    const getWrappedLines = (text, width) => {
+      const safeText = String(text || '').trim();
+      const lines = doc.splitTextToSize(safeText || '-', Math.max(1, width - (cellPaddingX * 2)));
+      return lines.length ? lines : ['-'];
+    };
+
+    const getRowHeight = (lines, minHeight = 10, currentLineHeight = lineHeight) => {
+      return Math.max(minHeight, (lines.length * currentLineHeight) + cellPaddingTop + 2);
+    };
+
+    const drawCellWithLines = (x, y, width, height, lines, options = {}) => {
+      const currentFontSize = options.fontSize || fontSize;
+      const currentLineHeight = options.lineHeight || lineHeight;
+      doc.rect(x, y, width, height);
+      doc.setFontSize(currentFontSize);
+      lines.forEach((line, index) => {
+        doc.text(String(line), x + cellPaddingX, y + cellPaddingTop + (index * currentLineHeight));
+      });
+      doc.setFontSize(fontSize);
+    };
 
     const drawGuide = (x, y) => {
       doc.setFontSize(fontSize);
-      doc.rect(x, y, col1Width + col2Width, cellHeight * 3);
-      doc.rect(x + col1Width + col2Width, y, col3Width, cellHeight * 3);
+      const senderLines = getWrappedLines(`Remitente y origen: ${remitente} / ${sucursalNombre}`, leftWidth);
+      const targetLines = getWrappedLines(`Destinatario y destino: ${destinatario} / ${departamento}`, col3Width);
+      const firstRowHeight = Math.max(
+        getRowHeight(senderLines, 14, compactLineHeight),
+        getRowHeight(targetLines, 14, compactLineHeight)
+      );
+      const branchLines = getWrappedLines(`Sucursal: ${sucursalNombre}`, leftWidth);
+      const departmentLines = getWrappedLines(`Departamento: ${departamento}`, col3Width);
+      const secondRowHeight = Math.max(getRowHeight(branchLines, 10), getRowHeight(departmentLines, 10));
+      const guiaLines = getWrappedLines(`Guia: ${guia}`, leftWidth);
+      const dateLines = getWrappedLines(`Fecha: ${fechaTexto}`, col3Width);
+      const thirdRowHeight = Math.max(getRowHeight(guiaLines, 10), getRowHeight(dateLines, 10));
+      const generatedLines = getWrappedLines('Esta plantilla fue generada manualmente', leftWidth);
+      const copiesLines = getWrappedLines('Copias: 2', col3Width / 2);
+      const correlativoLines = getWrappedLines(`Corr.: ${correlativo}`, col3Width / 2);
+      const fourthRowHeight = Math.max(
+        getRowHeight(generatedLines, 10),
+        getRowHeight(copiesLines, 10),
+        getRowHeight(correlativoLines, 10)
+      );
+
+      doc.rect(x, y, leftWidth, headerHeight);
+      doc.rect(x + leftWidth, y, col3Width, headerHeight);
 
       const barcodeX = x + col1Width + col2Width + 5;
-      const barcodeY = y + 10;
       const barcodeWidth = 70;
       const barcodeHeight = 8;
+      const barcodeY = y + ((headerHeight - barcodeHeight) / 2);
 
       if (EMSImage) {
         doc.addImage(EMSImage, 'PNG', x + 2, y + 2, 30, 10);
@@ -696,38 +745,30 @@ sucursales: [],
       const textX = barcodeX + (barcodeWidth - textWidth) / 2;
       doc.text(guia, textX, barcodeY - 3);
 
-      y += cellHeight * 2;
-      doc.rect(x, y, col1Width + col2Width, cellHeight);
-      doc.text(`Remitente y origen: ${remitente} / ${sucursalNombre}`, x + 2, y + 7);
+      y += headerHeight;
+      drawCellWithLines(x, y, leftWidth, firstRowHeight, senderLines, {
+        fontSize: compactFontSize,
+        lineHeight: compactLineHeight
+      });
+      drawCellWithLines(x + leftWidth, y, col3Width, firstRowHeight, targetLines, {
+        fontSize: compactFontSize,
+        lineHeight: compactLineHeight
+      });
 
-      doc.rect(x + col1Width + col2Width, y, col3Width, cellHeight);
-      doc.text(`Destinatario y destino: ${destinatario} / ${departamento}`, x + col1Width + col2Width + 2, y + 7);
+      y += firstRowHeight;
+      drawCellWithLines(x, y, leftWidth, secondRowHeight, branchLines);
+      drawCellWithLines(x + leftWidth, y, col3Width, secondRowHeight, departmentLines);
 
-      y += cellHeight;
-      doc.rect(x, y, col1Width + col2Width, cellHeight);
-      doc.text(`Sucursal: ${sucursalNombre}`, x + 2, y + 7);
+      y += secondRowHeight;
+      drawCellWithLines(x, y, leftWidth, thirdRowHeight, guiaLines);
+      drawCellWithLines(x + leftWidth, y, col3Width, thirdRowHeight, dateLines);
 
-      doc.rect(x + col1Width + col2Width, y, col3Width, cellHeight);
-      doc.text(`Departamento: ${departamento}`, x + col1Width + col2Width + 2, y + 7);
+      y += thirdRowHeight;
+      drawCellWithLines(x, y, leftWidth, fourthRowHeight, generatedLines);
+      drawCellWithLines(x + leftWidth, y, col3Width / 2, fourthRowHeight, copiesLines);
+      drawCellWithLines(x + leftWidth + col3Width / 2, y, col3Width / 2, fourthRowHeight, correlativoLines);
 
-      y += cellHeight;
-      doc.rect(x, y, col1Width + col2Width, cellHeight);
-      doc.text(`Guia: ${guia}`, x + 2, y + 7);
-
-      doc.rect(x + col1Width + col2Width, y, col3Width, cellHeight);
-      doc.text(`Fecha: ${fechaTexto}`, x + col1Width + col2Width + 2, y + 7);
-
-      y += cellHeight;
-      doc.rect(x, y, col1Width + col2Width, cellHeight);
-      doc.text('Esta plantilla fue generada manualmente', x + 2, y + 7);
-
-      doc.rect(x + col1Width + col2Width, y, col3Width / 2, cellHeight);
-      doc.text('Copias: 2', x + col1Width + col2Width + 2, y + 7);
-
-      doc.rect(x + col1Width + col2Width + col3Width / 2, y, col3Width / 2, cellHeight);
-      doc.text(`Corr.: ${correlativo}`, x + col1Width + col2Width + col3Width / 2 + 2, y + 7);
-
-      y += cellHeight;
+      y += fourthRowHeight;
       doc.rect(x, y, col1Width, cellHeightFirma);
       doc.text('Contratos:', x + 2, y + 7);
 
@@ -741,10 +782,17 @@ sucursales: [],
     };
 
     let lastY = drawGuide(startX, startY);
+    const guideHeight = lastY - startY;
     doc.setFontSize(8);
     doc.text('Esta guia debe ir en la correspondencia rotulada', startX + 2, lastY + 1);
 
-    lastY = drawGuide(startX, startY + 90);
+    const secondGuideY = lastY + 14;
+    if (secondGuideY + guideHeight + 4 > pageHeight) {
+      doc.addPage();
+      lastY = drawGuide(startX, startY);
+    } else {
+      lastY = drawGuide(startX, secondGuideY);
+    }
     doc.setFontSize(8);
     doc.text('Copia de guia', startX + 2, lastY + 1);
 
