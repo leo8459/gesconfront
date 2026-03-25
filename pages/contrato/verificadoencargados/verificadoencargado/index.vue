@@ -373,6 +373,7 @@ export default {
       list: [],
       searchTerm: '',
       apiUrl: 'solicitudes-verificado',
+      reportApiUrl: 'solicitudes4',
       page: 'solicitudes',
       modulo: 'solicitudes',
       url_nuevo: '/admin/solicitudesj/solicitudej/nuevo',
@@ -524,7 +525,7 @@ export default {
       this.empresaOptionsData = Array.isArray(payload?.empresas) ? payload.empresas : [];
       this.numeroContratoOptionsData = Array.isArray(payload?.contratos) ? payload.contratos : [];
     },
-    buildListPath(page = this.currentPage, perPage = this.itemsPerPage) {
+    buildListPath(page = this.currentPage, perPage = this.itemsPerPage, endpoint = this.apiUrl) {
       const params = new URLSearchParams();
       params.set('page', page);
       params.set('per_page', perPage);
@@ -542,7 +543,7 @@ export default {
         }
       });
 
-      return `${this.apiUrl}?${params.toString()}`;
+      return `${endpoint}?${params.toString()}`;
     },
     async hydratePdfJustificacion(items) {
       try {
@@ -1239,14 +1240,14 @@ export default {
       const perPage = 200;
 
       do {
-        const payload = await this.GET_DATA(this.buildListPath(page, perPage));
+        const payload = await this.GET_DATA(this.buildListPath(page, perPage, this.reportApiUrl));
         const pageItems = this.normalizeArrayPayload(payload);
         allItems.push(...pageItems);
         lastPage = Number(payload?.last_page || 1);
         page += 1;
       } while (page <= lastPage);
 
-      return allItems;
+      return allItems.filter((item) => Number(item?.estado) !== 0);
     },
     async elegirTipoDeReporte() {
       const { value: tipoReporte } = await Swal.fire({
