@@ -453,7 +453,7 @@ export default {
     },
 
     filteredData() {
-      return Array.isArray(this.list) ? this.list : [];
+      return this.filterItemsByCurrentSelection(this.list);
     },
 
 
@@ -881,6 +881,10 @@ export default {
       return String(numero || '').trim();
     },
 
+    getCreatedAtFromItem(item) {
+      return item?.created_At || item?.created_at || item?.createdAt || null;
+    },
+
     getSucursalGroupName(sucursal) {
       const rawName = String(sucursal?.nombre || '').trim().toUpperCase();
       if (!rawName) {
@@ -918,6 +922,127 @@ export default {
 
       const parsed = new Date(raw);
       return Number.isNaN(parsed.getTime()) ? null : parsed;
+    },
+
+    isWithinCreatedAtRange(item) {
+      if (!this.startDate && !this.endDate) {
+        return true;
+      }
+
+      const createdAt = this.parseDateTimeFromAny(this.getCreatedAtFromItem(item));
+      if (!createdAt) {
+        return false;
+      }
+
+      let start = null;
+      let end = null;
+
+      if (this.startDate) {
+        start = new Date(`${this.startDate}T00:00:00`);
+      }
+
+      if (this.endDate) {
+        end = new Date(`${this.endDate}T23:59:59.999`);
+      }
+
+      if (start && createdAt < start) {
+        return false;
+      }
+
+      if (end && createdAt > end) {
+        return false;
+      }
+
+      return true;
+    },
+
+    matchesSearchTerm(item) {
+      const term = String(this.searchTerm || '').trim().toLowerCase();
+      if (!term) {
+        return true;
+      }
+
+      const values = [
+        item?.guia,
+        item?.remitente,
+        item?.destinatario,
+        item?.telefono,
+        item?.telefono_d,
+        item?.contenido,
+        item?.fecha,
+        item?.fecha_recojo_c,
+        item?.fecha_d,
+        item?.justificacion,
+        this.getCreatedAtFromItem(item),
+        item?.sucursale?.nombre,
+        item?.sucursale?.pagador,
+        item?.sucursale?.origen,
+        item?.sucursale?.n_contrato,
+        item?.sucursale?.empresa?.nombre,
+        item?.cartero_entrega?.nombre,
+        item?.cartero_recogida?.nombre,
+        item?.direccion?.direccion_especifica,
+        item?.direccion?.zona,
+        item?.direccion_d,
+        item?.zona_d,
+        item?.ciudad,
+        item?.reencaminamiento,
+      ];
+
+      return values.some((value) => String(value || '').toLowerCase().includes(term));
+    },
+
+    matchesCurrentFilters(item) {
+      if (!item || Number(item?.estado) === 0) {
+        return false;
+      }
+
+      if (!this.isWithinCreatedAtRange(item)) {
+        return false;
+      }
+
+      if (!this.matchesSearchTerm(item)) {
+        return false;
+      }
+
+      if (this.selectedSucursalIds.length > 0) {
+        const currentSucursalId = String(item?.sucursale?.id || '');
+        const selectedIds = this.selectedSucursalIds.map((id) => String(id));
+        if (!selectedIds.includes(currentSucursalId)) {
+          return false;
+        }
+      }
+
+      if (this.selectedEmpresa) {
+        const empresa = this.getEmpresaFromItem(item);
+        if (empresa !== this.selectedEmpresa) {
+          return false;
+        }
+      }
+
+      if (this.selectedNumeroContrato) {
+        const numeroContrato = this.getNumeroContratoFromItem(item);
+        if (numeroContrato !== this.selectedNumeroContrato) {
+          return false;
+        }
+      }
+
+      if (this.selectedOrigen) {
+        const origenesSeleccionados = this.getOrigenesSeleccionados(this.selectedOrigen);
+        if (!origenesSeleccionados.includes(this.getOrigenFromItem(item))) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+
+    filterItemsByCurrentSelection(items) {
+      if (!Array.isArray(items)) {
+        return [];
+      }
+
+      return items.filter((item) => this.matchesCurrentFilters(item));
     },
 
     getOrigenesParaReporte(data) {
@@ -1247,7 +1372,7 @@ export default {
         page += 1;
       } while (page <= lastPage);
 
-      return allItems.filter((item) => Number(item?.estado) !== 0);
+      return this.filterItemsByCurrentSelection(allItems);
     },
     async elegirTipoDeReporte() {
       const { value: tipoReporte } = await Swal.fire({
@@ -1279,11 +1404,8 @@ export default {
     async generarReporteResumido() {
       const workbook = new ExcelJS.Workbook();
       const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
-      const origenesReporte = this.getOrigenesSeleccionados(this.selectedOrigen, true);
       const reportData = await this.fetchReportData();
-      const filteredData = reportData.filter((item) =>
-        origenesReporte.includes(this.getOrigenFromItem(item))
-      );
+      const filteredData = reportData;
       const origenesParaReporte = this.getOrigenesParaReporte(filteredData);
 
       if (filteredData.length === 0) {
@@ -1612,11 +1734,8 @@ export default {
       // Obtener el mes en texto a partir de la fecha de inicio
       const selectedMonth = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(startDate);
 
-      const origenesReporte = this.getOrigenesSeleccionados(this.selectedOrigen, true);
       const reportData = await this.fetchReportData();
-      const filteredData = reportData.filter((item) =>
-        origenesReporte.includes(this.getOrigenFromItem(item))
-      );
+      const filteredData = reportData;
       const origenesParaReporte = this.getOrigenesParaReporte(filteredData);
 
       if (filteredData.length === 0) {
@@ -2156,10 +2275,7 @@ export default {
 
     async exportToExcel() {
       const reportData = await this.fetchReportData();
-      const filteredData = reportData.filter(item =>
-        this.selectedSucursalIds.length === 0 ||
-        this.selectedSucursalIds.map(id => String(id)).includes(String(item.sucursale?.id))
-      );
+      const filteredData = reportData;
 
       if (filteredData.length === 0) {
         Swal.fire({
