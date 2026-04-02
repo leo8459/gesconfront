@@ -764,7 +764,6 @@ export default {
 
     buildDetalleReporteRow(item, index) {
       const { ems, express, total } = this.getTarifarioMontosFromItem(item);
-      const { fecha: fechaEntrega, hora: horaEntrega } = this.getFechaHoraEntregaFromItem(item);
       const origenRural = this.getOrigenRuralReporteFromItem(item);
       const destinoRural = this.getRuralReporteFromItem(item);
       const peso = this.getLatestPesoReporteFromItem(item);
@@ -785,11 +784,11 @@ export default {
         ems: ems > 0 ? ems.toFixed(2) : '',
         express: express > 0 ? express.toFixed(2) : '',
         total: total.toFixed(2),
-        fecha_entrega: fechaEntrega,
-        hora_entrega: horaEntrega,
+        fecha_entrega: '',
+        hora_entrega: '',
         a_quien: '',
-        cartero: item?.cartero_entrega?.nombre || '',
-        observaciones: item?.observacion || '',
+        cartero: '',
+        observaciones: '',
       };
     },
 
