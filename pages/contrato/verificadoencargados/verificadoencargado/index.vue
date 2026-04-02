@@ -724,8 +724,8 @@ export default {
       };
     },
 
-    getFechaEnvioFromItem(item) {
-      const parsed = this.parseDateTimeFromAny(item?.fecha_recojo_c || item?.fecha || item?.fecha_d);
+    getFechaSolicitudReporteFromItem(item) {
+      const parsed = this.parseDateTimeFromAny(this.getCreatedAtFromItem(item));
       if (!parsed) return 'S/N';
       const dd = String(parsed.getDate()).padStart(2, '0');
       const mm = String(parsed.getMonth() + 1).padStart(2, '0');
@@ -771,7 +771,7 @@ export default {
 
       return {
         nro: index + 1,
-        fecha_envio: this.getFechaEnvioFromItem(item),
+        fecha_solicitud: this.getFechaSolicitudReporteFromItem(item),
         num_envio: item?.guia || 'S/N',
         origen: this.getOrigenFromItem(item) || 'S/N',
         origen_rural: origenRural ? 'X' : '',
@@ -780,14 +780,12 @@ export default {
         destino_rural: destinoRural ? 'X' : '',
         destino_ciudad: destinoRural ? '' : 'X',
         pieza: 1,
-        contenido: item?.contenido || this.getTipoEnvioReporteFromItem(item),
         peso: peso.toFixed(3),
         ems: ems > 0 ? ems.toFixed(2) : '',
         express: express > 0 ? express.toFixed(2) : '',
         total: total.toFixed(2),
         fecha_entrega: fechaEntrega,
         hora_entrega: horaEntrega,
-        a_quien: item?.destinatario || 'S/N',
         cartero: item?.cartero_entrega?.nombre || 'Por asignar',
         observaciones: item?.observacion || 'S/N',
       };
@@ -796,7 +794,7 @@ export default {
     setupDetalleReporteSheet(worksheet) {
       worksheet.columns = [
         { key: 'nro', width: 6 },
-        { key: 'fecha_envio', width: 14 },
+        { key: 'fecha_solicitud', width: 14 },
         { key: 'num_envio', width: 18 },
         { key: 'origen', width: 12 },
         { key: 'origen_rural', width: 9 },
@@ -805,38 +803,36 @@ export default {
         { key: 'destino_rural', width: 9 },
         { key: 'destino_ciudad', width: 9 },
         { key: 'pieza', width: 8 },
-        { key: 'contenido', width: 18 },
         { key: 'peso', width: 10 },
         { key: 'ems', width: 10 },
         { key: 'express', width: 10 },
         { key: 'total', width: 10 },
         { key: 'fecha_entrega', width: 16 },
         { key: 'hora_entrega', width: 12 },
-        { key: 'a_quien', width: 18 },
         { key: 'cartero', width: 18 },
         { key: 'observaciones', width: 20 },
       ];
 
-      worksheet.mergeCells('A16:O16');
+      worksheet.mergeCells('A16:N16');
       worksheet.getCell('A16').value = 'ENVIO';
-      worksheet.mergeCells('P16:T16');
-      worksheet.getCell('P16').value = 'ENTREGA';
+      worksheet.mergeCells('O16:R16');
+      worksheet.getCell('O16').value = 'ENTREGA';
 
       worksheet.mergeCells('D17:F17');
       worksheet.getCell('D17').value = 'ORIGEN';
       worksheet.mergeCells('G17:I17');
       worksheet.getCell('G17').value = 'DESTINO';
-      worksheet.mergeCells('M17:O17');
-      worksheet.getCell('M17').value = 'TARIFARIO';
+      worksheet.mergeCells('L17:N17');
+      worksheet.getCell('L17').value = 'TARIFARIO';
 
       const headerRow = worksheet.getRow(18);
       headerRow.values = [
         'N°', 'FECHA DE SOLICITUD', 'NUM. DE ENVIO',
         'CIUDAD', 'RURAL', 'LOCAL',
         'CIUDAD.', 'RURAL', 'LOCAL',
-        'PIEZA', 'TIPO DE ENVIO', 'PESO',
+        'PIEZA', 'PESO',
         'EMS', 'EXPRESS', 'TOTAL',
-        'FECHA DE ENTREGA', 'HORA DE ENTREGA', 'A QUIEN SE ENTREGO', 'NOMBRE DEL CARTERO', 'OBSERVACIONES',
+        'FECHA DE ENTREGA', 'HORA DE ENTREGA', 'NOMBRE DEL CARTERO', 'OBSERVACIONES',
       ];
 
       const styleCell = (cell, fillColor) => {
@@ -863,12 +859,12 @@ export default {
         }
       };
 
-      styleRowSegment(16, 1, 15, 'FF9BBB59');
-      styleRowSegment(16, 16, 20, 'FFF4B183');
-      styleRowSegment(17, 1, 15, 'FFD9EAD3');
-      styleRowSegment(17, 16, 20, 'FFFCE4D6');
-      styleRowSegment(18, 1, 15, 'FFD9EAD3');
-      styleRowSegment(18, 16, 20, 'FFFCE4D6');
+      styleRowSegment(16, 1, 14, 'FF9BBB59');
+      styleRowSegment(16, 15, 18, 'FFF4B183');
+      styleRowSegment(17, 1, 14, 'FFD9EAD3');
+      styleRowSegment(17, 15, 18, 'FFFCE4D6');
+      styleRowSegment(18, 1, 14, 'FFD9EAD3');
+      styleRowSegment(18, 15, 18, 'FFFCE4D6');
     },
 
     getEmpresaFromItem(item) {
@@ -1491,7 +1487,7 @@ export default {
         });
 
         const totalRow = worksheet.addRow({
-          contenido: 'TOTAL PESO',
+          pieza: 'TOTAL PESO',
           peso: totalPesoOrigen.toFixed(3),
           express: 'TOTAL BS',
           total: totalBsOrigen.toFixed(2),
@@ -1825,7 +1821,7 @@ export default {
         });
 
         const totalRow = worksheet.addRow({
-          contenido: 'TOTAL PESO',
+          pieza: 'TOTAL PESO',
           peso: totalPesoOrigen.toFixed(3),
           express: 'TOTAL BS',
           total: totalBsOrigen.toFixed(2),
@@ -1848,7 +1844,7 @@ export default {
         });
 
         // Filtro para la fila de cabecera
-        worksheet.autoFilter = `A18:T${Math.max(dataStartRow, worksheet.rowCount)}`;
+        worksheet.autoFilter = `A18:R${Math.max(dataStartRow, worksheet.rowCount)}`;
       }
 
       // Crear la hoja resumen final
@@ -2365,7 +2361,7 @@ export default {
       });
 
       const totalRow = worksheet.addRow({
-        contenido: 'TOTAL PESO',
+        pieza: 'TOTAL PESO',
         peso: totalWeight.toFixed(3),
         express: 'TOTAL BS',
         total: totalAmount.toFixed(2),
