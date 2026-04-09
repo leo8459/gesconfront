@@ -14,7 +14,7 @@
                 <div class="form-group col-12">
                   <h4>Remitente</h4>
                 </div>
-                <CrudCreate100 :model="model" :apiUrl="apiUrl" @success="onSuccess">
+                <CrudCreate100 :model="model" :apiUrl="apiUrl" redirectTo="/sucursal" :autoRedirect="true" @success="onSuccess">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="sucursal">Sucursal</label>

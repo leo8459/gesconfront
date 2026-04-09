@@ -11,7 +11,7 @@
           <div class="col-12">
             <div class="row">
               <div class="col-6">
-            <button class="btn btn-info w-100" @click="$router.back()">
+            <button class="btn btn-info w-100" @click="goBack()">
               Regresar
             </button>
           </div>
@@ -39,6 +39,10 @@
       apiUrl:{
         type:String,
         default:''
+      },
+      redirectTo: {
+        type: String,
+        default: ''
       }
   
     },
@@ -49,6 +53,13 @@
       };
     },
     methods: {
+      goBack() {
+        if (this.redirectTo) {
+          this.$router.push(this.redirectTo);
+          return;
+        }
+        this.$router.back();
+      },
       async Save() {
         this.load = true;
         try {
@@ -64,7 +75,7 @@
             .then((result) => {
               /* Read more about isConfirmed, isDenied below */
               if (result.isConfirmed) {
-                this.$router.back();
+                this.goBack();
               }
             });
         } catch (e) {

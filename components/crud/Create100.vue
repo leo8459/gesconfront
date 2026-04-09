@@ -36,6 +36,14 @@
       apiUrl: {
         type: String,
         default: ''
+      },
+      redirectTo: {
+        type: String,
+        default: ''
+      },
+      autoRedirect: {
+        type: Boolean,
+        default: false
       }
     },
     data() {
@@ -44,6 +52,13 @@
       };
     },
   methods: {
+    goBack() {
+      if (this.redirectTo) {
+        this.$router.push(this.redirectTo);
+        return;
+      }
+      this.$router.back();
+    },
     buildRequestErrorMessage(error) {
       const responseData = error?.response?.data || {};
       const apiError = responseData.error || responseData.message || '';
@@ -117,11 +132,14 @@
           title: "Guardado!",
           showDenyButton: false,
           showCancelButton: false,
-          confirmButtonText: "Ok",
+          confirmButtonText: this.autoRedirect ? undefined : "Ok",
+          showConfirmButton: !this.autoRedirect,
+          timer: this.autoRedirect ? 1200 : undefined,
+          timerProgressBar: this.autoRedirect,
         })
         .then((result) => {
-          if (result.isConfirmed) {
-            this.$router.back();
+          if (this.autoRedirect || result.isConfirmed) {
+            this.goBack();
           }
         });
     } catch (e) {

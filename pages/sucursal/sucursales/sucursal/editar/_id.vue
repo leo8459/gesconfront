@@ -10,7 +10,7 @@
                 <h3>Actualizar</h3>
               </div>
               <div class="card-body">
-                <CrudUpdate2 :model="model" :apiUrl="apiUrl">
+                <CrudUpdate2 :model="model" :apiUrl="apiUrl" redirectTo="/sucursal">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="sucursal">Sucursal</label>
