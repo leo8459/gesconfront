@@ -992,7 +992,8 @@ export default {
     },
 
     matchesCurrentFilters(item) {
-      if (!item || Number(item?.estado) === 0) {
+      const excludedEstados = [0, 6, 11];
+      if (!item || excludedEstados.includes(Number(item?.estado))) {
         return false;
       }
 
