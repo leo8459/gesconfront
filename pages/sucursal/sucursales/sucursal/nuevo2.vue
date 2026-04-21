@@ -14,7 +14,7 @@
                 <div class="form-group col-12">
                   <h4>Remitente</h4>
                 </div>
-                <CrudCreate100 :model="model" :apiUrl="apiUrl" redirectTo="/sucursal" :autoRedirect="true" @success="onSuccess">
+                <CrudCreate100 :model="model" :apiUrl="apiUrl" :required-fields="requiredFields" redirectTo="/sucursal" :autoRedirect="true" @success="onSuccess">
                   <div slot="body" class="row">
                     <div class="form-group col-12">
                       <label for="sucursal">Sucursal</label>
@@ -27,7 +27,7 @@
                     <div class="form-group col-12">
                       <label for="remitente">Remitente</label>
                       <input type="text" v-model.trim="model.remitente" class="form-control" id="remitente"
-                        @input="showRemitenteSuggestions" @blur="hideRemitenteSuggestions" placeholder="Ej: Juan Pérez">
+                        @input="showRemitenteSuggestions" @blur="hideRemitenteSuggestions" placeholder="Ej: Juan Pérez" required>
                       <ul v-if="remitenteSuggestions.length" class="suggestions-list">
                         <li v-for="(suggestion, index) in remitenteSuggestions" :key="index"
                           @click="applyFrequentRemitente(suggestion)">
@@ -40,13 +40,13 @@
                     <div class="form-group col-12">
                       <label for="telefono">Teléfono</label>
                       <input type="number" v-model.trim="model.telefono" class="form-control" id="telefono"
-                        placeholder="Ej: 12345678">
+                        placeholder="Ej: 12345678" required>
                     </div>
 
                     <div class="form-group col-12">
                       <label for="contenido">Contenido</label>
                       <input type="text" v-model.trim="model.contenido" class="form-control" id="contenido"
-                        placeholder="Ej: Documentos">
+                        placeholder="Ej: Documentos" required>
                     </div>
 
                   
@@ -96,7 +96,7 @@
                     <div class="form-group col-12">
                       <label for="destinatario">Destinatario</label>
                       <input type="text" v-model.trim="model.destinatario" class="form-control" id="destinatario"
-                        @input="showSuggestions" @blur="hideSuggestions" placeholder="Ej: María López">
+                        @input="showSuggestions" @blur="hideSuggestions" placeholder="Ej: María López" required>
                       <ul v-if="suggestions.length" class="suggestions-list">
                         <li v-for="(suggestion, index) in suggestions" :key="index" class="suggestion-item"
                           @click="applyFrequentAddress(suggestion)">
@@ -113,7 +113,7 @@
                     </div>
  <div class="form-group col-12">
                       <label for="reencaminamiento">Departamento destino</label>
-                      <select id="reencaminamiento" v-model="model.reencaminamiento" class="form-control">
+                      <select id="reencaminamiento" v-model="model.reencaminamiento" class="form-control" required>
                         <option v-for="departamento in departamentosEnvio" :key="departamento.value" :value="departamento.value">
                           {{ departamento.label }}
                         </option>
@@ -123,7 +123,7 @@
                     <div class="form-group col-12">
                       <label for="telefono_d">Teléfono Destinatario</label>
                       <input type="number" v-model.trim="model.telefono_d" class="form-control" id="telefono_d"
-                        placeholder="Ej: 87654321">
+                        placeholder="Ej: 87654321" required>
                     </div>
 
                     <div class="form-group col-12">
@@ -137,13 +137,13 @@
                     <div class="form-group col-12">
                       <label for="direccion_especifica_d">Dirección</label>
                       <input type="text" v-model.trim="model.direccion_especifica_d" class="form-control"
-                        id="direccion_especifica_d" placeholder="Ej: Calle Principal 456">
+                        id="direccion_especifica_d" placeholder="Ej: Calle Principal 456" required>
                     </div>
 
                     <div class="form-group col-12">
                       <label for="zona_d">Zona Destinatario</label>
                       <input type="text" v-model.trim="model.zona_d" class="form-control" id="zona_d"
-                        placeholder="Ej: Zona Norte">
+                        placeholder="Ej: Zona Norte" required>
                     </div>
 
                     <div class="form-group col-12">
@@ -259,6 +259,17 @@ export default {
 
 
       },
+      requiredFields: [
+        { field: 'remitente', label: 'Remitente' },
+        { field: 'telefono', label: 'Telefono' },
+        { field: 'contenido', label: 'Contenido' },
+        { field: 'direccion_id', label: 'Direccion de Recojo' },
+        { field: 'destinatario', label: 'Destinatario' },
+        { field: 'reencaminamiento', label: 'Departamento destino' },
+        { field: 'telefono_d', label: 'Telefono del Destinatario' },
+        { field: 'direccion_especifica_d', label: 'Direccion' },
+        { field: 'zona_d', label: 'Zona Destinatario' }
+      ],
       apiUrl: 'solicitudes2',
       page: 'solicitudes',
       modulo: 'AGBC',

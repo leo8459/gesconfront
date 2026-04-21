@@ -44,6 +44,19 @@
       autoRedirect: {
         type: Boolean,
         default: false
+      },
+      requiredFields: {
+        type: Array,
+        default: () => [
+          { field: 'remitente', label: 'Remitente' },
+          { field: 'telefono', label: 'Telefono' },
+          { field: 'contenido', label: 'Contenido' },
+          { field: 'direccion_id', label: 'Direccion de Recojo' },
+          { field: 'destinatario', label: 'Destinatario' },
+          { field: 'telefono_d', label: 'Telefono del Destinatario' },
+          { field: 'direccion_especifica_d', label: 'Direccion Especifica del Destinatario' },
+          { field: 'zona_d', label: 'Zona del Destinatario' }
+        ]
       }
     },
     data() {
@@ -79,39 +92,25 @@
 
       return apiError || 'Ocurrió un error al guardar.';
     },
+    isEmptyRequired(value) {
+      return value === null || value === undefined || (typeof value === 'string' && value.trim() === '');
+    },
+    validateRequiredFields() {
+      const missingField = this.requiredFields.find((requiredField) =>
+        this.isEmptyRequired(this.model[requiredField.field])
+      );
+
+      if (missingField) {
+        this.showAlert(`El campo "${missingField.label}" es obligatorio.`);
+        return false;
+      }
+
+      return true;
+    },
     async Save() {
     // Validar que los campos requeridos estén llenos
    
-    if (!this.model.remitente) {
-      this.showAlert('El campo "Remitente" es obligatorio.');
-      return;
-    }
-    if (!this.model.telefono) {
-      this.showAlert('El campo "Teléfono" es obligatorio.');
-      return;
-    }
-    if (!this.model.contenido) {
-      this.showAlert('El campo "Contenido" es obligatorio.');
-      return;
-    }
-    if (!this.model.direccion_id) {
-      this.showAlert('El campo "Dirección de Recojo" es obligatorio.');
-      return;
-    }
-    if (!this.model.destinatario) {
-      this.showAlert('El campo "Destinatario" es obligatorio.');
-      return;
-    }
-    if (!this.model.telefono_d) {
-      this.showAlert('El campo "Teléfono del Destinatario" es obligatorio.');
-      return;
-    }
-    if (!this.model.direccion_especifica_d) {
-      this.showAlert('El campo "Dirección Específica del Destinatario" es obligatorio.');
-      return;
-    }
-    if (!this.model.zona_d) {
-      this.showAlert('El campo "Zona del Destinatario" es obligatorio.');
+    if (!this.validateRequiredFields()) {
       return;
     }
 
