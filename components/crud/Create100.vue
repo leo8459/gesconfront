@@ -309,6 +309,7 @@
     const codigoBarras = data.codigo_barras || '';
     const remitente = data.remitente || '';
     const destinatario = data.destinatario || '';
+    const contenido = data.contenido || (this.model && this.model.contenido) || '';
     const direccionEspecifica = (data.direccion && data.direccion.direccion_especifica) || '';
     const direccionDest = data.direccion_especifica_d || '';
     const telefono = data.telefono || '';
@@ -354,11 +355,14 @@
     const telefonoLines = getWrappedLines(`TELEFONO: ${telefono}`, leftWidth - 6, 2);
     const direccionOrigenLines = getWrappedLines(`Direccion: ${direccionEspecifica}`, leftWidth - 6, 3);
     const departamentoOrigenLines = getWrappedLines(`Departamento: ${origen || '-'}`, leftWidth - 6, 2);
+    const contenidoLines = getWrappedLines(`CONTENIDO: ${contenido || '-'}`, rightWidth - 6, 2);
 
     const hRem = getRowHeight(remitenteLines, 13);
     const hTel = getRowHeight(telefonoLines, 11);
     const hDir = getRowHeight(direccionOrigenLines, 13);
     const hDept = getRowHeight(departamentoOrigenLines, 11);
+    const hContenido = getRowHeight(contenidoLines, 11);
+    const hDeptContenido = Math.max(hDept, hContenido);
     const barcodeBlockHeight = hRem + hTel + hDir;
 
     drawCellWithLines(startX, y, leftWidth, hRem, remitenteLines);
@@ -379,8 +383,9 @@
     }
 
     y += barcodeBlockHeight;
-    drawCellWithLines(startX, y, leftWidth, hDept, departamentoOrigenLines);
-    y += hDept;
+    drawCellWithLines(startX, y, leftWidth, hDeptContenido, departamentoOrigenLines);
+    drawCellWithLines(startX + leftWidth, y, rightWidth, hDeptContenido, contenidoLines);
+    y += hDeptContenido;
 
     const destinatarioLines = getWrappedLines(`DESTINATARIO: ${destinatario}`, rightWidth - 6, 4);
     const hDestinatario = getRowHeight(destinatarioLines, 20);

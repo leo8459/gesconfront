@@ -769,8 +769,10 @@ applyFrequentAddress(address) {
           (position) => {
             this.currentLat_d = position.coords.latitude;
             this.currentLng_d = position.coords.longitude;
-            this.map_d.setView([this.currentLat_d, this.currentLng_d], 14);
-            this.marker_d.setLatLng([this.currentLat_d, this.currentLng_d]);
+            if (this.map_d && this.marker_d) {
+              this.map_d.setView([this.currentLat_d, this.currentLng_d], 14);
+              this.marker_d.setLatLng([this.currentLat_d, this.currentLng_d]);
+            }
           },
           (error) => {
             console.error('Error obteniendo la ubicación:', error);
@@ -805,29 +807,34 @@ applyFrequentAddress(address) {
       const now = moment().tz("America/La_Paz");
       this.model.fecha = now.format('YYYY-MM-DD HH:mm:ss');
       var canvas = document.getElementById('canvas');
-      var signaturePad = new SignaturePad(canvas);
       var clearButton = document.getElementById('limpiar');
       var generateButton = document.getElementById('guardar');
-      clearButton.addEventListener('click', () => {
-        signaturePad.clear();
-        this.model.firma_o = "";
-      });
-      generateButton.addEventListener('click', () => {
-        var firma = signaturePad.toDataURL();
-        this.model.firma_o = firma;
-      });
+      if (canvas && clearButton && generateButton) {
+        var signaturePad = new SignaturePad(canvas);
+        clearButton.addEventListener('click', () => {
+          signaturePad.clear();
+          this.model.firma_o = "";
+        });
+        generateButton.addEventListener('click', () => {
+          var firma = signaturePad.toDataURL();
+          this.model.firma_o = firma;
+        });
+      }
+
       var canvas2 = document.getElementById('canvas2');
-      var signaturePad2 = new SignaturePad(canvas2);
       var clearButton2 = document.getElementById('limpiar2');
       var generateButton2 = document.getElementById('guardar2');
-      clearButton2.addEventListener('click', () => {
-        signaturePad2.clear();
-        this.model.firma_d = "";
-      });
-      generateButton2.addEventListener('click', () => {
-        var firma2 = signaturePad2.toDataURL();
-        this.model.firma_d = firma2;
-      });
+      if (canvas2 && clearButton2 && generateButton2) {
+        var signaturePad2 = new SignaturePad(canvas2);
+        clearButton2.addEventListener('click', () => {
+          signaturePad2.clear();
+          this.model.firma_d = "";
+        });
+        generateButton2.addEventListener('click', () => {
+          var firma2 = signaturePad2.toDataURL();
+          this.model.firma_d = firma2;
+        });
+      }
     });
   }
 }

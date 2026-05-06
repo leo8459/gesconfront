@@ -624,8 +624,8 @@ export default {
         PTI: 'POTOSÍ',
         TJA: 'TARIJA',
         SRE: 'SUCRE',
-        BEN: 'TRINIDAD',
-        CIJ: 'COBIJA',
+        BEN: 'TDD',
+        CIJ: 'CIJ',
       };
       return labels[code] || (code || 'SIN DEPARTAMENTO');
     },
@@ -648,7 +648,7 @@ export default {
       if (!raw) return 'S/N';
       const normalizado = this.normalizeDepartamento(raw);
       const codigos = ['LPB', 'SRZ', 'CBB', 'ORU', 'PTI', 'TJA', 'SRE', 'BEN', 'CIJ'];
-      if (codigos.includes(normalizado)) return normalizado;
+      if (codigos.includes(normalizado)) return normalizado === 'BEN' ? 'TDD' : normalizado;
       return raw.toUpperCase();
     },
 
@@ -724,13 +724,68 @@ export default {
       };
     },
 
+    getExcelReportServiceLabel() {
+      return 'EXPRESS MAIL SERVICE EMS';
+    },
+
+    getExcelReportClientLabel() {
+      return 'GESTORA';
+    },
+
+    getExcelAdjustedDate(value) {
+      const parsed = this.parseDateTimeFromAny(value) || this.parseDate(value);
+      if (!parsed) {
+        return null;
+      }
+
+      const isFebruary2026 = parsed.getFullYear() === 2026 && parsed.getMonth() === 1;
+      if (!isFebruary2026 || parsed.getDate() < 2) {
+        return parsed;
+      }
+
+      return new Date(
+        2026,
+        2,
+        parsed.getDate(),
+        parsed.getHours(),
+        parsed.getMinutes(),
+        parsed.getSeconds(),
+        parsed.getMilliseconds()
+      );
+    },
+
+    formatExcelAdjustedDate(value, useShortYear = false) {
+      const parsed = this.getExcelAdjustedDate(value);
+      if (!parsed) {
+        return 'S/N';
+      }
+
+      const dd = String(parsed.getDate()).padStart(2, '0');
+      const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+      const year = useShortYear ? String(parsed.getFullYear()).slice(-2) : String(parsed.getFullYear());
+      return `${dd}/${mm}/${year}`;
+    },
+
+    getExcelPeriodoLabel() {
+      const start = this.formatExcelAdjustedDate(this.startDate);
+      const end = this.formatExcelAdjustedDate(this.endDate);
+      return `${start} - ${end}`;
+    },
+
+    getExcelSelectedMonthLabel() {
+      const adjustedStartDate = this.getExcelAdjustedDate(this.startDate);
+      const referenceDate = adjustedStartDate || new Date();
+      const month = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(referenceDate);
+      return month.charAt(0).toUpperCase() + month.slice(1);
+    },
+
     getFechaSolicitudReporteFromItem(item) {
-      const parsed = this.parseDateTimeFromAny(this.getCreatedAtFromItem(item));
+      const parsed = this.getExcelAdjustedCreatedAtFromItem(item);
       if (!parsed) return 'S/N';
       const dd = String(parsed.getDate()).padStart(2, '0');
       const mm = String(parsed.getMonth() + 1).padStart(2, '0');
-      const yy = String(parsed.getFullYear()).slice(-2);
-      return `${dd}-${mm}-${yy}`;
+      const yyyy = String(parsed.getFullYear());
+      return `${dd}/${mm}/${yyyy}`;
     },
 
     getDestinoReporteFromItem(item) {
@@ -739,6 +794,9 @@ export default {
 
     getReencaminamientoReporteFromItem(item) {
       const raw = item?.reencaminamiento || item?.ciudad || item?.tarifa?.departamento || '';
+      const normalizado = this.normalizeDepartamento(raw);
+      if (normalizado === 'BEN') return 'TDD';
+      if (normalizado === 'CIJ') return 'CIJ';
       return String(raw || '').trim().toUpperCase() || 'S/N';
     },
 
@@ -746,20 +804,35 @@ export default {
       const candidates = [item?.peso_r, item?.peso_v, item?.peso_o, item?.peso];
 
       for (const candidate of candidates) {
-        const parsed = Number.parseFloat(candidate);
+        const parsed = this.parsePesoReporteValue(candidate);
         if (!Number.isNaN(parsed) && parsed > 0) {
           return parsed;
         }
       }
 
       for (const candidate of candidates) {
-        const parsed = Number.parseFloat(candidate);
+        const parsed = this.parsePesoReporteValue(candidate);
         if (!Number.isNaN(parsed)) {
           return parsed;
         }
       }
 
       return 0;
+    },
+
+    parsePesoReporteValue(value) {
+      if (value === null || value === undefined || value === '') {
+        return Number.NaN;
+      }
+
+      const normalizedValue = String(value).trim().replace(',', '.');
+      return Number.parseFloat(normalizedValue);
+    },
+
+    formatPesoReporteExcel(value) {
+      const parsed = Number.isFinite(value) ? value : this.parsePesoReporteValue(value);
+      const safeValue = Number.isNaN(parsed) ? 0 : parsed;
+      return safeValue.toFixed(3).replace('.', ',');
     },
 
     buildDetalleReporteRow(item, index) {
@@ -780,7 +853,7 @@ export default {
         destino_ciudad: destinoRural ? '' : 'X',
         pieza: 1,
         contenido: '',
-        peso: peso.toFixed(3),
+        peso: this.formatPesoReporteExcel(peso),
         ems: ems > 0 ? ems.toFixed(2) : '',
         express: express > 0 ? express.toFixed(2) : '',
         total: total.toFixed(2),
@@ -954,6 +1027,50 @@ export default {
 
       return true;
     },
+    getExcelAdjustedCreatedAtFromItem(item) {
+      return this.getExcelAdjustedDate(this.getCreatedAtFromItem(item));
+    },
+    isExcludedExcelCreatedAt(item) {
+      const createdAt = this.parseDateTimeFromAny(this.getCreatedAtFromItem(item));
+      if (!createdAt) {
+        return false;
+      }
+
+      return createdAt.getFullYear() === 2026
+        && createdAt.getMonth() === 1
+        && createdAt.getDate() === 27;
+    },
+    isWithinExcelCreatedAtRange(item) {
+      if (!this.startDate && !this.endDate) {
+        return true;
+      }
+
+      const createdAt = this.getExcelAdjustedCreatedAtFromItem(item);
+      if (!createdAt) {
+        return false;
+      }
+
+      let start = null;
+      let end = null;
+
+      if (this.startDate) {
+        start = new Date(`${this.startDate}T00:00:00`);
+      }
+
+      if (this.endDate) {
+        end = new Date(`${this.endDate}T23:59:59.999`);
+      }
+
+      if (start && createdAt < start) {
+        return false;
+      }
+
+      if (end && createdAt > end) {
+        return false;
+      }
+
+      return true;
+    },
 
     matchesSearchTerm(item) {
       const term = String(this.searchTerm || '').trim().toLowerCase();
@@ -1043,6 +1160,70 @@ export default {
       }
 
       return items.filter((item) => this.matchesCurrentFilters(item));
+    },
+    matchesExcelReportFilters(item) {
+      const excludedEstados = [0, 6, 11];
+      if (!item || excludedEstados.includes(Number(item?.estado))) {
+        return false;
+      }
+
+      if (this.isExcludedExcelCreatedAt(item)) {
+        return false;
+      }
+
+      if (!this.isWithinExcelCreatedAtRange(item)) {
+        return false;
+      }
+
+      if (!this.matchesSearchTerm(item)) {
+        return false;
+      }
+
+      if (this.selectedSucursalIds.length > 0) {
+        const currentSucursalId = String(item?.sucursale?.id || '');
+        const selectedIds = this.selectedSucursalIds.map((id) => String(id));
+        if (!selectedIds.includes(currentSucursalId)) {
+          return false;
+        }
+      }
+
+      if (this.selectedEmpresa) {
+        const empresa = this.getEmpresaFromItem(item);
+        if (empresa !== this.selectedEmpresa) {
+          return false;
+        }
+      }
+
+      if (this.selectedNumeroContrato) {
+        const numeroContrato = this.getNumeroContratoFromItem(item);
+        if (numeroContrato !== this.selectedNumeroContrato) {
+          return false;
+        }
+      }
+
+      if (this.selectedOrigen) {
+        const origenesSeleccionados = this.getOrigenesSeleccionados(this.selectedOrigen);
+        if (!origenesSeleccionados.includes(this.getOrigenFromItem(item))) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+
+    sortExcelReportItems(items) {
+      return [...(items || [])].sort((a, b) => {
+        const dateA = this.getExcelAdjustedCreatedAtFromItem(a);
+        const dateB = this.getExcelAdjustedCreatedAtFromItem(b);
+        const timeA = dateA ? dateA.getTime() : 0;
+        const timeB = dateB ? dateB.getTime() : 0;
+
+        if (timeA !== timeB) {
+          return timeA - timeB;
+        }
+
+        return Number(a?.id || 0) - Number(b?.id || 0);
+      });
     },
 
     getOrigenesParaReporte(data) {
@@ -1358,7 +1539,7 @@ export default {
       await this.hydratePdfJustificacion(this.list);
       return this.list;
     },
-    async fetchReportData() {
+    async fetchAllReportData() {
       const allItems = [];
       let page = 1;
       let lastPage = 1;
@@ -1372,7 +1553,17 @@ export default {
         page += 1;
       } while (page <= lastPage);
 
+      return allItems;
+    },
+    async fetchReportData() {
+      const allItems = await this.fetchAllReportData();
       return this.filterItemsByCurrentSelection(allItems);
+    },
+    async fetchExcelReportData() {
+      const allItems = await this.fetchAllReportData();
+      return this.sortExcelReportItems(
+        allItems.filter((item) => this.matchesExcelReportFilters(item))
+      );
     },
     async elegirTipoDeReporte() {
       const { value: tipoReporte } = await Swal.fire({
@@ -1403,8 +1594,8 @@ export default {
 
     async generarReporteResumido() {
       const workbook = new ExcelJS.Workbook();
-      const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
-      const reportData = await this.fetchReportData();
+      const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/ENCABEZADO REPORTE.png'));
+      const reportData = await this.fetchExcelReportData();
       const filteredData = reportData;
       const origenesParaReporte = this.getOrigenesParaReporte(filteredData);
 
@@ -1433,8 +1624,6 @@ export default {
           (item) => this.getOrigenFromItem(item) === origen.codigo
         );
         if (origenData.length === 0) continue;
-        const numeroContratoLabel = this.getNumeroContratoLabelForData(origenData);
-
         const worksheet = workbook.addWorksheet(
           this.getSafeSheetName(`${origen.nombre} (${origen.codigo})`, usedSheetNames)
         );
@@ -1458,16 +1647,16 @@ export default {
         worksheet.getCell('C11').value = origen.nombre;
 
         worksheet.mergeCells('A12:B12');
-        worksheet.getCell('A12').value = 'NUMERO DE CONTRATO:';
-        worksheet.getCell('C12').value = numeroContratoLabel;
+        worksheet.getCell('A12').value = 'SERVICIO:';
+        worksheet.getCell('C12').value = this.getExcelReportServiceLabel();
 
         worksheet.mergeCells('A13:B13');
-        worksheet.getCell('A13').value = 'SUCURSAL:';
-        worksheet.getCell('C13').value = 'TODAS LAS SUCURSALES';
+        worksheet.getCell('A13').value = 'CLIENTE:';
+        worksheet.getCell('C13').value = this.getExcelReportClientLabel();
 
         worksheet.mergeCells('A14:B14');
         worksheet.getCell('A14').value = 'PERIODO:';
-        worksheet.getCell('C14').value = `${this.startDate || 'S/N'} - ${this.endDate || 'S/N'}`;
+        worksheet.getCell('C14').value = this.getExcelPeriodoLabel();
 
         this.setupDetalleReporteSheet(worksheet);
 
@@ -1492,7 +1681,7 @@ export default {
 
         const totalRow = worksheet.addRow({
           pieza: 'TOTAL PESO',
-          peso: totalPesoOrigen.toFixed(3),
+          peso: this.formatPesoReporteExcel(totalPesoOrigen),
           express: 'TOTAL BS',
           total: totalBsOrigen.toFixed(2),
         });
@@ -1538,7 +1727,7 @@ export default {
       };
 
       resumenSheet.mergeCells('B11:F11');
-      resumenSheet.getCell('B11').value = `Mes ${new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date())}`;
+      resumenSheet.getCell('B11').value = `Mes ${this.getExcelSelectedMonthLabel()}`;
       resumenSheet.getCell('B11').alignment = { horizontal: 'center', vertical: 'middle' };
       resumenSheet.getCell('B11').font = { bold: true };
 
@@ -1576,7 +1765,7 @@ export default {
         const numeroContratoLabel = this.getNumeroContratoLabelForData(origenData);
 
         const peso = origenData.reduce((acc, item) => {
-          const value = item.peso_r ? parseFloat(item.peso_r) : parseFloat(item.peso_v);
+          const value = this.getLatestPesoReporteFromItem(item);
           return acc + (Number.isNaN(value) ? 0 : value);
         }, 0);
         const totalGuiasDepto = origenData.length;
@@ -1593,7 +1782,7 @@ export default {
           index: index + 1,
           origen: `${origen.nombre} (${origen.codigo})`,
           numero_contrato: numeroContratoLabel,
-          peso_total: peso.toFixed(3),
+          peso_total: this.formatPesoReporteExcel(peso),
           total_guias: totalGuiasDepto,
           subtotal: subtotal.toFixed(2)
         });
@@ -1612,7 +1801,7 @@ export default {
       // Fila de totales
       const totalRow = resumenSheet.addRow({
         origen: 'TOTAL',
-        peso_total: totalPeso.toFixed(3),
+        peso_total: this.formatPesoReporteExcel(totalPeso),
         total_guias: totalGuias,
         subtotal: totalSubtotal.toFixed(2)
       });
@@ -1712,29 +1901,10 @@ export default {
 
     async generarReporteMultiplesSucursales() {
       const workbook = new ExcelJS.Workbook();
-      const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
+      const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/ENCABEZADO REPORTE.png'));
+      const selectedMonth = this.getExcelSelectedMonthLabel();
 
-      // Formatear las fechas de inicio y fin del periodo
-      const formatDate = (date) => {
-        if (!date) return 'S/N';
-        const d = new Date(date);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        return `${day}/${month}/${year}`;
-      };
-
-      const startDate = this.startDate ? new Date(this.startDate) : new Date();
-      const endDateAdjusted = this.endDate ? new Date(this.endDate) : new Date();
-      endDateAdjusted.setDate(endDateAdjusted.getDate() + 1);
-
-      const formattedStartDate = formatDate(startDate);
-      const formattedEndDateAdjusted = formatDate(endDateAdjusted);
-
-      // Obtener el mes en texto a partir de la fecha de inicio
-      const selectedMonth = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(startDate);
-
-      const reportData = await this.fetchReportData();
+      const reportData = await this.fetchExcelReportData();
       const filteredData = reportData;
       const origenesParaReporte = this.getOrigenesParaReporte(filteredData);
 
@@ -1763,8 +1933,6 @@ export default {
           (item) => this.getOrigenFromItem(item) === origen.codigo
         );
         if (origenData.length === 0) continue;
-        const numeroContratoLabel = this.getNumeroContratoLabelForData(origenData);
-
         const worksheet = workbook.addWorksheet(
           this.getSafeSheetName(`${origen.nombre} (${origen.codigo})`, usedSheetNames)
         );
@@ -1790,17 +1958,17 @@ export default {
         worksheet.getCell('C11').value = origen.nombre;
 
         worksheet.mergeCells('A12:B12');
-        worksheet.getCell('A12').value = 'NUMERO DE CONTRATO:';
-        worksheet.getCell('C12').value = numeroContratoLabel;
+        worksheet.getCell('A12').value = 'SERVICIO:';
+        worksheet.getCell('C12').value = this.getExcelReportServiceLabel();
 
         worksheet.mergeCells('A13:B13');
-        worksheet.getCell('A13').value = 'SUCURSAL:';
-        worksheet.getCell('C13').value = 'TODAS LAS SUCURSALES';
+        worksheet.getCell('A13').value = 'CLIENTE:';
+        worksheet.getCell('C13').value = this.getExcelReportClientLabel();
 
         // Añadir periodo
         worksheet.mergeCells('A14:B14');
         worksheet.getCell('A14').value = 'PERIODO:';
-        worksheet.getCell('C14').value = `${formattedStartDate} - ${formattedEndDateAdjusted}`;
+        worksheet.getCell('C14').value = this.getExcelPeriodoLabel();
 
         this.setupDetalleReporteSheet(worksheet);
 
@@ -1826,7 +1994,7 @@ export default {
 
         const totalRow = worksheet.addRow({
           pieza: 'TOTAL PESO',
-          peso: totalPesoOrigen.toFixed(3),
+          peso: this.formatPesoReporteExcel(totalPesoOrigen),
           express: 'TOTAL BS',
           total: totalBsOrigen.toFixed(2),
         });
@@ -1872,7 +2040,7 @@ export default {
 
       // Campo del Mes
       resumenSheet.mergeCells('B11:F11');
-      resumenSheet.getCell('B11').value = `Mes ${selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1)}`;
+      resumenSheet.getCell('B11').value = `Mes ${selectedMonth}`;
       resumenSheet.getCell('B11').alignment = { horizontal: 'center', vertical: 'middle' };
       resumenSheet.getCell('B11').font = { bold: true };
 
@@ -1906,7 +2074,7 @@ export default {
         const numeroContratoLabel = this.getNumeroContratoLabelForData(origenData);
 
         const peso = origenData.reduce((acc, item) => {
-          const value = item.peso_r ? parseFloat(item.peso_r) : parseFloat(item.peso_v);
+          const value = this.getLatestPesoReporteFromItem(item);
           return acc + (Number.isNaN(value) ? 0 : value);
         }, 0);
         const totalGuiasDepto = origenData.length;
@@ -1923,7 +2091,7 @@ export default {
           index: index + 1,
           origen: `${origen.nombre} (${origen.codigo})`,
           numero_contrato: numeroContratoLabel,
-          peso_total: peso.toFixed(3),
+          peso_total: this.formatPesoReporteExcel(peso),
           total_guias: totalGuiasDepto,
           subtotal: subtotal.toFixed(2)
         });
@@ -1942,7 +2110,7 @@ export default {
       // Fila de totales
       const totalRow = resumenSheet.addRow({
         origen: 'TOTAL',
-        peso_total: totalPeso.toFixed(3),
+        peso_total: this.formatPesoReporteExcel(totalPeso),
         total_guias: totalGuias,
         subtotal: totalSubtotal.toFixed(2)
       });
@@ -2067,11 +2235,11 @@ export default {
 
     async generarReporteUnicaSucursalDetallado() {
       const workbook = new ExcelJS.Workbook();
-      const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
+      const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/ENCABEZADO REPORTE.png'));
 
       // Filtrar los datos para la única sucursal seleccionada
       const selectedIds = this.selectedSucursalIds.map((id) => String(id));
-      const reportData = await this.fetchReportData();
+      const reportData = await this.fetchExcelReportData();
       const filteredData = reportData.filter(item => selectedIds.includes(String(item.sucursale?.id)));
 
       if (filteredData.length === 0) {
@@ -2109,15 +2277,15 @@ export default {
 
       worksheet.mergeCells('A12:B12');
       worksheet.getCell('A12').value = 'SERVICIO:';
-      worksheet.getCell('C12').value = sucursalData[0].tarifa?.servicio || 'S/N';
+      worksheet.getCell('C12').value = this.getExcelReportServiceLabel();
 
       worksheet.mergeCells('A13:B13');
       worksheet.getCell('A13').value = 'CLIENTE:';
-      worksheet.getCell('C13').value = 'EBA LA PAZ';
+      worksheet.getCell('C13').value = this.getExcelReportClientLabel();
 
       worksheet.mergeCells('A14:B14');
       worksheet.getCell('A14').value = 'PERIODO:';
-      worksheet.getCell('C14').value = `${this.startDate} - ${this.endDate}`;
+      worksheet.getCell('C14').value = this.getExcelPeriodoLabel();
 
       this.setupDetalleReporteSheet(worksheet);
 
@@ -2159,7 +2327,7 @@ export default {
       };
 
       resumenSheet.mergeCells('B11:F11');
-      resumenSheet.getCell('B11').value = `Mes ${new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date())}`;
+      resumenSheet.getCell('B11').value = `Mes ${this.getExcelSelectedMonthLabel()}`;
       resumenSheet.getCell('B11').alignment = { horizontal: 'center', vertical: 'middle' };
       resumenSheet.getCell('B11').font = { bold: true };
 
@@ -2183,14 +2351,14 @@ export default {
         };
       });
 
-      const pesoTotal = sucursalData.reduce((total, item) => total + (item.peso_r || item.peso_v || 0), 0);
+      const pesoTotal = sucursalData.reduce((total, item) => total + this.getLatestPesoReporteFromItem(item), 0);
       const totalGuias = sucursalData.length;
       const totalSubtotal = sucursalData.reduce((total, item) => total + (parseFloat(item.nombre_d) || 0), 0);
 
       const resumenRow = resumenSheet.addRow({
         index: 1,
         sucursal: sucursalName,
-        peso_total: pesoTotal.toFixed(3),
+        peso_total: this.formatPesoReporteExcel(pesoTotal),
         total_guias: totalGuias,
         subtotal: totalSubtotal.toFixed(2)
       });
@@ -2207,7 +2375,7 @@ export default {
 
       const totalRow = resumenSheet.addRow({
         sucursal: 'TOTAL',
-        peso_total: pesoTotal.toFixed(3),
+        peso_total: this.formatPesoReporteExcel(pesoTotal),
         total_guias: totalGuias,
         subtotal: totalSubtotal.toFixed(2)
       });
@@ -2274,7 +2442,7 @@ export default {
 
 
     async exportToExcel() {
-      const reportData = await this.fetchReportData();
+      const reportData = await this.fetchExcelReportData();
       const filteredData = reportData;
 
       if (filteredData.length === 0) {
@@ -2290,7 +2458,7 @@ export default {
       const worksheet = workbook.addWorksheet('Solicitudes Entregadas');
 
       // Cargar la imagen del logo y añadirla al Excel
-      const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/reportelogo.png'));
+      const base64Image = await this.loadImageAsBase64(require('@/pages/admin/auth/img/ENCABEZADO REPORTE.png'));
       const imageId = workbook.addImage({
         base64: base64Image,
         extension: 'png',
@@ -2312,28 +2480,15 @@ export default {
 
       worksheet.mergeCells('A12:B12');
       worksheet.getCell('A12').value = 'SERVICIO:';
-      worksheet.getCell('C12').value = filteredData[0]?.tarifa?.servicio || 'S/N';
+      worksheet.getCell('C12').value = this.getExcelReportServiceLabel();
 
       worksheet.mergeCells('A13:B13');
       worksheet.getCell('A13').value = 'CLIENTE:';
-      worksheet.getCell('C13').value = filteredData[0]?.sucursale?.nombre || 'S/N';
-
-      // Formatear las fechas de inicio y fin del periodo
-      const formatDate = (date) => {
-        if (!date) return 'S/N';
-        const d = new Date(date);
-        return d.toLocaleDateString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      };
-      const startDate = this.startDate ? new Date(this.startDate) : new Date();
-      startDate.setDate(startDate.getDate() + 1);
-      const endDateAdjusted = this.endDate ? new Date(this.endDate) : new Date();
-      endDateAdjusted.setDate(endDateAdjusted.getDate() + 1);
-      const formattedStartDate = formatDate(new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()));
-      const formattedEndDateAdjusted = formatDate(endDateAdjusted);
+      worksheet.getCell('C13').value = this.getExcelReportClientLabel();
 
       worksheet.mergeCells('A14:B14');
       worksheet.getCell('A14').value = 'PERIODO:';
-      worksheet.getCell('C14').value = `${formattedStartDate} - ${formattedEndDateAdjusted}`;
+      worksheet.getCell('C14').value = this.getExcelPeriodoLabel();
 
       this.setupDetalleReporteSheet(worksheet);
 
@@ -2366,7 +2521,7 @@ export default {
 
       const totalRow = worksheet.addRow({
         pieza: 'TOTAL PESO',
-        peso: totalWeight.toFixed(3),
+        peso: this.formatPesoReporteExcel(totalWeight),
         express: 'TOTAL BS',
         total: totalAmount.toFixed(2),
       });
