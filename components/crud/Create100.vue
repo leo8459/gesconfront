@@ -452,13 +452,22 @@
       y += rowHeight;
     }
 
-    const footerHeight = 12;
+    const footerHeight = 28;
+    const responsibilityLegend = doc.splitTextToSize(
+      ' El cliente declara que los datos proporcionados son ciertos; y que el contenido cumple con las normas de seguridad postal, bajo su única y exclusiva responsabilidad.',
+      leftWidth + rightWidth - 6
+    );
     doc.rect(startX, y, leftWidth + rightWidth, footerHeight);
     doc.text(
       '................................................................................................................',
       startX + 2,
       y + 8
     );
+    doc.setFontSize(9);
+    responsibilityLegend.forEach((line, index) => {
+      doc.text(line, startX + 2, y + 16 + (index * 5));
+    });
+    doc.setFontSize(fontSize);
 
     doc.save(`Solicitud-${guia}.pdf`);
   }
